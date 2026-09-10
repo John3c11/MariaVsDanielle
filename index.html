@@ -751,11 +751,6 @@
           fetchSheet('QBs', 'A1:A50'),
         ]);
 
-        console.log('Roster rows fetched:', rosterRows.length);
-        console.log('Header row:', rosterRows[0]);
-        console.log('Row 2:', rosterRows[1]);
-        console.log('QB rows:', qbRows.slice(0,5));
-
         // Parse valid QBs
         const validQBs = new Set(qbRows.slice(3).map(r => (r[0] || '').trim()).filter(Boolean));
 
@@ -784,6 +779,22 @@
           }
         }
 
+        // Build pick counts per player per picker from bet history
+        const pickCounts = {}; // { playerName: { Maria: N, Danielle: N } }
+        try {
+          const betRows = await fetchSheet('Winnings', 'D1:H200');
+          for (const r of betRows.slice(1)) {
+            const picker = (r[0] || '').trim();
+            const homePick = (r[3] || '').trim();
+            const awayPick = (r[4] || '').trim();
+            if (!picker) continue;
+            for (const player of [homePick, awayPick].filter(Boolean)) {
+              if (!pickCounts[player]) pickCounts[player] = {};
+              pickCounts[player][picker] = (pickCounts[player][picker] || 0) + 1;
+            }
+          }
+        } catch(e) { console.warn('Could not load pick counts', e); }
+
         // Render divisions
         let html = '';
         for (const [division, divTeams] of Object.entries(DIVISIONS)) {
@@ -799,12 +810,22 @@
             html += `<div class="team-block"><div class="team-name">${teamName}</div><div class="player-list">`;
             for (const { pos, name } of td.players) {
               const isQB = pos === 'QB';
-              const nameClass = isQB && validQBs.has(name) ? 'qb-valid' : isQB ? 'player-name-text' : 'player-name-text';
-              const display = isQB && !validQBs.has(name) ? `${name} <span style="color:#D1D5DB;font-size:11px">(not offered)</span>` : name;
-              html += `<div class="player-row"><span class="pos-label">${pos}</span><span class="${nameClass}">${display}</span></div>`;
+              const nameClass = isQB && validQBs.has(name) ? 'qb-valid' : 'player-name-text';
+              const notOffered = isQB && !validQBs.has(name) ? ` <span style="color:#D1D5DB;font-size:11px">(not offered)</span>` : '';
+              const counts = pickCounts[name] || {};
+              const pickNotes = [];
+              if (counts['Maria']) pickNotes.push(`Maria x${counts['Maria']}`);
+              if (counts['Danielle']) pickNotes.push(`Danielle x${counts['Danielle']}`);
+              const pickNote = pickNotes.length ? `<span style="font-size:10px;color:#9CA3AF;margin-left:6px">${pickNotes.join(', ')}</span>` : '';
+              html += `<div class="player-row"><span class="pos-label">${pos}</span><span class="${nameClass}">${name}${notOffered}${pickNote}</span></div>`;
             }
             for (const extra of td.extras) {
-              html += `<div class="player-row"><span class="pos-label">+</span><span class="player-name-text extra">${extra}</span></div>`;
+              const counts = pickCounts[extra] || {};
+              const pickNotes = [];
+              if (counts['Maria']) pickNotes.push(`Maria x${counts['Maria']}`);
+              if (counts['Danielle']) pickNotes.push(`Danielle x${counts['Danielle']}`);
+              const pickNote = pickNotes.length ? `<span style="font-size:10px;color:#9CA3AF;margin-left:6px">${pickNotes.join(', ')}</span>` : '';
+              html += `<div class="player-row"><span class="pos-label">+</span><span class="player-name-text extra">${extra}${pickNote}</span></div>`;
             }
             html += `</div></div>`;
           }
@@ -1188,11 +1209,6 @@
           fetchSheet('QBs', 'A1:A50'),
         ]);
 
-        console.log('Roster rows fetched:', rosterRows.length);
-        console.log('Header row:', rosterRows[0]);
-        console.log('Row 2:', rosterRows[1]);
-        console.log('QB rows:', qbRows.slice(0,5));
-
         // Parse valid QBs
         const validQBs = new Set(qbRows.slice(3).map(r => (r[0] || '').trim()).filter(Boolean));
 
@@ -1221,6 +1237,22 @@
           }
         }
 
+        // Build pick counts per player per picker from bet history
+        const pickCounts = {}; // { playerName: { Maria: N, Danielle: N } }
+        try {
+          const betRows = await fetchSheet('Winnings', 'D1:H200');
+          for (const r of betRows.slice(1)) {
+            const picker = (r[0] || '').trim();
+            const homePick = (r[3] || '').trim();
+            const awayPick = (r[4] || '').trim();
+            if (!picker) continue;
+            for (const player of [homePick, awayPick].filter(Boolean)) {
+              if (!pickCounts[player]) pickCounts[player] = {};
+              pickCounts[player][picker] = (pickCounts[player][picker] || 0) + 1;
+            }
+          }
+        } catch(e) { console.warn('Could not load pick counts', e); }
+
         // Render divisions
         let html = '';
         for (const [division, divTeams] of Object.entries(DIVISIONS)) {
@@ -1236,12 +1268,22 @@
             html += `<div class="team-block"><div class="team-name">${teamName}</div><div class="player-list">`;
             for (const { pos, name } of td.players) {
               const isQB = pos === 'QB';
-              const nameClass = isQB && validQBs.has(name) ? 'qb-valid' : isQB ? 'player-name-text' : 'player-name-text';
-              const display = isQB && !validQBs.has(name) ? `${name} <span style="color:#D1D5DB;font-size:11px">(not offered)</span>` : name;
-              html += `<div class="player-row"><span class="pos-label">${pos}</span><span class="${nameClass}">${display}</span></div>`;
+              const nameClass = isQB && validQBs.has(name) ? 'qb-valid' : 'player-name-text';
+              const notOffered = isQB && !validQBs.has(name) ? ` <span style="color:#D1D5DB;font-size:11px">(not offered)</span>` : '';
+              const counts = pickCounts[name] || {};
+              const pickNotes = [];
+              if (counts['Maria']) pickNotes.push(`Maria x${counts['Maria']}`);
+              if (counts['Danielle']) pickNotes.push(`Danielle x${counts['Danielle']}`);
+              const pickNote = pickNotes.length ? `<span style="font-size:10px;color:#9CA3AF;margin-left:6px">${pickNotes.join(', ')}</span>` : '';
+              html += `<div class="player-row"><span class="pos-label">${pos}</span><span class="${nameClass}">${name}${notOffered}${pickNote}</span></div>`;
             }
             for (const extra of td.extras) {
-              html += `<div class="player-row"><span class="pos-label">+</span><span class="player-name-text extra">${extra}</span></div>`;
+              const counts = pickCounts[extra] || {};
+              const pickNotes = [];
+              if (counts['Maria']) pickNotes.push(`Maria x${counts['Maria']}`);
+              if (counts['Danielle']) pickNotes.push(`Danielle x${counts['Danielle']}`);
+              const pickNote = pickNotes.length ? `<span style="font-size:10px;color:#9CA3AF;margin-left:6px">${pickNotes.join(', ')}</span>` : '';
+              html += `<div class="player-row"><span class="pos-label">+</span><span class="player-name-text extra">${extra}${pickNote}</span></div>`;
             }
             html += `</div></div>`;
           }

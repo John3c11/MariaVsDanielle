@@ -7,6 +7,96 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    .tabs-nav {
+      display: flex;
+      gap: 0;
+      margin-bottom: 36px;
+      border-bottom: 1.5px solid #1C1C1E;
+    }
+
+    .tab-btn {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 10px 20px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: #9CA3AF;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1.5px;
+    }
+
+    .tab-btn.active {
+      color: #1C1C1E;
+      border-bottom: 2px solid #1C1C1E;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Rosters tab */
+    .division-block { margin-bottom: 24px; }
+
+    .division-header {
+      font-size: 11px;
+      font-weight: 600;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 10px 0 8px;
+      border-bottom: 0.5px solid #E5E7EB;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+
+    .division-header:hover { color: #6B7280; }
+    .division-chevron { font-size: 10px; transition: transform 0.2s; }
+    .division-header.open .division-chevron { transform: rotate(180deg); }
+
+    .division-teams { display: none; padding-top: 8px; }
+    .division-teams.open { display: block; }
+
+    .team-block {
+      margin-bottom: 16px;
+      padding: 14px 16px;
+      background: #F9FAFB;
+      border-radius: 8px;
+    }
+
+    .team-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1C1C1E;
+      margin-bottom: 10px;
+    }
+
+    .player-list { display: flex; flex-direction: column; gap: 4px; }
+
+    .player-row {
+      display: flex;
+      gap: 10px;
+      font-size: 13px;
+      align-items: baseline;
+    }
+
+    .pos-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      min-width: 32px;
+    }
+
+    .player-name-text { color: #1C1C1E; }
+    .player-name-text.qb-valid { color: #065F46; font-weight: 500; }
+    .player-name-text.extra { color: #6B7280; }
+
+  
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
@@ -260,6 +350,12 @@
 </head>
 <body>
   <div class="wrap">
+    <nav class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab('stats')">Stats</button>
+      <button class="tab-btn" onclick="switchTab('rosters')">Rosters</button>
+    </nav>
+
+    <div id="tab-stats" class="tab-panel active">
     <header>
       <h1>2026 Touchdown Bets</h1>
       <div class="vs-row">
@@ -289,6 +385,12 @@
 
     <div class="section-title">Recent Bets</div>
     <div id="bet-history"><div class="loading">Loading bets...</div></div>
+
+    </div><!-- end tab-stats -->
+
+    <div id="tab-rosters" class="tab-panel">
+      <div id="rosters-content"><div class="loading">Loading rosters...</div></div>
+    </div>
 
     <footer>Data pulled from Google Sheets · Refresh to update</footer>
   </div>
@@ -470,6 +572,91 @@
     }
 
     load();
+    loadRosters();
+
+    function switchTab(name) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelector(`.tab-btn[onclick="switchTab('${name}')"]`).classList.add('active');
+      document.getElementById('tab-' + name).classList.add('active');
+    }
+
+    function toggleDivision(el) {
+      el.classList.toggle('open');
+      el.nextElementSibling.classList.toggle('open');
+    }
+
+    const DIVISIONS = {"NFC East": ["Philadelphia Eagles", "New York Giants", "Dallas Cowboys", "Washington Commanders"], "NFC North": ["Detroit Lions", "Green Bay Packers", "Minnesota Vikings", "Chicago Bears"], "NFC South": ["Tampa Bay Buccaneers", "Atlanta Falcons", "Carolina Panthers", "New Orleans Saints"], "NFC West": ["Los Angeles Rams", "Seattle Seahawks", "San Francisco 49ers", "Arizona Cardinals"], "AFC East": ["Buffalo Bills", "New York Jets", "New England Patriots", "Miami Dolphins"], "AFC North": ["Baltimore Ravens", "Cincinnati Bengals", "Pittsburgh Steelers", "Cleveland Browns"], "AFC South": ["Indianapolis Colts", "Jacksonville Jaguars", "Houston Texans", "Tennessee Titans"], "AFC West": ["Kansas City Chiefs", "Los Angeles Chargers", "Denver Broncos", "Las Vegas Raiders"]};
+
+    async function loadRosters() {
+      try {
+        const [rosterRows, qbRows] = await Promise.all([
+          fetchSheet('Rosters', 'A1:AG10'),
+          fetchSheet('QBs', 'A1:A50'),
+        ]);
+
+        // Parse valid QBs
+        const validQBs = new Set(qbRows.slice(3).map(r => (r[0] || '').trim()).filter(Boolean));
+
+        // Parse roster header (team names in row 1, cols B onward)
+        const header = rosterRows[0];
+        const teams = header.slice(1).map(t => (t || '').trim()).filter(Boolean);
+
+        // Parse positions and players
+        const POSITIONS = ['WR1','RB1','WR2','QB','TE','WR3'];
+        const posRows = rosterRows.slice(1, 7); // rows 2-7 = positions
+        const extraRows = rosterRows.slice(7).filter(r => r.some(c => c));
+
+        // Build team data: teamName -> {pos: player, extras: []}
+        const teamData = {};
+        for (let ti = 0; ti < teams.length; ti++) {
+          const col = ti + 1;
+          const team = teams[ti];
+          teamData[team] = { players: [], extras: [] };
+          for (let pi = 0; pi < POSITIONS.length; pi++) {
+            const player = (posRows[pi] && posRows[pi][col] || '').trim();
+            if (player) teamData[team].players.push({ pos: POSITIONS[pi], name: player });
+          }
+          for (const er of extraRows) {
+            const extra = (er[col] || '').trim();
+            if (extra) teamData[team].extras.push(extra);
+          }
+        }
+
+        // Render divisions
+        let html = '';
+        for (const [division, divTeams] of Object.entries(DIVISIONS)) {
+          html += `<div class="division-block">
+            <div class="division-header" onclick="toggleDivision(this)">
+              ${division} <span class="division-chevron">▼</span>
+            </div>
+            <div class="division-teams">`;
+
+          for (const teamName of divTeams) {
+            const td = teamData[teamName];
+            if (!td) continue;
+            html += `<div class="team-block"><div class="team-name">${teamName}</div><div class="player-list">`;
+            for (const { pos, name } of td.players) {
+              const isQB = pos === 'QB';
+              const nameClass = isQB && validQBs.has(name) ? 'qb-valid' : isQB ? 'player-name-text' : 'player-name-text';
+              const display = isQB && !validQBs.has(name) ? `${name} <span style="color:#D1D5DB;font-size:11px">(not offered)</span>` : name;
+              html += `<div class="player-row"><span class="pos-label">${pos}</span><span class="${nameClass}">${display}</span></div>`;
+            }
+            for (const extra of td.extras) {
+              html += `<div class="player-row"><span class="pos-label">+</span><span class="player-name-text extra">${extra}</span></div>`;
+            }
+            html += `</div></div>`;
+          }
+
+          html += `</div></div>`;
+        }
+
+        document.getElementById('rosters-content').innerHTML = html;
+      } catch(e) {
+        console.error(e);
+        document.getElementById('rosters-content').innerHTML = '<div class="loading">Error loading rosters.</div>';
+      }
+    }
   </script>
   <script>
     const SHEET_ID = '1eokxqa-RCuH4qNh486OMSnIeZdXbhHnw_FygbzUwGj4';
@@ -722,6 +909,91 @@
     }
 
     load();
+    loadRosters();
+
+    function switchTab(name) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelector(`.tab-btn[onclick="switchTab('${name}')"]`).classList.add('active');
+      document.getElementById('tab-' + name).classList.add('active');
+    }
+
+    function toggleDivision(el) {
+      el.classList.toggle('open');
+      el.nextElementSibling.classList.toggle('open');
+    }
+
+    const DIVISIONS = {"NFC East": ["Philadelphia Eagles", "New York Giants", "Dallas Cowboys", "Washington Commanders"], "NFC North": ["Detroit Lions", "Green Bay Packers", "Minnesota Vikings", "Chicago Bears"], "NFC South": ["Tampa Bay Buccaneers", "Atlanta Falcons", "Carolina Panthers", "New Orleans Saints"], "NFC West": ["Los Angeles Rams", "Seattle Seahawks", "San Francisco 49ers", "Arizona Cardinals"], "AFC East": ["Buffalo Bills", "New York Jets", "New England Patriots", "Miami Dolphins"], "AFC North": ["Baltimore Ravens", "Cincinnati Bengals", "Pittsburgh Steelers", "Cleveland Browns"], "AFC South": ["Indianapolis Colts", "Jacksonville Jaguars", "Houston Texans", "Tennessee Titans"], "AFC West": ["Kansas City Chiefs", "Los Angeles Chargers", "Denver Broncos", "Las Vegas Raiders"]};
+
+    async function loadRosters() {
+      try {
+        const [rosterRows, qbRows] = await Promise.all([
+          fetchSheet('Rosters', 'A1:AG10'),
+          fetchSheet('QBs', 'A1:A50'),
+        ]);
+
+        // Parse valid QBs
+        const validQBs = new Set(qbRows.slice(3).map(r => (r[0] || '').trim()).filter(Boolean));
+
+        // Parse roster header (team names in row 1, cols B onward)
+        const header = rosterRows[0];
+        const teams = header.slice(1).map(t => (t || '').trim()).filter(Boolean);
+
+        // Parse positions and players
+        const POSITIONS = ['WR1','RB1','WR2','QB','TE','WR3'];
+        const posRows = rosterRows.slice(1, 7); // rows 2-7 = positions
+        const extraRows = rosterRows.slice(7).filter(r => r.some(c => c));
+
+        // Build team data: teamName -> {pos: player, extras: []}
+        const teamData = {};
+        for (let ti = 0; ti < teams.length; ti++) {
+          const col = ti + 1;
+          const team = teams[ti];
+          teamData[team] = { players: [], extras: [] };
+          for (let pi = 0; pi < POSITIONS.length; pi++) {
+            const player = (posRows[pi] && posRows[pi][col] || '').trim();
+            if (player) teamData[team].players.push({ pos: POSITIONS[pi], name: player });
+          }
+          for (const er of extraRows) {
+            const extra = (er[col] || '').trim();
+            if (extra) teamData[team].extras.push(extra);
+          }
+        }
+
+        // Render divisions
+        let html = '';
+        for (const [division, divTeams] of Object.entries(DIVISIONS)) {
+          html += `<div class="division-block">
+            <div class="division-header" onclick="toggleDivision(this)">
+              ${division} <span class="division-chevron">▼</span>
+            </div>
+            <div class="division-teams">`;
+
+          for (const teamName of divTeams) {
+            const td = teamData[teamName];
+            if (!td) continue;
+            html += `<div class="team-block"><div class="team-name">${teamName}</div><div class="player-list">`;
+            for (const { pos, name } of td.players) {
+              const isQB = pos === 'QB';
+              const nameClass = isQB && validQBs.has(name) ? 'qb-valid' : isQB ? 'player-name-text' : 'player-name-text';
+              const display = isQB && !validQBs.has(name) ? `${name} <span style="color:#D1D5DB;font-size:11px">(not offered)</span>` : name;
+              html += `<div class="player-row"><span class="pos-label">${pos}</span><span class="${nameClass}">${display}</span></div>`;
+            }
+            for (const extra of td.extras) {
+              html += `<div class="player-row"><span class="pos-label">+</span><span class="player-name-text extra">${extra}</span></div>`;
+            }
+            html += `</div></div>`;
+          }
+
+          html += `</div></div>`;
+        }
+
+        document.getElementById('rosters-content').innerHTML = html;
+      } catch(e) {
+        console.error(e);
+        document.getElementById('rosters-content').innerHTML = '<div class="loading">Error loading rosters.</div>';
+      }
+    }
   </script>
 </body>
 </html>

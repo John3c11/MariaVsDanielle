@@ -202,6 +202,50 @@
 
     .bet-units { font-size: 12px; color: #9CA3AF; }
 
+    .live-game-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1C1C1E;
+      margin-bottom: 12px;
+    }
+
+    .live-picks-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .live-pick-card {
+      background: #F9FAFB;
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+
+    .live-pick-card .picker-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+
+    .live-pick-card.maria .picker-label { color: #B45309; }
+    .live-pick-card.danielle .picker-label { color: #1D4ED8; }
+
+    .live-pick-card .pick-player {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1C1C1E;
+      margin-bottom: 4px;
+    }
+
+    .live-pick-card .pick-odds {
+      font-size: 13px;
+      color: #6B7280;
+    }
+
+    .no-live { color: #9CA3AF; font-size: 14px; }
+
     footer {
       font-size: 12px;
       color: #D1D5DB;
@@ -238,6 +282,11 @@
 
     <hr class="divider">
 
+    <div class="section-title">Live Picks</div>
+    <div id="live-picks"><div class="loading">Loading...</div></div>
+
+    <hr class="divider">
+
     <div class="section-title">Recent Bets</div>
     <div id="bet-history"><div class="loading">Loading bets...</div></div>
 
@@ -246,7 +295,7 @@
 
   <script src="config.js"></script>
   <script>
-    const SHEET_ID = '1eokxqa-RCuH4qNh486OMSnIeZdXbhHnw_FygbzUwGj4';
+    const SHEET_ID = '1HpBaJuRKRZ6dhSBDyeWxnlAIWGU2KHgp';
     const API_KEY = CONFIG.API_KEY;
 
     async function fetchSheet(tabName, range) {
@@ -380,11 +429,117 @@
           }).join('');
         }
 
+        // Live picks — find most recent game where First Scorer (col L, index 11) is empty
+        const liveEl = document.getElementById('live-picks');
+        // Find the most recent week/game with no first scorer
+        const pendingRows = rows.filter(r => !r[11] || r[11].trim() === '');
+        if (pendingRows.length === 0) {
+          liveEl.innerHTML = '<div class="no-live">No pending picks — all games have been scored.</div>';
+        } else {
+          // Get the first pending game number
+          const pendingGame = pendingRows[0][0];
+          const gameRows = pendingRows.filter(r => r[0] === pendingGame);
+          const mariaRow = gameRows.find(r => r[3] === 'Maria');
+          const danielleRow = gameRows.find(r => r[3] === 'Danielle');
+          const gameTitle = mariaRow ? `${mariaRow[4]} vs ${mariaRow[5]}` : danielleRow ? `${danielleRow[4]} vs ${danielleRow[5]}` : 'Upcoming Game';
+
+          function formatOdds(val) {
+            if (!val) return '—';
+            const n = parseFloat(val);
+            if (isNaN(n)) return val;
+            return '+' + Math.round(n * 100);
+          }
+
+          function getPickAndOdds(row) {
+            if (!row) return { player: '—', odds: '—' };
+            // Home Team Pick (col G, index 6), Away Team Pick (col H, index 7)
+            // Home odds (col I, index 8), Away odds (col J, index 9)
+            const homePick = row[6] || '';
+            const awayPick = row[7] || '';
+            const homeOdds = row[8] || '';
+            const awayOdds = row[9] || '';
+            if (homePick) return { player: homePick, odds: formatOdds(homeOdds) };
+            if (awayPick) return { player: awayPick, odds: formatOdds(awayOdds) };
+            return { player: '—', odds: '—' };
+          }
+
+          const mariaPick = getPickAndOdds(mariaRow);
+          const daniellePick = getPickAndOdds(danielleRow);
+
+          liveEl.innerHTML = `
+            <div class="live-game-title">${gameTitle}</div>
+            <div class="live-picks-grid">
+              <div class="live-pick-card maria">
+                <div class="picker-label">Maria</div>
+                <div class="pick-player">${mariaPick.player}</div>
+                <div class="pick-odds">${mariaPick.odds}</div>
+              </div>
+              <div class="live-pick-card danielle">
+                <div class="picker-label">Danielle</div>
+                <div class="pick-player">${daniellePick.player}</div>
+                <div class="pick-odds">${daniellePick.odds}</div>
+              </div>
+            </div>`;
+        }
+
         document.getElementById('last-updated').textContent =
           `Last refreshed ${new Date().toLocaleString()}`;
 
       } catch (e) {
         console.error(e);
+        // Live picks — find most recent game where First Scorer (col L, index 11) is empty
+        const liveEl = document.getElementById('live-picks');
+        // Find the most recent week/game with no first scorer
+        const pendingRows = rows.filter(r => !r[11] || r[11].trim() === '');
+        if (pendingRows.length === 0) {
+          liveEl.innerHTML = '<div class="no-live">No pending picks — all games have been scored.</div>';
+        } else {
+          // Get the first pending game number
+          const pendingGame = pendingRows[0][0];
+          const gameRows = pendingRows.filter(r => r[0] === pendingGame);
+          const mariaRow = gameRows.find(r => r[3] === 'Maria');
+          const danielleRow = gameRows.find(r => r[3] === 'Danielle');
+          const gameTitle = mariaRow ? `${mariaRow[4]} vs ${mariaRow[5]}` : danielleRow ? `${danielleRow[4]} vs ${danielleRow[5]}` : 'Upcoming Game';
+
+          function formatOdds(val) {
+            if (!val) return '—';
+            const n = parseFloat(val);
+            if (isNaN(n)) return val;
+            return '+' + Math.round(n * 100);
+          }
+
+          function getPickAndOdds(row) {
+            if (!row) return { player: '—', odds: '—' };
+            // Home Team Pick (col G, index 6), Away Team Pick (col H, index 7)
+            // Home odds (col I, index 8), Away odds (col J, index 9)
+            const homePick = row[6] || '';
+            const awayPick = row[7] || '';
+            const homeOdds = row[8] || '';
+            const awayOdds = row[9] || '';
+            if (homePick) return { player: homePick, odds: formatOdds(homeOdds) };
+            if (awayPick) return { player: awayPick, odds: formatOdds(awayOdds) };
+            return { player: '—', odds: '—' };
+          }
+
+          const mariaPick = getPickAndOdds(mariaRow);
+          const daniellePick = getPickAndOdds(danielleRow);
+
+          liveEl.innerHTML = `
+            <div class="live-game-title">${gameTitle}</div>
+            <div class="live-picks-grid">
+              <div class="live-pick-card maria">
+                <div class="picker-label">Maria</div>
+                <div class="pick-player">${mariaPick.player}</div>
+                <div class="pick-odds">${mariaPick.odds}</div>
+              </div>
+              <div class="live-pick-card danielle">
+                <div class="picker-label">Danielle</div>
+                <div class="pick-player">${daniellePick.player}</div>
+                <div class="pick-odds">${daniellePick.odds}</div>
+              </div>
+            </div>`;
+        }
+
         document.getElementById('last-updated').textContent = 'Error loading data — check console';
       }
     }

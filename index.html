@@ -346,6 +346,55 @@
     }
 
     .loading { color: #9CA3AF; font-size: 14px; text-align: center; padding: 24px; }
+
+    .history-row {
+      display: grid;
+      grid-template-columns: 40px 1fr 80px 1fr 70px 60px 50px;
+      gap: 8px;
+      padding: 10px 0;
+      border-bottom: 0.5px solid #F3F4F6;
+      font-size: 12px;
+      align-items: center;
+    }
+
+    .history-row.header {
+      font-size: 10px;
+      font-weight: 600;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding-bottom: 8px;
+    }
+
+    .history-row:last-child { border-bottom: none; }
+
+    .h-week { color: #9CA3AF; text-align: center; }
+    .h-game { font-weight: 500; color: #1C1C1E; }
+    .h-picker.maria { color: #B45309; font-weight: 500; }
+    .h-picker.danielle { color: #1D4ED8; font-weight: 500; }
+    .h-player { color: #1C1C1E; }
+    .h-odds { color: #6B7280; }
+    .h-units { text-align: right; font-weight: 500; }
+    .h-units.pos { color: #065F46; }
+    .h-units.neg { color: #DC2626; }
+    .h-units.zero { color: #9CA3AF; }
+
+    .h-result {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-align: center;
+    }
+    .h-result.win { background:#D1FAE5; color:#065F46; }
+    .h-result.loss { background:#FEE2E2; color:#991B1B; }
+    .h-result.na { background:#F3F4F6; color:#9CA3AF; }
+
+    .not-offered-note {
+      font-size: 10px;
+      color: #9CA3AF;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
@@ -353,6 +402,7 @@
     <nav class="tabs-nav">
       <button class="tab-btn active" onclick="switchTab('stats')">Stats</button>
       <button class="tab-btn" onclick="switchTab('rosters')">Rosters</button>
+      <button class="tab-btn" onclick="switchTab('history')">Bet History</button>
     </nav>
 
     <div id="tab-stats" class="tab-panel active">
@@ -390,6 +440,16 @@
 
     <div id="tab-rosters" class="tab-panel">
       <div id="rosters-content"><div class="loading">Loading rosters...</div></div>
+    </div>
+
+    <div id="tab-history" class="tab-panel">
+      <div style="margin-bottom:16px;">
+        <input type="text" id="history-search" placeholder="Search player, team, week, or picker..." oninput="filterHistory()"
+          style="width:100%; padding:10px 14px; font-family:'Inter',sans-serif; font-size:14px;
+          border:0.5px solid #E5E7EB; border-radius:8px; background:#F9FAFB; color:#1C1C1E; outline:none;">
+      </div>
+      <div id="history-count" style="font-size:12px; color:#9CA3AF; margin-bottom:12px;"></div>
+      <div id="history-table"><div class="loading">Loading bet history...</div></div>
     </div>
 
     <footer>Data pulled from Google Sheets · Refresh to update</footer>
@@ -573,6 +633,102 @@
 
     load();
     loadRosters();
+    loadHistory();
+
+    let ALL_HISTORY_ROWS = [];
+
+    async function loadHistory() {
+      try {
+        const bets = await fetchSheet('Winnings', 'A1:R200');
+        const rows = bets.slice(1).filter(r => r[0] && r[3]);
+
+        const historyData = [];
+        for (const r of rows) {
+          const week = r[1] || '';
+          const time = r[2] || '';
+          const picker = (r[3] || '').trim();
+          const homeTeam = r[4] || '';
+          const awayTeam = r[5] || '';
+          const homePick = (r[6] || '').trim();
+          const awayPick = (r[7] || '').trim();
+          const homeOdds = r[8] || '';
+          const awayOdds = r[9] || '';
+          const correct = (r[12] || '').trim();
+          const whichSide = (r[13] || '').trim();
+          const wasOffered = (r[14] || '').trim();
+          const netUnits = parseFloat(r[15]) || 0;
+          const game = homeTeam && awayTeam ? `${homeTeam} vs ${awayTeam}` : '';
+
+          historyData.push({
+            week, time, picker, homeTeam, awayTeam, game,
+            homePick, awayPick, homeOdds, awayOdds,
+            correct, whichSide, wasOffered, netUnits,
+            searchText: `${week} ${game} ${picker} ${homePick} ${awayPick}`.toLowerCase()
+          });
+        }
+
+        ALL_HISTORY_ROWS = historyData;
+        renderHistory(historyData);
+      } catch(e) {
+        console.error(e);
+        document.getElementById('history-table').innerHTML = '<div class="loading">Error loading history.</div>';
+      }
+    }
+
+    function filterHistory() {
+      const q = document.getElementById('history-search').value.toLowerCase().trim();
+      const filtered = q ? ALL_HISTORY_ROWS.filter(r => r.searchText.includes(q)) : ALL_HISTORY_ROWS;
+      renderHistory(filtered);
+    }
+
+    function renderHistory(data) {
+      const el = document.getElementById('history-table');
+      const countEl = document.getElementById('history-count');
+      countEl.textContent = `${data.length} bet${data.length !== 1 ? 's' : ''}`;
+
+      if (data.length === 0) {
+        el.innerHTML = '<div class="loading">No results.</div>';
+        return;
+      }
+
+      const header = `<div class="history-row header">
+        <span class="h-week">Wk</span>
+        <span class="h-game">Game</span>
+        <span>Picker</span>
+        <span>Players</span>
+        <span>Odds</span>
+        <span>Result</span>
+        <span class="h-units">Units</span>
+      </div>`;
+
+      const rowsHtml = [...data].reverse().map(r => {
+        const pickerClass = r.picker.toLowerCase();
+        const resultClass = r.correct === 'Yes' ? 'win' : r.correct === 'No' ? 'loss' : 'na';
+        const resultText = r.correct === 'Yes' ? 'Win' : r.correct === 'No' ? 'Loss' : '—';
+        const notOfferedNote = r.wasOffered === 'No' ? '<div class="not-offered-note">scorer not offered</div>' : '';
+
+        const players = [r.homePick, r.awayPick].filter(Boolean).join(' / ') || '—';
+        const odds = [
+          r.homePick && r.homeOdds ? '+' + Math.round(parseFloat(r.homeOdds) * 100) : '',
+          r.awayPick && r.awayOdds ? '+' + Math.round(parseFloat(r.awayOdds) * 100) : ''
+        ].filter(Boolean).join(' / ') || '—';
+
+        const unitClass = r.netUnits > 0 ? 'pos' : r.netUnits < 0 ? 'neg' : 'zero';
+        const unitStr = r.netUnits > 0 ? `+${r.netUnits}` : r.netUnits === 0 ? '0' : `${r.netUnits}`;
+
+        return `<div class="history-row">
+          <span class="h-week">${r.week}</span>
+          <span class="h-game">${r.game || '—'}</span>
+          <span class="h-picker ${pickerClass}">${r.picker}</span>
+          <span class="h-player">${players}${notOfferedNote}</span>
+          <span class="h-odds">${odds}</span>
+          <span class="h-result ${resultClass}">${resultText}</span>
+          <span class="h-units ${unitClass}">${unitStr}u</span>
+        </div>`;
+      }).join('');
+
+      el.innerHTML = header + rowsHtml;
+    }
 
     function switchTab(name) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -914,6 +1070,102 @@
 
     load();
     loadRosters();
+    loadHistory();
+
+    let ALL_HISTORY_ROWS = [];
+
+    async function loadHistory() {
+      try {
+        const bets = await fetchSheet('Winnings', 'A1:R200');
+        const rows = bets.slice(1).filter(r => r[0] && r[3]);
+
+        const historyData = [];
+        for (const r of rows) {
+          const week = r[1] || '';
+          const time = r[2] || '';
+          const picker = (r[3] || '').trim();
+          const homeTeam = r[4] || '';
+          const awayTeam = r[5] || '';
+          const homePick = (r[6] || '').trim();
+          const awayPick = (r[7] || '').trim();
+          const homeOdds = r[8] || '';
+          const awayOdds = r[9] || '';
+          const correct = (r[12] || '').trim();
+          const whichSide = (r[13] || '').trim();
+          const wasOffered = (r[14] || '').trim();
+          const netUnits = parseFloat(r[15]) || 0;
+          const game = homeTeam && awayTeam ? `${homeTeam} vs ${awayTeam}` : '';
+
+          historyData.push({
+            week, time, picker, homeTeam, awayTeam, game,
+            homePick, awayPick, homeOdds, awayOdds,
+            correct, whichSide, wasOffered, netUnits,
+            searchText: `${week} ${game} ${picker} ${homePick} ${awayPick}`.toLowerCase()
+          });
+        }
+
+        ALL_HISTORY_ROWS = historyData;
+        renderHistory(historyData);
+      } catch(e) {
+        console.error(e);
+        document.getElementById('history-table').innerHTML = '<div class="loading">Error loading history.</div>';
+      }
+    }
+
+    function filterHistory() {
+      const q = document.getElementById('history-search').value.toLowerCase().trim();
+      const filtered = q ? ALL_HISTORY_ROWS.filter(r => r.searchText.includes(q)) : ALL_HISTORY_ROWS;
+      renderHistory(filtered);
+    }
+
+    function renderHistory(data) {
+      const el = document.getElementById('history-table');
+      const countEl = document.getElementById('history-count');
+      countEl.textContent = `${data.length} bet${data.length !== 1 ? 's' : ''}`;
+
+      if (data.length === 0) {
+        el.innerHTML = '<div class="loading">No results.</div>';
+        return;
+      }
+
+      const header = `<div class="history-row header">
+        <span class="h-week">Wk</span>
+        <span class="h-game">Game</span>
+        <span>Picker</span>
+        <span>Players</span>
+        <span>Odds</span>
+        <span>Result</span>
+        <span class="h-units">Units</span>
+      </div>`;
+
+      const rowsHtml = [...data].reverse().map(r => {
+        const pickerClass = r.picker.toLowerCase();
+        const resultClass = r.correct === 'Yes' ? 'win' : r.correct === 'No' ? 'loss' : 'na';
+        const resultText = r.correct === 'Yes' ? 'Win' : r.correct === 'No' ? 'Loss' : '—';
+        const notOfferedNote = r.wasOffered === 'No' ? '<div class="not-offered-note">scorer not offered</div>' : '';
+
+        const players = [r.homePick, r.awayPick].filter(Boolean).join(' / ') || '—';
+        const odds = [
+          r.homePick && r.homeOdds ? '+' + Math.round(parseFloat(r.homeOdds) * 100) : '',
+          r.awayPick && r.awayOdds ? '+' + Math.round(parseFloat(r.awayOdds) * 100) : ''
+        ].filter(Boolean).join(' / ') || '—';
+
+        const unitClass = r.netUnits > 0 ? 'pos' : r.netUnits < 0 ? 'neg' : 'zero';
+        const unitStr = r.netUnits > 0 ? `+${r.netUnits}` : r.netUnits === 0 ? '0' : `${r.netUnits}`;
+
+        return `<div class="history-row">
+          <span class="h-week">${r.week}</span>
+          <span class="h-game">${r.game || '—'}</span>
+          <span class="h-picker ${pickerClass}">${r.picker}</span>
+          <span class="h-player">${players}${notOfferedNote}</span>
+          <span class="h-odds">${odds}</span>
+          <span class="h-result ${resultClass}">${resultText}</span>
+          <span class="h-units ${unitClass}">${unitStr}u</span>
+        </div>`;
+      }).join('');
+
+      el.innerHTML = header + rowsHtml;
+    }
 
     function switchTab(name) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));

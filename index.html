@@ -339,10 +339,12 @@
 
     function getPickAndOdds(row) {
       if (!row) return { player: '—', odds: '—' };
-      const homePick = row[6] || '';
-      const awayPick = row[7] || '';
+      const homePick = (row[6] || '').trim();
+      const awayPick = (row[7] || '').trim();
       const homeOdds = row[8] || '';
       const awayOdds = row[9] || '';
+      // Both picks present — show both
+      if (homePick && awayPick) return { player: `${homePick} / ${awayPick}`, odds: `${formatOdds(homeOdds)} / ${formatOdds(awayOdds)}` };
       if (homePick) return { player: homePick, odds: formatOdds(homeOdds) };
       if (awayPick) return { player: awayPick, odds: formatOdds(awayOdds) };
       return { player: '—', odds: '—' };

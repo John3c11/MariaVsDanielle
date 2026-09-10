@@ -595,6 +595,11 @@
           fetchSheet('QBs', 'A1:A50'),
         ]);
 
+        console.log('Roster rows fetched:', rosterRows.length);
+        console.log('Header row:', rosterRows[0]);
+        console.log('Row 2:', rosterRows[1]);
+        console.log('QB rows:', qbRows.slice(0,5));
+
         // Parse valid QBs
         const validQBs = new Set(qbRows.slice(3).map(r => (r[0] || '').trim()).filter(Boolean));
 
@@ -659,7 +664,6 @@
     }
   </script>
   <script>
-    const SHEET_ID = '1eokxqa-RCuH4qNh486OMSnIeZdXbhHnw_FygbzUwGj4';
     const API_KEY = CONFIG.API_KEY;
 
     async function fetchSheet(tabName, range) {
@@ -931,6 +935,11 @@
           fetchSheet('Rosters', 'A1:AG10'),
           fetchSheet('QBs', 'A1:A50'),
         ]);
+
+        console.log('Roster rows fetched:', rosterRows.length);
+        console.log('Header row:', rosterRows[0]);
+        console.log('Row 2:', rosterRows[1]);
+        console.log('QB rows:', qbRows.slice(0,5));
 
         // Parse valid QBs
         const validQBs = new Set(qbRows.slice(3).map(r => (r[0] || '').trim()).filter(Boolean));

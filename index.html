@@ -404,33 +404,38 @@
           <hr class="divider">
           ${statBlock('Dollars Won / Lost', mariaDollars, danielleDollars, mDolStr, dDolStr)}`;
 
-        // Live picks
+        // Live picks — show all pending games
         const liveEl = document.getElementById('live-picks');
         const pendingRows = rows.filter(r => !r[11] || r[11].trim() === '');
         if (pendingRows.length === 0) {
           liveEl.innerHTML = '<div class="no-live">No pending picks — all games have been scored.</div>';
         } else {
-          const pendingGame = pendingRows[0][0];
-          const gameRows = pendingRows.filter(r => r[0] === pendingGame);
-          const mariaRow = gameRows.find(r => r[3] === 'Maria');
-          const danielleRow = gameRows.find(r => r[3] === 'Danielle');
-          const gameTitle = mariaRow ? `${mariaRow[4]} vs ${mariaRow[5]}` : danielleRow ? `${danielleRow[4]} vs ${danielleRow[5]}` : 'Upcoming Game';
-          const mariaPick = getPickAndOdds(mariaRow);
-          const daniellePick = getPickAndOdds(danielleRow);
-          liveEl.innerHTML = `
-            <div class="live-game-title">${gameTitle}</div>
-            <div class="live-picks-grid">
-              <div class="live-pick-card maria">
-                <div class="picker-label">Maria</div>
-                <div class="pick-player">${mariaPick.player}</div>
-                <div class="pick-odds">${mariaPick.odds}</div>
-              </div>
-              <div class="live-pick-card danielle">
-                <div class="picker-label">Danielle</div>
-                <div class="pick-player">${daniellePick.player}</div>
-                <div class="pick-odds">${daniellePick.odds}</div>
-              </div>
-            </div>`;
+          // Group by game number
+          const pendingGames = [...new Set(pendingRows.map(r => r[0]))];
+          let html = '';
+          for (const gameNum of pendingGames) {
+            const gameRows = pendingRows.filter(r => r[0] === gameNum);
+            const mariaRow = gameRows.find(r => r[3] === 'Maria');
+            const danielleRow = gameRows.find(r => r[3] === 'Danielle');
+            const gameTitle = mariaRow ? `${mariaRow[4]} vs ${mariaRow[5]}` : danielleRow ? `${danielleRow[4]} vs ${danielleRow[5]}` : `Game ${gameNum}`;
+            const mariaPick = getPickAndOdds(mariaRow);
+            const daniellePick = getPickAndOdds(danielleRow);
+            html += `
+              <div class="live-game-title" style="margin-top:${html ? '20px' : '0'}">${gameTitle}</div>
+              <div class="live-picks-grid">
+                <div class="live-pick-card maria">
+                  <div class="picker-label">Maria</div>
+                  <div class="pick-player">${mariaPick.player}</div>
+                  <div class="pick-odds">${mariaPick.odds}</div>
+                </div>
+                <div class="live-pick-card danielle">
+                  <div class="picker-label">Danielle</div>
+                  <div class="pick-player">${daniellePick.player}</div>
+                  <div class="pick-odds">${daniellePick.odds}</div>
+                </div>
+              </div>`;
+          }
+          liveEl.innerHTML = html;
         }
 
         // Recent bets
@@ -465,7 +470,7 @@
     load();
   </script>
   <script>
-    const SHEET_ID = '1HpBaJuRKRZ6dhSBDyeWxnlAIWGU2KHgp';
+    const SHEET_ID = '1eokxqa-RCuH4qNh486OMSnIeZdXbhHnw_FygbzUwGj4';
     const API_KEY = CONFIG.API_KEY;
 
     async function fetchSheet(tabName, range) {

@@ -60,19 +60,7 @@
     .division-teams { display: none; padding-top: 8px; }
     .division-teams.open { display: block; }
 
-    .team-block {
-      margin-bottom: 16px;
-      padding: 14px 16px;
-      background: #F9FAFB;
-      border-radius: 8px;
-    }
 
-    .team-name {
-      font-size: 14px;
-      font-weight: 600;
-      color: #1C1C1E;
-      margin-bottom: 10px;
-    }
 
     .player-list { display: flex; flex-direction: column; gap: 4px; }
 
@@ -455,6 +443,25 @@
     .h-result.loss { background:#FEE2E2; color:#991B1B; }
     .h-result.na { background:#F3F4F6; color:#9CA3AF; }
 
+    .team-block {
+      margin-bottom: 16px;
+      padding: 0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .team-header-bar {
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+    }
+
+    .team-players-inner {
+      padding: 10px 16px 14px;
+      background: #F9FAFB;
+    }
+
     .not-offered-note {
       font-size: 10px;
       color: #9CA3AF;
@@ -808,6 +815,41 @@
       el.nextElementSibling.classList.toggle('open');
     }
 
+    const TEAM_COLORS = {
+      "Philadelphia Eagles":    { primary: "#004C54", secondary: "#A5ACAF", text: "#ffffff" },
+      "New York Giants":        { primary: "#0B2265", secondary: "#A71930", text: "#ffffff" },
+      "Dallas Cowboys":         { primary: "#003594", secondary: "#869397", text: "#ffffff" },
+      "Washington Commanders":  { primary: "#5A1414", secondary: "#FFB612", text: "#ffffff" },
+      "Detroit Lions":          { primary: "#0076B6", secondary: "#B0B7BC", text: "#ffffff" },
+      "Green Bay Packers":      { primary: "#203731", secondary: "#FFB612", text: "#FFB612" },
+      "Minnesota Vikings":      { primary: "#4F2683", secondary: "#FFC62F", text: "#FFC62F" },
+      "Chicago Bears":          { primary: "#0B162A", secondary: "#C83803", text: "#C83803" },
+      "Tampa Bay Buccaneers":   { primary: "#D50A0A", secondary: "#FF7900", text: "#ffffff" },
+      "Atlanta Falcons":        { primary: "#A71930", secondary: "#000000", text: "#ffffff" },
+      "Carolina Panthers":      { primary: "#0085CA", secondary: "#101820", text: "#ffffff" },
+      "New Orleans Saints":     { primary: "#D3BC8D", secondary: "#101820", text: "#101820" },
+      "Los Angeles Rams":       { primary: "#003594", secondary: "#FFA300", text: "#FFA300" },
+      "Seattle Seahawks":       { primary: "#002244", secondary: "#69BE28", text: "#69BE28" },
+      "San Francisco 49ers":    { primary: "#AA0000", secondary: "#B3995D", text: "#ffffff" },
+      "Arizona Cardinals":      { primary: "#97233F", secondary: "#000000", text: "#ffffff" },
+      "Buffalo Bills":          { primary: "#00338D", secondary: "#C60C30", text: "#ffffff" },
+      "New York Jets":          { primary: "#125740", secondary: "#000000", text: "#ffffff" },
+      "New England Patriots":   { primary: "#002244", secondary: "#C60C30", text: "#C60C30" },
+      "Miami Dolphins":         { primary: "#008E97", secondary: "#FC4C02", text: "#ffffff" },
+      "Baltimore Ravens":       { primary: "#241773", secondary: "#9E7C0C", text: "#9E7C0C" },
+      "Cincinnati Bengals":     { primary: "#FB4F14", secondary: "#000000", text: "#ffffff" },
+      "Pittsburgh Steelers":    { primary: "#101820", secondary: "#FFB612", text: "#FFB612" },
+      "Cleveland Browns":       { primary: "#311D00", secondary: "#FF3C00", text: "#FF3C00" },
+      "Indianapolis Colts":     { primary: "#003A70", secondary: "#A2AAAD", text: "#ffffff" },
+      "Jacksonville Jaguars":   { primary: "#101820", secondary: "#D7A22A", text: "#D7A22A" },
+      "Houston Texans":         { primary: "#03202F", secondary: "#A71930", text: "#A71930" },
+      "Tennessee Titans":       { primary: "#0C2340", secondary: "#4B92DB", text: "#4B92DB" },
+      "Kansas City Chiefs":     { primary: "#E31837", secondary: "#FFB81C", text: "#ffffff" },
+      "Los Angeles Chargers":   { primary: "#0080C6", secondary: "#FFC20E", text: "#ffffff" },
+      "Denver Broncos":         { primary: "#FB4F14", secondary: "#002244", text: "#ffffff" },
+      "Las Vegas Raiders":      { primary: "#000000", secondary: "#A5ACAF", text: "#A5ACAF" },
+    };
+
     const DIVISIONS = {"NFC East": ["Philadelphia Eagles", "New York Giants", "Dallas Cowboys", "Washington Commanders"], "NFC North": ["Detroit Lions", "Green Bay Packers", "Minnesota Vikings", "Chicago Bears"], "NFC South": ["Tampa Bay Buccaneers", "Atlanta Falcons", "Carolina Panthers", "New Orleans Saints"], "NFC West": ["Los Angeles Rams", "Seattle Seahawks", "San Francisco 49ers", "Arizona Cardinals"], "AFC East": ["Buffalo Bills", "New York Jets", "New England Patriots", "Miami Dolphins"], "AFC North": ["Baltimore Ravens", "Cincinnati Bengals", "Pittsburgh Steelers", "Cleveland Browns"], "AFC South": ["Indianapolis Colts", "Jacksonville Jaguars", "Houston Texans", "Tennessee Titans"], "AFC West": ["Kansas City Chiefs", "Los Angeles Chargers", "Denver Broncos", "Las Vegas Raiders"]};
 
     async function loadRosters() {
@@ -873,7 +915,10 @@
           for (const teamName of divTeams) {
             const td = teamData[teamName];
             if (!td) continue;
-            html += `<div class="team-block"><div class="team-name">${teamName}</div><div class="player-list">`;
+            const tc = TEAM_COLORS[teamName] || { primary: '#1C1C1E', secondary: '#6B7280', text: '#ffffff' };
+            html += `<div class="team-block" style="border:1.5px solid ${tc.primary}">
+              <div class="team-header-bar" style="background:${tc.primary};color:${tc.text}">${teamName}</div>
+              <div class="team-players-inner"><div class="player-list">`;
             for (const { pos, name } of td.players) {
               const isQB = pos === 'QB';
               const nameClass = isQB && validQBs.has(name) ? 'qb-valid' : 'player-name-text';
@@ -883,7 +928,8 @@
               if (counts['Maria']) pickNotes.push(`Maria x${counts['Maria']}`);
               if (counts['Danielle']) pickNotes.push(`Danielle x${counts['Danielle']}`);
               const pickNote = pickNotes.length ? `<span style="font-size:10px;color:#9CA3AF;margin-left:6px">${pickNotes.join(', ')}</span>` : '';
-              html += `<div class="player-row"><span class="pos-label">${pos}</span><span class="${nameClass}">${name}${notOffered}${pickNote}</span></div>`;
+              const posColor = tc.primary;
+              html += `<div class="player-row"><span class="pos-label" style="color:${posColor}">${pos}</span><span class="${nameClass}">${name}${notOffered}${pickNote}</span></div>`;
             }
             for (const extra of td.extras) {
               const counts = pickCounts[extra] || {};
@@ -891,9 +937,9 @@
               if (counts['Maria']) pickNotes.push(`Maria x${counts['Maria']}`);
               if (counts['Danielle']) pickNotes.push(`Danielle x${counts['Danielle']}`);
               const pickNote = pickNotes.length ? `<span style="font-size:10px;color:#9CA3AF;margin-left:6px">${pickNotes.join(', ')}</span>` : '';
-              html += `<div class="player-row"><span class="pos-label">+</span><span class="player-name-text extra">${extra}${pickNote}</span></div>`;
+              html += `<div class="player-row"><span class="pos-label" style="color:${tc.primary}">+</span><span class="player-name-text extra">${extra}${pickNote}</span></div>`;
             }
-            html += `</div></div>`;
+            html += `</div></div></div>`;
           }
 
           html += `</div></div>`;
@@ -1266,6 +1312,41 @@
       el.nextElementSibling.classList.toggle('open');
     }
 
+    const TEAM_COLORS = {
+      "Philadelphia Eagles":    { primary: "#004C54", secondary: "#A5ACAF", text: "#ffffff" },
+      "New York Giants":        { primary: "#0B2265", secondary: "#A71930", text: "#ffffff" },
+      "Dallas Cowboys":         { primary: "#003594", secondary: "#869397", text: "#ffffff" },
+      "Washington Commanders":  { primary: "#5A1414", secondary: "#FFB612", text: "#ffffff" },
+      "Detroit Lions":          { primary: "#0076B6", secondary: "#B0B7BC", text: "#ffffff" },
+      "Green Bay Packers":      { primary: "#203731", secondary: "#FFB612", text: "#FFB612" },
+      "Minnesota Vikings":      { primary: "#4F2683", secondary: "#FFC62F", text: "#FFC62F" },
+      "Chicago Bears":          { primary: "#0B162A", secondary: "#C83803", text: "#C83803" },
+      "Tampa Bay Buccaneers":   { primary: "#D50A0A", secondary: "#FF7900", text: "#ffffff" },
+      "Atlanta Falcons":        { primary: "#A71930", secondary: "#000000", text: "#ffffff" },
+      "Carolina Panthers":      { primary: "#0085CA", secondary: "#101820", text: "#ffffff" },
+      "New Orleans Saints":     { primary: "#D3BC8D", secondary: "#101820", text: "#101820" },
+      "Los Angeles Rams":       { primary: "#003594", secondary: "#FFA300", text: "#FFA300" },
+      "Seattle Seahawks":       { primary: "#002244", secondary: "#69BE28", text: "#69BE28" },
+      "San Francisco 49ers":    { primary: "#AA0000", secondary: "#B3995D", text: "#ffffff" },
+      "Arizona Cardinals":      { primary: "#97233F", secondary: "#000000", text: "#ffffff" },
+      "Buffalo Bills":          { primary: "#00338D", secondary: "#C60C30", text: "#ffffff" },
+      "New York Jets":          { primary: "#125740", secondary: "#000000", text: "#ffffff" },
+      "New England Patriots":   { primary: "#002244", secondary: "#C60C30", text: "#C60C30" },
+      "Miami Dolphins":         { primary: "#008E97", secondary: "#FC4C02", text: "#ffffff" },
+      "Baltimore Ravens":       { primary: "#241773", secondary: "#9E7C0C", text: "#9E7C0C" },
+      "Cincinnati Bengals":     { primary: "#FB4F14", secondary: "#000000", text: "#ffffff" },
+      "Pittsburgh Steelers":    { primary: "#101820", secondary: "#FFB612", text: "#FFB612" },
+      "Cleveland Browns":       { primary: "#311D00", secondary: "#FF3C00", text: "#FF3C00" },
+      "Indianapolis Colts":     { primary: "#003A70", secondary: "#A2AAAD", text: "#ffffff" },
+      "Jacksonville Jaguars":   { primary: "#101820", secondary: "#D7A22A", text: "#D7A22A" },
+      "Houston Texans":         { primary: "#03202F", secondary: "#A71930", text: "#A71930" },
+      "Tennessee Titans":       { primary: "#0C2340", secondary: "#4B92DB", text: "#4B92DB" },
+      "Kansas City Chiefs":     { primary: "#E31837", secondary: "#FFB81C", text: "#ffffff" },
+      "Los Angeles Chargers":   { primary: "#0080C6", secondary: "#FFC20E", text: "#ffffff" },
+      "Denver Broncos":         { primary: "#FB4F14", secondary: "#002244", text: "#ffffff" },
+      "Las Vegas Raiders":      { primary: "#000000", secondary: "#A5ACAF", text: "#A5ACAF" },
+    };
+
     const DIVISIONS = {"NFC East": ["Philadelphia Eagles", "New York Giants", "Dallas Cowboys", "Washington Commanders"], "NFC North": ["Detroit Lions", "Green Bay Packers", "Minnesota Vikings", "Chicago Bears"], "NFC South": ["Tampa Bay Buccaneers", "Atlanta Falcons", "Carolina Panthers", "New Orleans Saints"], "NFC West": ["Los Angeles Rams", "Seattle Seahawks", "San Francisco 49ers", "Arizona Cardinals"], "AFC East": ["Buffalo Bills", "New York Jets", "New England Patriots", "Miami Dolphins"], "AFC North": ["Baltimore Ravens", "Cincinnati Bengals", "Pittsburgh Steelers", "Cleveland Browns"], "AFC South": ["Indianapolis Colts", "Jacksonville Jaguars", "Houston Texans", "Tennessee Titans"], "AFC West": ["Kansas City Chiefs", "Los Angeles Chargers", "Denver Broncos", "Las Vegas Raiders"]};
 
     async function loadRosters() {
@@ -1331,7 +1412,10 @@
           for (const teamName of divTeams) {
             const td = teamData[teamName];
             if (!td) continue;
-            html += `<div class="team-block"><div class="team-name">${teamName}</div><div class="player-list">`;
+            const tc = TEAM_COLORS[teamName] || { primary: '#1C1C1E', secondary: '#6B7280', text: '#ffffff' };
+            html += `<div class="team-block" style="border:1.5px solid ${tc.primary}">
+              <div class="team-header-bar" style="background:${tc.primary};color:${tc.text}">${teamName}</div>
+              <div class="team-players-inner"><div class="player-list">`;
             for (const { pos, name } of td.players) {
               const isQB = pos === 'QB';
               const nameClass = isQB && validQBs.has(name) ? 'qb-valid' : 'player-name-text';
@@ -1341,7 +1425,8 @@
               if (counts['Maria']) pickNotes.push(`Maria x${counts['Maria']}`);
               if (counts['Danielle']) pickNotes.push(`Danielle x${counts['Danielle']}`);
               const pickNote = pickNotes.length ? `<span style="font-size:10px;color:#9CA3AF;margin-left:6px">${pickNotes.join(', ')}</span>` : '';
-              html += `<div class="player-row"><span class="pos-label">${pos}</span><span class="${nameClass}">${name}${notOffered}${pickNote}</span></div>`;
+              const posColor = tc.primary;
+              html += `<div class="player-row"><span class="pos-label" style="color:${posColor}">${pos}</span><span class="${nameClass}">${name}${notOffered}${pickNote}</span></div>`;
             }
             for (const extra of td.extras) {
               const counts = pickCounts[extra] || {};
@@ -1349,9 +1434,9 @@
               if (counts['Maria']) pickNotes.push(`Maria x${counts['Maria']}`);
               if (counts['Danielle']) pickNotes.push(`Danielle x${counts['Danielle']}`);
               const pickNote = pickNotes.length ? `<span style="font-size:10px;color:#9CA3AF;margin-left:6px">${pickNotes.join(', ')}</span>` : '';
-              html += `<div class="player-row"><span class="pos-label">+</span><span class="player-name-text extra">${extra}${pickNote}</span></div>`;
+              html += `<div class="player-row"><span class="pos-label" style="color:${tc.primary}">+</span><span class="player-name-text extra">${extra}${pickNote}</span></div>`;
             }
-            html += `</div></div>`;
+            html += `</div></div></div>`;
           }
 
           html += `</div></div>`;

@@ -1156,7 +1156,6 @@
     }
   </script>
   <script>
-    const API_KEY = CONFIG.API_KEY;
 
     async function fetchSheet(tabName, range) {
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(tabName + '!' + range)}?key=${API_KEY}`;
@@ -1653,7 +1652,6 @@
       }
     }
 
-    const SHEET_ID_2025 = '1DWLYS9RYuOv97ajIcsak69Z97ODtegnBXvlDKJgpwYc';
 
     async function fetch2025(range) {
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID_2025}/values/${encodeURIComponent('Winnings!' + range)}?key=${API_KEY}`;

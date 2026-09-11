@@ -99,6 +99,72 @@
   
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    .page-layout {
+      display: flex;
+      gap: 32px;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+      align-items: flex-start;
+    }
+
+    .main-content { flex: 1; min-width: 0; }
+
+    .kalshi-ad {
+      width: 220px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 48px;
+      background: #00A878;
+      border-radius: 12px;
+      padding: 28px 20px;
+      color: white;
+      min-height: 600px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      text-align: center;
+    }
+
+    .kalshi-logo {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      color: white;
+    }
+
+    .kalshi-tagline {
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.5;
+    }
+
+    .kalshi-cta {
+      background: white;
+      color: #00A878;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      margin-top: 8px;
+      cursor: default;
+    }
+
+    .kalshi-disclaimer {
+      font-size: 9px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.4;
+      margin-top: auto;
+    }
+
+    @media (max-width: 700px) {
+      .kalshi-ad { display: none; }
+      .page-layout { padding: 24px 16px 60px; }
+    }
+
     body {
       font-family: 'Inter', system-ui, sans-serif;
       background: #ffffff;
@@ -398,6 +464,7 @@
   </style>
 </head>
 <body>
+  <div class="page-layout">
   <div class="wrap">
     <nav class="tabs-nav">
       <button class="tab-btn active" onclick="switchTab('stats')">Stats</button>
@@ -1298,5 +1365,17 @@
       }
     }
   </script>
+  </div><!-- end wrap -->
+
+  <div class="kalshi-ad">
+    <div class="kalshi-logo">Kalshi</div>
+    <div class="kalshi-tagline">Trade on real-world events. Sports, politics, economics — all on one platform.</div>
+    <div style="font-size:36px">📈</div>
+    <div class="kalshi-cta">Start Trading Free</div>
+    <div style="font-size:11px; color:rgba(255,255,255,0.7); margin-top:4px;">No experience needed</div>
+    <div class="kalshi-disclaimer">This is a fake advertisement. Kalshi is a real prediction market platform. This site is not affiliated with or sponsored by Kalshi in any way. Trading involves risk.</div>
+  </div>
+
+  </div><!-- end page-layout -->
 </body>
 </html>

@@ -311,13 +311,11 @@
         if (b.picker === 'Maria') {
           mTotal++; if (b.correct === 'Yes') mCorrect++;
           mUnits += b.netUnits; mDollars += b.netDollars;
-          if (b.netUnits > 0 && (mBigWin === null || b.netUnits > mBigWin.units)) mBigWin = { units: b.netUnits, dollars: b.netDollars, game: b.game, year: b.year };
-          if (b.netUnits < 0 && (mBigLoss === null || b.netUnits < mBigLoss.units)) mBigLoss = { units: b.netUnits, game: b.game, year: b.year };
+          if (b.netUnits > 0 && (mBigWin === null || b.netUnits > mBigWin.units)) mBigWin = { units: b.netUnits, dollars: b.netDollars, game: b.game, year: b.year, week: b.week };
         } else if (b.picker === 'Danielle') {
           dTotal++; if (b.correct === 'Yes') dCorrect++;
           dUnits += b.netUnits; dDollars += b.netDollars;
-          if (b.netUnits > 0 && (dBigWin === null || b.netUnits > dBigWin.units)) dBigWin = { units: b.netUnits, dollars: b.netDollars, game: b.game, year: b.year };
-          if (b.netUnits < 0 && (dBigLoss === null || b.netUnits < dBigLoss.units)) dBigLoss = { units: b.netUnits, game: b.game, year: b.year };
+          if (b.netUnits > 0 && (dBigWin === null || b.netUnits > dBigWin.units)) dBigWin = { units: b.netUnits, dollars: b.netDollars, game: b.game, year: b.year, week: b.week };
         }
       });
 
@@ -325,10 +323,34 @@
         return { name: name, total: pickCounts[name].Maria + pickCounts[name].Danielle, maria: pickCounts[name].Maria, danielle: pickCounts[name].Danielle };
       }).filter(function(p) { return p.total > 0; }).sort(function(a, b) { return b.total - a.total; });
 
+      // Best 10-game window by money earned
+      function bestStreak(pickerBets) {
+        var best = { wins: 0, total: 0, units: 0, dollars: -Infinity, label: '' };
+        for (var i = 0; i < pickerBets.length; i++) {
+          for (var j = i + 1; j <= Math.min(i + 10, pickerBets.length); j++) {
+            var window = pickerBets.slice(i, j);
+            var w = window.filter(function(b) { return b.correct === 'Yes'; }).length;
+            var t = window.length;
+            var u = window.reduce(function(acc, b) { return acc + b.netUnits; }, 0);
+            var d = window.reduce(function(acc, b) { return acc + b.netDollars; }, 0);
+            if (d > best.dollars) {
+              best = { wins: w, total: t, units: u, dollars: d, label: '$' + d.toFixed(2) + ' (+' + u.toFixed(1) + 'u) — ' + w + '/' + t + ' correct' };
+            }
+          }
+        }
+        if (best.dollars <= 0) best.label = 'No profitable stretch yet';
+        return best;
+      }
+
+      var mariaBets = bets.filter(function(b) { return b.picker === 'Maria'; });
+      var danielleBets = bets.filter(function(b) { return b.picker === 'Danielle'; });
+
       return {
         mCorrect: mCorrect, mTotal: mTotal, dCorrect: dCorrect, dTotal: dTotal,
         mUnits: mUnits, dUnits: dUnits, mDollars: mDollars, dDollars: dDollars,
-        mBigWin: mBigWin, dBigWin: dBigWin, mBigLoss: mBigLoss, dBigLoss: dBigLoss,
+        mBigWin: mBigWin, dBigWin: dBigWin,
+        mStreak: bestStreak(mariaBets),
+        dStreak: bestStreak(danielleBets),
         mostOverall: allPlayers[0],
         mariaMost: allPlayers.filter(function(p) { return p.maria > 0; }).sort(function(a, b) { return b.maria - a.maria; })[0],
         danielleMost: allPlayers.filter(function(p) { return p.danielle > 0; }).sort(function(a, b) { return b.danielle - a.danielle; })[0],
@@ -379,10 +401,10 @@
       if (s.mostOverall) html += funRow('Most picked player overall', s.mostOverall.name + ' (' + s.mostOverall.total + 'x)', '');
       if (s.mariaMost) html += funRow("Maria's most picked player", s.mariaMost.name + ' (' + s.mariaMost.maria + 'x)', 'maria');
       if (s.danielleMost) html += funRow("Danielle's most picked player", s.danielleMost.name + ' (' + s.danielleMost.danielle + 'x)', 'danielle');
-      if (s.mBigWin) html += funRow("Maria's biggest win ever", '+' + s.mBigWin.units + 'u ($' + s.mBigWin.dollars + ') — ' + s.mBigWin.game + ' (' + s.mBigWin.year + ')', 'maria');
-      if (s.dBigWin) html += funRow("Danielle's biggest win ever", '+' + s.dBigWin.units + 'u ($' + s.dBigWin.dollars + ') — ' + s.dBigWin.game + ' (' + s.dBigWin.year + ')', 'danielle');
-      if (s.mBigLoss) html += funRow("Maria's biggest loss ever", s.mBigLoss.units + 'u — ' + s.mBigLoss.game + ' (' + s.mBigLoss.year + ')', 'red');
-      if (s.dBigLoss) html += funRow("Danielle's biggest loss ever", s.dBigLoss.units + 'u — ' + s.dBigLoss.game + ' (' + s.dBigLoss.year + ')', 'red');
+      if (s.mStreak && s.mStreak.wins > 0) html += funRow("Maria's best 10-game stretch", s.mStreak.label + ' correct', 'maria');
+      if (s.dStreak && s.dStreak.wins > 0) html += funRow("Danielle's best 10-game stretch", s.dStreak.label + ' correct', 'danielle');
+      if (s.mBigWin) html += funRow("Maria's biggest win ever", '+' + s.mBigWin.units + 'u ($' + s.mBigWin.dollars + ') — Wk ' + s.mBigWin.week + ' ' + s.mBigWin.game + ' (' + s.mBigWin.year + ')', 'maria');
+      if (s.dBigWin) html += funRow("Danielle's biggest win ever", '+' + s.dBigWin.units + 'u ($' + s.dBigWin.dollars + ') — Wk ' + s.dBigWin.week + ' ' + s.dBigWin.game + ' (' + s.dBigWin.year + ')', 'danielle');
       html += '</div>';
 
       document.getElementById('alltime-content').innerHTML = html;

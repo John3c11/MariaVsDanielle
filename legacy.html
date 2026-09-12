@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Legacy — Maria vs Danielle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #ffffff;
+      color: #1C1C1E;
+      min-height: 100vh;
+      padding: 48px 24px 80px;
+    }
+
+    .wrap { max-width: 680px; margin: 0 auto; }
+
+    .back-link {
+      display: inline-block;
+      font-size: 13px;
+      color: #9CA3AF;
+      text-decoration: none;
+      margin-bottom: 32px;
+    }
+    .back-link:hover { color: #6B7280; }
+
+    header { margin-bottom: 40px; border-bottom: 1.5px solid #1C1C1E; padding-bottom: 20px; }
+    header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+    header p { font-size: 14px; color: #6B7280; margin-top: 4px; }
+
+    .tabs-nav {
+      display: flex;
+      gap: 0;
+      margin-bottom: 32px;
+      border-bottom: 1.5px solid #1C1C1E;
+    }
+
+    .tab-btn {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 10px 20px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: #9CA3AF;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1.5px;
+    }
+    .tab-btn.active { color: #1C1C1E; border-bottom: 2px solid #1C1C1E; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+    }
+
+    /* All-time stats */
+    .alltime-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: #F9FAFB;
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .stat-card .s-label { font-size: 11px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+    .stat-card .s-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+    .stat-card .s-val { font-size: 20px; font-weight: 700; }
+    .stat-card .s-name { font-size: 11px; color: #9CA3AF; }
+    .s-val.maria { color: #B45309; }
+    .s-val.danielle { color: #1D4ED8; }
+
+    .divider { border: none; border-top: 0.5px solid #E5E7EB; margin: 24px 0; }
+
+    /* Year-by-year */
+    .year-block { margin-bottom: 24px; }
+
+    .year-header {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1C1C1E;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .year-winner-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    .year-winner-badge.maria { background: #FEF3C7; color: #B45309; }
+    .year-winner-badge.danielle { background: #DBEAFE; color: #1D4ED8; }
+    .year-winner-badge.tied { background: #F3F4F6; color: #6B7280; }
+
+    .year-stat-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .year-stat {
+      background: #F9FAFB;
+      border-radius: 6px;
+      padding: 10px 12px;
+    }
+    .year-stat .ys-label { font-size: 10px; color: #9CA3AF; margin-bottom: 4px; }
+    .year-stat .ys-maria { font-weight: 600; color: #B45309; }
+    .year-stat .ys-danielle { font-weight: 600; color: #1D4ED8; }
+
+    /* Fun stats */
+    .fun-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 11px 0;
+      border-bottom: 0.5px solid #F3F4F6;
+      font-size: 13px;
+      gap: 16px;
+    }
+    .fun-row:last-child { border-bottom: none; }
+    .fun-label { color: #6B7280; flex-shrink: 0; max-width: 220px; }
+    .fun-val { font-weight: 600; text-align: right; }
+    .fun-val.maria { color: #B45309; }
+    .fun-val.danielle { color: #1D4ED8; }
+    .fun-val.red { color: #DC2626; }
+
+    /* Bet history */
+    .search-bar {
+      width: 100%;
+      padding: 10px 14px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      border: 0.5px solid #E5E7EB;
+      border-radius: 8px;
+      background: #F9FAFB;
+      color: #1C1C1E;
+      outline: none;
+      margin-bottom: 12px;
+    }
+
+    .hist-count { font-size: 12px; color: #9CA3AF; margin-bottom: 12px; }
+
+    .hist-row {
+      display: grid;
+      grid-template-columns: 44px 40px 1fr 80px 1fr 70px 60px 50px;
+      gap: 8px;
+      padding: 10px 0;
+      border-bottom: 0.5px solid #F3F4F6;
+      font-size: 12px;
+      align-items: center;
+    }
+    .hist-row:last-child { border-bottom: none; }
+    .hist-row.header {
+      font-size: 10px;
+      font-weight: 600;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding-bottom: 8px;
+    }
+
+    .h-year { font-size: 11px; font-weight: 600; color: #9CA3AF; }
+    .h-week { color: #9CA3AF; text-align: center; }
+    .h-game { font-weight: 500; color: #1C1C1E; }
+    .h-picker.maria { color: #B45309; font-weight: 500; }
+    .h-picker.danielle { color: #1D4ED8; font-weight: 500; }
+    .h-player { color: #1C1C1E; }
+    .h-odds { color: #6B7280; }
+    .h-units { text-align: right; font-weight: 500; }
+    .h-units.pos { color: #065F46; }
+    .h-units.neg { color: #DC2626; }
+    .h-units.zero { color: #9CA3AF; }
+    .h-result { font-size: 11px; font-weight: 500; padding: 2px 6px; border-radius: 4px; text-align: center; }
+    .h-result.win { background: #D1FAE5; color: #065F46; }
+    .h-result.loss { background: #FEE2E2; color: #991B1B; }
+    .h-result.na { background: #F3F4F6; color: #9CA3AF; }
+    .not-offered { font-size: 10px; color: #9CA3AF; font-style: italic; }
+
+    .loading { color: #9CA3AF; font-size: 14px; text-align: center; padding: 48px; }
+
+    footer {
+      font-size: 12px;
+      color: #D1D5DB;
+      margin-top: 48px;
+      border-top: 0.5px solid #E5E7EB;
+      padding-top: 20px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a href="index.html" class="back-link">← Back to 2026</a>
+
+    <header>
+      <h1>Legacy</h1>
+      <p id="subtitle">Loading all-time records...</p>
+    </header>
+
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab('alltime')">All-Time</button>
+      <button class="tab-btn" onclick="switchTab('history')">Bet History</button>
+    </div>
+
+    <div id="tab-alltime" class="tab-panel active">
+      <div id="alltime-content"><div class="loading">Loading...</div></div>
+    </div>
+
+    <div id="tab-history" class="tab-panel">
+      <input type="text" class="search-bar" id="search" placeholder="Search player, team, week, year, or picker..." oninput="filterHistory()">
+      <div class="hist-count" id="hist-count"></div>
+      <div id="history-content"><div class="loading">Loading...</div></div>
+    </div>
+
+    <footer>Data pulled from Google Sheets · Refresh to update</footer>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    // ── Add future years here ─────────────────────────────────────────────────
+    var SEASONS = [
+      { year: "2025", sheetId: "1DWLYS9RYuOv97ajIcsak69Z97ODtegnBXvlDKJgpwYc", tab: "Winnings" },
+      // { year: "2024", sheetId: "YOUR_2024_SHEET_ID", tab: "Winnings" },
+    ];
+    // ─────────────────────────────────────────────────────────────────────────
+
+    var KEY = CONFIG.API_KEY;
+    var ALL_BETS = [];
+
+    function switchTab(name) {
+      document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+      document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+      document.querySelector('.tab-btn[onclick="switchTab(\'' + name + '\')"]').classList.add('active');
+      document.getElementById('tab-' + name).classList.add('active');
+    }
+
+    function fetchSeason(season) {
+      var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + season.sheetId +
+        '/values/' + encodeURIComponent(season.tab + '!A1:R200') + '?key=' + KEY;
+      return fetch(url).then(function(res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status + ' for ' + season.year);
+        return res.json();
+      }).then(function(data) {
+        var rows = (data.values || []).slice(1).filter(function(r) {
+          return r[0] && r[3] && r[3].trim() && r[3].trim() !== 'John';
+        });
+        return rows.map(function(r) {
+          var picker = (r[3] || '').trim();
+          var homePick = (r[6] || '').trim();
+          var awayPick = (r[7] || '').trim();
+          var homeOdds = r[8] || '';
+          var awayOdds = r[9] || '';
+          var correct = (r[12] || '').trim();
+          var wasOffered = (r[14] || '').trim();
+          var netUnits = parseFloat(r[15]) || 0;
+          var netDollars = parseFloat(r[16]) || 0;
+          var homeTeam = r[4] || '';
+          var awayTeam = r[5] || '';
+          var game = homeTeam && awayTeam ? homeTeam + ' vs ' + awayTeam : '';
+          var week = r[1] || '';
+
+          var players = [homePick, awayPick].filter(Boolean).join(' / ') || '—';
+          var oddsArr = [];
+          if (homePick && homeOdds) oddsArr.push('+' + Math.round(parseFloat(homeOdds) * 100));
+          if (awayPick && awayOdds) oddsArr.push('+' + Math.round(parseFloat(awayOdds) * 100));
+          var oddsStr = oddsArr.join(' / ') || '—';
+
+          return {
+            year: season.year, week: week, game: game,
+            homeTeam: homeTeam, awayTeam: awayTeam,
+            picker: picker, homePick: homePick, awayPick: awayPick,
+            players: players, odds: oddsStr,
+            correct: correct, wasOffered: wasOffered,
+            netUnits: netUnits, netDollars: netDollars,
+            searchText: (season.year + ' ' + week + ' ' + game + ' ' + picker + ' ' + homePick + ' ' + awayPick).toLowerCase()
+          };
+        });
+      });
+    }
+
+    function calcStats(bets) {
+      var mCorrect = 0, mTotal = 0, dCorrect = 0, dTotal = 0;
+      var mUnits = 0, dUnits = 0, mDollars = 0, dDollars = 0;
+      var mBigWin = null, dBigWin = null, mBigLoss = null, dBigLoss = null;
+      var pickCounts = {};
+
+      bets.forEach(function(b) {
+        [b.homePick, b.awayPick].filter(Boolean).forEach(function(p) {
+          if (!pickCounts[p]) pickCounts[p] = { Maria: 0, Danielle: 0 };
+          if (b.picker === 'Maria' || b.picker === 'Danielle') pickCounts[p][b.picker]++;
+        });
+
+        if (b.picker === 'Maria') {
+          mTotal++; if (b.correct === 'Yes') mCorrect++;
+          mUnits += b.netUnits; mDollars += b.netDollars;
+          if (b.netUnits > 0 && (mBigWin === null || b.netUnits > mBigWin.units)) mBigWin = { units: b.netUnits, dollars: b.netDollars, game: b.game, year: b.year };
+          if (b.netUnits < 0 && (mBigLoss === null || b.netUnits < mBigLoss.units)) mBigLoss = { units: b.netUnits, game: b.game, year: b.year };
+        } else if (b.picker === 'Danielle') {
+          dTotal++; if (b.correct === 'Yes') dCorrect++;
+          dUnits += b.netUnits; dDollars += b.netDollars;
+          if (b.netUnits > 0 && (dBigWin === null || b.netUnits > dBigWin.units)) dBigWin = { units: b.netUnits, dollars: b.netDollars, game: b.game, year: b.year };
+          if (b.netUnits < 0 && (dBigLoss === null || b.netUnits < dBigLoss.units)) dBigLoss = { units: b.netUnits, game: b.game, year: b.year };
+        }
+      });
+
+      var allPlayers = Object.keys(pickCounts).map(function(name) {
+        return { name: name, total: pickCounts[name].Maria + pickCounts[name].Danielle, maria: pickCounts[name].Maria, danielle: pickCounts[name].Danielle };
+      }).filter(function(p) { return p.total > 0; }).sort(function(a, b) { return b.total - a.total; });
+
+      return {
+        mCorrect: mCorrect, mTotal: mTotal, dCorrect: dCorrect, dTotal: dTotal,
+        mUnits: mUnits, dUnits: dUnits, mDollars: mDollars, dDollars: dDollars,
+        mBigWin: mBigWin, dBigWin: dBigWin, mBigLoss: mBigLoss, dBigLoss: dBigLoss,
+        mostOverall: allPlayers[0],
+        mariaMost: allPlayers.filter(function(p) { return p.maria > 0; }).sort(function(a, b) { return b.maria - a.maria; })[0],
+        danielleMost: allPlayers.filter(function(p) { return p.danielle > 0; }).sort(function(a, b) { return b.danielle - a.danielle; })[0],
+      };
+    }
+
+    function fmt(n, prefix) {
+      if (prefix === 'u') return (n >= 0 ? '+' : '') + n.toFixed(1) + 'u';
+      if (prefix === '$') return (n >= 0 ? '+$' : '-$') + Math.abs(n).toFixed(2);
+      return n;
+    }
+
+    function renderAllTime(allBets, byYear) {
+      var s = calcStats(allBets);
+
+      // Winner
+      var overallWinner = s.mUnits > s.dUnits ? 'Maria leads all-time' : s.dUnits > s.mUnits ? 'Danielle leads all-time' : 'All-time tied';
+      document.getElementById('subtitle').textContent = overallWinner + ' · ' + SEASONS.length + ' season' + (SEASONS.length !== 1 ? 's' : '') + ' of data';
+
+      var html = '';
+
+      // All-time totals
+      html += '<div class="section-label">All-Time Totals</div>';
+      html += '<div class="alltime-grid">';
+      html += statCard('Units', fmt(s.mUnits, 'u'), fmt(s.dUnits, 'u'));
+      html += statCard('Dollars', fmt(s.mDollars, '$'), fmt(s.dDollars, '$'));
+      html += statCard('Correct Guesses', s.mCorrect + '/' + s.mTotal, s.dCorrect + '/' + s.dTotal);
+      html += statCard('Accuracy', (s.mTotal ? Math.round(s.mCorrect/s.mTotal*100) : 0) + '%', (s.dTotal ? Math.round(s.dCorrect/s.dTotal*100) : 0) + '%');
+      html += '</div>';
+
+      // Year by year
+      html += '<hr class="divider"><div class="section-label">Year by Year</div>';
+      byYear.forEach(function(ys) {
+        var winner = ys.stats.mUnits > ys.stats.dUnits ? 'maria' : ys.stats.dUnits > ys.stats.mUnits ? 'danielle' : 'tied';
+        var winnerLabel = winner === 'maria' ? '🏆 Maria' : winner === 'danielle' ? '🏆 Danielle' : 'Tied';
+        html += '<div class="year-block">';
+        html += '<div class="year-header">' + ys.year + ' <span class="year-winner-badge ' + winner + '">' + winnerLabel + '</span></div>';
+        html += '<div class="year-stat-row">';
+        html += yearStat('Units', fmt(ys.stats.mUnits, 'u'), fmt(ys.stats.dUnits, 'u'));
+        html += yearStat('Dollars', fmt(ys.stats.mDollars, '$'), fmt(ys.stats.dDollars, '$'));
+        html += yearStat('Accuracy', (ys.stats.mTotal ? Math.round(ys.stats.mCorrect/ys.stats.mTotal*100) : 0) + '%', (ys.stats.dTotal ? Math.round(ys.stats.dCorrect/ys.stats.dTotal*100) : 0) + '%');
+        html += yearStat('Correct', ys.stats.mCorrect + '/' + ys.stats.mTotal, ys.stats.dCorrect + '/' + ys.stats.dTotal);
+        html += '</div></div>';
+      });
+
+      // Fun stats
+      html += '<hr class="divider"><div class="section-label">All-Time Fun Stats</div><div>';
+      if (s.mostOverall) html += funRow('Most picked player overall', s.mostOverall.name + ' (' + s.mostOverall.total + 'x)', '');
+      if (s.mariaMost) html += funRow("Maria's most picked player", s.mariaMost.name + ' (' + s.mariaMost.maria + 'x)', 'maria');
+      if (s.danielleMost) html += funRow("Danielle's most picked player", s.danielleMost.name + ' (' + s.danielleMost.danielle + 'x)', 'danielle');
+      if (s.mBigWin) html += funRow("Maria's biggest win ever", '+' + s.mBigWin.units + 'u ($' + s.mBigWin.dollars + ') — ' + s.mBigWin.game + ' (' + s.mBigWin.year + ')', 'maria');
+      if (s.dBigWin) html += funRow("Danielle's biggest win ever", '+' + s.dBigWin.units + 'u ($' + s.dBigWin.dollars + ') — ' + s.dBigWin.game + ' (' + s.dBigWin.year + ')', 'danielle');
+      if (s.mBigLoss) html += funRow("Maria's biggest loss ever", s.mBigLoss.units + 'u — ' + s.mBigLoss.game + ' (' + s.mBigLoss.year + ')', 'red');
+      if (s.dBigLoss) html += funRow("Danielle's biggest loss ever", s.dBigLoss.units + 'u — ' + s.dBigLoss.game + ' (' + s.dBigLoss.year + ')', 'red');
+      html += '</div>';
+
+      document.getElementById('alltime-content').innerHTML = html;
+    }
+
+    function statCard(label, mVal, dVal) {
+      return '<div class="stat-card"><div class="s-label">' + label + '</div>' +
+        '<div class="s-row"><span class="s-val maria">' + mVal + '</span><span class="s-name">Maria</span></div>' +
+        '<div class="s-row"><span class="s-val danielle">' + dVal + '</span><span class="s-name">Danielle</span></div></div>';
+    }
+
+    function yearStat(label, mVal, dVal) {
+      return '<div class="year-stat"><div class="ys-label">' + label + '</div>' +
+        '<div class="ys-maria">' + mVal + ' Maria</div>' +
+        '<div class="ys-danielle">' + dVal + ' Danielle</div></div>';
+    }
+
+    function funRow(label, val, cls) {
+      return '<div class="fun-row"><span class="fun-label">' + label + '</span><span class="fun-val ' + cls + '">' + val + '</span></div>';
+    }
+
+    function renderHistory(bets) {
+      var header = '<div class="hist-row header">' +
+        '<span>Year</span><span>Wk</span><span>Game</span><span>Picker</span>' +
+        '<span>Players</span><span>Odds</span><span>Result</span><span>Units</span></div>';
+
+      var rows = bets.map(function(b) {
+        var resultClass = b.correct === 'Yes' ? 'win' : b.correct === 'No' ? 'loss' : 'na';
+        var resultText = b.correct === 'Yes' ? 'Win' : b.correct === 'No' ? 'Loss' : '—';
+        var pickerClass = b.picker.toLowerCase();
+        var unitClass = b.netUnits > 0 ? 'pos' : b.netUnits < 0 ? 'neg' : 'zero';
+        var unitStr = b.netUnits !== 0 ? (b.netUnits > 0 ? '+' : '') + b.netUnits + 'u' : '0u';
+        var notOffered = b.wasOffered === 'No' ? '<div class="not-offered">scorer not offered</div>' : '';
+        return '<div class="hist-row">' +
+          '<span class="h-year">' + b.year + '</span>' +
+          '<span class="h-week">' + b.week + '</span>' +
+          '<span class="h-game">' + (b.game || '—') + '</span>' +
+          '<span class="h-picker ' + pickerClass + '">' + b.picker + '</span>' +
+          '<span class="h-player">' + b.players + notOffered + '</span>' +
+          '<span class="h-odds">' + b.odds + '</span>' +
+          '<span class="h-result ' + resultClass + '">' + resultText + '</span>' +
+          '<span class="h-units ' + unitClass + '">' + unitStr + '</span>' +
+          '</div>';
+      }).join('');
+
+      document.getElementById('history-content').innerHTML = header + rows;
+      document.getElementById('hist-count').textContent = bets.length + ' bet' + (bets.length !== 1 ? 's' : '');
+    }
+
+    function filterHistory() {
+      var q = document.getElementById('search').value.toLowerCase().trim();
+      var filtered = q ? ALL_BETS.filter(function(b) { return b.searchText.includes(q); }) : ALL_BETS;
+      renderHistory(filtered);
+    }
+
+    function init() {
+      Promise.all(SEASONS.map(fetchSeason)).then(function(results) {
+        var allBets = [];
+        var byYear = [];
+
+        results.forEach(function(bets, i) {
+          allBets = allBets.concat(bets);
+          byYear.push({ year: SEASONS[i].year, stats: calcStats(bets) });
+        });
+
+        // Sort all bets newest year first
+        ALL_BETS = allBets.reverse();
+
+        renderAllTime(ALL_BETS, byYear);
+        renderHistory(ALL_BETS);
+
+      }).catch(function(e) {
+        console.error(e);
+        document.getElementById('alltime-content').innerHTML = '<div class="loading">Error: ' + e.message + ' — make sure all season sheets are public.</div>';
+        document.getElementById('history-content').innerHTML = '<div class="loading">Error loading data.</div>';
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>

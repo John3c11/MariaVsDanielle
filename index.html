@@ -400,71 +400,6 @@
 
     .loading { color: #9CA3AF; font-size: 14px; text-align: center; padding: 24px; }
 
-    .season-header {
-      text-align: center;
-      margin-bottom: 32px;
-    }
-
-    .season-title {
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      margin-bottom: 4px;
-    }
-
-    .season-subtitle {
-      font-size: 13px;
-      color: #9CA3AF;
-    }
-
-    .winner-banner {
-      text-align: center;
-      padding: 16px;
-      border-radius: 10px;
-      margin-bottom: 28px;
-      font-size: 15px;
-      font-weight: 500;
-    }
-
-    .winner-banner.maria-wins { background: #FEF3C7; color: #B45309; }
-    .winner-banner.danielle-wins { background: #DBEAFE; color: #1D4ED8; }
-    .winner-banner.tied { background: #F3F4F6; color: #6B7280; }
-    .winner-banner .winner-name { font-size: 22px; font-weight: 700; display: block; margin-bottom: 4px; }
-
-    .stat-2col {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .stat-card-2025 {
-      background: #F9FAFB;
-      border-radius: 8px;
-      padding: 14px 16px;
-    }
-
-    .stat-card-2025 .s-label { font-size: 11px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
-    .stat-card-2025 .s-maria { font-size: 18px; font-weight: 700; color: #B45309; }
-    .stat-card-2025 .s-danielle { font-size: 18px; font-weight: 700; color: #1D4ED8; }
-    .stat-card-2025 .s-sub { font-size: 11px; color: #9CA3AF; margin-top: 2px; }
-
-    .fun-stat-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      padding: 12px 0;
-      border-bottom: 0.5px solid #F3F4F6;
-      font-size: 13px;
-      gap: 12px;
-    }
-
-    .fun-stat-row:last-child { border-bottom: none; }
-    .fun-stat-label { color: #6B7280; flex-shrink: 0; }
-    .fun-stat-val { font-weight: 600; text-align: right; }
-    .fun-stat-val.maria { color: #B45309; }
-    .fun-stat-val.danielle { color: #1D4ED8; }
-
     .history-row {
       display: grid;
       grid-template-columns: 40px 1fr 80px 1fr 70px 60px 50px;
@@ -541,7 +476,6 @@
       <button class="tab-btn active" onclick="switchTab('stats')">Stats</button>
       <button class="tab-btn" onclick="switchTab('rosters')">Rosters</button>
       <button class="tab-btn" onclick="switchTab('history')">Bet History</button>
-      <button class="tab-btn" onclick="switchTab('2025')">2025 Season</button>
     </nav>
 
     <div id="tab-stats" class="tab-panel active">
@@ -591,17 +525,12 @@
       <div id="history-table"><div class="loading">Loading bet history...</div></div>
     </div>
 
-    <div id="tab-2025" class="tab-panel">
-      <div id="content-2025"><div class="loading">Loading 2025 season...</div></div>
-    </div>
-
     <footer>Data pulled from Google Sheets · Refresh to update</footer>
   </div>
 
   <script src="config.js"></script>
   <script>
     const SHEET_ID = '1eokxqa-RCuH4qNh486OMSnIeZdXbhHnw_FygbzUwGj4';
-    const SHEET_ID_2025 = '1DWLYS9RYuOv97ajIcsak69Z97ODtegnBXvlDKJgpwYc';
     const API_KEY = CONFIG.API_KEY;
 
     async function fetchSheet(tabName, range) {
@@ -777,7 +706,6 @@
 
     load();
     loadRosters();
-    load2025();
     loadHistory();
 
     let ALL_HISTORY_ROWS = [];
@@ -1024,135 +952,6 @@
       }
     }
 
-    async function fetch2025(range) {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID_2025}/values/${encodeURIComponent('Winnings!' + range)}?key=${API_KEY}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`Failed to fetch 2025 data: ${res.status}`);
-      const data = await res.json();
-      return data.values || [];
-    }
-
-    async function load2025() {
-      try {
-        const rows = (await fetch2025('A1:R200')).slice(1).filter(r => r[0] && r[3] && r[3] !== 'John');
-
-        let mCorrect = 0, mTotal = 0, dCorrect = 0, dTotal = 0;
-        let mUnits = 0, dUnits = 0, mDollars = 0, dDollars = 0;
-        const pickCounts2025 = {};
-        let mBigWin = null, dBigWin = null;
-        let mBigLoss = null, dBigLoss = null;
-
-        for (const r of rows) {
-          const picker = (r[3] || '').trim();
-          const correct = (r[12] || '').trim();
-          const netUnits = parseFloat(r[15]) || 0;
-          const netDollars = parseFloat(r[16]) || 0;
-          const homePick = (r[6] || '').trim();
-          const awayPick = (r[7] || '').trim();
-          const homeOdds = r[8] || '';
-          const awayOdds = r[9] || '';
-          const game = r[4] && r[5] ? `${r[4]} vs ${r[5]}` : '';
-
-          // Count picks
-          for (const player of [homePick, awayPick].filter(Boolean)) {
-            if (!pickCounts2025[player]) pickCounts2025[player] = { Maria: 0, Danielle: 0 };
-            if (picker === 'Maria' || picker === 'Danielle') pickCounts2025[player][picker]++;
-          }
-
-          if (picker === 'Maria') {
-            mTotal++;
-            if (correct === 'Yes') mCorrect++;
-            mUnits += netUnits;
-            mDollars += netDollars;
-            if (netUnits > 0 && (mBigWin === null || netUnits > mBigWin.units)) mBigWin = { units: netUnits, dollars: netDollars, game, homePick, awayPick, homeOdds, awayOdds };
-            if (netUnits < 0 && (mBigLoss === null || netUnits < mBigLoss.units)) mBigLoss = { units: netUnits, dollars: netDollars, game };
-          } else if (picker === 'Danielle') {
-            dTotal++;
-            if (correct === 'Yes') dCorrect++;
-            dUnits += netUnits;
-            dDollars += netDollars;
-            if (netUnits > 0 && (dBigWin === null || netUnits > dBigWin.units)) dBigWin = { units: netUnits, dollars: netDollars, game, homePick, awayPick, homeOdds, awayOdds };
-            if (netUnits < 0 && (dBigLoss === null || netUnits < dBigLoss.units)) dBigLoss = { units: netUnits, dollars: netDollars, game };
-          }
-        }
-
-        // Most picked players
-        const allPlayers2025 = Object.entries(pickCounts2025)
-          .map(([name, counts]) => ({ name, total: counts.Maria + counts.Danielle, maria: counts.Maria, danielle: counts.Danielle }))
-          .filter(p => p.total > 0)
-          .sort((a, b) => b.total - a.total);
-
-        const mostPickedOverall = allPlayers2025[0];
-        const mariaMost = allPlayers2025.filter(p => p.maria > 0).sort((a, b) => b.maria - a.maria)[0];
-        const danielleMost = allPlayers2025.filter(p => p.danielle > 0).sort((a, b) => b.danielle - a.danielle)[0];
-
-        // Winner
-        let winnerClass = 'tied', winnerHtml = '<span class="winner-name">Tied</span>All square after the 2025 season.';
-        if (mUnits > dUnits) {
-          winnerClass = 'maria-wins';
-          winnerHtml = `<span class="winner-name">🏆 Maria wins 2025</span>+${mUnits.toFixed(1)}u to Danielle's ${dUnits.toFixed(1)}u`;
-        } else if (dUnits > mUnits) {
-          winnerClass = 'danielle-wins';
-          winnerHtml = `<span class="winner-name">🏆 Danielle wins 2025</span>+${dUnits.toFixed(1)}u to Maria's ${mUnits.toFixed(1)}u`;
-        }
-
-        const mPct = mTotal ? Math.round(mCorrect / mTotal * 100) : 0;
-        const dPct = dTotal ? Math.round(dCorrect / dTotal * 100) : 0;
-        const mUnitStr = (mUnits >= 0 ? '+' : '') + mUnits.toFixed(1);
-        const dUnitStr = (dUnits >= 0 ? '+' : '') + dUnits.toFixed(1);
-        const mDolStr = (mDollars >= 0 ? '+$' : '-$') + Math.abs(mDollars).toFixed(2);
-        const dDolStr = (dDollars >= 0 ? '+$' : '-$') + Math.abs(dDollars).toFixed(2);
-
-        document.getElementById('content-2025').innerHTML = `
-          <div class="season-header">
-            <div class="season-title">2025 Season</div>
-            <div class="season-subtitle">Final results</div>
-          </div>
-
-          <div class="winner-banner ${winnerClass}">${winnerHtml}</div>
-
-          <div class="section-label">Final Stats</div>
-          <div class="stat-2col">
-            <div class="stat-card-2025">
-              <div class="s-label">Units Won</div>
-              <div class="s-maria">${mUnitStr}u <span style="font-size:12px;color:#9CA3AF">Maria</span></div>
-              <div class="s-danielle">${dUnitStr}u <span style="font-size:12px;color:#9CA3AF">Danielle</span></div>
-            </div>
-            <div class="stat-card-2025">
-              <div class="s-label">Dollars Won</div>
-              <div class="s-maria">${mDolStr} <span style="font-size:12px;color:#9CA3AF">Maria</span></div>
-              <div class="s-danielle">${dDolStr} <span style="font-size:12px;color:#9CA3AF">Danielle</span></div>
-            </div>
-            <div class="stat-card-2025">
-              <div class="s-label">Correct Guesses</div>
-              <div class="s-maria">${mCorrect}/${mTotal} <span style="font-size:12px;color:#9CA3AF">Maria</span></div>
-              <div class="s-danielle">${dCorrect}/${dTotal} <span style="font-size:12px;color:#9CA3AF">Danielle</span></div>
-            </div>
-            <div class="stat-card-2025">
-              <div class="s-label">Accuracy</div>
-              <div class="s-maria">${mPct}% <span style="font-size:12px;color:#9CA3AF">Maria</span></div>
-              <div class="s-danielle">${dPct}% <span style="font-size:12px;color:#9CA3AF">Danielle</span></div>
-            </div>
-          </div>
-
-          <hr class="divider">
-          <div class="section-label">Fun Stats</div>
-          <div>
-            ${mostPickedOverall ? `<div class="fun-stat-row"><span class="fun-stat-label">Most picked player overall</span><span class="fun-stat-val">${mostPickedOverall.name} (${mostPickedOverall.total}x)</span></div>` : ''}
-            ${mariaMost ? `<div class="fun-stat-row"><span class="fun-stat-label">Maria's most picked player</span><span class="fun-stat-val maria">${mariaMost.name} (${mariaMost.maria}x)</span></div>` : ''}
-            ${danielleMost ? `<div class="fun-stat-row"><span class="fun-stat-label">Danielle's most picked player</span><span class="fun-stat-val danielle">${danielleMost.name} (${danielleMost.danielle}x)</span></div>` : ''}
-            ${mBigWin ? `<div class="fun-stat-row"><span class="fun-stat-label">Maria's biggest win</span><span class="fun-stat-val maria">+${mBigWin.units}u ($${mBigWin.dollars}) — ${mBigWin.game}</span></div>` : ''}
-            ${dBigWin ? `<div class="fun-stat-row"><span class="fun-stat-label">Danielle's biggest win</span><span class="fun-stat-val danielle">+${dBigWin.units}u ($${dBigWin.dollars}) — ${dBigWin.game}</span></div>` : ''}
-            ${mBigLoss ? `<div class="fun-stat-row"><span class="fun-stat-label">Maria's biggest loss</span><span class="fun-stat-val" style="color:#DC2626">${mBigLoss.units}u — ${mBigLoss.game}</span></div>` : ''}
-            ${dBigLoss ? `<div class="fun-stat-row"><span class="fun-stat-label">Danielle's biggest loss</span><span class="fun-stat-val" style="color:#DC2626">${dBigLoss.units}u — ${dBigLoss.game}</span></div>` : ''}
-          </div>
-        `;
-
-      } catch(e) {
-        console.error(e);
-        document.getElementById('content-2025').innerHTML = '<div class="loading">Error loading 2025 data — make sure the 2025 sheet is public.</div>';
-      }
-    }
   </script>
   
   </div><!-- end wrap -->

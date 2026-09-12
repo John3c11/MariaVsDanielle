@@ -90,7 +90,7 @@
     .page-layout {
       display: flex;
       gap: 32px;
-      max-width: 1100px;
+      max-width: 1200px;
       margin: 0 auto;
       padding: 48px 24px 80px;
       align-items: flex-start;
@@ -102,7 +102,7 @@
       width: 220px;
       flex-shrink: 0;
       position: sticky;
-      top: 48px;
+      top: calc(50vh - 300px);
       background: #00A878;
       border-radius: 12px;
       padding: 28px 20px;
@@ -148,8 +148,34 @@
       margin-top: auto;
     }
 
+    .campbell-ad {
+      width: 220px;
+      flex-shrink: 0;
+      position: sticky;
+      top: calc(50vh - 200px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      text-align: center;
+    }
+
+    .campbell-ad img {
+      width: 200px;
+      height: auto;
+      border-radius: 10px;
+      object-fit: contain;
+    }
+
+    .campbell-ad .campbell-caption {
+      font-size: 12px;
+      color: #9CA3AF;
+      font-style: italic;
+    }
+
     @media (max-width: 700px) {
       .kalshi-ad { display: none; }
+      .campbell-ad { display: none; }
       .page-layout { padding: 24px 16px 60px; }
     }
 
@@ -525,8 +551,12 @@
       <div id="history-table"><div class="loading">Loading bet history...</div></div>
     </div>
 
-    <div style="text-align:center; margin-top:40px; margin-bottom:20px;">
-      <a href="legacy.html" style="display:inline-block; padding:10px 24px; background:#F3F4F6; border-radius:8px; font-size:14px; font-weight:500; color:#1C1C1E; text-decoration:none;">📁 View Legacy Seasons →</a>
+    <div style="margin-top:48px; padding:20px; background:#F9FAFB; border-radius:12px; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <div style="font-size:15px; font-weight:600; color:#1C1C1E;">📁 Legacy Seasons</div>
+        <div style="font-size:13px; color:#9CA3AF; margin-top:2px;">All-time stats and full bet history</div>
+      </div>
+      <a href="legacy.html" style="padding:10px 20px; background:#1C1C1E; color:white; border-radius:8px; font-size:14px; font-weight:500; text-decoration:none;">View →</a>
     </div>
     <footer>Data pulled from Google Sheets · Refresh to update</footer>
   </div>
@@ -966,6 +996,11 @@
     <div class="kalshi-cta">Start Trading Free</div>
     <div style="font-size:11px; color:rgba(255,255,255,0.7); margin-top:4px;">No experience needed</div>
     <div class="kalshi-disclaimer">This is a fake advertisement. Kalshi is a real prediction market platform. This site is not affiliated with or sponsored by Kalshi in any way. Trading involves risk.</div>
+  </div>
+
+  <div class="campbell-ad">
+    <img src="pics/campbell.png" alt="Campbell Dingus">
+    <div class="campbell-caption">Brought to you by Campbell Dingus</div>
   </div>
 
   </div><!-- end page-layout -->

@@ -88,21 +88,22 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     .page-layout {
-      display: flex;
+      display: grid;
+      grid-template-columns: 220px 1fr 220px;
       gap: 32px;
       max-width: 1200px;
       margin: 0 auto;
       padding: 48px 24px 80px;
-      align-items: flex-start;
+      align-items: start;
     }
 
-    .main-content { flex: 1; min-width: 0; }
+    .main-content { min-width: 0; }
 
     .kalshi-ad {
       width: 220px;
       flex-shrink: 0;
       position: sticky;
-      top: calc(50vh - 300px);
+      top: calc(50vh - 200px);
       background: #00A878;
       border-radius: 12px;
       padding: 28px 20px;

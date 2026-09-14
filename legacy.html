@@ -270,6 +270,7 @@
           var awayPick = (r[7] || '').trim();
           var homeOdds = r[8] || '';
           var awayOdds = r[9] || '';
+          var firstScorer = (r[11] || '').trim();
           var correct = (r[12] || '').trim();
           var wasOffered = (r[14] || '').trim();
           var netUnits = parseFloat(r[15]) || 0;
@@ -290,7 +291,7 @@
             homeTeam: homeTeam, awayTeam: awayTeam,
             picker: picker, homePick: homePick, awayPick: awayPick,
             players: players, odds: oddsStr,
-            correct: correct, wasOffered: wasOffered,
+            firstScorer: firstScorer, correct: correct, wasOffered: wasOffered,
             netUnits: netUnits, netDollars: netDollars,
             searchText: (season.year + ' ' + week + ' ' + game + ' ' + picker + ' ' + homePick + ' ' + awayPick).toLowerCase()
           };
@@ -304,11 +305,20 @@
       var mBigWin = null, dBigWin = null, mBigLoss = null, dBigLoss = null;
       var pickCounts = {};
 
+      var scorerCounts = {};
+      var seenGames = {};
       bets.forEach(function(b) {
         [b.homePick, b.awayPick].filter(Boolean).forEach(function(p) {
           if (!pickCounts[p]) pickCounts[p] = { Maria: 0, Danielle: 0 };
           if (b.picker === 'Maria' || b.picker === 'Danielle') pickCounts[p][b.picker]++;
         });
+
+        // Track first scorer counts (one row per game not per picker — dedupe by game+year)
+        var gameKey = b.year + '_' + b.week + '_' + b.game;
+        if (b.firstScorer && !seenGames[gameKey]) {
+          seenGames[gameKey] = true;
+          scorerCounts[b.firstScorer] = (scorerCounts[b.firstScorer] || 0) + 1;
+        }
 
         if (b.picker === 'Maria') {
           mTotal++; if (b.correct === 'Yes') mCorrect++;
@@ -356,6 +366,7 @@
         mostOverall: allPlayers[0],
         mariaMost: allPlayers.filter(function(p) { return p.maria > 0; }).sort(function(a, b) { return b.maria - a.maria; })[0],
         danielleMost: allPlayers.filter(function(p) { return p.danielle > 0; }).sort(function(a, b) { return b.danielle - a.danielle; })[0],
+        scorerCounts: scorerCounts,
       };
     }
 
@@ -408,6 +419,19 @@
       if (s.danielleMost) html += funRow("Danielle's most picked player", s.danielleMost.name + ' (' + s.danielleMost.danielle + 'x)', 'danielle');
       if (s.mStreak && s.mStreak.wins > 0) html += funRow("Maria's best 10-game stretch", s.mStreak.label + ' correct', 'maria');
       if (s.dStreak && s.dStreak.wins > 0) html += funRow("Danielle's best 10-game stretch", s.dStreak.label + ' correct', 'danielle');
+      // Most frequent first TD scorer
+      var scorers = Object.keys(s.scorerCounts).map(function(name) { return { name: name, count: s.scorerCounts[name] }; });
+      scorers.sort(function(a, b) { return b.count - a.count; });
+      if (scorers.length > 0) {
+        var topCount = scorers[0].count;
+        if (topCount <= 1) {
+          html += funRow('Most frequent first TD scorer', 'No one has scored more than 1 first TD', '');
+        } else {
+          var topScorers = scorers.filter(function(s) { return s.count === topCount; });
+          var names = topScorers.map(function(s) { return s.name; }).join(', ');
+          html += funRow('Most frequent first TD scorer', names + ' (' + topCount + 'x)', '');
+        }
+      }
       if (s.mBigWin) html += funRow("Maria's biggest win ever", '+' + s.mBigWin.units + 'u ($' + s.mBigWin.dollars + ') — Wk ' + s.mBigWin.week + ' ' + s.mBigWin.game + ' (' + s.mBigWin.year + ')', 'maria');
       if (s.dBigWin) html += funRow("Danielle's biggest win ever", '+' + s.dBigWin.units + 'u ($' + s.dBigWin.dollars + ') — Wk ' + s.dBigWin.week + ' ' + s.dBigWin.game + ' (' + s.dBigWin.year + ')', 'danielle');
       html += '</div>';

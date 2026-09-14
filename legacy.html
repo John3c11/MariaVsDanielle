@@ -236,6 +236,45 @@
   <script src="config.js"></script>
   <script>
     // ── Add future years here ─────────────────────────────────────────────────
+    var TEAM_COLORS = {
+      "Philadelphia Eagles":    { primary: "#004C54" },
+      "New York Giants":        { primary: "#0B2265" },
+      "Dallas Cowboys":         { primary: "#003594" },
+      "Washington Commanders":  { primary: "#5A1414" },
+      "Detroit Lions":          { primary: "#0076B6" },
+      "Green Bay Packers":      { primary: "#203731" },
+      "Minnesota Vikings":      { primary: "#4F2683" },
+      "Chicago Bears":          { primary: "#0B162A" },
+      "Tampa Bay Buccaneers":   { primary: "#D50A0A" },
+      "Atlanta Falcons":        { primary: "#A71930" },
+      "Carolina Panthers":      { primary: "#0085CA" },
+      "New Orleans Saints":     { primary: "#D3BC8D" },
+      "Los Angeles Rams":       { primary: "#003594" },
+      "Seattle Seahawks":       { primary: "#002244" },
+      "San Francisco 49ers":    { primary: "#AA0000" },
+      "Arizona Cardinals":      { primary: "#97233F" },
+      "Buffalo Bills":          { primary: "#00338D" },
+      "New York Jets":          { primary: "#125740" },
+      "New England Patriots":   { primary: "#002244" },
+      "Miami Dolphins":         { primary: "#008E97" },
+      "Baltimore Ravens":       { primary: "#241773" },
+      "Cincinnati Bengals":     { primary: "#FB4F14" },
+      "Pittsburgh Steelers":    { primary: "#101820" },
+      "Cleveland Browns":       { primary: "#311D00" },
+      "Indianapolis Colts":     { primary: "#003A70" },
+      "Jacksonville Jaguars":   { primary: "#101820" },
+      "Houston Texans":         { primary: "#03202F" },
+      "Tennessee Titans":       { primary: "#0C2340" },
+      "Kansas City Chiefs":     { primary: "#E31837" },
+      "Los Angeles Chargers":   { primary: "#0080C6" },
+      "Denver Broncos":         { primary: "#FB4F14" },
+      "Las Vegas Raiders":      { primary: "#000000" },
+    };
+
+    function teamColor(name) { return TEAM_COLORS[name] ? TEAM_COLORS[name].primary : '#6B7280'; }
+    function coloredText(text, team) { if (!team || !TEAM_COLORS[team]) return text; return '<span style="color:' + TEAM_COLORS[team].primary + ';font-weight:600">' + text + '</span>'; }
+    function coloredGame(h, a) { return coloredText(h, h) + '<span style="color:#9CA3AF"> vs </span>' + coloredText(a, a); }
+
     var CURRENT_YEAR = "2026";
     var SEASONS = [
       { year: "2026", sheetId: "1eokxqa-RCuH4qNh486OMSnIeZdXbhHnw_FygbzUwGj4", tab: "Winnings" },
@@ -467,12 +506,16 @@
         var unitClass = b.netUnits > 0 ? 'pos' : b.netUnits < 0 ? 'neg' : 'zero';
         var unitStr = b.netUnits !== 0 ? (b.netUnits > 0 ? '+' : '') + b.netUnits + 'u' : '0u';
         var notOffered = b.wasOffered === 'No' ? '<div class="not-offered">scorer not offered</div>' : '';
+        var homeColored = b.homePick ? coloredText(b.homePick, b.homeTeam) : '';
+        var awayColored = b.awayPick ? coloredText(b.awayPick, b.awayTeam) : '';
+        var players = [homeColored, awayColored].filter(Boolean).join('<span style="color:#9CA3AF"> / </span>') || '—';
+        var gameDisplay = b.homeTeam && b.awayTeam ? coloredGame(b.homeTeam, b.awayTeam) : (b.game || '—');
         return '<div class="hist-row">' +
           '<span class="h-year">' + b.year + '</span>' +
           '<span class="h-week">' + b.week + '</span>' +
-          '<span class="h-game">' + (b.game || '—') + '</span>' +
+          '<span class="h-game">' + gameDisplay + '</span>' +
           '<span class="h-picker ' + pickerClass + '">' + b.picker + '</span>' +
-          '<span class="h-player">' + b.players + notOffered + '</span>' +
+          '<span class="h-player">' + players + notOffered + '</span>' +
           '<span class="h-odds">' + b.odds + '</span>' +
           '<span class="h-result ' + resultClass + '">' + resultText + '</span>' +
           '<span class="h-units ' + unitClass + '">' + unitStr + '</span>' +

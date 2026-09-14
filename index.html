@@ -577,6 +577,20 @@
     const SHEET_ID = '1eokxqa-RCuH4qNh486OMSnIeZdXbhHnw_FygbzUwGj4';
     const API_KEY = CONFIG.API_KEY;
 
+    function teamColor(teamName) {
+      var tc = TEAM_COLORS[teamName];
+      return tc ? tc.primary : '#6B7280';
+    }
+
+    function coloredText(text, teamName) {
+      if (!teamName || !TEAM_COLORS[teamName]) return text;
+      return '<span style="color:' + TEAM_COLORS[teamName].primary + ';font-weight:600">' + text + '</span>';
+    }
+
+    function coloredGame(homeTeam, awayTeam) {
+      return coloredText(homeTeam, homeTeam) + '<span style="color:#9CA3AF"> vs </span>' + coloredText(awayTeam, awayTeam);
+    }
+
     async function fetchSheet(tabName, range) {
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(tabName + '!' + range)}?key=${API_KEY}`;
       const res = await fetch(url);
@@ -639,12 +653,19 @@
 
         for (const r of rows) {
           const picker = (r[3] || '').trim();
+          const homeTeam = r[4] || '';
+          const awayTeam = r[5] || '';
+          const homePick = (r[6] || '').trim();
+          const awayPick = (r[7] || '').trim();
+          const homeOdds = r[8] || '';
+          const awayOdds = r[9] || '';
           const correct = (r[12] || '').trim();
-          const game = r[4] ? `${r[4]} vs ${r[5]}` : '';
+          const wasOffered = (r[14] || '').trim();
+          const game = homeTeam && awayTeam ? `${homeTeam} vs ${awayTeam}` : '';
           const netUnits = parseFloat(r[15]) || 0;
           if (picker === 'Maria') { mTotal++; if (correct === 'Yes') mCorrect++; }
           else if (picker === 'Danielle') { dTotal++; if (correct === 'Yes') dCorrect++; }
-          betLog.push({ picker, game, correct, netUnits });
+          betLog.push({ picker, game, homeTeam, awayTeam, homePick, awayPick, homeOdds, awayOdds, correct, wasOffered, netUnits, searchText: `${game} ${picker} ${homePick} ${awayPick}`.toLowerCase() });
         }
 
         const summary = await fetchSheet('Winnings', 'R1:X200');
@@ -698,20 +719,37 @@
             const gameRows = pendingRows.filter(r => r[0] === gameNum);
             const mariaRow = gameRows.find(r => r[3] === 'Maria');
             const danielleRow = gameRows.find(r => r[3] === 'Danielle');
-            const gameTitle = mariaRow ? `${mariaRow[4]} vs ${mariaRow[5]}` : danielleRow ? `${danielleRow[4]} vs ${danielleRow[5]}` : `Game ${gameNum}`;
+            const homeTeamName = mariaRow ? mariaRow[4] : danielleRow ? danielleRow[4] : '';
+            const awayTeamName = mariaRow ? mariaRow[5] : danielleRow ? danielleRow[5] : '';
+            const homeC = teamColor(homeTeamName);
+            const awayC = teamColor(awayTeamName);
             const mariaPick = getPickAndOdds(mariaRow);
             const daniellePick = getPickAndOdds(danielleRow);
+
+            function coloredPick(pickStr) {
+              if (!pickStr || pickStr === '—') return pickStr;
+              var parts = pickStr.split(' / ');
+              var colored = parts.map(function(p, i) {
+                return '<span style="color:' + (i === 0 ? homeC : awayC) + ';font-weight:600">' + p + '</span>';
+              });
+              return colored.join(' / ');
+            }
+
             html += `
-              <div class="live-game-title" style="margin-top:${html ? '20px' : '0'}">${gameTitle}</div>
+              <div class="live-game-title" style="margin-top:${html ? '20px' : '0'}">
+                <span style="color:${homeC};font-weight:700">${homeTeamName}</span>
+                <span style="color:#9CA3AF"> vs </span>
+                <span style="color:${awayC};font-weight:700">${awayTeamName}</span>
+              </div>
               <div class="live-picks-grid">
                 <div class="live-pick-card maria">
                   <div class="picker-label">Maria</div>
-                  <div class="pick-player">${mariaPick.player}</div>
+                  <div class="pick-player">${coloredPick(mariaPick.player)}</div>
                   <div class="pick-odds">${mariaPick.odds}</div>
                 </div>
                 <div class="live-pick-card danielle">
                   <div class="picker-label">Danielle</div>
-                  <div class="pick-player">${daniellePick.player}</div>
+                  <div class="pick-player">${coloredPick(daniellePick.player)}</div>
                   <div class="pick-odds">${daniellePick.odds}</div>
                 </div>
               </div>`;
@@ -824,18 +862,21 @@
         const resultText = r.correct === 'Yes' ? 'Win' : r.correct === 'No' ? 'Loss' : '—';
         const notOfferedNote = r.wasOffered === 'No' ? '<div class="not-offered-note">scorer not offered</div>' : '';
 
-        const players = [r.homePick, r.awayPick].filter(Boolean).join(' / ') || '—';
+        const homeColored = r.homePick ? coloredText(r.homePick, r.homeTeam) : '';
+        const awayColored = r.awayPick ? coloredText(r.awayPick, r.awayTeam) : '';
+        const players = [homeColored, awayColored].filter(Boolean).join('<span style="color:#9CA3AF"> / </span>') || '—';
         const odds = [
           r.homePick && r.homeOdds ? '+' + Math.round(parseFloat(r.homeOdds) * 100) : '',
           r.awayPick && r.awayOdds ? '+' + Math.round(parseFloat(r.awayOdds) * 100) : ''
         ].filter(Boolean).join(' / ') || '—';
 
         const unitClass = r.netUnits > 0 ? 'pos' : r.netUnits < 0 ? 'neg' : 'zero';
-        const unitStr = r.netUnits > 0 ? `+${r.netUnits}` : r.netUnits === 0 ? '0' : `${r.netUnits}`;
+        const unitStr = r.netUnits !== 0 ? (r.netUnits > 0 ? '+' : '') + r.netUnits + 'u' : '0u';
+        const gameDisplay = r.homeTeam && r.awayTeam ? coloredGame(r.homeTeam, r.awayTeam) : (r.game || '—');
 
-        return `<div class="history-row">
+        return `<div class="bet-row">
           <span class="h-week">${r.week}</span>
-          <span class="h-game">${r.game || '—'}</span>
+          <span class="h-game">${gameDisplay}</span>
           <span class="h-picker ${pickerClass}">${r.picker}</span>
           <span class="h-player">${players}${notOfferedNote}</span>
           <span class="h-odds">${odds}</span>

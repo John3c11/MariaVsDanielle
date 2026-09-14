@@ -931,9 +931,13 @@
         return true;
       });
       filtered.sort(function(a, b) {
-        var dir = BH_FILTERS.order === 'asc' ? 1 : -1;
-        if (a.year !== b.year) return dir * (parseInt(a.year) - parseInt(b.year));
-        return dir * (parseInt(a.week) - parseInt(b.week));
+        if (BH_FILTERS.order === 'asc') {
+          if (a.year !== b.year) return parseInt(a.year) - parseInt(b.year);
+          return parseInt(a.week) - parseInt(b.week);
+        } else {
+          if (a.year !== b.year) return parseInt(b.year) - parseInt(a.year);
+          return parseInt(b.week) - parseInt(a.week);
+        }
       });
       renderBHHistory(filtered);
     }

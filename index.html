@@ -1150,12 +1150,13 @@
           if (!pickCounts[p]) pickCounts[p] = { Maria: 0, Danielle: 0 };
           if (b.picker === 'Maria' || b.picker === 'Danielle') pickCounts[p][b.picker]++;
         });
-        if (b.picker === 'Maria') {
+        var gameScored = b.correct === 'Yes' || b.correct === 'No';
+        if (b.picker === 'Maria' && gameScored) {
           mTotal++; if (b.correct === 'Yes') mCorrect++;
           mUnits += b.netUnits; mDollars += b.netDollars;
           if (b.netUnits > 0 && (mBigWin === null || b.netUnits > mBigWin.units))
             mBigWin = { units: b.netUnits, dollars: b.netDollars, game: b.game, year: b.year, week: b.week };
-        } else if (b.picker === 'Danielle') {
+        } else if (b.picker === 'Danielle' && gameScored) {
           dTotal++; if (b.correct === 'Yes') dCorrect++;
           dUnits += b.netUnits; dDollars += b.netDollars;
           if (b.netUnits > 0 && (dBigWin === null || b.netUnits > dBigWin.units))
@@ -1185,8 +1186,8 @@
         return best;
       }
 
-      var mariaBets = bets.filter(function(b) { return b.picker === 'Maria'; });
-      var danielleBets = bets.filter(function(b) { return b.picker === 'Danielle'; });
+      var mariaBets = bets.filter(function(b) { return b.picker === 'Maria' && (b.correct === 'Yes' || b.correct === 'No'); });
+      var danielleBets = bets.filter(function(b) { return b.picker === 'Danielle' && (b.correct === 'Yes' || b.correct === 'No'); });
 
       return {
         mCorrect: mCorrect, mTotal: mTotal, dCorrect: dCorrect, dTotal: dTotal,

@@ -182,7 +182,7 @@
 
     body {
       font-family: 'Inter', system-ui, sans-serif;
-      background: #ffffff;
+      background: url('pics/background.png') repeat;
       color: #1C1C1E;
       min-height: 100vh;
     }
@@ -933,10 +933,12 @@
       filtered.sort(function(a, b) {
         if (BH_FILTERS.order === 'asc') {
           if (a.year !== b.year) return parseInt(a.year) - parseInt(b.year);
-          return parseInt(a.week) - parseInt(b.week);
+          if (a.week !== b.week) return parseInt(a.week) - parseInt(b.week);
+          return a.idx - b.idx;
         } else {
           if (a.year !== b.year) return parseInt(b.year) - parseInt(a.year);
-          return parseInt(b.week) - parseInt(a.week);
+          if (a.week !== b.week) return parseInt(b.week) - parseInt(a.week);
+          return b.idx - a.idx;
         }
       });
       renderBHHistory(filtered);
@@ -981,6 +983,8 @@
       Promise.all(SEASONS.map(fetchLegacySeason)).then(function(results) {
         ALL_BH_BETS = [];
         results.forEach(function(bets) { ALL_BH_BETS = ALL_BH_BETS.concat(bets); });
+        // Add original index for tiebreaking within same year+week
+        ALL_BH_BETS.forEach(function(b, i) { b.idx = i; });
         // oldest first: SEASONS array is newest first, so we reverse to get oldest first
 
 

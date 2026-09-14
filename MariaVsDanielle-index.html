@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maria vs Danielle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .tabs-nav {
+      display: flex;
+      gap: 0;
+      margin-bottom: 36px;
+      border-bottom: 1.5px solid #1C1C1E;
+    }
+
+    .tab-btn {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 10px 20px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: #9CA3AF;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1.5px;
+    }
+
+    .tab-btn.active {
+      color: #1C1C1E;
+      border-bottom: 2px solid #1C1C1E;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Rosters tab */
+    .division-block { margin-bottom: 24px; }
+
+    .division-header {
+      font-size: 11px;
+      font-weight: 600;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 10px 0 8px;
+      border-bottom: 0.5px solid #E5E7EB;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+
+    .division-header:hover { color: #6B7280; }
+    .division-chevron { font-size: 10px; transition: transform 0.2s; }
+    .division-header.open .division-chevron { transform: rotate(180deg); }
+
+    .division-teams { display: none; padding-top: 8px; }
+    .division-teams.open { display: block; }
+
+
+
+    .player-list { display: flex; flex-direction: column; gap: 4px; }
+
+    .player-row {
+      display: flex;
+      gap: 10px;
+      font-size: 13px;
+      align-items: baseline;
+    }
+
+    .pos-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      min-width: 32px;
+    }
+
+    .player-name-text { color: #1C1C1E; }
+    .player-name-text.qb-valid { color: #065F46; font-weight: 500; }
+    .player-name-text.extra { color: #6B7280; }
+
+  
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .page-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr 220px;
+      gap: 32px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+      align-items: start;
+    }
+
+    .main-content { min-width: 0; }
+
+    .kalshi-ad {
+      width: 220px;
+      flex-shrink: 0;
+      position: sticky;
+      top: calc(50vh - 200px);
+      background: #00A878;
+      border-radius: 12px;
+      padding: 28px 20px;
+      color: white;
+      min-height: 600px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      text-align: center;
+    }
+
+    .kalshi-logo {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      color: white;
+    }
+
+    .kalshi-tagline {
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.5;
+    }
+
+    .kalshi-cta {
+      background: white;
+      color: #00A878;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      margin-top: 8px;
+      cursor: default;
+    }
+
+    .kalshi-disclaimer {
+      font-size: 9px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.4;
+      margin-top: auto;
+    }
+
+    .campbell-ad {
+      width: 220px;
+      position: sticky;
+      top: calc(50vh - 200px);
+      align-self: start;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      text-align: center;
+    }
+
+    .campbell-ad img {
+      width: 200px;
+      height: auto;
+      border-radius: 10px;
+      object-fit: contain;
+    }
+
+    .campbell-ad .campbell-caption {
+      font-size: 12px;
+      color: #9CA3AF;
+      font-style: italic;
+    }
+
+    @media (max-width: 700px) {
+      .kalshi-ad { display: none; }
+      .campbell-ad { display: none; }
+      .page-layout { padding: 24px 16px 60px; }
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #ffffff;
+      color: #1C1C1E;
+      min-height: 100vh;
+    }
+
+    .wrap {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    header h1 {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #9CA3AF;
+      margin-bottom: 24px;
+    }
+
+    /* VS section */
+    .vs-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 12px;
+    }
+
+    .player {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .player img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #E5E7EB;
+    }
+
+    .player .player-name {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+
+    .maria .player-name { color: #B45309; }
+    .danielle .player-name { color: #1D4ED8; }
+
+    .vs-badge {
+      font-size: 22px;
+      font-weight: 700;
+      color: #D1D5DB;
+      flex-shrink: 0;
+    }
+
+    .last-updated {
+      font-size: 12px;
+      color: #D1D5DB;
+      margin-top: 8px;
+    }
+
+    /* Leader banner */
+    .leader-banner {
+      text-align: center;
+      font-size: 14px;
+      font-weight: 500;
+      color: #6B7280;
+      margin-bottom: 32px;
+      padding: 10px;
+      background: #F9FAFB;
+      border-radius: 8px;
+    }
+
+    .leader-banner span { font-weight: 700; color: #1C1C1E; }
+
+    /* Stat comparison */
+    .stat-block {
+      margin-bottom: 12px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .stat-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .stat-value {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .stat-value.maria { color: #B45309; text-align: right; }
+    .stat-value.danielle { color: #1D4ED8; text-align: left; }
+
+    .stat-divider {
+      font-size: 12px;
+      color: #E5E7EB;
+      font-weight: 400;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      margin-top: 6px;
+      height: 6px;
+    }
+
+    .bar {
+      border-radius: 3px;
+      height: 6px;
+      transition: width 0.4s ease;
+    }
+
+    .bar.maria {
+      background: #D97706;
+      margin-left: auto;
+    }
+
+    .bar.danielle {
+      background: #2563EB;
+    }
+
+    .divider {
+      border: none;
+      border-top: 0.5px solid #F3F4F6;
+      margin: 20px 0;
+    }
+
+    /* Bet history */
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+    }
+
+    .bet-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 8px;
+      padding: 10px 0;
+      border-bottom: 0.5px solid #F3F4F6;
+      font-size: 13px;
+      align-items: center;
+    }
+
+    .bet-row:last-child { border-bottom: none; }
+
+    .bet-game { font-weight: 500; color: #1C1C1E; }
+    .bet-picker { font-size: 12px; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
+    .bet-picker.maria { background: #FEF3C7; color: #B45309; }
+    .bet-picker.danielle { background: #DBEAFE; color: #1D4ED8; }
+
+    .bet-result {
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    .bet-result.win { background: #D1FAE5; color: #065F46; }
+    .bet-result.loss { background: #FEE2E2; color: #991B1B; }
+    .bet-result.pending { background: #F3F4F6; color: #9CA3AF; }
+
+    .bet-units { font-size: 12px; color: #9CA3AF; }
+
+    .live-game-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1C1C1E;
+      margin-bottom: 12px;
+    }
+
+    .live-picks-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .live-pick-card {
+      background: #F9FAFB;
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+
+    .live-pick-card .picker-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+
+    .live-pick-card.maria .picker-label { color: #B45309; }
+    .live-pick-card.danielle .picker-label { color: #1D4ED8; }
+
+    .live-pick-card .pick-player {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1C1C1E;
+      margin-bottom: 4px;
+    }
+
+    .live-pick-card .pick-odds {
+      font-size: 13px;
+      color: #6B7280;
+    }
+
+    .no-live { color: #9CA3AF; font-size: 14px; }
+
+    footer {
+      font-size: 12px;
+      color: #D1D5DB;
+      margin-top: 48px;
+      border-top: 0.5px solid #E5E7EB;
+      padding-top: 20px;
+      text-align: center;
+    }
+
+    .loading { color: #9CA3AF; font-size: 14px; text-align: center; padding: 24px; }
+
+    .history-row {
+      display: grid;
+      grid-template-columns: 30px 1fr 65px 1fr 75px 50px 42px;
+      gap: 8px;
+      padding: 10px 0;
+      border-bottom: 0.5px solid #F3F4F6;
+      font-size: 12px;
+      align-items: start;
+    }
+
+    .history-row.header {
+      font-size: 10px;
+      font-weight: 600;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding-bottom: 8px;
+    }
+
+    .history-row:last-child { border-bottom: none; }
+
+    .h-week { color: #9CA3AF; text-align: center; }
+    .h-game { font-weight: 500; color: #1C1C1E; }
+    .h-picker.maria { color: #B45309; font-weight: 500; }
+    .h-picker.danielle { color: #1D4ED8; font-weight: 500; }
+    .h-player { color: #1C1C1E; }
+    .h-odds { color: #6B7280; }
+    .h-units { text-align: right; font-weight: 500; }
+    .h-units.pos { color: #065F46; }
+    .h-units.neg { color: #DC2626; }
+    .h-units.zero { color: #9CA3AF; }
+
+    .h-result {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-align: center;
+    }
+    .h-result.win { background:#D1FAE5; color:#065F46; }
+    .h-result.loss { background:#FEE2E2; color:#991B1B; }
+    .h-result.na { background:#F3F4F6; color:#9CA3AF; }
+
+    .team-block {
+      margin-bottom: 16px;
+      padding: 0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .team-header-bar {
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+    }
+
+    .team-players-inner {
+      padding: 10px 16px 14px;
+      background: #F9FAFB;
+    }
+
+    .not-offered-note {
+      font-size: 10px;
+      color: #9CA3AF;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-layout">
+
+<div class="kalshi-ad">
+    <div class="kalshi-logo">Kalshi</div>
+    <div class="kalshi-tagline">Trade on real-world events. Sports, politics, economics — all on one platform.</div>
+    <div style="font-size:36px">📈</div>
+    <div class="kalshi-cta">Start Trading Free</div>
+    <div style="font-size:11px; color:rgba(255,255,255,0.7); margin-top:4px;">No experience needed</div>
+    <div class="kalshi-disclaimer">This is a fake advertisement. Kalshi is a real prediction market platform. This site is not affiliated with or sponsored by Kalshi in any way. Trading involves risk.</div>
+  </div>
+
+  <div class="wrap">
+    <nav class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab('stats')">Stats</button>
+      <button class="tab-btn" onclick="switchTab('rosters')">Rosters</button>
+      <button class="tab-btn" onclick="switchTab('history')">Bet History</button>
+    </nav>
+
+    <div id="tab-stats" class="tab-panel active">
+    <header>
+      <h1>2026 Touchdown Bets</h1>
+      <div class="vs-row">
+        <div class="player maria">
+          <img src="pics/Maria.jpeg" alt="Maria">
+          <div class="player-name">Maria</div>
+        </div>
+        <div class="vs-badge">VS</div>
+        <div class="player danielle">
+          <img src="pics/Danielle.jpeg" alt="Danielle">
+          <div class="player-name">Danielle</div>
+        </div>
+      </div>
+      <div class="last-updated" id="last-updated">Loading...</div>
+    </header>
+
+    <div id="leader-banner" class="leader-banner" style="display:none"></div>
+
+    <div id="stats-section"><div class="loading">Loading stats...</div></div>
+
+    <hr class="divider">
+
+    <div class="section-title">Live Picks</div>
+    <div id="live-picks"><div class="loading">Loading...</div></div>
+
+    <hr class="divider">
+
+    <div class="section-title">Recent Bets</div>
+    <div id="bet-history"><div class="loading">Loading bets...</div></div>
+
+    </div><!-- end tab-stats -->
+
+    <div id="tab-rosters" class="tab-panel">
+      <div id="rosters-content"><div class="loading">Loading rosters...</div></div>
+    </div>
+
+    <div id="tab-history" class="tab-panel">
+      <div style="margin-bottom:16px;">
+        <input type="text" id="history-search" placeholder="Search player, team, week, or picker..." oninput="filterHistory()"
+          style="width:100%; padding:10px 14px; font-family:'Inter',sans-serif; font-size:14px;
+          border:0.5px solid #E5E7EB; border-radius:8px; background:#F9FAFB; color:#1C1C1E; outline:none;">
+      </div>
+      <div id="history-count" style="font-size:12px; color:#9CA3AF; margin-bottom:12px;"></div>
+      <div id="history-table"><div class="loading">Loading bet history...</div></div>
+    </div>
+
+    <div style="margin-top:48px; padding:20px; background:#F9FAFB; border-radius:12px; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <div style="font-size:15px; font-weight:600; color:#1C1C1E;">📁 Legacy Seasons</div>
+        <div style="font-size:13px; color:#9CA3AF; margin-top:2px;">All-time stats and full bet history</div>
+      </div>
+      <a href="legacy.html" style="padding:10px 20px; background:#1C1C1E; color:white; border-radius:8px; font-size:14px; font-weight:500; text-decoration:none;">View →</a>
+    </div>
+    <footer>Data pulled from Google Sheets · Refresh to update</footer>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    const SHEET_ID = '1eokxqa-RCuH4qNh486OMSnIeZdXbhHnw_FygbzUwGj4';
+    const API_KEY = CONFIG.API_KEY;
+
+    function teamColor(teamName) {
+      var tc = TEAM_COLORS[teamName];
+      return tc ? tc.primary : '#6B7280';
+    }
+
+    function coloredText(text, teamName) {
+      if (!teamName || !TEAM_COLORS[teamName]) return text;
+      return '<span style="color:' + TEAM_COLORS[teamName].primary + ';font-weight:600">' + text + '</span>';
+    }
+
+    function coloredGame(homeTeam, awayTeam) {
+      return coloredText(homeTeam, homeTeam) + '<span style="color:#9CA3AF"> vs </span>' + coloredText(awayTeam, awayTeam);
+    }
+
+    async function fetchSheet(tabName, range) {
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(tabName + '!' + range)}?key=${API_KEY}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Failed to fetch ${tabName}: ${res.status}`);
+      const data = await res.json();
+      return data.values || [];
+    }
+
+    function pct(n, d) { if (!d) return '0%'; return Math.round(n / d * 100) + '%'; }
+
+    function barWidth(a, b) {
+      const total = Math.abs(a) + Math.abs(b);
+      if (!total) return ['50%', '50%'];
+      return [Math.round(Math.abs(a) / total * 100) + '%', Math.round(Math.abs(b) / total * 100) + '%'];
+    }
+
+    function statBlock(label, mariaVal, danielleVal, mariaDisplay, danielleDisplay) {
+      const [mw, dw] = barWidth(mariaVal, danielleVal);
+      return `<div class="stat-block">
+        <div class="stat-label">${label}</div>
+        <div class="stat-row">
+          <div class="stat-value maria">${mariaDisplay}</div>
+          <div class="stat-divider">·</div>
+          <div class="stat-value danielle">${danielleDisplay}</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar maria" style="width:${mw}"></div>
+          <div class="bar danielle" style="width:${dw}"></div>
+        </div>
+      </div>`;
+    }
+
+    function formatOdds(val) {
+      if (!val) return '—';
+      const n = parseFloat(val);
+      if (isNaN(n)) return val;
+      return '+' + Math.round(n * 100);
+    }
+
+    function getPickAndOdds(row) {
+      if (!row) return { player: '—', odds: '—' };
+      const homePick = (row[6] || '').trim();
+      const awayPick = (row[7] || '').trim();
+      const homeOdds = row[8] || '';
+      const awayOdds = row[9] || '';
+      // Both picks present — show both
+      if (homePick && awayPick) return { player: `${homePick} / ${awayPick}`, odds: `${formatOdds(homeOdds)} / ${formatOdds(awayOdds)}` };
+      if (homePick) return { player: homePick, odds: formatOdds(homeOdds) };
+      if (awayPick) return { player: awayPick, odds: formatOdds(awayOdds) };
+      return { player: '—', odds: '—' };
+    }
+
+    async function load() {
+      try {
+        const bets = await fetchSheet('Winnings', 'A1:Q200');
+        const rows = bets.slice(1).filter(r => r[0] && r[3]);
+
+        let mCorrect = 0, mTotal = 0, dCorrect = 0, dTotal = 0;
+        const betLog = [];
+
+        for (const r of rows) {
+          const picker = (r[3] || '').trim();
+          const homeTeam = r[4] || '';
+          const awayTeam = r[5] || '';
+          const homePick = (r[6] || '').trim();
+          const awayPick = (r[7] || '').trim();
+          const homeOdds = r[8] || '';
+          const awayOdds = r[9] || '';
+          const correct = (r[12] || '').trim();
+          const wasOffered = (r[14] || '').trim();
+          const game = homeTeam && awayTeam ? `${homeTeam} vs ${awayTeam}` : '';
+          const netUnits = parseFloat(r[15]) || 0;
+          if (picker === 'Maria') { mTotal++; if (correct === 'Yes') mCorrect++; }
+          else if (picker === 'Danielle') { dTotal++; if (correct === 'Yes') dCorrect++; }
+          betLog.push({ picker, game, homeTeam, awayTeam, homePick, awayPick, homeOdds, awayOdds, correct, wasOffered, netUnits, searchText: `${game} ${picker} ${homePick} ${awayPick}`.toLowerCase() });
+        }
+
+        const summary = await fetchSheet('Winnings', 'R1:X200');
+        let mariaUnits = 0, danielleUnits = 0, mariaDollars = 0, danielleDollars = 0;
+        for (const r of summary) {
+          if (r[0] === 'Total') {
+            mariaUnits = parseFloat(r[1]) || 0;
+            danielleUnits = parseFloat(r[2]) || 0;
+            mariaDollars = parseFloat(r[3]) || 0;
+            danielleDollars = parseFloat(r[4]) || 0;
+            break;
+          }
+        }
+
+        // Leader banner
+        const banner = document.getElementById('leader-banner');
+        banner.style.display = 'block';
+        if (mariaUnits > danielleUnits) {
+          banner.innerHTML = `<span>Maria</span> is leading by ${(mariaUnits - danielleUnits).toFixed(1)} units`;
+        } else if (danielleUnits > mariaUnits) {
+          banner.innerHTML = `<span>Danielle</span> is leading by ${(danielleUnits - mariaUnits).toFixed(1)} units`;
+        } else {
+          banner.innerHTML = `It's <span>tied</span>`;
+        }
+
+        // Stats
+        const statsEl = document.getElementById('stats-section');
+        const mDolStr = (mariaDollars >= 0 ? '+' : '') + '$' + mariaDollars.toFixed(2);
+        const dDolStr = (danielleDollars >= 0 ? '+' : '') + '$' + danielleDollars.toFixed(2);
+        const mUnitStr = (mariaUnits >= 0 ? '+' : '') + mariaUnits.toFixed(1);
+        const dUnitStr = (danielleUnits >= 0 ? '+' : '') + danielleUnits.toFixed(1);
+        statsEl.innerHTML = `
+          ${statBlock('Correct Guesses', mCorrect, dCorrect, `${mCorrect} / ${mTotal}`, `${dCorrect} / ${dTotal}`)}
+          <hr class="divider">
+          ${statBlock('Accuracy', mCorrect / (mTotal || 1), dCorrect / (dTotal || 1), pct(mCorrect, mTotal), pct(dCorrect, dTotal))}
+          <hr class="divider">
+          ${statBlock('Units Won / Lost', mariaUnits, danielleUnits, mUnitStr, dUnitStr)}
+          <hr class="divider">
+          ${statBlock('Dollars Won / Lost', mariaDollars, danielleDollars, mDolStr, dDolStr)}`;
+
+        // Live picks — show all pending games
+        const liveEl = document.getElementById('live-picks');
+        const pendingRows = rows.filter(r => !r[11] || r[11].trim() === '');
+        if (pendingRows.length === 0) {
+          liveEl.innerHTML = '<div class="no-live">No pending picks — all games have been scored.</div>';
+        } else {
+          // Group by game number
+          const pendingGames = [...new Set(pendingRows.map(r => r[0]))];
+          let html = '';
+          for (const gameNum of pendingGames) {
+            const gameRows = pendingRows.filter(r => r[0] === gameNum);
+            const mariaRow = gameRows.find(r => r[3] === 'Maria');
+            const danielleRow = gameRows.find(r => r[3] === 'Danielle');
+            const homeTeamName = mariaRow ? mariaRow[4] : danielleRow ? danielleRow[4] : '';
+            const awayTeamName = mariaRow ? mariaRow[5] : danielleRow ? danielleRow[5] : '';
+            const homeC = teamColor(homeTeamName);
+            const awayC = teamColor(awayTeamName);
+            const mariaPick = getPickAndOdds(mariaRow);
+            const daniellePick = getPickAndOdds(danielleRow);
+
+            function coloredPick(pickStr) {
+              if (!pickStr || pickStr === '—') return pickStr;
+              var parts = pickStr.split(' / ');
+              var colored = parts.map(function(p, i) {
+                return '<span style="color:' + (i === 0 ? homeC : awayC) + ';font-weight:600">' + p + '</span>';
+              });
+              return colored.join(' / ');
+            }
+
+            html += `
+              <div class="live-game-title" style="margin-top:${html ? '20px' : '0'}">
+                <span style="color:${homeC};font-weight:700">${homeTeamName}</span>
+                <span style="color:#9CA3AF"> vs </span>
+                <span style="color:${awayC};font-weight:700">${awayTeamName}</span>
+              </div>
+              <div class="live-picks-grid">
+                <div class="live-pick-card maria">
+                  <div class="picker-label">Maria</div>
+                  <div class="pick-player">${coloredPick(mariaPick.player)}</div>
+                  <div class="pick-odds">${mariaPick.odds}</div>
+                </div>
+                <div class="live-pick-card danielle">
+                  <div class="picker-label">Danielle</div>
+                  <div class="pick-player">${coloredPick(daniellePick.player)}</div>
+                  <div class="pick-odds">${daniellePick.odds}</div>
+                </div>
+              </div>`;
+          }
+          liveEl.innerHTML = html;
+        }
+
+        // Recent bets
+        const histEl = document.getElementById('bet-history');
+        const recent = betLog.slice(-10).reverse();
+        if (recent.length === 0) {
+          histEl.innerHTML = '<div class="loading">No bets logged yet.</div>';
+        } else {
+          histEl.innerHTML = recent.map(b => {
+            const resultClass = b.correct === 'Yes' ? 'win' : b.correct === 'No' ? 'loss' : 'pending';
+            const resultText = b.correct === 'Yes' ? 'Win' : b.correct === 'No' ? 'Loss' : '—';
+            const pickerClass = b.picker.toLowerCase();
+            const unitStr = b.netUnits !== 0 ? (b.netUnits > 0 ? '+' : '') + b.netUnits + 'u' : '';
+            return `<div class="bet-row">
+              <span class="bet-game">${b.game || '—'}</span>
+              <span class="bet-picker ${pickerClass}">${b.picker}</span>
+              <span class="bet-result ${resultClass}">${resultText}</span>
+              <span class="bet-units">${unitStr}</span>
+            </div>`;
+          }).join('');
+        }
+
+        document.getElementById('last-updated').textContent =
+          `Last refreshed ${new Date().toLocaleString()}`;
+
+      } catch (e) {
+        console.error(e);
+        document.getElementById('last-updated').textContent = 'Error loading data — check console';
+      }
+    }
+
+    load();
+    loadRosters();
+    loadHistory();
+
+    let ALL_HISTORY_ROWS = [];
+
+    async function loadHistory() {
+      try {
+        const bets = await fetchSheet('Winnings', 'A1:R200');
+        const rows = bets.slice(1).filter(r => r[0] && r[3]);
+
+        const historyData = [];
+        for (const r of rows) {
+          const week = r[1] || '';
+          const time = r[2] || '';
+          const picker = (r[3] || '').trim();
+          const homeTeam = r[4] || '';
+          const awayTeam = r[5] || '';
+          const homePick = (r[6] || '').trim();
+          const awayPick = (r[7] || '').trim();
+          const homeOdds = r[8] || '';
+          const awayOdds = r[9] || '';
+          const correct = (r[12] || '').trim();
+          const whichSide = (r[13] || '').trim();
+          const wasOffered = (r[14] || '').trim();
+          const netUnits = parseFloat(r[15]) || 0;
+          const game = homeTeam && awayTeam ? `${homeTeam} vs ${awayTeam}` : '';
+
+          historyData.push({
+            week, time, picker, homeTeam, awayTeam, game,
+            homePick, awayPick, homeOdds, awayOdds,
+            correct, whichSide, wasOffered, netUnits,
+            searchText: `${week} ${game} ${picker} ${homePick} ${awayPick}`.toLowerCase()
+          });
+        }
+
+        ALL_HISTORY_ROWS = historyData;
+        renderHistory(historyData);
+      } catch(e) {
+        console.error(e);
+        document.getElementById('history-table').innerHTML = '<div class="loading">Error loading history.</div>';
+      }
+    }
+
+    function filterHistory() {
+      const q = document.getElementById('history-search').value.toLowerCase().trim();
+      const filtered = q ? ALL_HISTORY_ROWS.filter(r => r.searchText.includes(q)) : ALL_HISTORY_ROWS;
+      renderHistory(filtered);
+    }
+
+    function renderHistory(data) {
+      const el = document.getElementById('history-table');
+      const countEl = document.getElementById('history-count');
+      countEl.textContent = `${data.length} bet${data.length !== 1 ? 's' : ''}`;
+
+      if (data.length === 0) {
+        el.innerHTML = '<div class="loading">No results.</div>';
+        return;
+      }
+
+      const header = `<div class="history-row header">
+        <span class="h-week">Wk</span>
+        <span class="h-game">Game</span>
+        <span>Picker</span>
+        <span>Players</span>
+        <span>Odds</span>
+        <span>Result</span>
+        <span class="h-units">Units</span>
+      </div>`;
+
+      const rowsHtml = [...data].reverse().map(r => {
+        const pickerClass = r.picker.toLowerCase();
+        const resultClass = r.correct === 'Yes' ? 'win' : r.correct === 'No' ? 'loss' : 'na';
+        const resultText = r.correct === 'Yes' ? 'Win' : r.correct === 'No' ? 'Loss' : '—';
+        const notOfferedNote = r.wasOffered === 'No' ? '<div class="not-offered-note">scorer not offered</div>' : '';
+
+        const homeColored = r.homePick ? coloredText(r.homePick, r.homeTeam) : '';
+        const awayColored = r.awayPick ? coloredText(r.awayPick, r.awayTeam) : '';
+        const players = [homeColored, awayColored].filter(Boolean).join('<span style="color:#9CA3AF"> / </span>') || '—';
+        const odds = [
+          r.homePick && r.homeOdds ? '+' + Math.round(parseFloat(r.homeOdds) * 100) : '',
+          r.awayPick && r.awayOdds ? '+' + Math.round(parseFloat(r.awayOdds) * 100) : ''
+        ].filter(Boolean).join(' / ') || '—';
+
+        const unitClass = r.netUnits > 0 ? 'pos' : r.netUnits < 0 ? 'neg' : 'zero';
+        const unitStr = r.netUnits !== 0 ? (r.netUnits > 0 ? '+' : '') + r.netUnits + 'u' : '0u';
+        const gameDisplay = r.homeTeam && r.awayTeam ? coloredGame(r.homeTeam, r.awayTeam) : (r.game || '—');
+
+        return `<div class="bet-row">
+          <span class="h-week">${r.week}</span>
+          <span class="h-game">${gameDisplay}</span>
+          <span class="h-picker ${pickerClass}">${r.picker}</span>
+          <span class="h-player">${players}${notOfferedNote}</span>
+          <span class="h-odds">${odds}</span>
+          <span class="h-result ${resultClass}">${resultText}</span>
+          <span class="h-units ${unitClass}">${unitStr}u</span>
+        </div>`;
+      }).join('');
+
+      el.innerHTML = header + rowsHtml;
+    }
+
+    function switchTab(name) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelector(`.tab-btn[onclick="switchTab('${name}')"]`).classList.add('active');
+      document.getElementById('tab-' + name).classList.add('active');
+    }
+
+    function toggleDivision(el) {
+      el.classList.toggle('open');
+      el.nextElementSibling.classList.toggle('open');
+    }
+
+    const TEAM_COLORS = {
+      "Philadelphia Eagles":    { primary: "#004C54", secondary: "#A5ACAF", text: "#ffffff" },
+      "New York Giants":        { primary: "#0B2265", secondary: "#A71930", text: "#ffffff" },
+      "Dallas Cowboys":         { primary: "#003594", secondary: "#869397", text: "#ffffff" },
+      "Washington Commanders":  { primary: "#5A1414", secondary: "#FFB612", text: "#ffffff" },
+      "Detroit Lions":          { primary: "#0076B6", secondary: "#B0B7BC", text: "#ffffff" },
+      "Green Bay Packers":      { primary: "#203731", secondary: "#FFB612", text: "#FFB612" },
+      "Minnesota Vikings":      { primary: "#4F2683", secondary: "#FFC62F", text: "#FFC62F" },
+      "Chicago Bears":          { primary: "#0B162A", secondary: "#C83803", text: "#C83803" },
+      "Tampa Bay Buccaneers":   { primary: "#D50A0A", secondary: "#FF7900", text: "#ffffff" },
+      "Atlanta Falcons":        { primary: "#A71930", secondary: "#000000", text: "#ffffff" },
+      "Carolina Panthers":      { primary: "#0085CA", secondary: "#101820", text: "#ffffff" },
+      "New Orleans Saints":     { primary: "#D3BC8D", secondary: "#101820", text: "#101820" },
+      "Los Angeles Rams":       { primary: "#003594", secondary: "#FFA300", text: "#FFA300" },
+      "Seattle Seahawks":       { primary: "#002244", secondary: "#69BE28", text: "#69BE28" },
+      "San Francisco 49ers":    { primary: "#AA0000", secondary: "#B3995D", text: "#ffffff" },
+      "Arizona Cardinals":      { primary: "#97233F", secondary: "#000000", text: "#ffffff" },
+      "Buffalo Bills":          { primary: "#00338D", secondary: "#C60C30", text: "#ffffff" },
+      "New York Jets":          { primary: "#125740", secondary: "#000000", text: "#ffffff" },
+      "New England Patriots":   { primary: "#002244", secondary: "#C60C30", text: "#C60C30" },
+      "Miami Dolphins":         { primary: "#008E97", secondary: "#FC4C02", text: "#ffffff" },
+      "Baltimore Ravens":       { primary: "#241773", secondary: "#9E7C0C", text: "#9E7C0C" },
+      "Cincinnati Bengals":     { primary: "#FB4F14", secondary: "#000000", text: "#ffffff" },
+      "Pittsburgh Steelers":    { primary: "#101820", secondary: "#FFB612", text: "#FFB612" },
+      "Cleveland Browns":       { primary: "#311D00", secondary: "#FF3C00", text: "#FF3C00" },
+      "Indianapolis Colts":     { primary: "#003A70", secondary: "#A2AAAD", text: "#ffffff" },
+      "Jacksonville Jaguars":   { primary: "#101820", secondary: "#D7A22A", text: "#D7A22A" },
+      "Houston Texans":         { primary: "#03202F", secondary: "#A71930", text: "#A71930" },
+      "Tennessee Titans":       { primary: "#0C2340", secondary: "#4B92DB", text: "#4B92DB" },
+      "Kansas City Chiefs":     { primary: "#E31837", secondary: "#FFB81C", text: "#ffffff" },
+      "Los Angeles Chargers":   { primary: "#0080C6", secondary: "#FFC20E", text: "#ffffff" },
+      "Denver Broncos":         { primary: "#FB4F14", secondary: "#002244", text: "#ffffff" },
+      "Las Vegas Raiders":      { primary: "#000000", secondary: "#A5ACAF", text: "#A5ACAF" },
+    };
+
+    const DIVISIONS = {"NFC East": ["Philadelphia Eagles", "New York Giants", "Dallas Cowboys", "Washington Commanders"], "NFC North": ["Detroit Lions", "Green Bay Packers", "Minnesota Vikings", "Chicago Bears"], "NFC South": ["Tampa Bay Buccaneers", "Atlanta Falcons", "Carolina Panthers", "New Orleans Saints"], "NFC West": ["Los Angeles Rams", "Seattle Seahawks", "San Francisco 49ers", "Arizona Cardinals"], "AFC East": ["Buffalo Bills", "New York Jets", "New England Patriots", "Miami Dolphins"], "AFC North": ["Baltimore Ravens", "Cincinnati Bengals", "Pittsburgh Steelers", "Cleveland Browns"], "AFC South": ["Indianapolis Colts", "Jacksonville Jaguars", "Houston Texans", "Tennessee Titans"], "AFC West": ["Kansas City Chiefs", "Los Angeles Chargers", "Denver Broncos", "Las Vegas Raiders"]};
+
+    async function loadRosters() {
+      try {
+        const [rosterRows, qbRows] = await Promise.all([
+          fetchSheet('Rosters', 'A1:AG10'),
+          fetchSheet('QBs', 'A1:A50'),
+        ]);
+
+        // Parse valid QBs
+        const validQBs = new Set(qbRows.slice(3).map(r => (r[0] || '').trim()).filter(Boolean));
+
+        // Parse roster header (team names in row 1, cols B onward)
+        const header = rosterRows[0];
+        const teams = header.slice(1).map(t => (t || '').trim()).filter(Boolean);
+
+        // Parse positions and players
+        const POSITIONS = ['WR1','RB1','WR2','QB','TE','WR3'];
+        const posRows = rosterRows.slice(1, 7); // rows 2-7 = positions
+        const extraRows = rosterRows.slice(7).filter(r => r.some(c => c));
+
+        // Build team data: teamName -> {pos: player, extras: []}
+        const teamData = {};
+        for (let ti = 0; ti < teams.length; ti++) {
+          const col = ti + 1;
+          const team = teams[ti];
+          teamData[team] = { players: [], extras: [] };
+          for (let pi = 0; pi < POSITIONS.length; pi++) {
+            const player = (posRows[pi] && posRows[pi][col] || '').trim();
+            if (player) teamData[team].players.push({ pos: POSITIONS[pi], name: player });
+          }
+          for (const er of extraRows) {
+            const extra = (er[col] || '').trim();
+            if (extra) teamData[team].extras.push(extra);
+          }
+        }
+
+        // Build pick counts per player per picker from bet history
+        const pickCounts = {}; // { playerName: { Maria: N, Danielle: N } }
+        try {
+          const betRows = await fetchSheet('Winnings', 'D1:H200');
+          for (const r of betRows.slice(1)) {
+            const picker = (r[0] || '').trim();
+            const homePick = (r[3] || '').trim();
+            const awayPick = (r[4] || '').trim();
+            if (!picker) continue;
+            for (const player of [homePick, awayPick].filter(Boolean)) {
+              if (!pickCounts[player]) pickCounts[player] = {};
+              pickCounts[player][picker] = (pickCounts[player][picker] || 0) + 1;
+            }
+          }
+        } catch(e) { console.warn('Could not load pick counts', e); }
+
+        // Render divisions
+        let html = '';
+        for (const [division, divTeams] of Object.entries(DIVISIONS)) {
+          html += `<div class="division-block">
+            <div class="division-header" onclick="toggleDivision(this)">
+              ${division} <span class="division-chevron">▼</span>
+            </div>
+            <div class="division-teams">`;
+
+          for (const teamName of divTeams) {
+            const td = teamData[teamName];
+            if (!td) continue;
+            const tc = TEAM_COLORS[teamName] || { primary: '#1C1C1E', secondary: '#6B7280', text: '#ffffff' };
+            html += `<div class="team-block" style="border:1.5px solid ${tc.primary}">
+              <div class="team-header-bar" style="background:${tc.primary};color:${tc.text}">${teamName}</div>
+              <div class="team-players-inner"><div class="player-list">`;
+            for (const { pos, name } of td.players) {
+              const isQB = pos === 'QB';
+              const nameClass = isQB && validQBs.has(name) ? 'qb-valid' : 'player-name-text';
+              const notOffered = isQB && !validQBs.has(name) ? ` <span style="color:#D1D5DB;font-size:11px">(not offered)</span>` : '';
+              const counts = pickCounts[name] || {};
+              const pickNotes = [];
+              if (counts['Maria']) pickNotes.push(`Maria x${counts['Maria']}`);
+              if (counts['Danielle']) pickNotes.push(`Danielle x${counts['Danielle']}`);
+              const pickNote = pickNotes.length ? `<span style="font-size:10px;color:#9CA3AF;margin-left:6px">${pickNotes.join(', ')}</span>` : '';
+              const posColor = tc.primary;
+              html += `<div class="player-row"><span class="pos-label" style="color:${posColor}">${pos}</span><span class="${nameClass}">${name}${notOffered}${pickNote}</span></div>`;
+            }
+            for (const extra of td.extras) {
+              const counts = pickCounts[extra] || {};
+              const pickNotes = [];
+              if (counts['Maria']) pickNotes.push(`Maria x${counts['Maria']}`);
+              if (counts['Danielle']) pickNotes.push(`Danielle x${counts['Danielle']}`);
+              const pickNote = pickNotes.length ? `<span style="font-size:10px;color:#9CA3AF;margin-left:6px">${pickNotes.join(', ')}</span>` : '';
+              html += `<div class="player-row"><span class="pos-label" style="color:${tc.primary}">+</span><span class="player-name-text extra">${extra}${pickNote}</span></div>`;
+            }
+            html += `</div></div></div>`;
+          }
+
+          html += `</div></div>`;
+        }
+
+        document.getElementById('rosters-content').innerHTML = html;
+      } catch(e) {
+        console.error(e);
+        document.getElementById('rosters-content').innerHTML = '<div class="loading">Error loading rosters.</div>';
+      }
+    }
+
+  </script>
+  
+  </div><!-- end wrap -->
+
+  <div class="campbell-ad">
+    <img src="pics/campbell.png" alt="Campbell Dingus">
+    <div class="campbell-caption">Brought to you by Campbell Dingus</div>
+  </div>
+
+    </div><!-- end page-layout -->
+</body>
+</html>

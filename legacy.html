@@ -271,8 +271,29 @@
       "Las Vegas Raiders":      { primary: "#000000" },
     };
 
-    function teamColor(name) { return TEAM_COLORS[name] ? TEAM_COLORS[name].primary : '#6B7280'; }
-    function coloredText(text, team) { if (!team || !TEAM_COLORS[team]) return text; return '<span style="color:' + TEAM_COLORS[team].primary + ';font-weight:600">' + text + '</span>'; }
+    // Short name aliases for teams (used in 2025 sheet)
+    var TEAM_ALIASES = {
+      "Eagles": "Philadelphia Eagles", "Giants": "New York Giants",
+      "Cowboys": "Dallas Cowboys", "Commanders": "Washington Commanders",
+      "Lions": "Detroit Lions", "Packers": "Green Bay Packers",
+      "Vikings": "Minnesota Vikings", "Bears": "Chicago Bears",
+      "Buccaneers": "Tampa Bay Buccaneers", "Falcons": "Atlanta Falcons",
+      "Panthers": "Carolina Panthers", "Saints": "New Orleans Saints",
+      "Rams": "Los Angeles Rams", "Seahawks": "Seattle Seahawks",
+      "49ers": "San Francisco 49ers", "Cardinals": "Arizona Cardinals",
+      "Bills": "Buffalo Bills", "Jets": "New York Jets",
+      "Patriots": "New England Patriots", "Dolphins": "Miami Dolphins",
+      "Ravens": "Baltimore Ravens", "Bengals": "Cincinnati Bengals",
+      "Steelers": "Pittsburgh Steelers", "Browns": "Cleveland Browns",
+      "Colts": "Indianapolis Colts", "Jaguars": "Jacksonville Jaguars",
+      "Texans": "Houston Texans", "Titans": "Tennessee Titans",
+      "Chiefs": "Kansas City Chiefs", "Chargers": "Los Angeles Chargers",
+      "Broncos": "Denver Broncos", "Raiders": "Las Vegas Raiders",
+    };
+
+    function resolveTeam(name) { return TEAM_ALIASES[name] || name; }
+    function teamColor(name) { var r = resolveTeam(name); return TEAM_COLORS[r] ? TEAM_COLORS[r].primary : '#6B7280'; }
+    function coloredText(text, team) { var r = resolveTeam(team); if (!r || !TEAM_COLORS[r]) return text; return '<span style="color:' + TEAM_COLORS[r].primary + ';font-weight:600">' + text + '</span>'; }
     function coloredGame(h, a) { return coloredText(h, h) + '<span style="color:#9CA3AF"> vs </span>' + coloredText(a, a); }
 
     var CURRENT_YEAR = "2026";

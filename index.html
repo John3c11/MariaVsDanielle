@@ -429,12 +429,13 @@
 
     .history-row {
       display: grid;
-      grid-template-columns: 30px 1fr 65px 1fr 75px 50px 42px;
+      grid-template-columns: 28px minmax(0,1.2fr) 60px minmax(0,1fr) 65px 48px 40px;
       gap: 8px;
       padding: 10px 0;
       border-bottom: 0.5px solid #F3F4F6;
-      font-size: 12px;
+      font-size: 11px;
       align-items: start;
+      overflow: hidden;
     }
 
     .history-row.header {

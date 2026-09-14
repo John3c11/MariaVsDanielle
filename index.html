@@ -905,7 +905,7 @@
     // ── Bet History tab ──────────────────────────────────────────────────────────
     var BH_LOADED = false;
     var ALL_BH_BETS = [];
-    var BH_FILTERS = { year: 'all', picker: 'all', result: 'all' };
+    var BH_FILTERS = { year: 'all', picker: 'all', result: 'all', order: 'desc' };
 
     function setBHFilter(key, value, btn) {
       BH_FILTERS[key] = value;
@@ -923,6 +923,11 @@
         if (BH_FILTERS.picker !== 'all' && b.picker !== BH_FILTERS.picker) return false;
         if (BH_FILTERS.result !== 'all' && b.correct !== BH_FILTERS.result) return false;
         return true;
+      });
+      filtered.sort(function(a, b) {
+        var dir = BH_FILTERS.order === 'asc' ? 1 : -1;
+        if (a.year !== b.year) return dir * (parseInt(a.year) - parseInt(b.year));
+        return dir * (parseInt(a.week) - parseInt(b.week));
       });
       renderBHHistory(filtered);
     }
@@ -967,11 +972,7 @@
         ALL_BH_BETS = [];
         results.forEach(function(bets) { ALL_BH_BETS = ALL_BH_BETS.concat(bets); });
         // oldest first: SEASONS array is newest first, so we reverse to get oldest first
-        // Sort newest first: most recent week/year at top, oldest at bottom
-        ALL_BH_BETS.sort(function(a, b) {
-          if (a.year !== b.year) return parseInt(b.year) - parseInt(a.year);
-          return parseInt(b.week) - parseInt(a.week);
-        });
+
 
         var html = '<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap" id="bh-filters">' +
           '<div style="display:flex;gap:4px;align-items:center"><span style="font-size:11px;color:#9CA3AF;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Year</span>' +
@@ -985,7 +986,8 @@
           '<div style="display:flex;gap:4px;align-items:center;margin-left:12px"><span style="font-size:11px;color:#9CA3AF;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Result</span>' +
           '<button class="filter-btn active" data-key="result" data-val="all">All</button>' +
           '<button class="filter-btn win-btn" data-key="result" data-val="Yes">Win</button>' +
-          '<button class="filter-btn loss-btn" data-key="result" data-val="No">Loss</button></div>' +
+          '<button class="filter-btn loss-btn" data-key="result" data-val="No">Loss</button></div> +
+          '<div style="display:flex;gap:4px;align-items:center;margin-left:12px"><span style="font-size:11px;color:#9CA3AF;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Order</span><button class="filter-btn" data-key="order" data-val="asc">Oldest First</button><button class="filter-btn active" data-key="order" data-val="desc">Newest First</button></div>'' +
           '</div>' +
           '<input type="text" id="bh-search" style="width:100%;padding:10px 14px;font-family:Inter,sans-serif;font-size:14px;border:0.5px solid #E5E7EB;border-radius:8px;background:#F9FAFB;color:#1C1C1E;outline:none;margin-bottom:12px" placeholder="Search player, team, week, year, or picker..." oninput="filterBHHistory()">' +
           '<div id="bh-hist-count" style="font-size:12px;color:#9CA3AF;margin-bottom:12px"></div>' +

@@ -143,6 +143,23 @@
     .fun-val.red { color: #DC2626; }
 
     /* Bet history */
+    .filter-btn {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border: 0.5px solid #E5E7EB;
+      border-radius: 4px;
+      background: white;
+      color: #6B7280;
+      cursor: pointer;
+    }
+    .filter-btn.active { background: #1C1C1E; color: white; border-color: #1C1C1E; }
+    .filter-btn.maria-btn.active { background: #B45309; border-color: #B45309; }
+    .filter-btn.danielle-btn.active { background: #1D4ED8; border-color: #1D4ED8; }
+    .filter-btn.win-btn.active { background: #065F46; border-color: #065F46; }
+    .filter-btn.loss-btn.active { background: #991B1B; border-color: #991B1B; }
+
     .search-bar {
       width: 100%;
       padding: 10px 14px;
@@ -225,6 +242,26 @@
     </div>
 
     <div id="tab-history" class="tab-panel">
+      <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+        <div style="display:flex; gap:4px; align-items:center;">
+          <span style="font-size:11px;color:#9CA3AF;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Year</span>
+          <button class="filter-btn active" onclick="setFilter('year','all',this)">All</button>
+          <button class="filter-btn" onclick="setFilter('year','2026',this)">2026</button>
+          <button class="filter-btn" onclick="setFilter('year','2025',this)">2025</button>
+        </div>
+        <div style="display:flex; gap:4px; align-items:center; margin-left:12px;">
+          <span style="font-size:11px;color:#9CA3AF;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Picker</span>
+          <button class="filter-btn active" onclick="setFilter('picker','all',this)">Both</button>
+          <button class="filter-btn maria-btn" onclick="setFilter('picker','Maria',this)">Maria</button>
+          <button class="filter-btn danielle-btn" onclick="setFilter('picker','Danielle',this)">Danielle</button>
+        </div>
+        <div style="display:flex; gap:4px; align-items:center; margin-left:12px;">
+          <span style="font-size:11px;color:#9CA3AF;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Result</span>
+          <button class="filter-btn active" onclick="setFilter('result','all',this)">All</button>
+          <button class="filter-btn win-btn" onclick="setFilter('result','Yes',this)">Win</button>
+          <button class="filter-btn loss-btn" onclick="setFilter('result','No',this)">Loss</button>
+        </div>
+      </div>
       <input type="text" class="search-bar" id="search" placeholder="Search player, team, week, year, or picker..." oninput="filterHistory()">
       <div class="hist-count" id="hist-count"></div>
       <div id="history-content"><div class="loading">Loading...</div></div>
@@ -308,6 +345,16 @@
 
     var KEY = CONFIG.API_KEY;
     var ALL_BETS = [];
+    var FILTERS = { year: 'all', picker: 'all', result: 'all' };
+
+    function setFilter(key, value, btn) {
+      FILTERS[key] = value;
+      // Update active state for this filter group
+      var group = btn.parentElement;
+      group.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      filterHistory();
+    }
 
     function switchTab(name) {
       document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
@@ -355,7 +402,7 @@
             players: players, odds: oddsStr,
             firstScorer: firstScorer, correct: correct, wasOffered: wasOffered,
             netUnits: netUnits, netDollars: netDollars,
-            searchText: (season.year + ' ' + week + ' ' + game + ' ' + picker + ' ' + homePick + ' ' + awayPick).toLowerCase()
+            searchText: (season.year + ' ' + week + ' ' + game + ' ' + (resolveTeam(homeTeam) || '') + ' ' + (resolveTeam(awayTeam) || '') + ' ' + picker + ' ' + homePick + ' ' + awayPick).toLowerCase()
           };
         });
       });
@@ -551,7 +598,13 @@
 
     function filterHistory() {
       var q = document.getElementById('search').value.toLowerCase().trim();
-      var filtered = q ? ALL_BETS.filter(function(b) { return b.searchText.includes(q); }) : ALL_BETS;
+      var filtered = ALL_BETS.filter(function(b) {
+        if (q && !b.searchText.includes(q)) return false;
+        if (FILTERS.year !== 'all' && b.year !== FILTERS.year) return false;
+        if (FILTERS.picker !== 'all' && b.picker !== FILTERS.picker) return false;
+        if (FILTERS.result !== 'all' && b.correct !== FILTERS.result) return false;
+        return true;
+      });
       renderHistory(filtered);
     }
 

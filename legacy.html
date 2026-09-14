@@ -236,7 +236,9 @@
   <script src="config.js"></script>
   <script>
     // ── Add future years here ─────────────────────────────────────────────────
+    var CURRENT_YEAR = "2026";
     var SEASONS = [
+      { year: "2026", sheetId: "1eokxqa-RCuH4qNh486OMSnIeZdXbhHnw_FygbzUwGj4", tab: "Winnings" },
       { year: "2025", sheetId: "1DWLYS9RYuOv97ajIcsak69Z97ODtegnBXvlDKJgpwYc", tab: "Winnings" },
       // { year: "2024", sheetId: "YOUR_2024_SHEET_ID", tab: "Winnings" },
     ];
@@ -372,7 +374,7 @@
 
       var html = '';
 
-      // All-time totals
+      // All-time totals (all years including current)
       html += '<div class="section-label">All-Time Totals</div>';
       html += '<div class="alltime-grid">';
       html += statCard('Units', fmt(s.mUnits, 'u'), fmt(s.dUnits, 'u'));
@@ -381,20 +383,23 @@
       html += statCard('Accuracy', (s.mTotal ? Math.round(s.mCorrect/s.mTotal*100) : 0) + '%', (s.dTotal ? Math.round(s.dCorrect/s.dTotal*100) : 0) + '%');
       html += '</div>';
 
-      // Year by year
-      html += '<hr class="divider"><div class="section-label">Year by Year</div>';
-      byYear.forEach(function(ys) {
-        var winner = ys.stats.mUnits > ys.stats.dUnits ? 'maria' : ys.stats.dUnits > ys.stats.mUnits ? 'danielle' : 'tied';
-        var winnerLabel = winner === 'maria' ? '🏆 Maria' : winner === 'danielle' ? '🏆 Danielle' : 'Tied';
-        html += '<div class="year-block">';
-        html += '<div class="year-header">' + ys.year + ' <span class="year-winner-badge ' + winner + '">' + winnerLabel + '</span></div>';
-        html += '<div class="year-stat-row">';
-        html += yearStat('Units', fmt(ys.stats.mUnits, 'u'), fmt(ys.stats.dUnits, 'u'));
-        html += yearStat('Dollars', fmt(ys.stats.mDollars, '$'), fmt(ys.stats.dDollars, '$'));
-        html += yearStat('Accuracy', (ys.stats.mTotal ? Math.round(ys.stats.mCorrect/ys.stats.mTotal*100) : 0) + '%', (ys.stats.dTotal ? Math.round(ys.stats.dCorrect/ys.stats.dTotal*100) : 0) + '%');
-        html += yearStat('Correct', ys.stats.mCorrect + '/' + ys.stats.mTotal, ys.stats.dCorrect + '/' + ys.stats.dTotal);
-        html += '</div></div>';
-      });
+      // Previous seasons only (exclude current year)
+      var legacyYears = byYear.filter(function(ys) { return ys.year !== CURRENT_YEAR; });
+      if (legacyYears.length > 0) {
+        html += '<hr class="divider"><div class="section-label">Previous Seasons</div>';
+        legacyYears.forEach(function(ys) {
+          var winner = ys.stats.mUnits > ys.stats.dUnits ? 'maria' : ys.stats.dUnits > ys.stats.mUnits ? 'danielle' : 'tied';
+          var winnerLabel = winner === 'maria' ? '🏆 Maria' : winner === 'danielle' ? '🏆 Danielle' : 'Tied';
+          html += '<div class="year-block">';
+          html += '<div class="year-header">' + ys.year + ' <span class="year-winner-badge ' + winner + '">' + winnerLabel + '</span></div>';
+          html += '<div class="year-stat-row">';
+          html += yearStat('Units', fmt(ys.stats.mUnits, 'u'), fmt(ys.stats.dUnits, 'u'));
+          html += yearStat('Dollars', fmt(ys.stats.mDollars, '$'), fmt(ys.stats.dDollars, '$'));
+          html += yearStat('Accuracy', (ys.stats.mTotal ? Math.round(ys.stats.mCorrect/ys.stats.mTotal*100) : 0) + '%', (ys.stats.dTotal ? Math.round(ys.stats.dCorrect/ys.stats.dTotal*100) : 0) + '%');
+          html += yearStat('Correct', ys.stats.mCorrect + '/' + ys.stats.mTotal, ys.stats.dCorrect + '/' + ys.stats.dTotal);
+          html += '</div></div>';
+        });
+      }
 
       // Fun stats
       html += '<hr class="divider"><div class="section-label">All-Time Fun Stats</div><div>';

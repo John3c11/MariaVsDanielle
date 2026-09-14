@@ -966,7 +966,12 @@
       Promise.all(SEASONS.map(fetchLegacySeason)).then(function(results) {
         ALL_BH_BETS = [];
         results.forEach(function(bets) { ALL_BH_BETS = ALL_BH_BETS.concat(bets); });
-        ALL_BH_BETS = ALL_BH_BETS.slice().reverse();
+        // oldest first: SEASONS array is newest first, so we reverse to get oldest first
+        // Sort newest first: most recent week/year at top, oldest at bottom
+        ALL_BH_BETS.sort(function(a, b) {
+          if (a.year !== b.year) return parseInt(b.year) - parseInt(a.year);
+          return parseInt(b.week) - parseInt(a.week);
+        });
 
         var html = '<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap" id="bh-filters">' +
           '<div style="display:flex;gap:4px;align-items:center"><span style="font-size:11px;color:#9CA3AF;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Year</span>' +
@@ -1301,41 +1306,7 @@
         }
         html += '</div>';
 
-        // Bet history section
-        html += '<hr style="border:none;border-top:0.5px solid #E5E7EB;margin:24px 0">';
-        html += '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">Bet History</div>';
-        html += '<div id="legacy-filters" style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">' +
-          '<div style="display:flex;gap:4px;align-items:center"><span style="font-size:11px;color:#9CA3AF;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Year</span>' +
-          '<button class="filter-btn active" data-key="year" data-val="all">All</button>' +
-          '<button class="filter-btn" data-key="year" data-val="2026">2026</button>' +
-          '<button class="filter-btn" data-key="year" data-val="2025">2025</button></div>' +
-          '<div style="display:flex;gap:4px;align-items:center;margin-left:12px"><span style="font-size:11px;color:#9CA3AF;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Picker</span>' +
-          '<button class="filter-btn active" data-key="picker" data-val="all">Both</button>' +
-          '<button class="filter-btn maria-btn" data-key="picker" data-val="Maria">Maria</button>' +
-          '<button class="filter-btn danielle-btn" data-key="picker" data-val="Danielle">Danielle</button></div>' +
-          '<div style="display:flex;gap:4px;align-items:center;margin-left:12px"><span style="font-size:11px;color:#9CA3AF;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Result</span>' +
-          '<button class="filter-btn active" data-key="result" data-val="all">All</button>' +
-          '<button class="filter-btn win-btn" data-key="result" data-val="Yes">Win</button>' +
-          '<button class="filter-btn loss-btn" data-key="result" data-val="No">Loss</button></div>' +
-          '</div>';
-        html += '<input type="text" id="legacy-search" style="width:100%;padding:10px 14px;font-family:Inter,sans-serif;font-size:14px;border:0.5px solid #E5E7EB;border-radius:8px;background:#F9FAFB;color:#1C1C1E;outline:none;margin-bottom:12px" placeholder="Search player, team, week, year, or picker..." oninput="filterLegacyHistory()">';
-        html += '<div id="legacy-hist-count" style="font-size:12px;color:#9CA3AF;margin-bottom:12px"></div>';
-        html += '<div id="legacy-history-table"></div>';
-
         document.getElementById('legacy-content').innerHTML = html;
-        // Wire up filter buttons via event delegation
-        document.getElementById('legacy-filters').addEventListener('click', function(e) {
-          var btn = e.target.closest('.filter-btn');
-          if (!btn) return;
-          var key = btn.getAttribute('data-key');
-          var val = btn.getAttribute('data-val');
-          LEGACY_FILTERS[key] = val;
-          var group = btn.parentElement;
-          group.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
-          btn.classList.add('active');
-          filterLegacyHistory();
-        });
-        renderLegacyHistory(ALL_LEGACY_BETS);
       }).catch(function(e) {
         console.error(e);
         document.getElementById('legacy-content').innerHTML = '<div style="color:#9CA3AF;text-align:center;padding:32px">Error loading legacy data: ' + e.message + '</div>';

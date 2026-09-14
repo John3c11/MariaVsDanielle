@@ -670,21 +670,27 @@
           const wasOffered = (r[14] || '').trim();
           const game = homeTeam && awayTeam ? `${homeTeam} vs ${awayTeam}` : '';
           const netUnits = parseFloat(r[15]) || 0;
-          if (picker === 'Maria') { mTotal++; if (correct === 'Yes') mCorrect++; }
-          else if (picker === 'Danielle') { dTotal++; if (correct === 'Yes') dCorrect++; }
-          betLog.push({ picker, game, homeTeam, awayTeam, homePick, awayPick, homeOdds, awayOdds, correct, wasOffered, netUnits, searchText: `${game} ${picker} ${homePick} ${awayPick}`.toLowerCase() });
+          // Only count in stats if both picks are made AND game has been scored
+          const gameScored = correct === 'Yes' || correct === 'No';
+          if (picker === 'Maria' && gameScored) { mTotal++; if (correct === 'Yes') mCorrect++; }
+          else if (picker === 'Danielle' && gameScored) { dTotal++; if (correct === 'Yes') dCorrect++; }
+          // Only include in betLog if both picks exist
+          if (homePick && awayPick) {
+            betLog.push({ picker, game, homeTeam, awayTeam, homePick, awayPick, homeOdds, awayOdds, correct, wasOffered, netUnits, searchText: `${game} ${picker} ${homePick} ${awayPick}`.toLowerCase() });
+          }
         }
 
-        const summary = await fetchSheet('Winnings', 'R1:X200');
+        // Calculate units/dollars only from scored games
         let mariaUnits = 0, danielleUnits = 0, mariaDollars = 0, danielleDollars = 0;
-        for (const r of summary) {
-          if (r[0] === 'Total') {
-            mariaUnits = parseFloat(r[1]) || 0;
-            danielleUnits = parseFloat(r[2]) || 0;
-            mariaDollars = parseFloat(r[3]) || 0;
-            danielleDollars = parseFloat(r[4]) || 0;
-            break;
-          }
+        for (const r of rows) {
+          const picker = (r[3] || '').trim();
+          const correct = (r[12] || '').trim();
+          const gameScored2 = correct === 'Yes' || correct === 'No';
+          if (!gameScored2) continue;
+          const nu = parseFloat(r[15]) || 0;
+          const nd = parseFloat(r[16]) || 0;
+          if (picker === 'Maria') { mariaUnits += nu; mariaDollars += nd; }
+          else if (picker === 'Danielle') { danielleUnits += nu; danielleDollars += nd; }
         }
 
         // Leader banner
@@ -715,7 +721,7 @@
 
         // Live picks — show all pending games
         const liveEl = document.getElementById('live-picks');
-        const pendingRows = rows.filter(r => !r[11] || r[11].trim() === '');
+        const pendingRows = rows.filter(r => (!r[11] || r[11].trim() === '') && (r[6] || '').trim() && (r[7] || '').trim());
         if (pendingRows.length === 0) {
           liveEl.innerHTML = '<div class="no-live">No pending picks — all games have been scored.</div>';
         } else {

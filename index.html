@@ -1053,7 +1053,7 @@
           filterBHHistory();
         });
 
-        renderBHHistory(ALL_BH_BETS);
+        filterBHHistory();
       }).catch(function(e) {
         console.error(e);
         document.getElementById('bethistory-content').innerHTML = '<div style="color:#9CA3AF;text-align:center;padding:32px">Error: ' + e.message + '</div>';
@@ -1130,6 +1130,10 @@
       }).then(function(data) {
         var rows = (data.values || []).slice(1).filter(function(r) {
           return r[0] && r[3] && r[3].trim() && r[3].trim() !== 'John';
+        });
+        // Filter out rows where both picks are empty
+        rows = rows.filter(function(r) {
+          return (r[6] || '').trim() || (r[7] || '').trim();
         });
         return rows.map(function(r) {
           var picker = (r[3] || '').trim();

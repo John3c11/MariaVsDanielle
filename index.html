@@ -429,14 +429,14 @@
 
     .history-row {
       display: grid;
-      grid-template-columns: 30px 1fr 65px 1fr 75px 50px 42px;
+      grid-template-columns: 40px 1fr 80px 1fr 70px 60px 50px;
       gap: 8px;
       padding: 10px 0;
       border-bottom: 0.5px solid #F3F4F6;
       font-size: 12px;
-      align-items: start;
+      align-items: center;
     }
-
+    .history-row:last-child { border-bottom: none; }
     .history-row.header {
       font-size: 10px;
       font-weight: 600;
@@ -445,8 +445,6 @@
       letter-spacing: 0.05em;
       padding-bottom: 8px;
     }
-
-    .history-row:last-child { border-bottom: none; }
 
     .h-week { color: #9CA3AF; text-align: center; }
     .h-game { font-weight: 500; color: #1C1C1E; }
@@ -458,46 +456,11 @@
     .h-units.pos { color: #065F46; }
     .h-units.neg { color: #DC2626; }
     .h-units.zero { color: #9CA3AF; }
-
-    .h-result {
-      font-size: 11px;
-      font-weight: 500;
-      padding: 2px 6px;
-      border-radius: 4px;
-      text-align: center;
-    }
-    .h-result.win { background:#D1FAE5; color:#065F46; }
-    .h-result.loss { background:#FEE2E2; color:#991B1B; }
-    .h-result.na { background:#F3F4F6; color:#9CA3AF; }
-
-    .team-block {
-      margin-bottom: 16px;
-      padding: 0;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .team-header-bar {
-      padding: 10px 16px;
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: -0.2px;
-    }
-
-    .team-players-inner {
-      padding: 10px 16px 14px;
-      background: #F9FAFB;
-    }
-
-    .not-offered-note {
-      font-size: 10px;
-      color: #9CA3AF;
-      font-style: italic;
-    }
-  </style>
-</head>
-<body>
-  <div class="page-layout">
+    .h-result { font-size: 11px; font-weight: 500; padding: 2px 6px; border-radius: 4px; text-align: center; }
+    .h-result.win { background: #D1FAE5; color: #065F46; }
+    .h-result.loss { background: #FEE2E2; color: #991B1B; }
+    .h-result.na { background: #F3F4F6; color: #9CA3AF; }
+    .not-offered-note { font-size: 10px; color: #9CA3AF; font-style: italic; }
 
 <div class="kalshi-ad">
     <div class="kalshi-logo">Kalshi</div>
@@ -768,7 +731,7 @@
             const resultText = b.correct === 'Yes' ? 'Win' : b.correct === 'No' ? 'Loss' : '—';
             const pickerClass = b.picker.toLowerCase();
             const unitStr = b.netUnits !== 0 ? (b.netUnits > 0 ? '+' : '') + b.netUnits + 'u' : '';
-            return `<div class="bet-row">
+            return `<div class="history-row">
               <span class="bet-game">${b.game || '—'}</span>
               <span class="bet-picker ${pickerClass}">${b.picker}</span>
               <span class="bet-result ${resultClass}">${resultText}</span>
@@ -836,216 +799,34 @@
       renderHistory(filtered);
     }
 
-    function renderHistory(data) {
-      const el = document.getElementById('history-table');
-      const countEl = document.getElementById('history-count');
-      countEl.textContent = `${data.length} bet${data.length !== 1 ? 's' : ''}`;
+    function renderHistory(bets) {
+      var header = '<div class="history-row header">' +
+        '<span>Wk</span><span>Game</span><span>Picker</span>' +
+        '<span>Players</span><span>Odds</span><span>Result</span><span>Units</span></div>';
 
-      if (data.length === 0) {
-        el.innerHTML = '<div class="loading">No results.</div>';
-        return;
-      }
-
-      const header = `<div class="history-row header">
-        <span class="h-week">Wk</span>
-        <span class="h-game">Game</span>
-        <span>Picker</span>
-        <span>Players</span>
-        <span>Odds</span>
-        <span>Result</span>
-        <span class="h-units">Units</span>
-      </div>`;
-
-      const rowsHtml = [...data].reverse().map(r => {
-        const pickerClass = r.picker.toLowerCase();
-        const resultClass = r.correct === 'Yes' ? 'win' : r.correct === 'No' ? 'loss' : 'na';
-        const resultText = r.correct === 'Yes' ? 'Win' : r.correct === 'No' ? 'Loss' : '—';
-        const notOfferedNote = r.wasOffered === 'No' ? '<div class="not-offered-note">scorer not offered</div>' : '';
-
-        const homeColored = r.homePick ? coloredText(r.homePick, r.homeTeam) : '';
-        const awayColored = r.awayPick ? coloredText(r.awayPick, r.awayTeam) : '';
-        const players = [homeColored, awayColored].filter(Boolean).join('<span style="color:#9CA3AF"> / </span>') || '—';
-        const odds = [
-          r.homePick && r.homeOdds ? '+' + Math.round(parseFloat(r.homeOdds) * 100) : '',
-          r.awayPick && r.awayOdds ? '+' + Math.round(parseFloat(r.awayOdds) * 100) : ''
-        ].filter(Boolean).join(' / ') || '—';
-
-        const unitClass = r.netUnits > 0 ? 'pos' : r.netUnits < 0 ? 'neg' : 'zero';
-        const unitStr = r.netUnits !== 0 ? (r.netUnits > 0 ? '+' : '') + r.netUnits + 'u' : '0u';
-        const gameDisplay = r.homeTeam && r.awayTeam ? coloredGame(r.homeTeam, r.awayTeam) : (r.game || '—');
-
-        return `<div class="bet-row">
-          <span class="h-week">${r.week}</span>
-          <span class="h-game">${gameDisplay}</span>
-          <span class="h-picker ${pickerClass}">${r.picker}</span>
-          <span class="h-player">${players}${notOfferedNote}</span>
-          <span class="h-odds">${odds}</span>
-          <span class="h-result ${resultClass}">${resultText}</span>
-          <span class="h-units ${unitClass}">${unitStr}u</span>
-        </div>`;
+      var rows = bets.map(function(b) {
+        var resultClass = b.correct === 'Yes' ? 'win' : b.correct === 'No' ? 'loss' : 'na';
+        var resultText = b.correct === 'Yes' ? 'Win' : b.correct === 'No' ? 'Loss' : '—';
+        var pickerClass = b.picker.toLowerCase();
+        var unitClass = b.netUnits > 0 ? 'pos' : b.netUnits < 0 ? 'neg' : 'zero';
+        var unitStr = b.netUnits !== 0 ? (b.netUnits > 0 ? '+' : '') + b.netUnits + 'u' : '0u';
+        var notOffered = b.wasOffered === 'No' ? '<div class="not-offered-note">scorer not offered</div>' : '';
+        var homeColored = b.homePick ? coloredText(b.homePick, b.homeTeam) : '';
+        var awayColored = b.awayPick ? coloredText(b.awayPick, b.awayTeam) : '';
+        var players = [homeColored, awayColored].filter(Boolean).join('<span style="color:#9CA3AF"> / </span>') || '—';
+        var gameDisplay = b.homeTeam && b.awayTeam ? coloredGame(b.homeTeam, b.awayTeam) : (b.game || '—');
+        return '<div class="history-row">' +
+          '<span class="h-week">' + b.week + '</span>' +
+          '<span class="h-game">' + gameDisplay + '</span>' +
+          '<span class="h-picker ' + pickerClass + '">' + b.picker + '</span>' +
+          '<span class="h-player">' + players + notOffered + '</span>' +
+          '<span class="h-odds">' + b.odds + '</span>' +
+          '<span class="h-result ' + resultClass + '">' + resultText + '</span>' +
+          '<span class="h-units ' + unitClass + '">' + unitStr + '</span>' +
+          '</div>';
       }).join('');
 
-      el.innerHTML = header + rowsHtml;
+      document.getElementById('history-content').innerHTML = header + rows;
+      document.getElementById('hist-count').textContent = bets.length + ' bet' + (bets.length !== 1 ? 's' : '');
     }
 
-    function switchTab(name) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-      document.querySelector(`.tab-btn[onclick="switchTab('${name}')"]`).classList.add('active');
-      document.getElementById('tab-' + name).classList.add('active');
-    }
-
-    function toggleDivision(el) {
-      el.classList.toggle('open');
-      el.nextElementSibling.classList.toggle('open');
-    }
-
-    const TEAM_COLORS = {
-      "Philadelphia Eagles":    { primary: "#004C54", secondary: "#A5ACAF", text: "#ffffff" },
-      "New York Giants":        { primary: "#0B2265", secondary: "#A71930", text: "#ffffff" },
-      "Dallas Cowboys":         { primary: "#003594", secondary: "#869397", text: "#ffffff" },
-      "Washington Commanders":  { primary: "#5A1414", secondary: "#FFB612", text: "#ffffff" },
-      "Detroit Lions":          { primary: "#0076B6", secondary: "#B0B7BC", text: "#ffffff" },
-      "Green Bay Packers":      { primary: "#203731", secondary: "#FFB612", text: "#FFB612" },
-      "Minnesota Vikings":      { primary: "#4F2683", secondary: "#FFC62F", text: "#FFC62F" },
-      "Chicago Bears":          { primary: "#0B162A", secondary: "#C83803", text: "#C83803" },
-      "Tampa Bay Buccaneers":   { primary: "#D50A0A", secondary: "#FF7900", text: "#ffffff" },
-      "Atlanta Falcons":        { primary: "#A71930", secondary: "#000000", text: "#ffffff" },
-      "Carolina Panthers":      { primary: "#0085CA", secondary: "#101820", text: "#ffffff" },
-      "New Orleans Saints":     { primary: "#D3BC8D", secondary: "#101820", text: "#101820" },
-      "Los Angeles Rams":       { primary: "#003594", secondary: "#FFA300", text: "#FFA300" },
-      "Seattle Seahawks":       { primary: "#002244", secondary: "#69BE28", text: "#69BE28" },
-      "San Francisco 49ers":    { primary: "#AA0000", secondary: "#B3995D", text: "#ffffff" },
-      "Arizona Cardinals":      { primary: "#97233F", secondary: "#000000", text: "#ffffff" },
-      "Buffalo Bills":          { primary: "#00338D", secondary: "#C60C30", text: "#ffffff" },
-      "New York Jets":          { primary: "#125740", secondary: "#000000", text: "#ffffff" },
-      "New England Patriots":   { primary: "#002244", secondary: "#C60C30", text: "#C60C30" },
-      "Miami Dolphins":         { primary: "#008E97", secondary: "#FC4C02", text: "#ffffff" },
-      "Baltimore Ravens":       { primary: "#241773", secondary: "#9E7C0C", text: "#9E7C0C" },
-      "Cincinnati Bengals":     { primary: "#FB4F14", secondary: "#000000", text: "#ffffff" },
-      "Pittsburgh Steelers":    { primary: "#101820", secondary: "#FFB612", text: "#FFB612" },
-      "Cleveland Browns":       { primary: "#311D00", secondary: "#FF3C00", text: "#FF3C00" },
-      "Indianapolis Colts":     { primary: "#003A70", secondary: "#A2AAAD", text: "#ffffff" },
-      "Jacksonville Jaguars":   { primary: "#101820", secondary: "#D7A22A", text: "#D7A22A" },
-      "Houston Texans":         { primary: "#03202F", secondary: "#A71930", text: "#A71930" },
-      "Tennessee Titans":       { primary: "#0C2340", secondary: "#4B92DB", text: "#4B92DB" },
-      "Kansas City Chiefs":     { primary: "#E31837", secondary: "#FFB81C", text: "#ffffff" },
-      "Los Angeles Chargers":   { primary: "#0080C6", secondary: "#FFC20E", text: "#ffffff" },
-      "Denver Broncos":         { primary: "#FB4F14", secondary: "#002244", text: "#ffffff" },
-      "Las Vegas Raiders":      { primary: "#000000", secondary: "#A5ACAF", text: "#A5ACAF" },
-    };
-
-    const DIVISIONS = {"NFC East": ["Philadelphia Eagles", "New York Giants", "Dallas Cowboys", "Washington Commanders"], "NFC North": ["Detroit Lions", "Green Bay Packers", "Minnesota Vikings", "Chicago Bears"], "NFC South": ["Tampa Bay Buccaneers", "Atlanta Falcons", "Carolina Panthers", "New Orleans Saints"], "NFC West": ["Los Angeles Rams", "Seattle Seahawks", "San Francisco 49ers", "Arizona Cardinals"], "AFC East": ["Buffalo Bills", "New York Jets", "New England Patriots", "Miami Dolphins"], "AFC North": ["Baltimore Ravens", "Cincinnati Bengals", "Pittsburgh Steelers", "Cleveland Browns"], "AFC South": ["Indianapolis Colts", "Jacksonville Jaguars", "Houston Texans", "Tennessee Titans"], "AFC West": ["Kansas City Chiefs", "Los Angeles Chargers", "Denver Broncos", "Las Vegas Raiders"]};
-
-    async function loadRosters() {
-      try {
-        const [rosterRows, qbRows] = await Promise.all([
-          fetchSheet('Rosters', 'A1:AG10'),
-          fetchSheet('QBs', 'A1:A50'),
-        ]);
-
-        // Parse valid QBs
-        const validQBs = new Set(qbRows.slice(3).map(r => (r[0] || '').trim()).filter(Boolean));
-
-        // Parse roster header (team names in row 1, cols B onward)
-        const header = rosterRows[0];
-        const teams = header.slice(1).map(t => (t || '').trim()).filter(Boolean);
-
-        // Parse positions and players
-        const POSITIONS = ['WR1','RB1','WR2','QB','TE','WR3'];
-        const posRows = rosterRows.slice(1, 7); // rows 2-7 = positions
-        const extraRows = rosterRows.slice(7).filter(r => r.some(c => c));
-
-        // Build team data: teamName -> {pos: player, extras: []}
-        const teamData = {};
-        for (let ti = 0; ti < teams.length; ti++) {
-          const col = ti + 1;
-          const team = teams[ti];
-          teamData[team] = { players: [], extras: [] };
-          for (let pi = 0; pi < POSITIONS.length; pi++) {
-            const player = (posRows[pi] && posRows[pi][col] || '').trim();
-            if (player) teamData[team].players.push({ pos: POSITIONS[pi], name: player });
-          }
-          for (const er of extraRows) {
-            const extra = (er[col] || '').trim();
-            if (extra) teamData[team].extras.push(extra);
-          }
-        }
-
-        // Build pick counts per player per picker from bet history
-        const pickCounts = {}; // { playerName: { Maria: N, Danielle: N } }
-        try {
-          const betRows = await fetchSheet('Winnings', 'D1:H200');
-          for (const r of betRows.slice(1)) {
-            const picker = (r[0] || '').trim();
-            const homePick = (r[3] || '').trim();
-            const awayPick = (r[4] || '').trim();
-            if (!picker) continue;
-            for (const player of [homePick, awayPick].filter(Boolean)) {
-              if (!pickCounts[player]) pickCounts[player] = {};
-              pickCounts[player][picker] = (pickCounts[player][picker] || 0) + 1;
-            }
-          }
-        } catch(e) { console.warn('Could not load pick counts', e); }
-
-        // Render divisions
-        let html = '';
-        for (const [division, divTeams] of Object.entries(DIVISIONS)) {
-          html += `<div class="division-block">
-            <div class="division-header" onclick="toggleDivision(this)">
-              ${division} <span class="division-chevron">▼</span>
-            </div>
-            <div class="division-teams">`;
-
-          for (const teamName of divTeams) {
-            const td = teamData[teamName];
-            if (!td) continue;
-            const tc = TEAM_COLORS[teamName] || { primary: '#1C1C1E', secondary: '#6B7280', text: '#ffffff' };
-            html += `<div class="team-block" style="border:1.5px solid ${tc.primary}">
-              <div class="team-header-bar" style="background:${tc.primary};color:${tc.text}">${teamName}</div>
-              <div class="team-players-inner"><div class="player-list">`;
-            for (const { pos, name } of td.players) {
-              const isQB = pos === 'QB';
-              const nameClass = isQB && validQBs.has(name) ? 'qb-valid' : 'player-name-text';
-              const notOffered = isQB && !validQBs.has(name) ? ` <span style="color:#D1D5DB;font-size:11px">(not offered)</span>` : '';
-              const counts = pickCounts[name] || {};
-              const pickNotes = [];
-              if (counts['Maria']) pickNotes.push(`Maria x${counts['Maria']}`);
-              if (counts['Danielle']) pickNotes.push(`Danielle x${counts['Danielle']}`);
-              const pickNote = pickNotes.length ? `<span style="font-size:10px;color:#9CA3AF;margin-left:6px">${pickNotes.join(', ')}</span>` : '';
-              const posColor = tc.primary;
-              html += `<div class="player-row"><span class="pos-label" style="color:${posColor}">${pos}</span><span class="${nameClass}">${name}${notOffered}${pickNote}</span></div>`;
-            }
-            for (const extra of td.extras) {
-              const counts = pickCounts[extra] || {};
-              const pickNotes = [];
-              if (counts['Maria']) pickNotes.push(`Maria x${counts['Maria']}`);
-              if (counts['Danielle']) pickNotes.push(`Danielle x${counts['Danielle']}`);
-              const pickNote = pickNotes.length ? `<span style="font-size:10px;color:#9CA3AF;margin-left:6px">${pickNotes.join(', ')}</span>` : '';
-              html += `<div class="player-row"><span class="pos-label" style="color:${tc.primary}">+</span><span class="player-name-text extra">${extra}${pickNote}</span></div>`;
-            }
-            html += `</div></div></div>`;
-          }
-
-          html += `</div></div>`;
-        }
-
-        document.getElementById('rosters-content').innerHTML = html;
-      } catch(e) {
-        console.error(e);
-        document.getElementById('rosters-content').innerHTML = '<div class="loading">Error loading rosters.</div>';
-      }
-    }
-
-  </script>
-  
-  </div><!-- end wrap -->
-
-  <div class="campbell-ad">
-    <img src="pics/campbell.png" alt="Campbell Dingus">
-    <div class="campbell-caption">Brought to you by Campbell Dingus</div>
-  </div>
-
-    </div><!-- end page-layout -->
-</body>
-</html>

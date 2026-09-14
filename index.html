@@ -236,7 +236,7 @@
       letter-spacing: -0.3px;
     }
 
-    .maria .player-name { color: #B45309; }
+    .maria .player-name { color: #F5E050; }
     .danielle .player-name { color: #1D4ED8; }
 
     .vs-badge {
@@ -294,7 +294,7 @@
       letter-spacing: -0.5px;
     }
 
-    .stat-value.maria { color: #B45309; text-align: right; }
+    .stat-value.maria { color: #F5E050; text-align: right; }
     .stat-value.danielle { color: #1D4ED8; text-align: left; }
 
     .stat-divider {
@@ -318,7 +318,7 @@
     }
 
     .bar.maria {
-      background: #D97706;
+      background: #F5E050;
       margin-left: auto;
     }
 
@@ -356,7 +356,7 @@
 
     .bet-game { font-weight: 500; color: #1C1C1E; }
     .bet-picker { font-size: 12px; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
-    .bet-picker.maria { background: #FEF3C7; color: #B45309; }
+    .bet-picker.maria { background: #FEF3C7; color: #F5E050; }
     .bet-picker.danielle { background: #DBEAFE; color: #1D4ED8; }
 
     .bet-result {
@@ -399,7 +399,7 @@
       margin-bottom: 6px;
     }
 
-    .live-pick-card.maria .picker-label { color: #B45309; }
+    .live-pick-card.maria .picker-label { color: #F5E050; }
     .live-pick-card.danielle .picker-label { color: #1D4ED8; }
 
     .live-pick-card .pick-player {
@@ -429,13 +429,12 @@
 
     .history-row {
       display: grid;
-      grid-template-columns: 28px minmax(0,1.2fr) 60px minmax(0,1fr) 65px 48px 40px;
+      grid-template-columns: 30px 1fr 65px 1fr 75px 50px 42px;
       gap: 8px;
       padding: 10px 0;
       border-bottom: 0.5px solid #F3F4F6;
-      font-size: 11px;
+      font-size: 12px;
       align-items: start;
-      overflow: hidden;
     }
 
     .history-row.header {
@@ -451,7 +450,7 @@
 
     .h-week { color: #9CA3AF; text-align: center; }
     .h-game { font-weight: 500; color: #1C1C1E; }
-    .h-picker.maria { color: #B45309; font-weight: 500; }
+    .h-picker.maria { color: #F5E050; font-weight: 500; }
     .h-picker.danielle { color: #1D4ED8; font-weight: 500; }
     .h-player { color: #1C1C1E; }
     .h-odds { color: #6B7280; }
@@ -495,6 +494,23 @@
       color: #9CA3AF;
       font-style: italic;
     }
+
+    .filter-btn {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border: 0.5px solid #E5E7EB;
+      border-radius: 4px;
+      background: white;
+      color: #6B7280;
+      cursor: pointer;
+    }
+    .filter-btn.active { background: #1C1C1E; color: white; border-color: #1C1C1E; }
+    .filter-btn.maria-btn.active { background: #F5E050; border-color: #F5E050; color: #1C1C1E; }
+    .filter-btn.danielle-btn.active { background: #1D4ED8; border-color: #1D4ED8; color: white; }
+    .filter-btn.win-btn.active { background: #065F46; border-color: #065F46; color: white; }
+    .filter-btn.loss-btn.active { background: #991B1B; border-color: #991B1B; color: white; }
   </style>
 </head>
 <body>
@@ -512,8 +528,9 @@
   <div class="wrap">
     <nav class="tabs-nav">
       <button class="tab-btn active" onclick="switchTab('stats')">Stats</button>
-      <button class="tab-btn" onclick="switchTab('rosters')">Rosters</button>
+      <button class="tab-btn" onclick="switchTab('rosters')">2026 Roster</button>
       <button class="tab-btn" onclick="switchTab('history')">Bet History</button>
+      <button class="tab-btn" onclick="switchTab('legacy')">Legacy</button>
     </nav>
 
     <div id="tab-stats" class="tab-panel active">
@@ -542,11 +559,6 @@
     <div class="section-title">Live Picks</div>
     <div id="live-picks"><div class="loading">Loading...</div></div>
 
-    <hr class="divider">
-
-    <div class="section-title">Recent Bets</div>
-    <div id="bet-history"><div class="loading">Loading bets...</div></div>
-
     </div><!-- end tab-stats -->
 
     <div id="tab-rosters" class="tab-panel">
@@ -561,6 +573,10 @@
       </div>
       <div id="history-count" style="font-size:12px; color:#9CA3AF; margin-bottom:12px;"></div>
       <div id="history-table"><div class="loading">Loading bet history...</div></div>
+    </div>
+
+    <div id="tab-legacy" class="tab-panel">
+      <div id="legacy-content"><div class="loading">Loading legacy data...</div></div>
     </div>
 
     <div style="margin-top:48px; padding:20px; background:#F9FAFB; border-radius:12px; display:flex; justify-content:space-between; align-items:center;">
@@ -894,7 +910,331 @@
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
       document.querySelector(`.tab-btn[onclick="switchTab('${name}')"]`).classList.add('active');
       document.getElementById('tab-' + name).classList.add('active');
+      if (name === 'legacy') loadLegacyTab();
     }
+    // ── Legacy tab ────────────────────────────────────────────────────────────
+    var CURRENT_YEAR = "2026";
+    var SEASONS = [
+      { year: "2026", sheetId: "1eokxqa-RCuH4qNh486OMSnIeZdXbhHnw_FygbzUwGj4", tab: "Winnings" },
+      { year: "2025", sheetId: "1DWLYS9RYuOv97ajIcsak69Z97ODtegnBXvlDKJgpwYc", tab: "Winnings" },
+    ];
+
+    var TEAM_ALIASES = {
+      "Eagles": "Philadelphia Eagles", "Giants": "New York Giants",
+      "Cowboys": "Dallas Cowboys", "Commanders": "Washington Commanders",
+      "Lions": "Detroit Lions", "Packers": "Green Bay Packers",
+      "Vikings": "Minnesota Vikings", "Bears": "Chicago Bears",
+      "Buccaneers": "Tampa Bay Buccaneers", "Bucaneers": "Tampa Bay Buccaneers",
+      "Falcons": "Atlanta Falcons", "Panthers": "Carolina Panthers",
+      "Saints": "New Orleans Saints", "Rams": "Los Angeles Rams",
+      "Seahawks": "Seattle Seahawks", "49ers": "San Francisco 49ers",
+      "Cardinals": "Arizona Cardinals", "Bills": "Buffalo Bills",
+      "Jets": "New York Jets", "Patriots": "New England Patriots",
+      "Dolphins": "Miami Dolphins", "Ravens": "Baltimore Ravens",
+      "Bengals": "Cincinnati Bengals", "Steelers": "Pittsburgh Steelers",
+      "Browns": "Cleveland Browns", "Colts": "Indianapolis Colts",
+      "Jaguars": "Jacksonville Jaguars", "Texans": "Houston Texans",
+      "Titans": "Tennessee Titans", "Chiefs": "Kansas City Chiefs",
+      "Chargers": "Los Angeles Chargers", "Broncos": "Denver Broncos",
+      "Raiders": "Las Vegas Raiders",
+    };
+
+    function resolveTeam(name) { return TEAM_ALIASES[name] || name; }
+
+    function legacyColoredText(text, team) {
+      var r = resolveTeam(team);
+      if (!r || !TEAM_COLORS[r]) return text;
+      return '<span style="color:' + TEAM_COLORS[r].primary + ';font-weight:600">' + text + '</span>';
+    }
+    function legacyColoredGame(h, a) {
+      return legacyColoredText(h, h) + '<span style="color:#9CA3AF"> vs </span>' + legacyColoredText(a, a);
+    }
+
+    var ALL_LEGACY_BETS = [];
+    var LEGACY_FILTERS = { year: 'all', picker: 'all', result: 'all' };
+
+    function setLegacyFilter(key, value, btn) {
+      LEGACY_FILTERS[key] = value;
+      var group = btn.parentElement;
+      group.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      filterLegacyHistory();
+    }
+
+    function filterLegacyHistory() {
+      var q = document.getElementById('legacy-search') ? document.getElementById('legacy-search').value.toLowerCase().trim() : '';
+      var filtered = ALL_LEGACY_BETS.filter(function(b) {
+        if (q && !b.searchText.includes(q)) return false;
+        if (LEGACY_FILTERS.year !== 'all' && b.year !== LEGACY_FILTERS.year) return false;
+        if (LEGACY_FILTERS.picker !== 'all' && b.picker !== LEGACY_FILTERS.picker) return false;
+        if (LEGACY_FILTERS.result !== 'all' && b.correct !== LEGACY_FILTERS.result) return false;
+        return true;
+      });
+      renderLegacyHistory(filtered);
+    }
+
+    function fetchLegacySeason(season) {
+      var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + season.sheetId +
+        '/values/' + encodeURIComponent(season.tab + '!A1:R200') + '?key=' + API_KEY;
+      return fetch(url).then(function(res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      }).then(function(data) {
+        var rows = (data.values || []).slice(1).filter(function(r) {
+          return r[0] && r[3] && r[3].trim() && r[3].trim() !== 'John';
+        });
+        return rows.map(function(r) {
+          var picker = (r[3] || '').trim();
+          var homeTeam = r[4] || '';
+          var awayTeam = r[5] || '';
+          var homePick = (r[6] || '').trim();
+          var awayPick = (r[7] || '').trim();
+          var homeOdds = r[8] || '';
+          var awayOdds = r[9] || '';
+          var firstScorer = (r[11] || '').trim();
+          var correct = (r[12] || '').trim();
+          var wasOffered = (r[14] || '').trim();
+          var netUnits = parseFloat(r[15]) || 0;
+          var netDollars = parseFloat(r[16]) || 0;
+          var week = r[1] || '';
+          var game = homeTeam && awayTeam ? homeTeam + ' vs ' + awayTeam : '';
+          var oddsArr = [];
+          if (homePick && homeOdds) oddsArr.push('+' + Math.round(parseFloat(homeOdds) * 100));
+          if (awayPick && awayOdds) oddsArr.push('+' + Math.round(parseFloat(awayOdds) * 100));
+          return {
+            year: season.year, week: week, game: game,
+            homeTeam: homeTeam, awayTeam: awayTeam,
+            picker: picker, homePick: homePick, awayPick: awayPick,
+            firstScorer: firstScorer, correct: correct, wasOffered: wasOffered,
+            netUnits: netUnits, netDollars: netDollars,
+            odds: oddsArr.join(' / ') || '—',
+            searchText: (season.year + ' ' + week + ' ' + game + ' ' + (resolveTeam(homeTeam) || '') + ' ' + (resolveTeam(awayTeam) || '') + ' ' + picker + ' ' + homePick + ' ' + awayPick).toLowerCase()
+          };
+        });
+      });
+    }
+
+    function calcLegacyStats(bets) {
+      var mCorrect = 0, mTotal = 0, dCorrect = 0, dTotal = 0;
+      var mUnits = 0, dUnits = 0, mDollars = 0, dDollars = 0;
+      var mBigWin = null, dBigWin = null;
+      var pickCounts = {}, scorerCounts = {}, seenGames = {};
+
+      bets.forEach(function(b) {
+        var gameKey = b.year + '_' + b.week + '_' + b.game;
+        if (b.firstScorer && !seenGames[gameKey]) {
+          seenGames[gameKey] = true;
+          scorerCounts[b.firstScorer] = (scorerCounts[b.firstScorer] || 0) + 1;
+        }
+        [b.homePick, b.awayPick].filter(Boolean).forEach(function(p) {
+          if (!pickCounts[p]) pickCounts[p] = { Maria: 0, Danielle: 0 };
+          if (b.picker === 'Maria' || b.picker === 'Danielle') pickCounts[p][b.picker]++;
+        });
+        if (b.picker === 'Maria') {
+          mTotal++; if (b.correct === 'Yes') mCorrect++;
+          mUnits += b.netUnits; mDollars += b.netDollars;
+          if (b.netUnits > 0 && (mBigWin === null || b.netUnits > mBigWin.units))
+            mBigWin = { units: b.netUnits, dollars: b.netDollars, game: b.game, year: b.year, week: b.week };
+        } else if (b.picker === 'Danielle') {
+          dTotal++; if (b.correct === 'Yes') dCorrect++;
+          dUnits += b.netUnits; dDollars += b.netDollars;
+          if (b.netUnits > 0 && (dBigWin === null || b.netUnits > dBigWin.units))
+            dBigWin = { units: b.netUnits, dollars: b.netDollars, game: b.game, year: b.year, week: b.week };
+        }
+      });
+
+      var allPlayers = Object.keys(pickCounts).map(function(name) {
+        return { name: name, total: pickCounts[name].Maria + pickCounts[name].Danielle, maria: pickCounts[name].Maria, danielle: pickCounts[name].Danielle };
+      }).filter(function(p) { return p.total > 0; }).sort(function(a, b) { return b.total - a.total; });
+
+      function bestStreak(pickerBets) {
+        var best = { wins: 0, total: 0, units: 0, dollars: -Infinity, label: '' };
+        for (var i = 0; i < pickerBets.length; i++) {
+          for (var j = i + 1; j <= Math.min(i + 10, pickerBets.length); j++) {
+            var window = pickerBets.slice(i, j);
+            var w = window.filter(function(b) { return b.correct === 'Yes'; }).length;
+            var t = window.length;
+            var u = window.reduce(function(acc, b) { return acc + b.netUnits; }, 0);
+            var d = window.reduce(function(acc, b) { return acc + b.netDollars; }, 0);
+            if (d > best.dollars) {
+              best = { wins: w, total: t, units: u, dollars: d, label: '$' + d.toFixed(2) + ' (+' + u.toFixed(1) + 'u) — ' + w + '/' + t + ' correct' };
+            }
+          }
+        }
+        if (best.dollars <= 0) best.label = 'No profitable stretch yet';
+        return best;
+      }
+
+      var mariaBets = bets.filter(function(b) { return b.picker === 'Maria'; });
+      var danielleBets = bets.filter(function(b) { return b.picker === 'Danielle'; });
+
+      return {
+        mCorrect: mCorrect, mTotal: mTotal, dCorrect: dCorrect, dTotal: dTotal,
+        mUnits: mUnits, dUnits: dUnits, mDollars: mDollars, dDollars: dDollars,
+        mBigWin: mBigWin, dBigWin: dBigWin,
+        mStreak: bestStreak(mariaBets), dStreak: bestStreak(danielleBets),
+        mostOverall: allPlayers[0],
+        mariaMost: allPlayers.filter(function(p) { return p.maria > 0; }).sort(function(a, b) { return b.maria - a.maria; })[0],
+        danielleMost: allPlayers.filter(function(p) { return p.danielle > 0; }).sort(function(a, b) { return b.danielle - a.danielle; })[0],
+        scorerCounts: scorerCounts,
+      };
+    }
+
+    function fmtL(n, prefix) {
+      if (prefix === 'u') return (n >= 0 ? '+' : '') + n.toFixed(1) + 'u';
+      if (prefix === '$') return (n >= 0 ? '+$' : '-$') + Math.abs(n).toFixed(2);
+      return n;
+    }
+
+    function legacyStatCard(label, mVal, dVal) {
+      return '<div style="background:#F9FAFB;border-radius:8px;padding:14px 16px">' +
+        '<div style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">' + label + '</div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px"><span style="font-size:20px;font-weight:700;color:#F5E050">' + mVal + '</span><span style="font-size:11px;color:#9CA3AF">Maria</span></div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:20px;font-weight:700;color:#1D4ED8">' + dVal + '</span><span style="font-size:11px;color:#9CA3AF">Danielle</span></div>' +
+        '</div>';
+    }
+
+    function legacyFunRow(label, val, cls) {
+      var color = cls === 'maria' ? '#F5E050' : cls === 'danielle' ? '#1D4ED8' : cls === 'red' ? '#DC2626' : '#1C1C1E';
+      return '<div style="display:flex;justify-content:space-between;padding:11px 0;border-bottom:0.5px solid #F3F4F6;font-size:13px;gap:16px">' +
+        '<span style="color:#6B7280;max-width:220px">' + label + '</span>' +
+        '<span style="font-weight:600;text-align:right;color:' + color + '">' + val + '</span></div>';
+    }
+
+    function renderLegacyHistory(bets) {
+      var el = document.getElementById('legacy-history-table');
+      var countEl = document.getElementById('legacy-hist-count');
+      if (countEl) countEl.textContent = bets.length + ' bet' + (bets.length !== 1 ? 's' : '');
+      if (!el) return;
+
+      var header = '<div style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 60px 50px;gap:8px;padding-bottom:8px;border-bottom:0.5px solid #F3F4F6;font-size:10px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em">' +
+        '<span>Year</span><span>Wk</span><span>Game</span><span>Picker</span><span>Players</span><span>Odds</span><span>Result</span><span>Units</span></div>';
+
+      var rows = bets.map(function(b) {
+        var resultClass = b.correct === 'Yes' ? 'win' : b.correct === 'No' ? 'loss' : 'na';
+        var resultText = b.correct === 'Yes' ? 'Win' : b.correct === 'No' ? 'Loss' : '—';
+        var pickerColor = b.picker === 'Maria' ? '#F5E050' : '#1D4ED8';
+        var unitClass = b.netUnits > 0 ? '#065F46' : b.netUnits < 0 ? '#DC2626' : '#9CA3AF';
+        var unitStr = b.netUnits !== 0 ? (b.netUnits > 0 ? '+' : '') + b.netUnits + 'u' : '0u';
+        var notOffered = b.wasOffered === 'No' ? '<div style="font-size:10px;color:#9CA3AF;font-style:italic">scorer not offered</div>' : '';
+        var homeColored = b.homePick ? legacyColoredText(b.homePick, b.homeTeam) : '';
+        var awayColored = b.awayPick ? legacyColoredText(b.awayPick, b.awayTeam) : '';
+        var players = [homeColored, awayColored].filter(Boolean).join('<span style="color:#9CA3AF"> / </span>') || '—';
+        var gameDisplay = b.homeTeam && b.awayTeam ? legacyColoredGame(b.homeTeam, b.awayTeam) : (b.game || '—');
+        var resultBg = b.correct === 'Yes' ? '#D1FAE5' : b.correct === 'No' ? '#FEE2E2' : '#F3F4F6';
+        var resultColor = b.correct === 'Yes' ? '#065F46' : b.correct === 'No' ? '#991B1B' : '#9CA3AF';
+        return '<div style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 60px 50px;gap:8px;padding:10px 0;border-bottom:0.5px solid #F3F4F6;font-size:12px;align-items:start">' +
+          '<span style="font-size:11px;font-weight:600;color:#9CA3AF">' + b.year + '</span>' +
+          '<span style="color:#9CA3AF;text-align:center">' + b.week + '</span>' +
+          '<span style="font-weight:500">' + gameDisplay + '</span>' +
+          '<span style="font-weight:500;color:' + pickerColor + '">' + b.picker + '</span>' +
+          '<span>' + players + notOffered + '</span>' +
+          '<span style="color:#6B7280">' + b.odds + '</span>' +
+          '<span style="font-size:11px;font-weight:500;padding:2px 6px;border-radius:4px;text-align:center;background:' + resultBg + ';color:' + resultColor + '">' + resultText + '</span>' +
+          '<span style="text-align:right;font-weight:500;color:' + unitClass + '">' + unitStr + '</span>' +
+          '</div>';
+      }).join('');
+
+      el.innerHTML = bets.length === 0 ? '<div style="color:#9CA3AF;text-align:center;padding:32px">No results.</div>' : header + rows;
+    }
+
+    function loadLegacyTab() {
+      if (ALL_LEGACY_BETS.length > 0) return; // already loaded
+      Promise.all(SEASONS.map(fetchLegacySeason)).then(function(results) {
+        var allBets = [];
+        var byYear = [];
+        results.forEach(function(bets, i) {
+          allBets = allBets.concat(bets);
+          byYear.push({ year: SEASONS[i].year, stats: calcLegacyStats(bets) });
+        });
+        ALL_LEGACY_BETS = allBets.slice().reverse();
+
+        var s = calcLegacyStats(allBets);
+        var legacyYears = byYear.filter(function(ys) { return ys.year !== CURRENT_YEAR; });
+
+        var winner = s.mUnits > s.dUnits ? 'Maria leads all-time' : s.dUnits > s.mUnits ? 'Danielle leads all-time' : 'All-time tied';
+
+        var html = '<div style="font-size:13px;color:#6B7280;margin-bottom:24px">' + winner + ' · ' + SEASONS.length + ' seasons of data</div>';
+
+        // All-time stats
+        html += '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">All-Time Totals</div>';
+        html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:28px">';
+        html += legacyStatCard('Units', fmtL(s.mUnits,'u'), fmtL(s.dUnits,'u'));
+        html += legacyStatCard('Dollars', fmtL(s.mDollars,'$'), fmtL(s.dDollars,'$'));
+        html += legacyStatCard('Correct', s.mCorrect+'/'+s.mTotal, s.dCorrect+'/'+s.dTotal);
+        html += legacyStatCard('Accuracy', (s.mTotal?Math.round(s.mCorrect/s.mTotal*100):0)+'%', (s.dTotal?Math.round(s.dCorrect/s.dTotal*100):0)+'%');
+        html += '</div>';
+
+        // Previous seasons
+        if (legacyYears.length > 0) {
+          html += '<hr style="border:none;border-top:0.5px solid #E5E7EB;margin:24px 0">';
+          html += '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">Previous Seasons</div>';
+          legacyYears.forEach(function(ys) {
+            var winner = ys.stats.mUnits > ys.stats.dUnits ? 'maria' : ys.stats.dUnits > ys.stats.mUnits ? 'danielle' : 'tied';
+            var wLabel = winner === 'maria' ? '🏆 Maria' : winner === 'danielle' ? '🏆 Danielle' : 'Tied';
+            var wColor = winner === 'maria' ? '#F5E050' : winner === 'danielle' ? '#1D4ED8' : '#6B7280';
+            html += '<div style="margin-bottom:16px"><div style="font-size:16px;font-weight:700;margin-bottom:8px">' + ys.year + ' <span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;background:#F3F4F6;color:' + wColor + '">' + wLabel + '</span></div>';
+            html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">';
+            ['Units','Dollars','Accuracy','Correct'].forEach(function(label, i) {
+              var mV, dV;
+              if (i===0) { mV=fmtL(ys.stats.mUnits,'u'); dV=fmtL(ys.stats.dUnits,'u'); }
+              else if (i===1) { mV=fmtL(ys.stats.mDollars,'$'); dV=fmtL(ys.stats.dDollars,'$'); }
+              else if (i===2) { mV=(ys.stats.mTotal?Math.round(ys.stats.mCorrect/ys.stats.mTotal*100):0)+'%'; dV=(ys.stats.dTotal?Math.round(ys.stats.dCorrect/ys.stats.dTotal*100):0)+'%'; }
+              else { mV=ys.stats.mCorrect+'/'+ys.stats.mTotal; dV=ys.stats.dCorrect+'/'+ys.stats.dTotal; }
+              html += '<div style="background:#F9FAFB;border-radius:6px;padding:10px 12px"><div style="font-size:10px;color:#9CA3AF;margin-bottom:4px">'+label+'</div><div style="font-weight:600;color:#F5E050">'+mV+' <span style="font-size:10px;color:#9CA3AF">M</span></div><div style="font-weight:600;color:#1D4ED8">'+dV+' <span style="font-size:10px;color:#9CA3AF">D</span></div></div>';
+            });
+            html += '</div></div>';
+          });
+        }
+
+        // Fun stats
+        html += '<hr style="border:none;border-top:0.5px solid #E5E7EB;margin:24px 0">';
+        html += '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">Fun Stats</div>';
+        html += '<div>';
+        if (s.mStreak && s.mStreak.wins > 0) html += legacyFunRow("Maria's best 10-game stretch", s.mStreak.label, 'maria');
+        if (s.dStreak && s.dStreak.wins > 0) html += legacyFunRow("Danielle's best 10-game stretch", s.dStreak.label, 'danielle');
+        if (s.mostOverall) html += legacyFunRow('Most picked player overall', s.mostOverall.name + ' (' + s.mostOverall.total + 'x)', '');
+        if (s.mariaMost) html += legacyFunRow("Maria's most picked player", s.mariaMost.name + ' (' + s.mariaMost.maria + 'x)', 'maria');
+        if (s.danielleMost) html += legacyFunRow("Danielle's most picked player", s.danielleMost.name + ' (' + s.danielleMost.danielle + 'x)', 'danielle');
+        if (s.mBigWin) html += legacyFunRow("Maria's biggest win ever", '+' + s.mBigWin.units + 'u ($' + s.mBigWin.dollars + ') — Wk ' + s.mBigWin.week + ' ' + s.mBigWin.game + ' (' + s.mBigWin.year + ')', 'maria');
+        if (s.dBigWin) html += legacyFunRow("Danielle's biggest win ever", '+' + s.dBigWin.units + 'u ($' + s.dBigWin.dollars + ') — Wk ' + s.dBigWin.week + ' ' + s.dBigWin.game + ' (' + s.dBigWin.year + ')', 'danielle');
+        var scorers = Object.keys(s.scorerCounts).map(function(name) { return { name: name, count: s.scorerCounts[name] }; }).sort(function(a,b){return b.count-a.count;});
+        if (scorers.length > 0) {
+          var topCount = scorers[0].count;
+          var scorerVal = topCount <= 1 ? 'No one has scored more than 1 first TD' : scorers.filter(function(s){return s.count===topCount;}).map(function(s){return s.name;}).join(', ') + ' (' + topCount + 'x)';
+          html += legacyFunRow('Most frequent first TD scorer', scorerVal, '');
+        }
+        html += '</div>';
+
+        // Bet history section
+        html += '<hr style="border:none;border-top:0.5px solid #E5E7EB;margin:24px 0">';
+        html += '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">Bet History</div>';
+        html += '<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">';
+        html += '<div style="display:flex;gap:4px;align-items:center"><span style="font-size:11px;color:#9CA3AF;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Year</span>';
+        html += '<button class="filter-btn active" onclick="setLegacyFilter('year','all',this)">All</button>';
+        html += '<button class="filter-btn" onclick="setLegacyFilter('year','2026',this)">2026</button>';
+        html += '<button class="filter-btn" onclick="setLegacyFilter('year','2025',this)">2025</button></div>';
+        html += '<div style="display:flex;gap:4px;align-items:center;margin-left:12px"><span style="font-size:11px;color:#9CA3AF;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Picker</span>';
+        html += '<button class="filter-btn active" onclick="setLegacyFilter('picker','all',this)">Both</button>';
+        html += '<button class="filter-btn maria-btn" onclick="setLegacyFilter('picker','Maria',this)">Maria</button>';
+        html += '<button class="filter-btn danielle-btn" onclick="setLegacyFilter('picker','Danielle',this)">Danielle</button></div>';
+        html += '<div style="display:flex;gap:4px;align-items:center;margin-left:12px"><span style="font-size:11px;color:#9CA3AF;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Result</span>';
+        html += '<button class="filter-btn active" onclick="setLegacyFilter('result','all',this)">All</button>';
+        html += '<button class="filter-btn win-btn" onclick="setLegacyFilter('result','Yes',this)">Win</button>';
+        html += '<button class="filter-btn loss-btn" onclick="setLegacyFilter('result','No',this)">Loss</button></div>';
+        html += '</div>';
+        html += '<input type="text" id="legacy-search" style="width:100%;padding:10px 14px;font-family:Inter,sans-serif;font-size:14px;border:0.5px solid #E5E7EB;border-radius:8px;background:#F9FAFB;color:#1C1C1E;outline:none;margin-bottom:12px" placeholder="Search player, team, week, year, or picker..." oninput="filterLegacyHistory()">';
+        html += '<div id="legacy-hist-count" style="font-size:12px;color:#9CA3AF;margin-bottom:12px"></div>';
+        html += '<div id="legacy-history-table"></div>';
+
+        document.getElementById('legacy-content').innerHTML = html;
+        renderLegacyHistory(ALL_LEGACY_BETS);
+      }).catch(function(e) {
+        console.error(e);
+        document.getElementById('legacy-content').innerHTML = '<div style="color:#9CA3AF;text-align:center;padding:32px">Error loading legacy data: ' + e.message + '</div>';
+      });
+    }
+
 
     function toggleDivision(el) {
       el.classList.toggle('open');

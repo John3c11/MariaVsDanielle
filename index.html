@@ -607,7 +607,7 @@
     <footer>Data pulled from Google Sheets · Refresh to update</footer>
 
     <div style="margin-top:32px;padding:16px;background:#F9FAFB;border-radius:8px;font-size:13px;color:#6B7280;line-height:1.6">
-      <strong style="color:#1C1C1E">How these numbers work:</strong> The main figure is your actual result — games where the first TD scorer wasn't offered count as $0. The <em>worst case</em> figure shows what the numbers would look like if those games counted as full losses (-2u, -2x bet amount).
+The big number doesn't count games where the first TD scorer wasn't offered. The small one does, treating them as losses.
     </div>
 
     <div class="campbell-bottom">
@@ -1563,13 +1563,13 @@
           var bg = isTotal ? "#F3F4F6" : "#F9FAFB";
           var border = isTotal ? "border-top:2px solid #1C1C1E;" : "";
 
-          function statCol(labelText, actual, worst) {
-            var aColor = uColor(actual);
-            var wColor = uColor(worst);
+          function statCol(labelText, actualN, worstN, fmtFn) {
+            var aColor = uColor(actualN);
+            var wColor = uColor(worstN);
             return '<div>' +
               '<div style="font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">' + labelText + '</div>' +
-              '<div style="font-size:20px;font-weight:700;color:' + aColor + '">' + actual + '</div>' +
-              '<div style="font-size:12px;color:' + wColor + ';margin-top:2px">' + worst + ' worst case</div>' +
+              '<div style="font-size:20px;font-weight:700;color:' + aColor + '">' + fmtFn(actualN) + '</div>' +
+              '<div style="font-size:12px;color:' + wColor + ';margin-top:2px">' + fmtFn(worstN) + ' worst case</div>' +
             '</div>';
           }
 
@@ -1579,8 +1579,8 @@
               '<div><div style="font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Bets Made</div>' +
                 '<div style="font-size:20px;font-weight:700;color:#1C1C1E">' + r.bets + '</div>' +
                 '<div style="font-size:12px;color:#9CA3AF;margin-top:2px">' + r.notOffered + ' not offered</div></div>' +
-              statCol("Units", fmtU(r.units), fmtU(r.unitsWorst)) +
-              statCol("Money", fmtD(r.dollars), fmtD(r.dollarsWorst)) +
+              statCol("Units", r.units, r.unitsWorst, fmtU) +
+              statCol("Money", r.dollars, r.dollarsWorst, fmtD) +
             '</div></div>';
         }
 

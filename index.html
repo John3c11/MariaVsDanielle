@@ -606,6 +606,10 @@
 
     <footer>Data pulled from Google Sheets · Refresh to update</footer>
 
+    <div style="margin-top:32px;padding:16px;background:#F9FAFB;border-radius:8px;font-size:13px;color:#6B7280;line-height:1.6">
+      <strong style="color:#1C1C1E">How these numbers work:</strong> The main figure is your actual result — games where the first TD scorer wasn't offered count as $0. The <em>worst case</em> figure shows what the numbers would look like if those games counted as full losses (-2u, -2x bet amount).
+    </div>
+
     <div class="campbell-bottom">
       <img src="pics/campbell.png" alt="Campbell Dingus" style="width:180px;height:auto;border-radius:10px;">
       <div style="font-size:12px;color:#9CA3AF;font-style:italic;margin-top:8px;">Brought to you by Campbell Dingus</div>
@@ -1512,16 +1516,37 @@
           const rows = (data.values || []).slice(1).filter(function(r) {
             return r[0] && r[3] && r[3].trim() && r[3].trim() !== "John";
           });
-          const scored = rows.filter(function(r) {
-            const correct = (r[12] || "").trim();
+          // All rows with at least one pick
+          const withPicks = rows.filter(function(r) {
             const homePick = (r[6] || "").trim();
             const awayPick = (r[7] || "").trim();
-            return (homePick || awayPick) && (correct === "Yes" || correct === "No");
+            return homePick || awayPick;
           });
-          const bets = scored.length;
+          // Scored games only (correct = Yes or No)
+          const scored = withPicks.filter(function(r) {
+            const correct = (r[12] || "").trim();
+            return correct === "Yes" || correct === "No";
+          });
+          // Not offered games (wasOffered = No, no result)
+          const notOfferedRows = withPicks.filter(function(r) {
+            const wasOffered = (r[14] || "").trim();
+            const correct = (r[12] || "").trim();
+            return wasOffered === "No" && correct !== "Yes" && correct !== "No";
+          });
+
+          const bets = scored.length + notOfferedRows.length;
+          const notOffered = notOfferedRows.length;
           const units = scored.reduce(function(acc, r) { return acc + (parseFloat(r[15]) || 0); }, 0);
           const dollars = scored.reduce(function(acc, r) { return acc + (parseFloat(r[16]) || 0); }, 0);
-          return { year: s.year, bets, units, dollars };
+
+          // Worst case: not offered games count as -2u and -2 * amount bet
+          const unitsWorst = units + notOfferedRows.reduce(function(acc, r) { return acc - 2; }, 0);
+          const dollarsWorst = dollars + notOfferedRows.reduce(function(acc, r) {
+            const amountBet = parseFloat(r[10]) || 5;
+            return acc - (2 * amountBet);
+          }, 0);
+
+          return { year: s.year, bets, notOffered, units, dollars, unitsWorst, dollarsWorst };
         }));
 
         const totalBets = results.reduce(function(a, r) { return a + r.bets; }, 0);
@@ -1536,19 +1561,34 @@
           var label = isTotal ? "All-Time Total" : r.year + " Season";
           var bg = isTotal ? "#F3F4F6" : "#F9FAFB";
           var border = isTotal ? "border-top:2px solid #1C1C1E;" : "";
+
+          function statCol(labelText, actual, worst) {
+            var aColor = uColor(actual);
+            var wColor = uColor(worst);
+            return '<div>' +
+              '<div style="font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">' + labelText + '</div>' +
+              '<div style="font-size:20px;font-weight:700;color:' + aColor + '">' + actual + '</div>' +
+              '<div style="font-size:12px;color:' + wColor + ';margin-top:2px">' + worst + ' worst case</div>' +
+            '</div>';
+          }
+
           return '<div style="background:' + bg + ';border-radius:10px;padding:18px 20px;margin-bottom:12px;' + border + '">' +
             '<div style="font-size:15px;font-weight:700;color:#1C1C1E;margin-bottom:14px">' + label + '</div>' +
             '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">' +
-              '<div><div style="font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Bets Made</div>' +
-                '<div style="font-size:22px;font-weight:700;color:#1C1C1E">' + r.bets + '</div></div>' +
-              '<div><div style="font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Units</div>' +
-                '<div style="font-size:22px;font-weight:700;color:' + uColor(r.units) + '">' + fmtU(r.units) + '</div></div>' +
-              '<div><div style="font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Money</div>' +
-                '<div style="font-size:22px;font-weight:700;color:' + uColor(r.dollars) + '">' + fmtD(r.dollars) + '</div></div>' +
+              '<div><div style="font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Bets Made</div>' +
+                '<div style="font-size:20px;font-weight:700;color:#1C1C1E">' + r.bets + '</div>' +
+                '<div style="font-size:12px;color:#9CA3AF;margin-top:2px">' + r.notOffered + ' not offered</div></div>' +
+              statCol("Units", fmtU(r.units), fmtU(r.unitsWorst)) +
+              statCol("Money", fmtD(r.dollars), fmtD(r.dollarsWorst)) +
             '</div></div>';
         }
 
-        var html = yearCard({ bets: totalBets, units: totalUnits, dollars: totalDollars }, true);
+        var html = yearCard({
+          bets: totalBets, units: totalUnits, dollars: totalDollars,
+          unitsWorst: results.reduce(function(a,r){return a+r.unitsWorst;},0),
+          dollarsWorst: results.reduce(function(a,r){return a+r.dollarsWorst;},0),
+          notOffered: results.reduce(function(a,r){return a+r.notOffered;},0)
+        }, true);
         results.forEach(function(r) { html += yearCard(r, false); });
         document.getElementById("money-content").innerHTML = html;
       } catch(e) {

@@ -554,6 +554,7 @@
       <button class="tab-btn" onclick="switchTab('bethistory')">Bet History</button>
       <button class="tab-btn" onclick="switchTab('rosters')">2026 Roster</button>
       <button class="tab-btn" onclick="switchTab('legacy')">Legacy</button>
+      <button class="tab-btn" onclick="switchTab('money')">Money</button>
     </nav>
 
     <div id="tab-stats" class="tab-panel active">
@@ -598,6 +599,10 @@
       <div id="legacy-content"><div class="loading">Loading legacy data...</div></div>
     </div>
 
+
+    <div id="tab-money" class="tab-panel">
+      <div id="money-content"><div class="loading">Loading...</div></div>
+    </div>
 
     <footer>Data pulled from Google Sheets · Refresh to update</footer>
 
@@ -798,25 +803,7 @@
           liveEl.innerHTML = html;
         }
 
-        // Recent bets
-        const histEl = document.getElementById('bet-history');
-        const recent = betLog.slice(-10).reverse();
-        if (recent.length === 0) {
-          histEl.innerHTML = '<div class="loading">No bets logged yet.</div>';
-        } else {
-          histEl.innerHTML = recent.map(b => {
-            const resultClass = b.correct === 'Yes' ? 'win' : b.correct === 'No' ? 'loss' : 'pending';
-            const resultText = b.correct === 'Yes' ? 'Win' : b.correct === 'No' ? 'Loss' : '—';
-            const pickerClass = b.picker.toLowerCase();
-            const unitStr = b.netUnits !== 0 ? (b.netUnits > 0 ? '+' : '') + b.netUnits + 'u' : '';
-            return `<div class="bet-row">
-              <span class="bet-game">${b.game || '—'}</span>
-              <span class="bet-picker ${pickerClass}">${b.picker}</span>
-              <span class="bet-result ${resultClass}">${resultText}</span>
-              <span class="bet-units">${unitStr}</span>
-            </div>`;
-          }).join('');
-        }
+
 
         document.getElementById('last-updated').textContent =
           `Last refreshed ${new Date().toLocaleString()}`;
@@ -934,6 +921,7 @@
       document.querySelector(`.tab-btn[onclick="switchTab('${name}')"]`).classList.add('active');
       document.getElementById('tab-' + name).classList.add('active');
       if (name === 'legacy') loadLegacyTab();
+      if (name === 'money') loadMoneyTab();
       if (name === 'bethistory') loadBetHistoryTab();
     }
     // ── Bet History tab ──────────────────────────────────────────────────────────
@@ -1505,6 +1493,69 @@
       }
     }
 
+
+    var MONEY_LOADED = false;
+    async function loadMoneyTab() {
+      if (MONEY_LOADED) return;
+      MONEY_LOADED = true;
+      try {
+        const SEASONS_MONEY = [
+          { year: "2026", sheetId: "1eokxqa-RCuH4qNh486OMSnIeZdXbhHnw_FygbzUwGj4" },
+          { year: "2025", sheetId: "1DWLYS9RYuOv97ajIcsak69Z97ODtegnBXvlDKJgpwYc" },
+        ];
+
+        const results = await Promise.all(SEASONS_MONEY.map(async function(s) {
+          const url = "https://sheets.googleapis.com/v4/spreadsheets/" + s.sheetId +
+            "/values/" + encodeURIComponent("Winnings!A1:Q200") + "?key=" + API_KEY;
+          const res = await fetch(url);
+          const data = await res.json();
+          const rows = (data.values || []).slice(1).filter(function(r) {
+            return r[0] && r[3] && r[3].trim() && r[3].trim() !== "John";
+          });
+          const scored = rows.filter(function(r) {
+            const correct = (r[12] || "").trim();
+            const homePick = (r[6] || "").trim();
+            const awayPick = (r[7] || "").trim();
+            return (homePick || awayPick) && (correct === "Yes" || correct === "No");
+          });
+          const bets = scored.length;
+          const units = scored.reduce(function(acc, r) { return acc + (parseFloat(r[15]) || 0); }, 0);
+          const dollars = scored.reduce(function(acc, r) { return acc + (parseFloat(r[16]) || 0); }, 0);
+          return { year: s.year, bets, units, dollars };
+        }));
+
+        const totalBets = results.reduce(function(a, r) { return a + r.bets; }, 0);
+        const totalUnits = results.reduce(function(a, r) { return a + r.units; }, 0);
+        const totalDollars = results.reduce(function(a, r) { return a + r.dollars; }, 0);
+
+        function fmtU(n) { return (n >= 0 ? "+" : "") + n.toFixed(1) + "u"; }
+        function fmtD(n) { return (n >= 0 ? "+$" : "-$") + Math.abs(n).toFixed(2); }
+        function uColor(n) { return n >= 0 ? "#065F46" : "#DC2626"; }
+
+        function yearCard(r, isTotal) {
+          var label = isTotal ? "All-Time Total" : r.year + " Season";
+          var bg = isTotal ? "#F3F4F6" : "#F9FAFB";
+          var border = isTotal ? "border-top:2px solid #1C1C1E;" : "";
+          return '<div style="background:' + bg + ';border-radius:10px;padding:18px 20px;margin-bottom:12px;' + border + '">' +
+            '<div style="font-size:15px;font-weight:700;color:#1C1C1E;margin-bottom:14px">' + label + '</div>' +
+            '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">' +
+              '<div><div style="font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Bets Made</div>' +
+                '<div style="font-size:22px;font-weight:700;color:#1C1C1E">' + r.bets + '</div></div>' +
+              '<div><div style="font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Units</div>' +
+                '<div style="font-size:22px;font-weight:700;color:' + uColor(r.units) + '">' + fmtU(r.units) + '</div></div>' +
+              '<div><div style="font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Money</div>' +
+                '<div style="font-size:22px;font-weight:700;color:' + uColor(r.dollars) + '">' + fmtD(r.dollars) + '</div></div>' +
+            '</div></div>';
+        }
+
+        var html = yearCard({ bets: totalBets, units: totalUnits, dollars: totalDollars }, true);
+        results.forEach(function(r) { html += yearCard(r, false); });
+        document.getElementById("money-content").innerHTML = html;
+      } catch(e) {
+        console.error(e);
+        document.getElementById("money-content").innerHTML = '<div class="loading">Error loading data.</div>';
+      }
+    }
   </script>
   
   </div><!-- end wrap -->

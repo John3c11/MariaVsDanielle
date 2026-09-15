@@ -1527,11 +1527,12 @@
             const correct = (r[12] || "").trim();
             return correct === "Yes" || correct === "No";
           });
-          // Not offered games (wasOffered = No, no result)
+          // Not offered games: wasOffered = No AND net units = 0 (losses have -2)
           const notOfferedRows = withPicks.filter(function(r) {
             const wasOffered = (r[14] || "").trim();
-            const correct = (r[12] || "").trim();
-            return wasOffered === "No" && correct !== "Yes" && correct !== "No";
+            const netU = parseFloat(r[15]) || 0;
+            const firstScorer = (r[11] || "").trim();
+            return wasOffered === "No" && firstScorer !== "" && netU === 0;
           });
 
           const bets = scored.length + notOfferedRows.length;
@@ -1555,7 +1556,7 @@
 
         function fmtU(n) { return (n >= 0 ? "+" : "") + n.toFixed(1) + "u"; }
         function fmtD(n) { return (n >= 0 ? "+$" : "-$") + Math.abs(n).toFixed(2); }
-        function uColor(n) { return n >= 0 ? "#065F46" : "#DC2626"; }
+        function uColor(n) { return n > 0 ? "#065F46" : n < 0 ? "#DC2626" : "#9CA3AF"; }
 
         function yearCard(r, isTotal) {
           var label = isTotal ? "All-Time Total" : r.year + " Season";

@@ -554,6 +554,7 @@
       <button class="tab-btn" onclick="switchTab('bethistory')">Bet History</button>
       <button class="tab-btn" onclick="switchTab('rosters')">2026 Roster</button>
       <button class="tab-btn" onclick="switchTab('legacy')">Legacy</button>
+      <button class="tab-btn" onclick="switchTab('analytics')">Analytics</button>
       <button class="tab-btn" onclick="switchTab('money')">Money</button>
     </nav>
 
@@ -599,6 +600,10 @@
       <div id="legacy-content"><div class="loading">Loading legacy data...</div></div>
     </div>
 
+
+    <div id="tab-analytics" class="tab-panel">
+      <div id="analytics-content"><div class="loading">Loading...</div></div>
+    </div>
 
     <div id="tab-money" class="tab-panel">
       <div id="money-content"><div class="loading">Loading...</div></div>
@@ -923,6 +928,7 @@
       document.getElementById('tab-' + name).classList.add('active');
       if (name === 'legacy') loadLegacyTab();
       if (name === 'money') loadMoneyTab();
+      if (name === 'analytics') loadAnalyticsTab();
       if (name === 'bethistory') loadBetHistoryTab();
     }
     // ── Bet History tab ──────────────────────────────────────────────────────────

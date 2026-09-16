@@ -719,6 +719,32 @@
           }
         }
 
+        // Calculate current streak per person
+        function getCurrentStreak(picker) {
+          // Filter to scored games, skip not-offered (correct=No but netUnits=0)
+          const personBets = rows.filter(r => {
+            const correct = (r[12] || '').trim();
+            const homePick = (r[6] || '').trim();
+            const awayPick = (r[7] || '').trim();
+            const wasOffered = (r[14] || '').trim();
+            const netUnits = parseFloat(r[15]) || 0;
+            const notOffered = wasOffered === 'No' && netUnits === 0 && (r[11] || '').trim() !== '';
+            return r[3] === picker && (homePick || awayPick) && (correct === 'Yes' || correct === 'No') && !notOffered;
+          });
+          if (!personBets.length) return { count: 0, type: null };
+          const last = personBets[personBets.length - 1];
+          const type = last[12].trim() === 'Yes' ? 'win' : 'loss';
+          let count = 0;
+          for (let i = personBets.length - 1; i >= 0; i--) {
+            const t = personBets[i][12].trim() === 'Yes' ? 'win' : 'loss';
+            if (t === type) count++;
+            else break;
+          }
+          return { count, type };
+        }
+        const mariaStreak = getCurrentStreak('Maria');
+        const danielleStreak = getCurrentStreak('Danielle');
+
         // Calculate units/dollars only from scored games
         let mariaUnits = 0, danielleUnits = 0, mariaDollars = 0, danielleDollars = 0;
         for (const r of rows) {
@@ -749,7 +775,17 @@
         const dDolStr = (danielleDollars >= 0 ? '+' : '') + '$' + danielleDollars.toFixed(2);
         const mUnitStr = (mariaUnits >= 0 ? '+' : '') + mariaUnits.toFixed(1);
         const dUnitStr = (danielleUnits >= 0 ? '+' : '') + danielleUnits.toFixed(1);
+        function streakBadge(streak, name, color) {
+          if (!streak.count) return '';
+          const emoji = streak.type === 'win' ? '🔥' : '❄️';
+          const label = streak.type === 'win' ? 'win streak' : 'loss streak';
+          return `<span style="font-size:12px;font-weight:500;color:${color};margin-left:8px">${emoji} ${streak.count} ${label}</span>`;
+        }
         statsEl.innerHTML = `
+          <div style="display:flex;justify-content:center;gap:32px;margin-bottom:20px;flex-wrap:wrap">
+            <div style="font-size:13px;color:#DC2626;font-weight:500">Maria ${mariaStreak.count > 0 ? (mariaStreak.type === 'win' ? '🔥' : '❄️') + ' ' + mariaStreak.count + ' ' + mariaStreak.type + ' streak' : ''}</div>
+            <div style="font-size:13px;color:#1D4ED8;font-weight:500">Danielle ${danielleStreak.count > 0 ? (danielleStreak.type === 'win' ? '🔥' : '❄️') + ' ' + danielleStreak.count + ' ' + danielleStreak.type + ' streak' : ''}</div>
+          </div>
           ${statBlock('Correct Guesses', mCorrect, dCorrect, `${mCorrect} / ${mTotal}`, `${dCorrect} / ${dTotal}`)}
           <hr class="divider">
           ${statBlock('Accuracy', mCorrect / (mTotal || 1), dCorrect / (dTotal || 1), pct(mCorrect, mTotal), pct(dCorrect, dTotal))}
@@ -989,7 +1025,7 @@
         var players = [homeColored, awayColored].filter(Boolean).join('<span style="color:#9CA3AF"> / </span>') || '—';
         var gameDisplay = b.homeTeam && b.awayTeam ? legacyColoredGame(b.homeTeam, b.awayTeam) : (b.game || '—');
         return '<div style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 60px 50px;gap:8px;padding:10px 0;border-bottom:0.5px solid #F3F4F6;font-size:12px;align-items:start">' +
-          '<span style="font-size:11px;font-weight:600;color:#9CA3AF">' + b.year + '</span>' +
+          '<span style="font-size:11px;font-weight:600;color:' + (b.year === '2026' ? '#1D4ED8' : '#065F46') + '">' + b.year + '</span>' +
           '<span style="color:#9CA3AF;text-align:center">' + b.week + '</span>' +
           '<span style="font-weight:500">' + gameDisplay + '</span>' +
           '<span style="font-weight:500;color:' + pickerColor + '">' + b.picker + '</span>' +
@@ -1270,7 +1306,7 @@
         var resultBg = b.correct === 'Yes' ? '#D1FAE5' : b.correct === 'No' ? '#FEE2E2' : '#F3F4F6';
         var resultColor = b.correct === 'Yes' ? '#065F46' : b.correct === 'No' ? '#991B1B' : '#9CA3AF';
         return '<div style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 60px 50px;gap:8px;padding:10px 0;border-bottom:0.5px solid #F3F4F6;font-size:12px;align-items:start">' +
-          '<span style="font-size:11px;font-weight:600;color:#9CA3AF">' + b.year + '</span>' +
+          '<span style="font-size:11px;font-weight:600;color:' + (b.year === '2026' ? '#1D4ED8' : '#065F46') + '">' + b.year + '</span>' +
           '<span style="color:#9CA3AF;text-align:center">' + b.week + '</span>' +
           '<span style="font-weight:500">' + gameDisplay + '</span>' +
           '<span style="font-weight:500;color:' + pickerColor + '">' + b.picker + '</span>' +
@@ -1736,6 +1772,42 @@
               '</div></div>';
           }
         });
+
+        // ── Season Comparison ────────────────────────────────────────────────
+        html += section("2025 vs 2026 Season Comparison");
+        var compData = {};
+        ["2025", "2026"].forEach(function(yr) {
+          var yrRows = scored.filter(function(r){return r.year === yr;});
+          var mRows = yrRows.filter(function(r){return r.picker==="Maria";});
+          var dRows = yrRows.filter(function(r){return r.picker==="Danielle";});
+          var total = yrRows.length;
+          var wins = yrRows.filter(function(r){return r.correct==="Yes";}).length;
+          var avgOdds = total ? Math.round(yrRows.reduce(function(a,r){ return a + (r.homePick ? Math.abs(r.homeOdds) : Math.abs(r.awayOdds)); }, 0) / total * 100) : 0;
+          compData[yr] = {
+            total: total,
+            winRate: total ? Math.round(wins/total*100) : 0,
+            mWinRate: mRows.length ? Math.round(mRows.filter(function(r){return r.correct==="Yes";}).length/mRows.length*100) : 0,
+            dWinRate: dRows.length ? Math.round(dRows.filter(function(r){return r.correct==="Yes";}).length/dRows.length*100) : 0,
+            avgOdds: avgOdds,
+          };
+        });
+
+        html += '<div style="background:#F9FAFB;border-radius:10px;padding:16px;margin-bottom:12px">';
+        html += '<div style="display:grid;grid-template-columns:1fr 80px 80px;gap:8px;padding-bottom:8px;border-bottom:0.5px solid #E5E7EB;font-size:10px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em"><span></span><span style="text-align:center;color:#065F46">2025</span><span style="text-align:center;color:#1D4ED8">2026</span></div>';
+
+        var compRows = [
+          {label:"Bets played", fn:function(d){return d.total||0;}},
+          {label:"Overall win rate", fn:function(d){return (d.winRate||0)+"%";}},
+          {label:"Maria win rate", fn:function(d){return (d.mWinRate||0)+"%";}},
+          {label:"Danielle win rate", fn:function(d){return (d.dWinRate||0)+"%";}},
+          {label:"Avg odds picked", fn:function(d){return "+"+(d.avgOdds||0);}},
+        ];
+        compRows.forEach(function(row) {
+          var v25 = row.fn(compData["2025"]||{});
+          var v26 = row.fn(compData["2026"]||{});
+          html += '<div style="display:grid;grid-template-columns:1fr 80px 80px;gap:8px;padding:8px 0;border-bottom:0.5px solid #F3F4F6;font-size:13px"><span style="color:#6B7280">'+row.label+'</span><span style="text-align:center;font-weight:600;color:#065F46">'+v25+'</span><span style="text-align:center;font-weight:600;color:#1D4ED8">'+v26+'</span></div>';
+        });
+        html += '</div>';
 
         document.getElementById("analytics-content").innerHTML = html;
       } catch(e) {

@@ -1378,38 +1378,9 @@
         html += '<hr style="border:none;border-top:0.5px solid #E5E7EB;margin:24px 0">';
         html += '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">Fun Stats</div>';
         html += '<div>';
-        if (s.mStreak && s.mStreak.wins > 0) html += legacyFunRow("Maria's best 10-game stretch", s.mStreak.label, 'maria');
-        if (s.dStreak && s.dStreak.wins > 0) html += legacyFunRow("Danielle's best 10-game stretch", s.dStreak.label, 'danielle');
-        if (s.mostOverall) html += legacyFunRow('Most picked player overall', s.mostOverall.name + ' (' + s.mostOverall.total + 'x)', '');
-        if (s.mariaMost) html += legacyFunRow("Maria's most picked player", s.mariaMost.name + ' (' + s.mariaMost.maria + 'x)', 'maria');
-        if (s.danielleMost) html += legacyFunRow("Danielle's most picked player", s.danielleMost.name + ' (' + s.danielleMost.danielle + 'x)', 'danielle');
-        if (s.mBigWin) html += legacyFunRow("Maria's biggest win ever", '+' + s.mBigWin.units + 'u ($' + s.mBigWin.dollars + ') — Wk ' + s.mBigWin.week + ' ' + s.mBigWin.game + ' (' + s.mBigWin.year + ')', 'maria');
-        if (s.dBigWin) html += legacyFunRow("Danielle's biggest win ever", '+' + s.dBigWin.units + 'u ($' + s.dBigWin.dollars + ') — Wk ' + s.dBigWin.week + ' ' + s.dBigWin.game + ' (' + s.dBigWin.year + ')', 'danielle');
-        var scorers = Object.keys(s.scorerCounts).map(function(name) { return { name: name, count: s.scorerCounts[name] }; }).sort(function(a,b){return b.count-a.count;});
-        if (scorers.length > 0) {
-          var topCount = scorers[0].count;
-          var scorerVal = topCount <= 1 ? 'No one has scored more than 1 first TD' : scorers.filter(function(s){return s.count===topCount;}).map(function(s){return s.name;}).join(', ') + ' (' + topCount + 'x)';
-          html += legacyFunRow('Most frequent first TD scorer', scorerVal, '');
-        }
-        // Most scored first TD that was correctly guessed
-        var correctScorerCounts = {};
-        allBets.forEach(function(b) {
-          if (b.firstScorer && b.correct === 'Yes') {
-            correctScorerCounts[b.firstScorer] = (correctScorerCounts[b.firstScorer] || 0) + 1;
-          }
-        });
-        var correctScorers = Object.keys(correctScorerCounts).map(function(name) {
-          return { name: name, count: correctScorerCounts[name] };
-        }).sort(function(a, b) { return b.count - a.count; });
-        if (correctScorers.length > 0) {
-          var topCorrect = correctScorers[0].count;
-          var tiedScorers = correctScorers.filter(function(s) { return s.count === topCorrect; });
-          var correctVal = topCorrect <= 1
-            ? 'Tied at 1 — ' + tiedScorers.map(function(s) { return s.name; }).join(', ')
-            : tiedScorers.map(function(s) { return s.name; }).join(', ') + ' (' + topCorrect + 'x)';
-          html += legacyFunRow('Most scored first TD (correctly guessed)', correctVal, '');
-        }
-        html += '</div>';
+
+
+                html += '</div>';
 
         document.getElementById('legacy-content').innerHTML = html;
       }).catch(function(e) {
@@ -1593,6 +1564,7 @@
               correct: (r[12] || "").trim(),
               wasOffered: (r[14] || "").trim(),
               netUnits: parseFloat(r[15]) || 0,
+              netDollars: parseFloat(r[16]) || 0,
             };
           });
         }));
@@ -1752,14 +1724,6 @@
         // ── Fun Stats ─────────────────────────────────────────────────────────
         html += section("Fun Stats");
 
-        // Most common actual first TD scorers
-        var scorerCount = {};
-        rows.forEach(function(r) {
-          if (r.firstScorer) scorerCount[r.firstScorer] = (scorerCount[r.firstScorer] || 0) + 1;
-        });
-        var topScorers = Object.entries(scorerCount).sort(function(a,b){return b[1]-a[1];}).map(function(e){return {name:e[0],count:e[1]+"x"};});
-        html += podium("Most Frequent First TD Scorer", topScorers);
-
         // Most picked players per person
         ["Maria", "Danielle"].forEach(function(name) {
           var pickCount = {};
@@ -1795,6 +1759,12 @@
               '</div></div>';
           }
         });
+
+        // ── Fun Stats from Legacy ─────────────────────────────────────────────
+        function legFun(label, val, cls) {
+          var color = cls === 'maria' ? '#DC2626' : cls === 'danielle' ? '#1D4ED8' : cls === 'red' ? '#DC2626' : '#1C1C1E';
+          return '<div style="display:flex;justify-content:space-between;padding:11px 0;border-bottom:0.5px solid #F3F4F6;font-size:13px;gap:16px"><span style="color:#6B7280">' + label + '</span><span style="font-weight:600;text-align:right;color:' + color + '">' + val + '</span></div>';
+        }
 
         // ── Pick of the Season ───────────────────────────────────────────────
         html += section("Pick of the Season");
@@ -1834,6 +1804,53 @@
           var yrBets = scored.filter(function(r){return r.year===yr;});
           html += pickCard(getBestPick(yrBets), yr + " Season");
         });
+
+        // ── Best Stretch & Biggest Wins (from all-time data) ───────────────────
+        html += section("Best Stretches & Biggest Wins");
+        html += '<div style="margin-bottom:16px">';
+
+        // Best 10-game stretch by money
+        function bestStretchAll(betsArr) {
+          var best = { dollars: -Infinity, label: 'No profitable stretch yet' };
+          for (var i = 0; i < betsArr.length; i++) {
+            for (var j = i+1; j <= Math.min(i+10, betsArr.length); j++) {
+              var w = betsArr.slice(i,j);
+              var wins = w.filter(function(b){return b.correct==="Yes";}).length;
+              var u = w.reduce(function(a,b){return a+b.netUnits;},0);
+              var d = w.reduce(function(a,b){return a+b.netDollars;},0);
+              if (d > best.dollars) best = { wins:wins, total:w.length, units:u, dollars:d,
+                label: '$'+d.toFixed(2)+' (+'+u.toFixed(1)+'u) — '+wins+'/'+w.length+' correct' };
+            }
+          }
+          return best;
+        }
+
+        var mStretchAll = bestStretchAll(rows.filter(function(r){return r.picker==="Maria" && (r.correct==="Yes"||r.correct==="No");}));
+        var dStretchAll = bestStretchAll(rows.filter(function(r){return r.picker==="Danielle" && (r.correct==="Yes"||r.correct==="No");}));
+        if (mStretchAll.dollars > -Infinity) html += legFun("Maria's best 10-game stretch", mStretchAll.label, 'maria');
+        if (dStretchAll.dollars > -Infinity) html += legFun("Danielle's best 10-game stretch", dStretchAll.label, 'danielle');
+
+        // Biggest wins all-time
+        var mBigWin = null, dBigWin = null;
+        rows.filter(function(r){return r.correct==="Yes";}).forEach(function(r) {
+          if (r.picker==="Maria" && (!mBigWin || r.netUnits > mBigWin.netUnits)) mBigWin = r;
+          if (r.picker==="Danielle" && (!dBigWin || r.netUnits > dBigWin.netUnits)) dBigWin = r;
+        });
+        if (mBigWin) html += legFun("Maria's biggest win ever", '+'+mBigWin.netUnits+'u ($'+mBigWin.netDollars+') — Wk '+mBigWin.week+' '+mBigWin.year, 'maria');
+        if (dBigWin) html += legFun("Danielle's biggest win ever", '+'+dBigWin.netUnits+'u ($'+dBigWin.netDollars+') — Wk '+dBigWin.week+' '+dBigWin.year, 'danielle');
+
+        // Most scored first TD (correctly guessed)
+        var csc = {};
+        rows.forEach(function(r){ if (r.firstScorer && r.correct==="Yes") csc[r.firstScorer]=(csc[r.firstScorer]||0)+1; });
+        var cscArr = Object.keys(csc).map(function(n){return {name:n,count:csc[n]};}).sort(function(a,b){return b.count-a.count;});
+        if (cscArr.length > 0) {
+          var topC = cscArr[0].count;
+          var tied = cscArr.filter(function(s){return s.count===topC;});
+          var cVal = topC<=1 ? 'Tied at 1 — '+tied.map(function(s){return s.name;}).join(', ') : tied.map(function(s){return s.name;}).join(', ')+' ('+topC+'x)';
+          html += legFun('Most scored first TD (correctly guessed)', cVal, '');
+        }
+
+        html += '</div>';
 
         // ── Season Comparison ────────────────────────────────────────────────
         html += section("2025 vs 2026 Season Comparison");

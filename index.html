@@ -1584,11 +1584,21 @@
 
         // ── Performance: Win rate by week ─────────────────────────────────────
         html += section("Win Rate by Week");
+        // Group by game (year+week+game), count game as win if ANY pick was correct
         var weekData = {};
+        var gamesSeen = {};
         scored.forEach(function(r) {
-          if (!weekData[r.week]) weekData[r.week] = { wins: 0, total: 0 };
-          weekData[r.week].total++;
-          if (r.correct === "Yes") weekData[r.week].wins++;
+          var gameKey = r.year + "_" + r.week + "_" + r.homeTeam + "_" + r.awayTeam;
+          if (!weekData[r.week]) weekData[r.week] = { wins: 0, total: 0, games: {} };
+          if (!weekData[r.week].games[gameKey]) {
+            weekData[r.week].games[gameKey] = { win: false };
+            weekData[r.week].total++;
+          }
+          if (r.correct === "Yes") weekData[r.week].games[gameKey].win = true;
+        });
+        // Count wins per week
+        Object.keys(weekData).forEach(function(w) {
+          weekData[w].wins = Object.values(weekData[w].games).filter(function(g){return g.win;}).length;
         });
         var weeks = Object.keys(weekData).map(Number).sort(function(a,b){return a-b;});
         var bestWeek = null, worstWeek = null;

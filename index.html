@@ -786,10 +786,33 @@
           const label = streak.type === 'win' ? 'win streak' : 'loss streak';
           return `<span style="font-size:12px;font-weight:500;color:${color};margin-left:8px">${emoji} ${streak.count} ${label}</span>`;
         }
+        // Calculate weeks won
+        const weekWins = {};
+        for (const r of rows) {
+          const correct = (r[12] || '').trim();
+          const picker = (r[3] || '').trim();
+          const wk = r[1] + '_' + r[0];
+          if (!weekWins[wk]) weekWins[wk] = { Maria: 0, Danielle: 0, total: 0 };
+          if (correct === 'Yes') { weekWins[wk][picker] = (weekWins[wk][picker] || 0) + 1; }
+          if ((correct === 'Yes' || correct === 'No') && (r[6] || '').trim()) weekWins[wk].total++;
+        }
+        let mariaWeeksWon = 0, danielleWeeksWon = 0, tiedWeeks = 0;
+        Object.values(weekWins).forEach(function(w) {
+          if (w.total === 0) return;
+          if (w.Maria > w.Danielle) mariaWeeksWon++;
+          else if (w.Danielle > w.Maria) danielleWeeksWon++;
+          else tiedWeeks++;
+        });
+
         statsEl.innerHTML = `
           <div style="display:flex;justify-content:center;gap:32px;margin-bottom:20px;flex-wrap:wrap">
             <div style="font-size:13px;color:#DC2626;font-weight:500">Maria ${mariaStreak.count > 0 ? (mariaStreak.type === 'win' ? '🔥' : '❄️') + ' ' + mariaStreak.count + ' ' + mariaStreak.type + ' streak' : ''}</div>
             <div style="font-size:13px;color:#1D4ED8;font-weight:500">Danielle ${danielleStreak.count > 0 ? (danielleStreak.type === 'win' ? '🔥' : '❄️') + ' ' + danielleStreak.count + ' ' + danielleStreak.type + ' streak' : ''}</div>
+          </div>
+          <div style="display:flex;justify-content:center;gap:24px;margin-bottom:20px;background:#F9FAFB;border-radius:8px;padding:12px;flex-wrap:wrap">
+            <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:#DC2626">${mariaWeeksWon}</div><div style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em">Maria weeks won</div></div>
+            <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:#6B7280">${tiedWeeks}</div><div style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em">Tied</div></div>
+            <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:#1D4ED8">${danielleWeeksWon}</div><div style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em">Danielle weeks won</div></div>
           </div>
           ${statBlock('Correct Guesses', mCorrect, dCorrect, `${mCorrect} / ${mTotal}`, `${dCorrect} / ${dTotal}`)}
           <hr class="divider">
@@ -1721,6 +1744,46 @@
         // ── Fun Stats ─────────────────────────────────────────────────────────
         html += section("Fun Stats");
 
+        // ── Week-by-Week Results Timeline ────────────────────────────────────
+        html += section("Week-by-Week Results");
+        var wkResults = {};
+        rows.filter(function(r){
+          var correct = (r.correct||'').trim();
+          return (r.homePick||r.awayPick) && (correct==='Yes'||correct==='No');
+        }).forEach(function(r) {
+          var key = r.year + '_W' + r.week;
+          if (!wkResults[key]) wkResults[key] = { year:r.year, week:r.week, Maria:{w:0,l:0}, Danielle:{w:0,l:0} };
+          var picker = r.picker;
+          if (picker==='Maria'||picker==='Danielle') {
+            if (r.correct==='Yes') wkResults[key][picker].w++;
+            else wkResults[key][picker].l++;
+          }
+        });
+        var wkKeys = Object.keys(wkResults).sort(function(a,b){
+          var ay=parseInt(wkResults[a].year), by2=parseInt(wkResults[b].year);
+          if (ay!==by2) return by2-ay;
+          return wkResults[b].week - wkResults[a].week;
+        });
+        html += '<div style="margin-bottom:16px">';
+        wkKeys.forEach(function(key) {
+          var wk = wkResults[key];
+          var mW = wk.Maria.w, mL = wk.Maria.l;
+          var dW = wk.Danielle.w, dL = wk.Danielle.l;
+          var mWon = mW > dW, dWon = dW > mW, tied = mW === dW;
+          var winnerColor = mWon ? '#DC2626' : dWon ? '#1D4ED8' : '#6B7280';
+          var winnerLabel = mWon ? 'Maria' : dWon ? 'Danielle' : 'Tied';
+          html += '<div style="display:grid;grid-template-columns:80px 1fr 80px;gap:8px;align-items:center;padding:8px 0;border-bottom:0.5px solid #F3F4F6">' +
+            '<span style="font-size:11px;color:#9CA3AF">'+wk.year+' Wk '+wk.week+'</span>' +
+            '<div style="display:flex;align-items:center;gap:6px">' +
+              '<span style="font-size:12px;color:#DC2626;font-weight:600">M: '+mW+'/'+( mW+mL)+'</span>' +
+              '<span style="color:#D1D5DB;font-size:10px">·</span>' +
+              '<span style="font-size:12px;color:#1D4ED8;font-weight:600">D: '+dW+'/'+(dW+dL)+'</span>' +
+            '</div>' +
+            '<span style="font-size:12px;font-weight:700;color:'+winnerColor+';text-align:right">'+winnerLabel+'</span>' +
+          '</div>';
+        });
+        html += '</div>';
+
         // Most picked players per person
         ["Maria", "Danielle"].forEach(function(name) {
           var pickCount = {};
@@ -1848,6 +1911,51 @@
         }
 
         html += '</div>';
+
+        // ── NFL Team Heat Map ────────────────────────────────────────────────
+        html += section("NFL Team Heat Map");
+        html += '<div style="font-size:12px;color:#6B7280;margin-bottom:12px">How often each team appears in picks vs how often they actually produce a first TD scorer.</div>';
+
+        var teamPicks = {}, teamScored = {};
+        rows.forEach(function(r) {
+          if (r.homePick) { teamPicks[r.homeTeam] = (teamPicks[r.homeTeam]||0)+1; }
+          if (r.awayPick) { teamPicks[r.awayTeam] = (teamPicks[r.awayTeam]||0)+1; }
+          if (r.firstScorer && r.homeTeam) {
+            // firstScorer is from home or away — use whichSide if available, else mark both
+            if (r.correct === 'Yes') {
+              var scorerTeam = r.homePick && r.firstScorer === r.homePick ? r.homeTeam :
+                               r.awayPick && r.firstScorer === r.awayPick ? r.awayTeam : null;
+              if (scorerTeam) teamScored[scorerTeam] = (teamScored[scorerTeam]||0)+1;
+            }
+          }
+        });
+
+        var allTeams = Object.keys(teamPicks).filter(function(t){ return t && t !== 'undefined'; });
+        allTeams.sort(function(a,b){ return (teamPicks[b]||0) - (teamPicks[a]||0); });
+
+        html += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">';
+        html += '<tr style="border-bottom:1.5px solid #1C1C1E"><th style="text-align:left;padding:6px 8px;color:#9CA3AF;font-size:10px;text-transform:uppercase;letter-spacing:0.05em">Team</th><th style="text-align:center;padding:6px 8px;color:#9CA3AF;font-size:10px;text-transform:uppercase;letter-spacing:0.05em">Times Picked</th><th style="text-align:center;padding:6px 8px;color:#9CA3AF;font-size:10px;text-transform:uppercase;letter-spacing:0.05em">Times Scored</th><th style="text-align:center;padding:6px 8px;color:#9CA3AF;font-size:10px;text-transform:uppercase;letter-spacing:0.05em">Score Rate</th></tr>';
+
+        allTeams.forEach(function(team, i) {
+          var picks = teamPicks[team] || 0;
+          var scored2 = teamScored[team] || 0;
+          var rate = picks > 0 ? scored2 / picks : 0;
+          var tc = TEAM_COLORS[resolveTeam(team)];
+          var bgColor = tc ? blendWithWhite(tc.primary, 0.08) : (i%2===0 ? '#F9FAFB' : '#ffffff');
+          var rateColor = rate >= 0.3 ? '#065F46' : rate >= 0.15 ? '#B45309' : '#DC2626';
+          var barWidth = Math.round(rate * 100);
+          html += '<tr style="background:' + bgColor + ';border-bottom:0.5px solid #F3F4F6">' +
+            '<td style="padding:7px 8px;font-weight:500">' + team + '</td>' +
+            '<td style="text-align:center;padding:7px 8px">' + picks + '</td>' +
+            '<td style="text-align:center;padding:7px 8px">' + scored2 + '</td>' +
+            '<td style="padding:7px 8px"><div style="display:flex;align-items:center;gap:6px">' +
+              '<div style="flex:1;background:#E5E7EB;border-radius:3px;height:8px"><div style="width:' + barWidth + '%;background:' + rateColor + ';height:8px;border-radius:3px"></div></div>' +
+              '<span style="font-size:11px;color:' + rateColor + ';font-weight:600;min-width:30px">' + Math.round(rate*100) + '%</span>' +
+            '</div></td>' +
+          '</tr>';
+        });
+        html += '</table></div>';
+        html += '<div style="font-size:11px;color:#9CA3AF;margin-top:8px">Score rate = times a correctly-guessed player from that team scored ÷ times any player from that team was picked.</div>';
 
         // ── Season Comparison ────────────────────────────────────────────────
         html += section("2025 vs 2026 Season Comparison");

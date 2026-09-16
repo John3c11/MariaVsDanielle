@@ -1800,26 +1800,31 @@
         html += section("Pick of the Season");
         var bestPick = null;
         scored.filter(function(r){return r.correct==="Yes";}).forEach(function(r) {
-          var odds = r.homePick && r.firstScorer === r.homePick ? Math.abs(r.homeOdds) :
+          var rawOdds = r.homePick && r.firstScorer === r.homePick ? Math.abs(r.homeOdds) :
                      r.awayPick && r.firstScorer === r.awayPick ? Math.abs(r.awayOdds) :
                      Math.max(Math.abs(r.homeOdds), Math.abs(r.awayOdds));
+          // Normalize: if odds < 100 assume they're stored as multiplier (e.g. 25 = +2500)
+          var odds = rawOdds < 100 ? rawOdds * 100 : rawOdds;
           if (!bestPick || odds > bestPick.odds) {
             bestPick = {
               picker: r.picker, player: r.firstScorer || (r.homePick || r.awayPick),
-              odds: odds, game: r.game, week: r.week, year: r.year
+              odds: odds, game: r.game, homeTeam: r.homeTeam, awayTeam: r.awayTeam,
+              week: r.week, year: r.year
             };
           }
         });
         if (bestPick) {
           var pColor = bestPick.picker === "Maria" ? "#DC2626" : "#1D4ED8";
+          var gameDisplay = bestPick.game && bestPick.game !== 'undefined vs undefined' ? bestPick.game : bestPick.homeTeam && bestPick.awayTeam ? bestPick.homeTeam + ' vs ' + bestPick.awayTeam : 'Game';
+          var oddsDisplay = bestPick.odds >= 100 ? '+' + Math.round(bestPick.odds) : '+' + Math.round(bestPick.odds * 100);
           html += '<div style="background:#F9FAFB;border-radius:10px;padding:18px 20px;margin-bottom:12px">' +
             '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">' +
               '<div>' +
                 '<div style="font-size:22px;font-weight:700;color:#1C1C1E">' + bestPick.player + '</div>' +
-                '<div style="font-size:13px;color:#6B7280;margin-top:2px">' + bestPick.game + ' · Wk ' + bestPick.week + ' ' + bestPick.year + '</div>' +
+                '<div style="font-size:13px;color:#6B7280;margin-top:2px">' + gameDisplay + ' · Wk ' + bestPick.week + ' ' + bestPick.year + '</div>' +
               '</div>' +
               '<div style="text-align:right">' +
-                '<div style="font-size:20px;font-weight:700;color:#065F46">+' + Math.round(bestPick.odds * 100) + '</div>' +
+                '<div style="font-size:20px;font-weight:700;color:#065F46">' + oddsDisplay + '</div>' +
                 '<div style="font-size:12px;font-weight:600;color:' + pColor + ';margin-top:2px">' + bestPick.picker + '</div>' +
               '</div>' +
             '</div>' +

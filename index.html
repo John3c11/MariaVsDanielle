@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏈</text></svg>">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Maria vs Danielle</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -534,6 +535,7 @@
     .filter-btn.danielle-btn.active { background: #1D4ED8; border-color: #1D4ED8; color: white; }
     .filter-btn.win-btn.active { background: #065F46; border-color: #065F46; color: white; }
     .filter-btn.loss-btn.active { background: #991B1B; border-color: #991B1B; color: white; }
+  <canvas id="confetti-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;display:none"></canvas>
   </style>
 </head>
 <body>
@@ -761,6 +763,9 @@
         // Leader banner
         const banner = document.getElementById('leader-banner');
         banner.style.display = 'block';
+        if ((mariaStreak.type === 'win' && mariaStreak.count >= 2) || (danielleStreak.type === 'win' && danielleStreak.count >= 2)) {
+          setTimeout(fireConfetti, 500);
+        }
         if (mariaUnits > danielleUnits) {
           banner.innerHTML = `<span>Maria</span> is leading by ${(mariaUnits - danielleUnits).toFixed(1)} units`;
         } else if (danielleUnits > mariaUnits) {
@@ -1386,6 +1391,24 @@
           var scorerVal = topCount <= 1 ? 'No one has scored more than 1 first TD' : scorers.filter(function(s){return s.count===topCount;}).map(function(s){return s.name;}).join(', ') + ' (' + topCount + 'x)';
           html += legacyFunRow('Most frequent first TD scorer', scorerVal, '');
         }
+        // Most scored first TD that was correctly guessed
+        var correctScorerCounts = {};
+        allBets.forEach(function(b) {
+          if (b.firstScorer && b.correct === 'Yes') {
+            correctScorerCounts[b.firstScorer] = (correctScorerCounts[b.firstScorer] || 0) + 1;
+          }
+        });
+        var correctScorers = Object.keys(correctScorerCounts).map(function(name) {
+          return { name: name, count: correctScorerCounts[name] };
+        }).sort(function(a, b) { return b.count - a.count; });
+        if (correctScorers.length > 0) {
+          var topCorrect = correctScorers[0].count;
+          var tiedScorers = correctScorers.filter(function(s) { return s.count === topCorrect; });
+          var correctVal = topCorrect <= 1
+            ? 'Tied at 1 — ' + tiedScorers.map(function(s) { return s.name; }).join(', ')
+            : tiedScorers.map(function(s) { return s.name; }).join(', ') + ' (' + topCorrect + 'x)';
+          html += legacyFunRow('Most scored first TD (correctly guessed)', correctVal, '');
+        }
         html += '</div>';
 
         document.getElementById('legacy-content').innerHTML = html;
@@ -1773,6 +1796,38 @@
           }
         });
 
+        // ── Pick of the Season ───────────────────────────────────────────────
+        html += section("Pick of the Season");
+        var bestPick = null;
+        scored.filter(function(r){return r.correct==="Yes";}).forEach(function(r) {
+          var odds = r.homePick && r.firstScorer === r.homePick ? Math.abs(r.homeOdds) :
+                     r.awayPick && r.firstScorer === r.awayPick ? Math.abs(r.awayOdds) :
+                     Math.max(Math.abs(r.homeOdds), Math.abs(r.awayOdds));
+          if (!bestPick || odds > bestPick.odds) {
+            bestPick = {
+              picker: r.picker, player: r.firstScorer || (r.homePick || r.awayPick),
+              odds: odds, game: r.game, week: r.week, year: r.year
+            };
+          }
+        });
+        if (bestPick) {
+          var pColor = bestPick.picker === "Maria" ? "#DC2626" : "#1D4ED8";
+          html += '<div style="background:#F9FAFB;border-radius:10px;padding:18px 20px;margin-bottom:12px">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">' +
+              '<div>' +
+                '<div style="font-size:22px;font-weight:700;color:#1C1C1E">' + bestPick.player + '</div>' +
+                '<div style="font-size:13px;color:#6B7280;margin-top:2px">' + bestPick.game + ' · Wk ' + bestPick.week + ' ' + bestPick.year + '</div>' +
+              '</div>' +
+              '<div style="text-align:right">' +
+                '<div style="font-size:20px;font-weight:700;color:#065F46">+' + Math.round(bestPick.odds * 100) + '</div>' +
+                '<div style="font-size:12px;font-weight:600;color:' + pColor + ';margin-top:2px">' + bestPick.picker + '</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        } else {
+          html += '<div style="color:#9CA3AF;font-size:13px">No winning picks yet.</div>';
+        }
+
         // ── Season Comparison ────────────────────────────────────────────────
         html += section("2025 vs 2026 Season Comparison");
         var compData = {};
@@ -1814,6 +1869,48 @@
         console.error(e);
         document.getElementById("analytics-content").innerHTML = '<div class="loading">Error loading analytics.</div>';
       }
+    }
+
+    // ── Confetti ──────────────────────────────────────────────────────────────
+    function fireConfetti() {
+      var canvas = document.getElementById('confetti-canvas');
+      canvas.style.display = 'block';
+      var ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      var pieces = [];
+      var colors = ['#DC2626','#1D4ED8','#065F46','#B8860B','#7C3AED','#EA580C'];
+      for (var i = 0; i < 150; i++) {
+        pieces.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * -canvas.height,
+          w: Math.random() * 10 + 5,
+          h: Math.random() * 5 + 3,
+          color: colors[Math.floor(Math.random()*colors.length)],
+          speed: Math.random() * 3 + 2,
+          angle: Math.random() * 360,
+          spin: Math.random() * 5 - 2.5,
+        });
+      }
+      var frame = 0;
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(function(p) {
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.angle * Math.PI / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+          ctx.restore();
+          p.y += p.speed;
+          p.angle += p.spin;
+          p.x += Math.sin(p.angle * 0.05) * 1.5;
+        });
+        frame++;
+        if (frame < 180) requestAnimationFrame(draw);
+        else canvas.style.display = 'none';
+      }
+      draw();
     }
 
     var MONEY_LOADED = false;

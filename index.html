@@ -758,6 +758,43 @@
         const mariaStreak = getCurrentStreak('Maria');
         const danielleStreak = getCurrentStreak('Danielle');
 
+        // Combined streak: look at each game (by week+game index), check if BOTH got it right or both wrong
+        function getCombinedStreak() {
+          // Group rows by game key (year_week_game), collect both pickers' results
+          const gameMap = {};
+          rows.forEach(r => {
+            const correct = (r[12] || '').trim();
+            const picker = (r[3] || '').trim();
+            const homePick = (r[6] || '').trim();
+            const wasOffered = (r[14] || '').trim();
+            const netUnits = parseFloat(r[15]) || 0;
+            const notOffered = wasOffered === 'No' && netUnits === 0 && (r[11] || '').trim() !== '';
+            if (!homePick || !(correct === 'Yes' || correct === 'No') || notOffered) return;
+            const gameKey = (r[0] || '') + '_' + (r[1] || '') + '_' + (r[4] || '') + '_' + (r[5] || '');
+            if (!gameMap[gameKey]) gameMap[gameKey] = { order: Object.keys(gameMap).length };
+            gameMap[gameKey][picker] = correct;
+          });
+          // Build ordered list of games where both picked
+          const both = Object.values(gameMap)
+            .filter(g => g.Maria && g.Danielle)
+            .sort((a, b) => a.order - b.order);
+          if (!both.length) return { count: 0, type: null };
+          const last = both[both.length - 1];
+          const lastType = (last.Maria === 'Yes' && last.Danielle === 'Yes') ? 'win'
+                         : (last.Maria === 'No' && last.Danielle === 'No') ? 'loss' : null;
+          if (!lastType) return { count: 0, type: null };
+          let count = 0;
+          for (let i = both.length - 1; i >= 0; i--) {
+            const g = both[i];
+            const t = (g.Maria === 'Yes' && g.Danielle === 'Yes') ? 'win'
+                    : (g.Maria === 'No' && g.Danielle === 'No') ? 'loss' : null;
+            if (t === lastType) count++;
+            else break;
+          }
+          return { count, type: lastType };
+        }
+        const combinedStreak = getCombinedStreak();
+
         // Calculate units/dollars only from scored games
         let mariaUnits = 0, danielleUnits = 0, mariaDollars = 0, danielleDollars = 0;
         for (const r of rows) {
@@ -797,29 +834,33 @@
           const label = streak.type === 'win' ? 'win streak' : 'loss streak';
           return `<span style="font-size:12px;font-weight:500;color:${color};margin-left:8px">${emoji} ${streak.count} ${label}</span>`;
         }
-        // Calculate weeks won
+        // Calculate weeks won — only count weeks where every game with picks has been scored
         const weekWins = {};
         for (const r of rows) {
           const correct = (r[12] || '').trim();
           const picker = (r[3] || '').trim();
+          const homePick = (r[6] || '').trim();
           const wk = r[1] + '_' + r[0];
-          if (!weekWins[wk]) weekWins[wk] = { Maria: 0, Danielle: 0, total: 0 };
+          if (!weekWins[wk]) weekWins[wk] = { Maria: 0, Danielle: 0, total: 0, incomplete: false };
+          if (homePick && !correct) weekWins[wk].incomplete = true; // unscored pick = week still in progress
           if (correct === 'Yes') { weekWins[wk][picker] = (weekWins[wk][picker] || 0) + 1; }
-          if ((correct === 'Yes' || correct === 'No') && (r[6] || '').trim()) weekWins[wk].total++;
+          if ((correct === 'Yes' || correct === 'No') && homePick) weekWins[wk].total++;
         }
         let mariaWeeksWon = 0, danielleWeeksWon = 0, tiedWeeks = 0;
         Object.values(weekWins).forEach(function(w) {
-          if (w.total === 0) return;
+          if (w.total === 0 || w.incomplete) return; // skip empty or in-progress weeks
           if (w.Maria > w.Danielle) mariaWeeksWon++;
           else if (w.Danielle > w.Maria) danielleWeeksWon++;
           else tiedWeeks++;
         });
 
         statsEl.innerHTML = `
-          <div style="display:flex;justify-content:center;gap:32px;margin-bottom:20px;flex-wrap:wrap">
+          <div style="display:flex;justify-content:center;gap:32px;margin-bottom:12px;flex-wrap:wrap">
             <div style="font-size:13px;color:#DC2626;font-weight:500">Maria ${mariaStreak.count > 0 ? (mariaStreak.type === 'win' ? '🔥' : '❄️') + ' ' + mariaStreak.count + ' ' + mariaStreak.type + ' streak' : ''}</div>
             <div style="font-size:13px;color:#1D4ED8;font-weight:500">Danielle ${danielleStreak.count > 0 ? (danielleStreak.type === 'win' ? '🔥' : '❄️') + ' ' + danielleStreak.count + ' ' + danielleStreak.type + ' streak' : ''}</div>
           </div>
+          ${combinedStreak.count > 0 ? '<div style="text-align:center;font-size:12px;color:#6B7280;margin-bottom:16px">' + (combinedStreak.type === 'win' ? '🔥' : '❄️') + ' Both on a <strong>' + combinedStreak.count + '-game ' + combinedStreak.type + ' streak</strong> together</div>' : ''}
+
           <div style="display:flex;justify-content:center;gap:24px;margin-bottom:20px;background:#F9FAFB;border-radius:8px;padding:12px;flex-wrap:wrap">
             <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:#DC2626">${mariaWeeksWon}</div><div style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em">Maria weeks won</div></div>
             <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:#6B7280">${tiedWeeks}</div><div style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em">Tied</div></div>
@@ -2003,6 +2044,61 @@
           html += '<div style="display:grid;grid-template-columns:1fr 80px 80px;gap:8px;padding:8px 0;border-bottom:0.5px solid #F3F4F6;font-size:13px"><span style="color:#6B7280">'+row.label+'</span><span style="text-align:center;font-weight:600;color:#065F46">'+v25+'</span><span style="text-align:center;font-weight:600;color:#1D4ED8">'+v26+'</span></div>';
         });
         html += '</div>';
+
+        // ── Game Type Breakdown ──────────────────────────────────────────────
+        html += section("Correct Picks by Game Type");
+        html += '<div style="font-size:12px;color:#6B7280;margin-bottom:12px">How many picks each person got right, broken down by game slot. Fraction = correct out of total scored games of that type.</div>';
+
+        const GAME_TYPE_ORDER = ['TNF','FNF','SNF','MNF','International','Thanksgiving','Black Friday','Saturday','Christmas','WNF'];
+        const gameTypeStats = {};
+        for (const r of rows) {
+          const slot = (r[2] || '').trim();
+          if (!slot) continue;
+          const picker = (r[3] || '').trim();
+          const correct = (r[12] || '').trim();
+          const homePick = (r[6] || '').trim();
+          if (!homePick || !(correct === 'Yes' || correct === 'No')) continue;
+          if (!gameTypeStats[slot]) gameTypeStats[slot] = { Maria: { correct: 0, total: 0 }, Danielle: { correct: 0, total: 0 } };
+          if (picker === 'Maria' || picker === 'Danielle') {
+            gameTypeStats[slot][picker].total++;
+            if (correct === 'Yes') gameTypeStats[slot][picker].correct++;
+          }
+        }
+
+        // Sort by defined order, then alphabetically for unknowns
+        const slotKeys = Object.keys(gameTypeStats).sort((a, b) => {
+          const ai = GAME_TYPE_ORDER.indexOf(a), bi = GAME_TYPE_ORDER.indexOf(b);
+          if (ai === -1 && bi === -1) return a.localeCompare(b);
+          if (ai === -1) return 1;
+          if (bi === -1) return -1;
+          return ai - bi;
+        });
+
+        if (slotKeys.length === 0) {
+          html += '<div style="color:#9CA3AF;font-size:13px;text-align:center;padding:16px">No scored games yet.</div>';
+        } else {
+          html += '<div style="background:#F9FAFB;border-radius:10px;padding:8px 12px">';
+          html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:8px 0 4px;border-bottom:1px solid #E5E7EB">';
+          html += '<span style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Slot</span>';
+          html += '<span style="font-size:11px;color:#DC2626;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Maria</span>';
+          html += '<span style="font-size:11px;color:#1D4ED8;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Danielle</span>';
+          html += '</div>';
+          slotKeys.forEach(function(slot, i) {
+            const ms = gameTypeStats[slot].Maria;
+            const ds = gameTypeStats[slot].Danielle;
+            const mFrac = ms.total > 0 ? ms.correct + '/' + ms.total : '—';
+            const dFrac = ds.total > 0 ? ds.correct + '/' + ds.total : '—';
+            const mPct = ms.total > 0 ? ' <span style="color:#9CA3AF;font-size:11px">(' + Math.round(ms.correct/ms.total*100) + '%)</span>' : '';
+            const dPct = ds.total > 0 ? ' <span style="color:#9CA3AF;font-size:11px">(' + Math.round(ds.correct/ds.total*100) + '%)</span>' : '';
+            const border = i < slotKeys.length - 1 ? 'border-bottom:0.5px solid #F3F4F6' : '';
+            html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 0;' + border + ';align-items:center">';
+            html += '<span style="font-size:13px;font-weight:600;color:#374151">' + slot + '</span>';
+            html += '<span style="text-align:center;font-size:14px;font-weight:700;color:#DC2626">' + mFrac + mPct + '</span>';
+            html += '<span style="text-align:center;font-size:14px;font-weight:700;color:#1D4ED8">' + dFrac + dPct + '</span>';
+            html += '</div>';
+          });
+          html += '</div>';
+        }
 
         document.getElementById("analytics-content").innerHTML = html;
       } catch(e) {

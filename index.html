@@ -1632,6 +1632,7 @@
               awayPick: (r[7] || "").trim(),
               homeOdds: parseFloat(r[8]) || 0,
               awayOdds: parseFloat(r[9]) || 0,
+              slot: (r[2] || "").trim(),
               firstScorer: (r[11] || "").trim(),
               correct: (r[12] || "").trim(),
               wasOffered: (r[14] || "").trim(),
@@ -2052,11 +2053,11 @@
         const GAME_TYPE_ORDER = ['TNF','FNF','SNF','MNF','International','Thanksgiving','Black Friday','Saturday','Christmas','WNF'];
         const gameTypeStats = {};
         for (const r of rows) {
-          const slot = (r[2] || '').trim();
+          const slot = r.slot || '';
           if (!slot) continue;
-          const picker = (r[3] || '').trim();
-          const correct = (r[12] || '').trim();
-          const homePick = (r[6] || '').trim();
+          const picker = r.picker || '';
+          const correct = r.correct || '';
+          const homePick = r.homePick || '';
           if (!homePick || !(correct === 'Yes' || correct === 'No')) continue;
           if (!gameTypeStats[slot]) gameTypeStats[slot] = { Maria: { correct: 0, total: 0 }, Danielle: { correct: 0, total: 0 } };
           if (picker === 'Maria' || picker === 'Danielle') {

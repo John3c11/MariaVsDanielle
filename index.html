@@ -848,12 +848,15 @@
           if ((correct === 'Yes' || correct === 'No') && homePick) weekWins[wk].total++;
         }
         let mariaWeeksWon = 0, danielleWeeksWon = 0, tiedWeeks = 0;
-        Object.values(weekWins).forEach(function(w) {
+        const weekDebug = [];
+        Object.entries(weekWins).forEach(function([wk, w]) {
+          weekDebug.push(wk + ': M=' + w.Maria + ' D=' + w.Danielle + ' total=' + w.total + ' incomplete=' + w.incomplete);
           if (w.total === 0 || w.incomplete) return; // skip empty or in-progress weeks
           if (w.Maria > w.Danielle) mariaWeeksWon++;
           else if (w.Danielle > w.Maria) danielleWeeksWon++;
           else tiedWeeks++;
         });
+        console.log('WEEKS DEBUG:', weekDebug.join(' | '));
 
         statsEl.innerHTML = `
           <div style="display:flex;justify-content:center;gap:32px;margin-bottom:12px;flex-wrap:wrap">

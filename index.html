@@ -1,3 +1,4 @@
+<!-- v26 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1511,8 +1512,8 @@
           fetchSheet('QBs', 'A1:A50'),
         ]);
 
-        // Parse valid QBs
-        const validQBs = new Set(qbRows.slice(3).map(r => (r[0] || '').trim()).filter(Boolean));
+        // Parse valid QBs — A3 onward (index 2+)
+        const validQBs = new Set(qbRows.slice(2).map(r => (r[0] || '').trim()).filter(Boolean));
 
         // Parse roster header (team names in row 1, cols B onward)
         const header = rosterRows[0];
@@ -1573,15 +1574,16 @@
               <div class="team-players-inner"><div class="player-list">`;
             for (const { pos, name } of td.players) {
               const isQB = pos === 'QB';
-              const nameClass = isQB && validQBs.has(name) ? 'qb-valid' : 'player-name-text';
-              const notOffered = isQB && !validQBs.has(name) ? ` <span style="color:#D1D5DB;font-size:11px">(not offered)</span>` : '';
+              // Skip QBs not in the offered list entirely
+              if (isQB && !validQBs.has(name)) continue;
+              const nameClass = isQB ? 'qb-valid' : 'player-name-text';
               const counts = pickCounts[name] || {};
               const pickNotes = [];
               if (counts['Maria']) pickNotes.push(`Maria x${counts['Maria']}`);
               if (counts['Danielle']) pickNotes.push(`Danielle x${counts['Danielle']}`);
               const pickNote = pickNotes.length ? `<span style="font-size:10px;color:#9CA3AF;margin-left:6px">${pickNotes.join(', ')}</span>` : '';
               const posColor = tc.primary;
-              html += `<div class="player-row"><span class="pos-label" style="color:${posColor}">${pos}</span><span class="${nameClass}">${name}${notOffered}${pickNote}</span></div>`;
+              html += `<div class="player-row"><span class="pos-label" style="color:${posColor}">${pos}</span><span class="${nameClass}">${name}${pickNote}</span></div>`;
             }
             for (const extra of td.extras) {
               const counts = pickCounts[extra] || {};

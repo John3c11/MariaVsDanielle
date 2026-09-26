@@ -835,28 +835,26 @@
           const label = streak.type === 'win' ? 'win streak' : 'loss streak';
           return `<span style="font-size:12px;font-weight:500;color:${color};margin-left:8px">${emoji} ${streak.count} ${label}</span>`;
         }
-        // Calculate weeks won — only count weeks where every game with picks has been scored
+        // Calculate weeks won — group by week number (col B = r[1]), only count complete weeks
         const weekWins = {};
         for (const r of rows) {
           const correct = (r[12] || '').trim();
           const picker = (r[3] || '').trim();
           const homePick = (r[6] || '').trim();
-          const wk = r[1] + '_' + r[0];
+          const wk = (r[1] || '').trim(); // week number is col B
+          if (!wk) continue;
           if (!weekWins[wk]) weekWins[wk] = { Maria: 0, Danielle: 0, total: 0, incomplete: false };
-          if (homePick && !correct) weekWins[wk].incomplete = true; // unscored pick = week still in progress
+          if (homePick && !correct) weekWins[wk].incomplete = true;
           if (correct === 'Yes') { weekWins[wk][picker] = (weekWins[wk][picker] || 0) + 1; }
           if ((correct === 'Yes' || correct === 'No') && homePick) weekWins[wk].total++;
         }
         let mariaWeeksWon = 0, danielleWeeksWon = 0, tiedWeeks = 0;
-        const weekDebug = [];
-        Object.entries(weekWins).forEach(function([wk, w]) {
-          weekDebug.push(wk + ': M=' + w.Maria + ' D=' + w.Danielle + ' total=' + w.total + ' incomplete=' + w.incomplete);
-          if (w.total === 0 || w.incomplete) return; // skip empty or in-progress weeks
+        Object.values(weekWins).forEach(function(w) {
+          if (w.total === 0 || w.incomplete) return;
           if (w.Maria > w.Danielle) mariaWeeksWon++;
           else if (w.Danielle > w.Maria) danielleWeeksWon++;
           else tiedWeeks++;
         });
-        console.log('WEEKS DEBUG:', weekDebug.join(' | '));
 
         statsEl.innerHTML = `
           <div style="display:flex;justify-content:center;gap:32px;margin-bottom:12px;flex-wrap:wrap">

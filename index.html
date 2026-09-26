@@ -759,9 +759,8 @@
         const mariaStreak = getCurrentStreak('Maria');
         const danielleStreak = getCurrentStreak('Danielle');
 
-        // Combined streak: look at each game (by week+game index), check if BOTH got it right or both wrong
+        // Combined streak: increases when at least one person wins, breaks only when BOTH lose
         function getCombinedStreak() {
-          // Group rows by game key (year_week_game), collect both pickers' results
           const gameMap = {};
           rows.forEach(r => {
             const correct = (r[12] || '').trim();
@@ -775,21 +774,17 @@
             if (!gameMap[gameKey]) gameMap[gameKey] = { order: Object.keys(gameMap).length };
             gameMap[gameKey][picker] = correct;
           });
-          // Build ordered list of games where both picked
           const both = Object.values(gameMap)
             .filter(g => g.Maria && g.Danielle)
             .sort((a, b) => a.order - b.order);
           if (!both.length) return { count: 0, type: null };
+          // A game is a "combined win" if at least one person got it right; "combined loss" only if both wrong
+          const gameType = g => (g.Maria === 'Yes' || g.Danielle === 'Yes') ? 'win' : 'loss';
           const last = both[both.length - 1];
-          const lastType = (last.Maria === 'Yes' && last.Danielle === 'Yes') ? 'win'
-                         : (last.Maria === 'No' && last.Danielle === 'No') ? 'loss' : null;
-          if (!lastType) return { count: 0, type: null };
+          const lastType = gameType(last);
           let count = 0;
           for (let i = both.length - 1; i >= 0; i--) {
-            const g = both[i];
-            const t = (g.Maria === 'Yes' && g.Danielle === 'Yes') ? 'win'
-                    : (g.Maria === 'No' && g.Danielle === 'No') ? 'loss' : null;
-            if (t === lastType) count++;
+            if (gameType(both[i]) === lastType) count++;
             else break;
           }
           return { count, type: lastType };
@@ -861,7 +856,7 @@
             <div style="font-size:13px;color:#DC2626;font-weight:500">Maria ${mariaStreak.count > 0 ? (mariaStreak.type === 'win' ? '🔥' : '❄️') + ' ' + mariaStreak.count + ' ' + mariaStreak.type + ' streak' : ''}</div>
             <div style="font-size:13px;color:#1D4ED8;font-weight:500">Danielle ${danielleStreak.count > 0 ? (danielleStreak.type === 'win' ? '🔥' : '❄️') + ' ' + danielleStreak.count + ' ' + danielleStreak.type + ' streak' : ''}</div>
           </div>
-          ${combinedStreak.count > 0 ? '<div style="text-align:center;font-size:12px;color:#6B7280;margin-bottom:16px">' + (combinedStreak.type === 'win' ? '🔥' : '❄️') + ' Both on a <strong>' + combinedStreak.count + '-game ' + combinedStreak.type + ' streak</strong> together</div>' : ''}
+          ${combinedStreak.count > 0 ? '<div style="text-align:center;font-size:12px;color:#6B7280;margin-bottom:16px">' + (combinedStreak.type === 'win' ? '🔥' : '❄️') + ' Combined <strong>' + combinedStreak.count + '-game ' + combinedStreak.type + ' streak</strong> (at least one right)</div>' : ''}
 
           <div style="display:flex;justify-content:center;gap:24px;margin-bottom:20px;background:#F9FAFB;border-radius:8px;padding:12px;flex-wrap:wrap">
             <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:#DC2626">${mariaWeeksWon}</div><div style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em">Maria weeks won</div></div>

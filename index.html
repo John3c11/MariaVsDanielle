@@ -1,4 +1,4 @@
-<!-- v30 -->
+<!-- v31 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -536,10 +536,10 @@
     .filter-btn.danielle-btn.active { background: #1D4ED8; border-color: #1D4ED8; color: white; }
     .filter-btn.win-btn.active { background: #065F46; border-color: #065F46; color: white; }
     .filter-btn.loss-btn.active { background: #991B1B; border-color: #991B1B; color: white; }
-  <canvas id="confetti-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;display:none"></canvas>
   </style>
 </head>
 <body>
+  <canvas id="confetti-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;display:none"></canvas>
   <div class="page-layout">
 
 <div class="kalshi-ad">
@@ -1740,6 +1740,7 @@
 
         // ── Streaks ───────────────────────────────────────────────────────────
         html += section("Streaks");
+        function isNotOffered(r) { return r.wasOffered === "No" && r.netUnits === 0 && r.firstScorer !== ""; }
         function streaks(personRows) {
           var maxWin = 0, maxLoss = 0, curWin = 0, curLoss = 0;
           personRows.forEach(function(r) {
@@ -1752,8 +1753,8 @@
           '</div>';
         }
         html += twoCol(
-          personCard("Maria", streaks(scored.filter(function(r){return r.picker==="Maria";}))),
-          personCard("Danielle", streaks(scored.filter(function(r){return r.picker==="Danielle";})))
+          personCard("Maria", streaks(scored.filter(function(r){return r.picker==="Maria" && !isNotOffered(r);}))),
+          personCard("Danielle", streaks(scored.filter(function(r){return r.picker==="Danielle" && !isNotOffered(r);})))
         );
 
         // ── Pick of the Season ───────────────────────────────────────────────
@@ -1806,8 +1807,6 @@
           // fallback: if can't determine which pick won, count overall correct
           if (home.wins === 0 && away.wins === 0) {
             personRows.forEach(function(r) {
-              if (r.homePick) { home.total++; }
-              if (r.awayPick) { away.total++; }
               if (r.correct === "Yes") { if (r.homePick) home.wins += 0.5; if (r.awayPick) away.wins += 0.5; }
             });
           }
@@ -2120,7 +2119,7 @@
         rows.forEach(function(r) {
           var picker = (r.picker || '').trim();
           if (picker !== 'Maria' && picker !== 'Danielle') return;
-          var gameKey = (r.game || r.homeTeam || '') + '_' + (r.week || '') + '_' + (r.homeTeam || '') + '_' + (r.awayTeam || '');
+          var gameKey = r.year + '_' + r.week + '_' + r.homeTeam + '_' + r.awayTeam;
           if (!gamePickMap[gameKey]) gamePickMap[gameKey] = {};
           gamePickMap[gameKey][picker] = { home: (r.homePick || '').trim(), away: (r.awayPick || '').trim() };
         });
@@ -2131,7 +2130,7 @@
           // Only count rows that have a scorer result (avoid duplicate game rows)
           var picker = (r.picker || '').trim();
           // Use a unique game key to deduplicate — one entry per game
-          var gameKey = (r.game || r.homeTeam || '') + '_' + (r.week || '') + '_' + (r.homeTeam || '') + '_' + (r.awayTeam || '');
+          var gameKey = r.year + '_' + r.week + '_' + r.homeTeam + '_' + r.awayTeam;
           if (!tdMap[scorer]) tdMap[scorer] = { total: 0, picked: 0, pickedBy: new Set(), seenGames: new Set() };
           if (tdMap[scorer].seenGames.has(gameKey)) return; // already counted this game
           tdMap[scorer].seenGames.add(gameKey);
@@ -2356,9 +2355,6 @@
     <img src="pics/fisch.png" alt="Fisch" style="width:220px;height:auto;border-radius:12px;object-fit:contain;">
   </div>
 
-  </div
-  </div>
-
-    </div><!-- end page-layout -->
+  </div><!-- end page-layout -->
 </body>
 </html>

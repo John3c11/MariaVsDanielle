@@ -1,4 +1,4 @@
-<!-- v31 -->
+<!-- v32 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -724,7 +724,8 @@
           const game = homeTeam && awayTeam ? `${homeTeam} vs ${awayTeam}` : '';
           const netUnits = parseFloat(r[15]) || 0;
           // Only count in stats if both picks are made AND game has been scored
-          const gameScored = correct === 'Yes' || correct === 'No';
+          const notOffered = wasOffered === 'No' && netUnits === 0 && (r[11] || '').trim() !== '';
+          const gameScored = (correct === 'Yes' || correct === 'No') && !notOffered;
           if (picker === 'Maria' && gameScored) { mTotal++; if (correct === 'Yes') mCorrect++; }
           else if (picker === 'Danielle' && gameScored) { dTotal++; if (correct === 'Yes') dCorrect++; }
           // Only include in betLog if both picks exist
@@ -1288,7 +1289,8 @@
           if (!pickCounts[p]) pickCounts[p] = { Maria: 0, Danielle: 0 };
           if (b.picker === 'Maria' || b.picker === 'Danielle') pickCounts[p][b.picker]++;
         });
-        var gameScored = b.correct === 'Yes' || b.correct === 'No';
+        var notOffered = b.wasOffered === 'No' && b.netUnits === 0 && b.firstScorer !== '';
+        var gameScored = (b.correct === 'Yes' || b.correct === 'No') && !notOffered;
         if (b.picker === 'Maria' && gameScored) {
           mTotal++; if (b.correct === 'Yes') mCorrect++;
           mUnits += b.netUnits; mDollars += b.netDollars;

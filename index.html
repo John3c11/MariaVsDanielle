@@ -1,4 +1,4 @@
-<!-- v38 -->
+<!-- v39 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,16 +19,22 @@
   <style>
     .tabs-nav {
       display: flex;
+      align-items: flex-end;
       gap: 0;
       margin-bottom: 36px;
       border-bottom: 1.5px solid #1C1C1E;
+      overflow-x: auto;
+      scrollbar-width: none;
     }
+    .tabs-nav::-webkit-scrollbar { display: none; }
 
     .tab-btn {
       font-family: 'Inter', sans-serif;
       font-size: 13px;
       font-weight: 500;
-      padding: 10px 20px;
+      padding: 10px 12px;
+      white-space: nowrap;
+      flex-shrink: 0;
       border: none;
       background: none;
       cursor: pointer;
@@ -1319,14 +1325,14 @@
       if (!SUB.pin) renderPinScreen('');
     }
 
-    function renderPinScreen(msg) {
+    function renderPinScreen(msg, successHtml) {
       SUB.pin = ''; SUB.game = null;
       var el = document.getElementById('submit-content');
       if (!PICKS_URL) {
         el.innerHTML = '<div class="loading">Pick submission isn\'t set up yet (PICKS_URL missing in config.js).</div>';
         return;
       }
-      el.innerHTML =
+      el.innerHTML = (successHtml || '') +
         '<div style="text-align:center;padding:24px 0 8px">' +
           '<div style="font-size:18px;font-weight:700;margin-bottom:6px">Submit Your Picks</div>' +
           '<div style="font-size:13px;color:#6B7280;margin-bottom:20px">Enter your PIN</div>' +
@@ -1335,7 +1341,7 @@
           '<div class="submit-msg" id="pin-msg" style="color:#DC2626">' + (msg || '') + '</div>' +
         '</div>';
       var input = document.getElementById('pin-input');
-      input.focus();
+      if (!successHtml) input.focus();
       input.addEventListener('keydown', function(e) { if (e.key === 'Enter') tryPin(); });
       input.addEventListener('input', function() { if (input.value.length === 4) tryPin(); });
       document.getElementById('pin-go').addEventListener('click', tryPin);
@@ -1466,7 +1472,12 @@
             updateChips();
             return;
           }
-          renderGame(res.next, res);
+          // Log out after one game's picks
+          var done = '<div style="background:#D1FAE5;border-radius:10px;padding:14px 16px;font-size:13px;color:#065F46;line-height:1.6">' +
+            '✅ <b>' + res.name + '</b>, you\'re locked in for Week ' + res.week + ' ' + res.slot + ': ' +
+            coloredText(res.homePick, res.home) + ' / ' + coloredText(res.awayPick, res.away) +
+            '. You\'ve been logged out.</div>';
+          renderPinScreen('', done);
           load(); // refresh Stats / Live Picks
         })
         .catch(function() {

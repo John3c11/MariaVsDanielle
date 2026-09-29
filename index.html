@@ -1,4 +1,4 @@
-<!-- v33 -->
+<!-- v35 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -198,7 +198,36 @@
       .campbell-ad { display: none; }
     }
     @media (max-width: 700px) {
-      .page-layout { padding: 24px 16px 60px; }
+      .page-layout { padding: 24px 12px 60px; }
+      .wrap { padding: 20px 14px; border-radius: 12px; }
+
+      /* Tabs scroll sideways instead of overflowing */
+      .tabs-nav { overflow-x: auto; scrollbar-width: none; margin-bottom: 24px; }
+      .tabs-nav::-webkit-scrollbar { display: none; }
+      .tab-btn { padding: 10px 12px; white-space: nowrap; flex-shrink: 0; }
+
+      /* Bet History rows become 3-line cards */
+      .bh-head { display: none !important; }
+      .bh-row {
+        grid-template-columns: 38px 34px 1fr auto !important;
+        grid-template-areas: "year wk game result" "picker picker players players" "odds odds odds units";
+        row-gap: 4px !important;
+        padding: 12px 0 !important;
+      }
+      .bh-row > span:nth-child(1) { grid-area: year; }
+      .bh-row > span:nth-child(2) { grid-area: wk; text-align: left !important; }
+      .bh-row > span:nth-child(3) { grid-area: game; }
+      .bh-row > span:nth-child(4) { grid-area: picker; }
+      .bh-row > span:nth-child(5) { grid-area: players; }
+      .bh-row > span:nth-child(6) { grid-area: odds; }
+      .bh-row > span:nth-child(7) { grid-area: result; justify-self: end; }
+      .bh-row > span:nth-child(8) { grid-area: units; }
+
+      /* Stack side-by-side cards */
+      .two-col { grid-template-columns: 1fr !important; }
+      .live-picks-grid { grid-template-columns: 1fr; }
+      .season-grid { grid-template-columns: 1fr 1fr !important; }
+      .money-num { font-size: 16px !important; }
     }
 
     body {
@@ -773,6 +802,78 @@
         svg;
     }
 
+
+    // ── Weekly recap (Stats tab) ─────────────────────────────────────────────
+    function weeklyRecap(rows) {
+      var weeks = {};
+      rows.forEach(function(r) {
+        var wk = (r[1] || '').trim();
+        var p = (r[3] || '').trim();
+        var hp = (r[6] || '').trim(), ap = (r[7] || '').trim();
+        if (!wk || (p !== 'Maria' && p !== 'Danielle') || (!hp && !ap)) return;
+        if (!weeks[wk]) weeks[wk] = { Maria: { w: 0, t: 0, u: 0 }, Danielle: { w: 0, t: 0, u: 0 }, pending: 0, best: null };
+        var W = weeks[wk];
+        var c = (r[12] || '').trim();
+        var nu = parseFloat(r[15]) || 0;
+        var scorer = (r[11] || '').trim();
+        if (c !== 'Yes' && c !== 'No') { W.pending++; return; }
+        W[p].u += nu;
+        var notOffered = (r[14] || '').trim() === 'No' && nu === 0 && scorer !== '';
+        if (notOffered) return;
+        W[p].t++;
+        if (c === 'Yes') {
+          W[p].w++;
+          if (!W.best || nu > W.best.u) {
+            var team = scorer === hp ? r[4] : scorer === ap ? r[5] : '';
+            var odds = scorer === hp ? r[8] : scorer === ap ? r[9] : '';
+            W.best = { p: p, u: nu, player: scorer, team: team, odds: odds };
+          }
+        }
+      });
+
+      // Previous week = latest fully-scored week that comes before the current (highest) week
+      var allWeeks = Object.keys(weeks).map(Number);
+      if (!allWeeks.length) return '';
+      var currentWeek = Math.max.apply(null, allWeeks);
+      var keys = Object.keys(weeks).filter(function(k) {
+        var w = weeks[k];
+        return parseInt(k) < currentWeek && w.pending === 0 && w.Maria.t + w.Danielle.t > 0;
+      }).sort(function(a, b) { return parseInt(b) - parseInt(a); });
+      if (!keys.length) return '';
+
+      var wk = keys[0], W = weeks[wk], M = W.Maria, D = W.Danielle;
+      var live = false;
+      function u(n) { return (n >= 0 ? '+' : '') + n.toFixed(1) + 'u'; }
+      var mName = '<span style="color:#DC2626;font-weight:600">Maria</span>';
+      var dName = '<span style="color:#1D4ED8;font-weight:600">Danielle</span>';
+
+      var text, accent;
+      if (M.w === D.w) {
+        accent = '#9CA3AF';
+        if (M.w === 0) {
+          text = 'Nobody hit' + (live ? ' yet' : '') + '. ' + mName + ' went 0/' + M.t + ' (' + u(M.u) + '), ' + dName + ' went 0/' + D.t + ' (' + u(D.u) + ').';
+        } else {
+          text = (live ? 'All square so far' : 'A tie') + ' at ' + M.w + ' correct each. ' + mName + ' went ' + M.w + '/' + M.t + ' (' + u(M.u) + '), ' + dName + ' went ' + D.w + '/' + D.t + ' (' + u(D.u) + ').';
+        }
+      } else {
+        var mWins = M.w > D.w;
+        var win = mWins ? M : D, lose = mWins ? D : M;
+        accent = mWins ? '#DC2626' : '#1D4ED8';
+        text = (mWins ? mName : dName) + (live ? ' is leading the week' : ' took the week') + ', going ' + win.w + '/' + win.t + ' (' + u(win.u) + '). ' +
+          (mWins ? dName : mName) + ' went ' + lose.w + '/' + lose.t + ' (' + u(lose.u) + ').';
+      }
+      if (W.best) {
+        var pc = W.best.p === 'Maria' ? '#DC2626' : '#1D4ED8';
+        var player = W.best.team ? coloredText(W.best.player, W.best.team) : '<b>' + W.best.player + '</b>';
+        text += ' Biggest hit: ' + player + (W.best.odds ? ' at ' + formatOdds(W.best.odds) : '') +
+          ' for <span style="color:' + pc + ';font-weight:600">' + W.best.p + '</span>.';
+      }
+
+      return '<div style="background:#F9FAFB;border-left:3px solid ' + accent + ';border-radius:8px;padding:12px 16px;margin-bottom:20px">' +
+        '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Week ' + wk + ' Recap' + (live ? ' · in progress' : '') + '</div>' +
+        '<div style="font-size:13px;color:#374151;line-height:1.6">' + text + '</div></div>';
+    }
+
     function formatOdds(val) {
       if (!val) return '—';
       const n = parseFloat(val);
@@ -943,6 +1044,7 @@
         });
 
         statsEl.innerHTML = `
+          ${weeklyRecap(rows)}
           <div style="display:flex;justify-content:center;gap:32px;margin-bottom:12px;flex-wrap:wrap">
             <div style="font-size:13px;color:#DC2626;font-weight:500">Maria ${mariaStreak.count > 0 ? (mariaStreak.type === 'win' ? '🔥' : '❄️') + ' ' + mariaStreak.count + ' ' + mariaStreak.type + ' streak' : ''}</div>
             <div style="font-size:13px;color:#1D4ED8;font-weight:500">Danielle ${danielleStreak.count > 0 ? (danielleStreak.type === 'win' ? '🔥' : '❄️') + ' ' + danielleStreak.count + ' ' + danielleStreak.type + ' streak' : ''}</div>
@@ -1179,7 +1281,7 @@
       var countEl = document.getElementById('bh-hist-count');
       if (countEl) countEl.textContent = bets.length + ' bet' + (bets.length !== 1 ? 's' : '');
       if (!el) return;
-      var header = '<div style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 60px 50px;gap:8px;padding-bottom:8px;border-bottom:0.5px solid #F3F4F6;font-size:10px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em">' +
+      var header = '<div class="bh-head" style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 60px 50px;gap:8px;padding-bottom:8px;border-bottom:0.5px solid #F3F4F6;font-size:10px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em">' +
         '<span>Year</span><span>Wk</span><span>Game</span><span>Picker</span><span>Players</span><span>Odds</span><span>Result</span><span>Units</span></div>';
       var rows = bets.map(function(b) {
         var resultBg = b.correct === 'Yes' ? '#D1FAE5' : b.correct === 'No' ? '#FEE2E2' : '#F3F4F6';
@@ -1193,7 +1295,7 @@
         var awayColored = b.awayPick ? legacyColoredText(b.awayPick, b.awayTeam) : '';
         var players = [homeColored, awayColored].filter(Boolean).join('<span style="color:#9CA3AF"> / </span>') || '—';
         var gameDisplay = b.homeTeam && b.awayTeam ? legacyColoredGame(b.homeTeam, b.awayTeam) : (b.game || '—');
-        return '<div style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 60px 50px;gap:8px;padding:10px 0;border-bottom:0.5px solid #F3F4F6;font-size:12px;align-items:start">' +
+        return '<div class="bh-row" style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 60px 50px;gap:8px;padding:10px 0;border-bottom:0.5px solid #F3F4F6;font-size:12px;align-items:start">' +
           '<span style="font-size:11px;font-weight:600;color:' + (b.year === '2026' ? '#1D4ED8' : '#065F46') + '">' + b.year + '</span>' +
           '<span style="color:#9CA3AF;text-align:center">' + b.week + '</span>' +
           '<span style="font-weight:500">' + gameDisplay + '</span>' +
@@ -1459,7 +1561,7 @@
       if (countEl) countEl.textContent = bets.length + ' bet' + (bets.length !== 1 ? 's' : '');
       if (!el) return;
 
-      var header = '<div style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 60px 50px;gap:8px;padding-bottom:8px;border-bottom:0.5px solid #F3F4F6;font-size:10px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em">' +
+      var header = '<div class="bh-head" style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 60px 50px;gap:8px;padding-bottom:8px;border-bottom:0.5px solid #F3F4F6;font-size:10px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em">' +
         '<span>Year</span><span>Wk</span><span>Game</span><span>Picker</span><span>Players</span><span>Odds</span><span>Result</span><span>Units</span></div>';
 
       var rows = bets.map(function(b) {
@@ -1475,7 +1577,7 @@
         var gameDisplay = b.homeTeam && b.awayTeam ? legacyColoredGame(b.homeTeam, b.awayTeam) : (b.game || '—');
         var resultBg = b.correct === 'Yes' ? '#D1FAE5' : b.correct === 'No' ? '#FEE2E2' : '#F3F4F6';
         var resultColor = b.correct === 'Yes' ? '#065F46' : b.correct === 'No' ? '#991B1B' : '#9CA3AF';
-        return '<div style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 60px 50px;gap:8px;padding:10px 0;border-bottom:0.5px solid #F3F4F6;font-size:12px;align-items:start">' +
+        return '<div class="bh-row" style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 60px 50px;gap:8px;padding:10px 0;border-bottom:0.5px solid #F3F4F6;font-size:12px;align-items:start">' +
           '<span style="font-size:11px;font-weight:600;color:' + (b.year === '2026' ? '#1D4ED8' : '#065F46') + '">' + b.year + '</span>' +
           '<span style="color:#9CA3AF;text-align:center">' + b.week + '</span>' +
           '<span style="font-weight:500">' + gameDisplay + '</span>' +
@@ -1526,7 +1628,7 @@
             var wLabel = winner === 'maria' ? '🏆 Maria' : winner === 'danielle' ? '🏆 Danielle' : 'Tied';
             var wColor = winner === 'maria' ? '#DC2626' : winner === 'danielle' ? '#1D4ED8' : '#6B7280';
             html += '<div style="margin-bottom:16px"><div style="font-size:16px;font-weight:700;margin-bottom:8px">' + ys.year + ' <span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;background:#F3F4F6;color:' + wColor + '">' + wLabel + '</span></div>';
-            html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">';
+            html += '<div class="season-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">';
             ['Units','Dollars','Accuracy','Correct'].forEach(function(label, i) {
               var mV, dV;
               if (i===0) { mV=fmtL(ys.stats.mUnits,'u'); dV=fmtL(ys.stats.dUnits,'u'); }
@@ -1765,7 +1867,7 @@
         function pct(n, d) { return d ? Math.round(n/d*100) + "%" : "—"; }
 
         function twoCol(leftHtml, rightHtml) {
-          return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px">' + leftHtml + rightHtml + '</div>';
+          return '<div class="two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px">' + leftHtml + rightHtml + '</div>';
         }
 
         function personCard(name, contentHtml) {
@@ -2411,7 +2513,7 @@
             var wColor = uColor(worstN);
             return '<div>' +
               '<div style="font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">' + labelText + '</div>' +
-              '<div style="font-size:20px;font-weight:700;color:' + aColor + '">' + fmtFn(actualN) + '</div>' +
+              '<div class="money-num" style="font-size:20px;font-weight:700;color:' + aColor + '">' + fmtFn(actualN) + '</div>' +
               '<div style="font-size:12px;color:' + wColor + ';margin-top:2px">' + fmtFn(worstN) + ' worst case</div>' +
             '</div>';
           }
@@ -2420,7 +2522,7 @@
             '<div style="font-size:15px;font-weight:700;color:#1C1C1E;margin-bottom:14px">' + label + '</div>' +
             '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">' +
               '<div><div style="font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Bets Made</div>' +
-                '<div style="font-size:20px;font-weight:700;color:#1C1C1E">' + r.bets + '</div>' +
+                '<div class="money-num" style="font-size:20px;font-weight:700;color:#1C1C1E">' + r.bets + '</div>' +
                 '<div style="font-size:12px;color:#9CA3AF;margin-top:2px">' + r.notOffered + ' not offered</div></div>' +
               statCol("Units", r.units, r.unitsWorst, fmtU) +
               statCol("Money", r.dollars, r.dollarsWorst, fmtD) +

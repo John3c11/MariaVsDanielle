@@ -1,4 +1,4 @@
-<!-- v39 -->
+<!-- v40 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1312,11 +1312,26 @@
     var PICKS_URL = (typeof CONFIG !== 'undefined' && CONFIG.PICKS_URL) || '';
     var SUB = { pin: '', game: null, homeSel: null, awaySel: null, busy: false };
 
-    function picksApi(params) {
+    function picksApiOnce(params) {
       var qs = Object.keys(params).map(function(k) {
         return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
       }).join('&');
-      return fetch(PICKS_URL + '?' + qs).then(function(r) { return r.json(); });
+      var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      var timer = ctrl ? setTimeout(function() { ctrl.abort(); }, 20000) : null;
+      return fetch(PICKS_URL + '?' + qs + '&_=' + Date.now(), ctrl ? { signal: ctrl.signal } : {})
+        .then(function(r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        })
+        .finally(function() { if (timer) clearTimeout(timer); });
+    }
+    // Google's script servers occasionally drop the reply even though the write went through,
+    // so every call gets one quiet retry. Submitting the same picks twice is safe.
+    function picksApi(params) {
+      return picksApiOnce(params).catch(function() {
+        return new Promise(function(res) { setTimeout(res, 1500); })
+          .then(function() { return picksApiOnce(params); });
+      });
     }
 
     function personColor(name) { return name === 'Maria' ? '#DC2626' : '#1D4ED8'; }
@@ -1359,7 +1374,8 @@
         SUB.busy = false;
         if (res.error) { renderPinScreen(res.error); return; }
         SUB.pin = pin;
-        renderGame(res, null);
+        if (res.admin) renderOdds(res);
+        else renderGame(res, null);
       }).catch(function() {
         SUB.busy = false;
         renderPinScreen('Couldn\'t reach the sheet. Try again.');
@@ -1458,35 +1474,137 @@
       var g = SUB.game;
       if (!g || !SUB.homeSel || !SUB.awaySel || SUB.busy) return;
       SUB.busy = true;
+      var sent = { home: SUB.homeSel, away: SUB.awaySel };
       var btn = document.getElementById('sub-go');
       btn.disabled = true;
       btn.textContent = 'Submitting…';
-      picksApi({ pin: SUB.pin, action: 'submit', row: g.row, home: SUB.homeSel, away: SUB.awaySel })
+
+      function fail(text) {
+        SUB.busy = false;
+        btn.textContent = 'Submit Picks';
+        var msg = document.getElementById('sub-msg');
+        msg.style.color = '#DC2626';
+        msg.textContent = text;
+        updateChips();
+      }
+
+      picksApi({ pin: SUB.pin, action: 'submit', row: g.row, home: sent.home, away: sent.away })
+        .then(function(res) {
+          if (res.error) return fail(res.error);
+          showSubmitted(res);
+        })
+        .catch(function() {
+          // The reply got lost. Ask the sheet whether the picks landed before calling it a failure.
+          picksApi({ pin: SUB.pin, action: 'check', row: g.row })
+            .then(function(res) {
+              if (res.ok && res.homePick === sent.home && res.awayPick === sent.away) showSubmitted(res);
+              else fail('Your picks were not saved. Try again.');
+            })
+            .catch(function() { fail('Couldn\'t reach the sheet. Check the Live Picks section before trying again.'); });
+        });
+    }
+
+    // Confirmation + log out after one game's picks
+    function showSubmitted(res) {
+      SUB.busy = false;
+      var done = '<div style="background:#D1FAE5;border-radius:10px;padding:14px 16px;font-size:13px;color:#065F46;line-height:1.6">' +
+        '✅ <b>' + res.name + '</b>, you\'re locked in for Week ' + res.week + ' ' + res.slot + ': ' +
+        coloredText(res.homePick, res.home) + ' / ' + coloredText(res.awayPick, res.away) +
+        '. You\'ve been logged out.</div>';
+      renderPinScreen('', done);
+      load(); // refresh Stats / Live Picks
+    }
+
+    // ── Admin odds entry (PIN 0328) ─────────────────────────────────────────
+    function renderOdds(res) {
+      var el = document.getElementById('submit-content');
+      var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
+        '<div style="font-size:16px;font-weight:700">Hi John</div>' +
+        '<button class="link-btn" id="sub-switch">Log out</button></div>' +
+        '<div style="font-size:12px;color:#6B7280;margin-bottom:18px">Enter odds for picks that don\'t have them yet. Type them the way you do in the sheet (15, 4.7) or as American odds (+1500, +470). Leave a box blank to skip it.</div>';
+
+      if (!res.rows.length) {
+        html += '<div style="text-align:center;padding:32px 0;color:#6B7280;font-size:14px">🎉 All odds are filled in.</div>';
+        el.innerHTML = html;
+        bindSwitch();
+        return;
+      }
+
+      // Group rows by game
+      var games = [], idx = {};
+      res.rows.forEach(function(r) {
+        var k = r.week + '_' + r.game;
+        if (!(k in idx)) { idx[k] = games.length; games.push({ week: r.week, slot: r.slot, home: r.home, away: r.away, rows: [] }); }
+        games[idx[k]].rows.push(r);
+      });
+
+      function oddsInput(row, side, val) {
+        return '<input class="odds-input" data-row="' + row + '" data-side="' + side + '" inputmode="decimal" autocomplete="off" placeholder="+" value="' + (val || '') + '" ' +
+          'style="width:84px;font-family:Inter,sans-serif;font-size:14px;padding:7px 10px;border:1.5px solid #E5E7EB;border-radius:8px;background:#FFFFFF;color:#1C1C1E;text-align:right">';
+      }
+
+      games.forEach(function(g) {
+        html += '<div style="background:#F9FAFB;border-radius:10px;padding:14px 16px;margin-bottom:14px">' +
+          '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Week ' + g.week + ' · ' + g.slot + '</div>' +
+          '<div style="font-size:15px;font-weight:700;margin-bottom:10px">' + coloredGame(g.home, g.away) + '</div>';
+        g.rows.forEach(function(r) {
+          html += '<div style="margin-top:8px">' +
+            '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:' + personColor(r.picker) + ';margin-bottom:4px">' + r.picker + '</div>' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:14px">' + coloredText(r.homePick, r.home) + oddsInput(r.row, 'home', r.homeOdds) + '</div>' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:14px">' + coloredText(r.awayPick, r.away) + oddsInput(r.row, 'away', r.awayOdds) + '</div>' +
+            '</div>';
+        });
+        html += '</div>';
+      });
+
+      html += '<div style="text-align:center;margin-top:8px">' +
+        '<button class="primary-btn" id="odds-go">Save Odds</button>' +
+        '<div class="submit-msg" id="odds-msg"></div></div>';
+
+      el.innerHTML = html;
+      bindSwitch();
+      document.getElementById('odds-go').addEventListener('click', saveOdds);
+    }
+
+    function saveOdds() {
+      if (SUB.busy) return;
+      var byRow = {};
+      document.querySelectorAll('.odds-input').forEach(function(inp) {
+        var v = inp.value.trim();
+        if (!v) return;
+        var row = inp.getAttribute('data-row');
+        if (!byRow[row]) byRow[row] = { row: row, home: '', away: '' };
+        byRow[row][inp.getAttribute('data-side')] = v;
+      });
+      var items = Object.keys(byRow).map(function(k) { return byRow[k]; });
+      var msg = document.getElementById('odds-msg');
+      if (!items.length) { msg.style.color = '#DC2626'; msg.textContent = 'Nothing entered yet.'; return; }
+
+      SUB.busy = true;
+      var btn = document.getElementById('odds-go');
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+      picksApi({ pin: SUB.pin, action: 'odds', data: JSON.stringify(items) })
         .then(function(res) {
           SUB.busy = false;
-          if (res.error) {
-            btn.textContent = 'Submit Picks';
-            var msg = document.getElementById('sub-msg');
+          if (res.error || (res.bad && res.bad.length)) {
+            btn.disabled = false;
+            btn.textContent = 'Save Odds';
             msg.style.color = '#DC2626';
-            msg.textContent = res.error;
-            updateChips();
+            msg.textContent = res.error || ('Couldn\'t read: ' + res.bad.join(', ') + '. Everything else was saved.');
             return;
           }
-          // Log out after one game's picks
-          var done = '<div style="background:#D1FAE5;border-radius:10px;padding:14px 16px;font-size:13px;color:#065F46;line-height:1.6">' +
-            '✅ <b>' + res.name + '</b>, you\'re locked in for Week ' + res.week + ' ' + res.slot + ': ' +
-            coloredText(res.homePick, res.home) + ' / ' + coloredText(res.awayPick, res.away) +
-            '. You\'ve been logged out.</div>';
+          var done = '<div style="background:#D1FAE5;border-radius:10px;padding:14px 16px;font-size:13px;color:#065F46">' +
+            '✅ Saved ' + res.saved + ' odds. You\'ve been logged out.</div>';
           renderPinScreen('', done);
-          load(); // refresh Stats / Live Picks
+          load();
         })
         .catch(function() {
           SUB.busy = false;
-          btn.textContent = 'Submit Picks';
-          var msg = document.getElementById('sub-msg');
+          btn.disabled = false;
+          btn.textContent = 'Save Odds';
           msg.style.color = '#DC2626';
-          msg.textContent = 'Couldn\'t reach the sheet. Your picks were not saved. Try again.';
-          updateChips();
+          msg.textContent = 'Couldn\'t reach the sheet. Check the sheet, then try again.';
         });
     }
 

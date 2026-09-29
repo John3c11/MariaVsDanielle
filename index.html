@@ -1,4 +1,4 @@
-<!-- v40 -->
+<!-- v41 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1418,8 +1418,14 @@
         var out = '<div>' +
           '<div class="team-header-bar" style="background:' + (tc.bg || tc.primary) + ';color:' + tc.text + ';border-radius:8px;margin-bottom:8px">' + team + '</div>';
         if (!players.length) out += '<div style="font-size:12px;color:#9CA3AF;padding:8px">No players listed on the Rosters tab.</div>';
+        var taken = g.taken || [];
         players.forEach(function(name, i) {
-          out += '<button class="pick-chip" data-side="' + side + '" data-idx="' + i + '">' + name + '</button>';
+          if (taken.indexOf(name) >= 0) {
+            out += '<button class="pick-chip" disabled style="opacity:0.45;cursor:not-allowed;text-decoration:line-through">' +
+              name + '<span class="pos-hint">Taken</span></button>';
+          } else {
+            out += '<button class="pick-chip" data-side="' + side + '" data-idx="' + i + '">' + name + '</button>';
+          }
         });
         return out + '</div>';
       }
@@ -1434,7 +1440,7 @@
       el.innerHTML = html;
       bindSwitch();
 
-      el.querySelectorAll('.pick-chip').forEach(function(btn) {
+      el.querySelectorAll('.pick-chip[data-side]').forEach(function(btn) {
         btn.addEventListener('click', function() {
           var side = btn.getAttribute('data-side');
           var idx = parseInt(btn.getAttribute('data-idx'), 10);
@@ -1449,7 +1455,7 @@
     function updateChips() {
       var g = SUB.game;
       if (!g) return;
-      document.querySelectorAll('.pick-chip').forEach(function(btn) {
+      document.querySelectorAll('.pick-chip[data-side]').forEach(function(btn) {
         var side = btn.getAttribute('data-side');
         var name = side === 'home' ? g.homePlayers[+btn.getAttribute('data-idx')] : g.awayPlayers[+btn.getAttribute('data-idx')];
         var team = side === 'home' ? g.home : g.away;

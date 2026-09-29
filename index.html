@@ -1,4 +1,4 @@
-<!-- v37 -->
+<!-- v38 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -47,7 +47,8 @@
     html.dark .wrap { filter: invert(1) hue-rotate(180deg); }
     html.dark .wrap img,
     html.dark .wrap .emo,
-    html.dark .wrap .team-header-bar { filter: invert(1) hue-rotate(180deg); }
+    html.dark .wrap .team-header-bar,
+    html.dark .wrap .pick-chip.chip-on { filter: invert(1) hue-rotate(180deg); }
     .emo { display: inline-block; }
 
     .theme-toggle {
@@ -59,6 +60,61 @@
       cursor: pointer;
       flex-shrink: 0;
     }
+
+    /* Submit Picks tab */
+    .pin-input {
+      font-family: 'Inter', sans-serif;
+      font-size: 28px;
+      letter-spacing: 0.5em;
+      text-align: center;
+      width: 180px;
+      padding: 10px 0 10px 0.5em;
+      border: 1.5px solid #E5E7EB;
+      border-radius: 10px;
+      outline: none;
+      background: #F9FAFB;
+      color: #1C1C1E;
+    }
+    .pin-input:focus { border-color: #1C1C1E; }
+    .primary-btn {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px 28px;
+      border: none;
+      border-radius: 10px;
+      background: #1C1C1E;
+      color: white;
+      cursor: pointer;
+    }
+    .primary-btn:disabled { background: #D1D5DB; cursor: default; }
+    .link-btn {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      color: #9CA3AF;
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .pick-chip {
+      display: block;
+      width: 100%;
+      text-align: left;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 11px 14px;
+      margin-bottom: 6px;
+      border-radius: 8px;
+      border: 1.5px solid #E5E7EB;
+      background: #FFFFFF;
+      color: #1C1C1E;
+      cursor: pointer;
+    }
+    .pick-chip:hover { border-color: #9CA3AF; }
+    .pick-chip .pos-hint { float: right; font-size: 11px; font-weight: 600; opacity: 0.6; }
+    .submit-msg { font-size: 13px; text-align: center; margin-top: 12px; min-height: 18px; }
 
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
@@ -609,6 +665,7 @@
   <div class="wrap">
     <nav class="tabs-nav">
       <button class="tab-btn active" onclick="switchTab('stats')">Stats</button>
+      <button class="tab-btn" onclick="switchTab('submit')">Submit Picks</button>
       <button class="tab-btn" onclick="switchTab('analytics')">Analytics</button>
       <button class="tab-btn" onclick="switchTab('money')">Money</button>
       <button class="tab-btn" onclick="switchTab('legacy')">Legacy</button>
@@ -644,6 +701,10 @@
     <div id="live-picks"><div class="loading">Loading...</div></div>
 
     </div><!-- end tab-stats -->
+
+    <div id="tab-submit" class="tab-panel">
+      <div id="submit-content"></div>
+    </div>
 
     <div id="tab-bethistory" class="tab-panel">
       <div id="bethistory-content"><div class="loading">Loading bet history...</div></div>
@@ -904,7 +965,7 @@
     function formatOdds(val) {
       if (!val) return '—';
       const n = parseFloat(val);
-      if (isNaN(n)) return val;
+      if (isNaN(n)) return '—';
       return '+' + Math.round(n * 100);
     }
 
@@ -1103,6 +1164,25 @@
             const awayTeamName = mariaRow ? mariaRow[5] : danielleRow ? danielleRow[5] : '';
             const homeC = teamColor(homeTeamName);
             const awayC = teamColor(awayTeamName);
+
+            // Only one person has picked: keep their picks secret until the other submits
+            if (!mariaRow || !danielleRow) {
+              const done = mariaRow ? 'Maria' : 'Danielle';
+              const waiting = mariaRow ? 'Danielle' : 'Maria';
+              const doneC = done === 'Maria' ? '#DC2626' : '#1D4ED8';
+              const waitC = waiting === 'Maria' ? '#DC2626' : '#1D4ED8';
+              html += `
+              <div class="live-game-title" style="margin-top:${html ? '20px' : '0'}">
+                <span style="color:${homeC};font-weight:700">${homeTeamName}</span>
+                <span style="color:#9CA3AF"> vs </span>
+                <span style="color:${awayC};font-weight:700">${awayTeamName}</span>
+              </div>
+              <div style="background:#F9FAFB;border-radius:8px;padding:14px 16px;font-size:13px;color:#6B7280">
+                🔒 <span style="color:${doneC};font-weight:600">${done}</span> has picked. Waiting on
+                <span style="color:${waitC};font-weight:600">${waiting}</span>. Picks show once both are in.
+              </div>`;
+              continue;
+            }
             const mariaPick = getPickAndOdds(mariaRow);
             const daniellePick = getPickAndOdds(danielleRow);
 
@@ -1219,7 +1299,191 @@
       if (name === 'money') loadMoneyTab();
       if (name === 'analytics') loadAnalyticsTab();
       if (name === 'bethistory') loadBetHistoryTab();
+      if (name === 'submit') loadSubmitTab();
     }
+
+    // ── Submit Picks tab ─────────────────────────────────────────────────────
+    var PICKS_URL = (typeof CONFIG !== 'undefined' && CONFIG.PICKS_URL) || '';
+    var SUB = { pin: '', game: null, homeSel: null, awaySel: null, busy: false };
+
+    function picksApi(params) {
+      var qs = Object.keys(params).map(function(k) {
+        return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+      }).join('&');
+      return fetch(PICKS_URL + '?' + qs).then(function(r) { return r.json(); });
+    }
+
+    function personColor(name) { return name === 'Maria' ? '#DC2626' : '#1D4ED8'; }
+
+    function loadSubmitTab() {
+      if (!SUB.pin) renderPinScreen('');
+    }
+
+    function renderPinScreen(msg) {
+      SUB.pin = ''; SUB.game = null;
+      var el = document.getElementById('submit-content');
+      if (!PICKS_URL) {
+        el.innerHTML = '<div class="loading">Pick submission isn\'t set up yet (PICKS_URL missing in config.js).</div>';
+        return;
+      }
+      el.innerHTML =
+        '<div style="text-align:center;padding:24px 0 8px">' +
+          '<div style="font-size:18px;font-weight:700;margin-bottom:6px">Submit Your Picks</div>' +
+          '<div style="font-size:13px;color:#6B7280;margin-bottom:20px">Enter your PIN</div>' +
+          '<input id="pin-input" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off">' +
+          '<div style="margin-top:16px"><button class="primary-btn" id="pin-go">Enter</button></div>' +
+          '<div class="submit-msg" id="pin-msg" style="color:#DC2626">' + (msg || '') + '</div>' +
+        '</div>';
+      var input = document.getElementById('pin-input');
+      input.focus();
+      input.addEventListener('keydown', function(e) { if (e.key === 'Enter') tryPin(); });
+      input.addEventListener('input', function() { if (input.value.length === 4) tryPin(); });
+      document.getElementById('pin-go').addEventListener('click', tryPin);
+    }
+
+    function tryPin() {
+      if (SUB.busy) return;
+      var input = document.getElementById('pin-input');
+      var pin = (input.value || '').trim();
+      if (pin.length !== 4) { document.getElementById('pin-msg').textContent = 'PINs are 4 digits.'; return; }
+      SUB.busy = true;
+      document.getElementById('pin-msg').style.color = '#9CA3AF';
+      document.getElementById('pin-msg').textContent = 'Checking…';
+      picksApi({ pin: pin }).then(function(res) {
+        SUB.busy = false;
+        if (res.error) { renderPinScreen(res.error); return; }
+        SUB.pin = pin;
+        renderGame(res, null);
+      }).catch(function() {
+        SUB.busy = false;
+        renderPinScreen('Couldn\'t reach the sheet. Try again.');
+      });
+    }
+
+    // res = next open game from the script; done = just-submitted picks (or null)
+    function renderGame(res, done) {
+      SUB.game = res.done ? null : res;
+      SUB.homeSel = null; SUB.awaySel = null;
+      var el = document.getElementById('submit-content');
+      var pc = personColor(res.name);
+
+      var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">' +
+        '<div style="font-size:16px;font-weight:700">Hi <span style="color:' + pc + '">' + res.name + '</span></div>' +
+        '<button class="link-btn" id="sub-switch">Not you?</button></div>';
+
+      if (done) {
+        html += '<div style="background:#D1FAE5;border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:#065F46;line-height:1.6">' +
+          '✅ Locked in for Week ' + done.week + ' ' + done.slot + ': ' +
+          coloredText(done.homePick, done.home) + ' / ' + coloredText(done.awayPick, done.away) +
+          '. Odds get added later.</div>';
+      }
+
+      if (res.done) {
+        html += '<div style="text-align:center;padding:32px 0;color:#6B7280;font-size:14px">🎉 You\'re all caught up. No open games right now.</div>';
+        el.innerHTML = html;
+        bindSwitch();
+        return;
+      }
+
+      var g = res;
+      html += '<div style="text-align:center;margin-bottom:16px">' +
+        '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Week ' + g.week + ' · ' + g.slot + '</div>' +
+        '<div style="font-size:17px;font-weight:700">' + coloredGame(g.home, g.away) + '</div>' +
+        '<div style="font-size:12px;color:#6B7280;margin-top:6px">Pick one player from each team.</div></div>';
+
+      function column(side, team, players) {
+        var tc = TEAM_COLORS[team] || { bg: '#1C1C1E', text: '#FFFFFF', primary: '#1C1C1E' };
+        var out = '<div>' +
+          '<div class="team-header-bar" style="background:' + (tc.bg || tc.primary) + ';color:' + tc.text + ';border-radius:8px;margin-bottom:8px">' + team + '</div>';
+        if (!players.length) out += '<div style="font-size:12px;color:#9CA3AF;padding:8px">No players listed on the Rosters tab.</div>';
+        players.forEach(function(name, i) {
+          out += '<button class="pick-chip" data-side="' + side + '" data-idx="' + i + '">' + name + '</button>';
+        });
+        return out + '</div>';
+      }
+      html += '<div class="two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px">' +
+        column('home', g.home, g.homePlayers) + column('away', g.away, g.awayPlayers) + '</div>';
+
+      html += '<div style="text-align:center;margin-top:16px">' +
+        '<div id="sub-summary" style="font-size:13px;color:#6B7280;margin-bottom:12px;min-height:20px"></div>' +
+        '<button class="primary-btn" id="sub-go" disabled>Submit Picks</button>' +
+        '<div class="submit-msg" id="sub-msg"></div></div>';
+
+      el.innerHTML = html;
+      bindSwitch();
+
+      el.querySelectorAll('.pick-chip').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var side = btn.getAttribute('data-side');
+          var idx = parseInt(btn.getAttribute('data-idx'), 10);
+          if (side === 'home') SUB.homeSel = g.homePlayers[idx]; else SUB.awaySel = g.awayPlayers[idx];
+          updateChips();
+        });
+      });
+      document.getElementById('sub-go').addEventListener('click', submitPicks);
+      updateChips();
+    }
+
+    function updateChips() {
+      var g = SUB.game;
+      if (!g) return;
+      document.querySelectorAll('.pick-chip').forEach(function(btn) {
+        var side = btn.getAttribute('data-side');
+        var name = side === 'home' ? g.homePlayers[+btn.getAttribute('data-idx')] : g.awayPlayers[+btn.getAttribute('data-idx')];
+        var team = side === 'home' ? g.home : g.away;
+        var tc = TEAM_COLORS[team] || { bg: '#1C1C1E', text: '#FFFFFF', primary: '#1C1C1E' };
+        var selected = (side === 'home' ? SUB.homeSel : SUB.awaySel) === name;
+        btn.style.background = selected ? (tc.bg || tc.primary) : '#FFFFFF';
+        btn.style.color = selected ? tc.text : '#1C1C1E';
+        btn.style.borderColor = selected ? tc.primary : '#E5E7EB';
+        btn.style.fontWeight = selected ? '700' : '500';
+        btn.classList.toggle('chip-on', selected);
+      });
+      var sum = document.getElementById('sub-summary');
+      if (SUB.homeSel && SUB.awaySel) {
+        sum.innerHTML = coloredText(SUB.homeSel, g.home) + ' <span style="color:#9CA3AF">/</span> ' + coloredText(SUB.awaySel, g.away);
+      } else {
+        sum.textContent = (SUB.homeSel || SUB.awaySel) ? 'One more to go…' : '';
+      }
+      document.getElementById('sub-go').disabled = !(SUB.homeSel && SUB.awaySel) || SUB.busy;
+    }
+
+    function submitPicks() {
+      var g = SUB.game;
+      if (!g || !SUB.homeSel || !SUB.awaySel || SUB.busy) return;
+      SUB.busy = true;
+      var btn = document.getElementById('sub-go');
+      btn.disabled = true;
+      btn.textContent = 'Submitting…';
+      picksApi({ pin: SUB.pin, action: 'submit', row: g.row, home: SUB.homeSel, away: SUB.awaySel })
+        .then(function(res) {
+          SUB.busy = false;
+          if (res.error) {
+            btn.textContent = 'Submit Picks';
+            var msg = document.getElementById('sub-msg');
+            msg.style.color = '#DC2626';
+            msg.textContent = res.error;
+            updateChips();
+            return;
+          }
+          renderGame(res.next, res);
+          load(); // refresh Stats / Live Picks
+        })
+        .catch(function() {
+          SUB.busy = false;
+          btn.textContent = 'Submit Picks';
+          var msg = document.getElementById('sub-msg');
+          msg.style.color = '#DC2626';
+          msg.textContent = 'Couldn\'t reach the sheet. Your picks were not saved. Try again.';
+          updateChips();
+        });
+    }
+
+    function bindSwitch() {
+      var b = document.getElementById('sub-switch');
+      if (b) b.addEventListener('click', function() { renderPinScreen(''); });
+    }
+
     // ── Bet History tab ──────────────────────────────────────────────────────────
     var BH_LOADED = false;
     var ALL_BH_BETS = [];
@@ -1401,8 +1665,8 @@
           var week = r[1] || '';
           var game = homeTeam && awayTeam ? homeTeam + ' vs ' + awayTeam : '';
           var oddsArr = [];
-          if (homePick && homeOdds) oddsArr.push('+' + Math.round(parseFloat(homeOdds) * 100));
-          if (awayPick && awayOdds) oddsArr.push('+' + Math.round(parseFloat(awayOdds) * 100));
+          if (homePick && !isNaN(parseFloat(homeOdds))) oddsArr.push('+' + Math.round(parseFloat(homeOdds) * 100));
+          if (awayPick && !isNaN(parseFloat(awayOdds))) oddsArr.push('+' + Math.round(parseFloat(awayOdds) * 100));
           return {
             year: season.year, week: week, game: game,
             homeTeam: homeTeam, awayTeam: awayTeam,

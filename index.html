@@ -1,4 +1,4 @@
-<!-- v32 -->
+<!-- v33 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -683,6 +683,96 @@
       </div>`;
     }
 
+
+    // ── Running units chart (Stats tab) ──────────────────────────────────────
+    function unitsChart(rows) {
+      var games = [], idx = {};
+      rows.forEach(function(r) {
+        var c = (r[12] || '').trim();
+        var p = (r[3] || '').trim();
+        if ((c !== 'Yes' && c !== 'No') || (p !== 'Maria' && p !== 'Danielle')) return;
+        var k = (r[1] || '') + '_' + (r[0] || '');
+        if (!(k in idx)) {
+          idx[k] = games.length;
+          games.push({ week: (r[1] || '').trim(), home: r[4] || '', away: r[5] || '', Maria: 0, Danielle: 0 });
+        }
+        games[idx[k]][p] += parseFloat(r[15]) || 0;
+      });
+      if (games.length < 2) return '';
+
+      var m = [0], d = [0];
+      games.forEach(function(g) {
+        m.push(m[m.length - 1] + g.Maria);
+        d.push(d[d.length - 1] + g.Danielle);
+      });
+
+      var W = 600, H = 240, L = 38, R = 58, T = 14, B = 30;
+      var all = m.concat(d);
+      var lo = Math.min.apply(null, all.concat([0]));
+      var hi = Math.max.apply(null, all.concat([0]));
+      var steps = [1, 2, 5, 10, 20, 25, 50, 100];
+      var step = steps.find(function(s) { return (hi - lo) / s <= 5; }) || 100;
+      lo = Math.floor(lo / step) * step;
+      hi = Math.ceil(hi / step) * step;
+      if (hi === lo) hi = lo + step;
+
+      function x(i) { return L + i * (W - L - R) / games.length; }
+      function y(v) { return T + (hi - v) / (hi - lo) * (H - T - B); }
+
+      var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block" font-family="Inter,sans-serif">';
+
+      // Horizontal gridlines + y labels
+      for (var v = lo; v <= hi + 0.001; v += step) {
+        var zero = Math.abs(v) < 0.001;
+        svg += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="' + (zero ? '#9CA3AF' : '#F3F4F6') + '" stroke-width="1"' + (zero ? ' stroke-dasharray="4 3"' : '') + '/>';
+        svg += '<text x="' + (L - 6) + '" y="' + (y(v) + 4) + '" font-size="10" fill="#9CA3AF" text-anchor="end">' + (v > 0 ? '+' : '') + v + '</text>';
+      }
+
+      // Week labels on first game of each week
+      var weekStarts = [];
+      games.forEach(function(g, i) { if (i === 0 || g.week !== games[i - 1].week) weekStarts.push(i); });
+      var every = weekStarts.length > 12 ? 2 : 1;
+      weekStarts.forEach(function(i, n) {
+        if (n % every) return;
+        var gx = x(i + 1);
+        svg += '<line x1="' + gx + '" x2="' + gx + '" y1="' + T + '" y2="' + (H - B) + '" stroke="#F9FAFB" stroke-width="1"/>';
+        svg += '<text x="' + gx + '" y="' + (H - B + 16) + '" font-size="10" fill="#9CA3AF" text-anchor="middle">Wk ' + games[i].week + '</text>';
+      });
+
+      function line(vals, color, name) {
+        var pts = vals.map(function(v, i) { return x(i).toFixed(1) + ',' + y(v).toFixed(1); }).join(' ');
+        var out = '<polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+        vals.forEach(function(v, i) {
+          if (i === 0) return;
+          var g = games[i - 1];
+          var delta = g[name];
+          var tip = name + ' · Wk ' + g.week + ' ' + g.home + ' vs ' + g.away + ': ' + (delta >= 0 ? '+' : '') + delta + 'u (total ' + (v >= 0 ? '+' : '') + v.toFixed(1) + 'u)';
+          out += '<circle cx="' + x(i) + '" cy="' + y(v) + '" r="3.5" fill="' + color + '" stroke="white" stroke-width="1.5"><title>' + tip + '</title></circle>';
+        });
+        return out;
+      }
+      svg += line(d, '#1D4ED8', 'Danielle');
+      svg += line(m, '#DC2626', 'Maria');
+
+      // End labels, nudged apart if they'd overlap
+      var n = games.length, ym = y(m[n]), yd = y(d[n]);
+      if (Math.abs(ym - yd) < 14) {
+        var mid = (ym + yd) / 2, up = m[n] >= d[n];
+        ym = mid + (up ? -7 : 7); yd = mid + (up ? 7 : -7);
+      }
+      function fmt(v) { return (v >= 0 ? '+' : '') + v.toFixed(1); }
+      svg += '<text x="' + (x(n) + 8) + '" y="' + (ym + 4) + '" font-size="12" font-weight="700" fill="#DC2626">' + fmt(m[n]) + '</text>';
+      svg += '<text x="' + (x(n) + 8) + '" y="' + (yd + 4) + '" font-size="12" font-weight="700" fill="#1D4ED8">' + fmt(d[n]) + '</text>';
+      svg += '</svg>';
+
+      return '<hr class="divider">' +
+        '<div class="stat-label">Units Over the Season</div>' +
+        '<div style="display:flex;justify-content:center;gap:16px;font-size:12px;margin-bottom:6px">' +
+          '<span style="color:#DC2626;font-weight:600">● Maria</span>' +
+          '<span style="color:#1D4ED8;font-weight:600">● Danielle</span></div>' +
+        svg;
+    }
+
     function formatOdds(val) {
       if (!val) return '—';
       const n = parseFloat(val);
@@ -870,7 +960,8 @@
           <hr class="divider">
           ${statBlock('Units Won / Lost', mariaUnits, danielleUnits, mUnitStr, dUnitStr)}
           <hr class="divider">
-          ${statBlock('Dollars Won / Lost', mariaDollars, danielleDollars, mDolStr, dDolStr)}`;
+          ${statBlock('Dollars Won / Lost', mariaDollars, danielleDollars, mDolStr, dDolStr)}
+          ${unitsChart(rows)}`;
 
         // Live picks — show all pending games
         const liveEl = document.getElementById('live-picks');

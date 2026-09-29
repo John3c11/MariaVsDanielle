@@ -1,4 +1,4 @@
-<!-- v35 -->
+<!-- v36 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1659,39 +1659,40 @@
       el.nextElementSibling.classList.toggle('open');
     }
 
+    // bg/text match the Google Sheet (jersey style). primary = readable team color on white.
     const TEAM_COLORS = {
-      "Philadelphia Eagles":    { primary: "#004C54", secondary: "#A5ACAF", text: "#ffffff" },
-      "New York Giants":        { primary: "#0B2265", secondary: "#A71930", text: "#ffffff" },
-      "Dallas Cowboys":         { primary: "#003594", secondary: "#869397", text: "#ffffff" },
-      "Washington Commanders":  { primary: "#5A1414", secondary: "#FFB612", text: "#ffffff" },
-      "Detroit Lions":          { primary: "#0076B6", secondary: "#B0B7BC", text: "#ffffff" },
-      "Green Bay Packers":      { primary: "#203731", secondary: "#FFB612", text: "#FFB612" },
-      "Minnesota Vikings":      { primary: "#4F2683", secondary: "#FFC62F", text: "#FFC62F" },
-      "Chicago Bears":          { primary: "#0B162A", secondary: "#C83803", text: "#C83803" },
-      "Tampa Bay Buccaneers":   { primary: "#D50A0A", secondary: "#FF7900", text: "#ffffff" },
-      "Atlanta Falcons":        { primary: "#A71930", secondary: "#000000", text: "#ffffff" },
-      "Carolina Panthers":      { primary: "#0085CA", secondary: "#101820", text: "#ffffff" },
-      "New Orleans Saints":     { primary: "#D3BC8D", secondary: "#101820", text: "#101820" },
-      "Los Angeles Rams":       { primary: "#003594", secondary: "#FFA300", text: "#FFA300" },
-      "Seattle Seahawks":       { primary: "#002244", secondary: "#69BE28", text: "#69BE28" },
-      "San Francisco 49ers":    { primary: "#AA0000", secondary: "#B3995D", text: "#ffffff" },
-      "Arizona Cardinals":      { primary: "#97233F", secondary: "#000000", text: "#ffffff" },
-      "Buffalo Bills":          { primary: "#00338D", secondary: "#C60C30", text: "#ffffff" },
-      "New York Jets":          { primary: "#125740", secondary: "#000000", text: "#ffffff" },
-      "New England Patriots":   { primary: "#002244", secondary: "#C60C30", text: "#C60C30" },
-      "Miami Dolphins":         { primary: "#008E97", secondary: "#FC4C02", text: "#ffffff" },
-      "Baltimore Ravens":       { primary: "#241773", secondary: "#9E7C0C", text: "#9E7C0C" },
-      "Cincinnati Bengals":     { primary: "#FB4F14", secondary: "#000000", text: "#ffffff" },
-      "Pittsburgh Steelers":    { primary: "#101820", secondary: "#FFB612", text: "#FFB612" },
-      "Cleveland Browns":       { primary: "#311D00", secondary: "#FF3C00", text: "#FF3C00" },
-      "Indianapolis Colts":     { primary: "#003A70", secondary: "#A2AAAD", text: "#ffffff" },
-      "Jacksonville Jaguars":   { primary: "#101820", secondary: "#D7A22A", text: "#D7A22A" },
-      "Houston Texans":         { primary: "#03202F", secondary: "#A71930", text: "#A71930" },
-      "Tennessee Titans":       { primary: "#0C2340", secondary: "#4B92DB", text: "#4B92DB" },
-      "Kansas City Chiefs":     { primary: "#E31837", secondary: "#FFB81C", text: "#ffffff" },
-      "Los Angeles Chargers":   { primary: "#0080C6", secondary: "#FFC20E", text: "#ffffff" },
-      "Denver Broncos":         { primary: "#FB4F14", secondary: "#002244", text: "#ffffff" },
-      "Las Vegas Raiders":      { primary: "#000000", secondary: "#A5ACAF", text: "#A5ACAF" },
+      "Philadelphia Eagles":    { primary: "#004C54", bg: "#004C54", text: "#A5ACAF" },
+      "New York Giants":        { primary: "#0B2265", bg: "#0B2265", text: "#FFFFFF" },
+      "Dallas Cowboys":         { primary: "#041E42", bg: "#869397", text: "#041E42" },
+      "Washington Commanders":  { primary: "#5A1414", bg: "#5A1414", text: "#FFB612" },
+      "Detroit Lions":          { primary: "#0076B6", bg: "#0076B6", text: "#FFFFFF" },
+      "Green Bay Packers":      { primary: "#203731", bg: "#203731", text: "#FFB612" },
+      "Minnesota Vikings":      { primary: "#4F2683", bg: "#4F2683", text: "#FFC62F" },
+      "Chicago Bears":          { primary: "#0B162A", bg: "#0B162A", text: "#E64100" },
+      "Tampa Bay Buccaneers":   { primary: "#D50A0A", bg: "#D50A0A", text: "#FFFFFF" },
+      "Atlanta Falcons":        { primary: "#000000", bg: "#000000", text: "#E0243E" },
+      "Carolina Panthers":      { primary: "#0085CA", bg: "#0085CA", text: "#101820" },
+      "New Orleans Saints":     { primary: "#9A7B3E", bg: "#D3BC8D", text: "#101820" },
+      "Los Angeles Rams":       { primary: "#003594", bg: "#003594", text: "#FFD100" },
+      "Seattle Seahawks":       { primary: "#002244", bg: "#002244", text: "#69BE28" },
+      "San Francisco 49ers":    { primary: "#AA0000", bg: "#AA0000", text: "#E6C98A" },
+      "Arizona Cardinals":      { primary: "#97233F", bg: "#97233F", text: "#FFFFFF" },
+      "Buffalo Bills":          { primary: "#00338D", bg: "#00338D", text: "#FFFFFF" },
+      "New York Jets":          { primary: "#125740", bg: "#125740", text: "#FFFFFF" },
+      "New England Patriots":   { primary: "#002244", bg: "#002244", text: "#C60C30" },
+      "Miami Dolphins":         { primary: "#008E97", bg: "#008E97", text: "#FFFFFF" },
+      "Baltimore Ravens":       { primary: "#241773", bg: "#241773", text: "#C9A227" },
+      "Cincinnati Bengals":     { primary: "#FB4F14", bg: "#FB4F14", text: "#000000" },
+      "Pittsburgh Steelers":    { primary: "#101820", bg: "#101820", text: "#FFB612" },
+      "Cleveland Browns":       { primary: "#311D00", bg: "#311D00", text: "#FF3C00" },
+      "Indianapolis Colts":     { primary: "#002C5F", bg: "#FFFFFF", text: "#002C5F" },
+      "Jacksonville Jaguars":   { primary: "#006778", bg: "#006778", text: "#D7A22A" },
+      "Houston Texans":         { primary: "#A71930", bg: "#A71930", text: "#03202F" },
+      "Tennessee Titans":       { primary: "#0C2340", bg: "#0C2340", text: "#4B92DB" },
+      "Kansas City Chiefs":     { primary: "#E31837", bg: "#E31837", text: "#FFB81C" },
+      "Los Angeles Chargers":   { primary: "#0080C6", bg: "#0080C6", text: "#FFC20E" },
+      "Denver Broncos":         { primary: "#002244", bg: "#002244", text: "#FB4F14" },
+      "Las Vegas Raiders":      { primary: "#000000", bg: "#000000", text: "#A5ACAF" },
     };
 
     const DIVISIONS = {"NFC East": ["Philadelphia Eagles", "New York Giants", "Dallas Cowboys", "Washington Commanders"], "NFC North": ["Detroit Lions", "Green Bay Packers", "Minnesota Vikings", "Chicago Bears"], "NFC South": ["Tampa Bay Buccaneers", "Atlanta Falcons", "Carolina Panthers", "New Orleans Saints"], "NFC West": ["Los Angeles Rams", "Seattle Seahawks", "San Francisco 49ers", "Arizona Cardinals"], "AFC East": ["Buffalo Bills", "New York Jets", "New England Patriots", "Miami Dolphins"], "AFC North": ["Baltimore Ravens", "Cincinnati Bengals", "Pittsburgh Steelers", "Cleveland Browns"], "AFC South": ["Indianapolis Colts", "Jacksonville Jaguars", "Houston Texans", "Tennessee Titans"], "AFC West": ["Kansas City Chiefs", "Los Angeles Chargers", "Denver Broncos", "Las Vegas Raiders"]};
@@ -1761,7 +1762,7 @@
             if (!td) continue;
             const tc = TEAM_COLORS[teamName] || { primary: '#1C1C1E', secondary: '#6B7280', text: '#ffffff' };
             html += `<div class="team-block" style="border:1.5px solid ${tc.primary}">
-              <div class="team-header-bar" style="background:${tc.primary};color:${tc.text}">${teamName}</div>
+              <div class="team-header-bar" style="background:${tc.bg || tc.primary};color:${tc.text}">${teamName}</div>
               <div class="team-players-inner"><div class="player-list">`;
             for (const { pos, name } of td.players) {
               const isQB = pos === 'QB';

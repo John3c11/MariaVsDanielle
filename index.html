@@ -1,4 +1,4 @@
-<!-- v36 -->
+<!-- v37 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,6 +6,14 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏈</text></svg>">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Maria vs Danielle</title>
+  <script>
+    try {
+      var t = localStorage.getItem('theme');
+      if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      }
+    } catch (e) {}
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -32,6 +40,24 @@
     .tab-btn.active {
       color: #1C1C1E;
       border-bottom: 2px solid #1C1C1E;
+    }
+
+    /* Dark mode: invert the content card, then flip photos, emoji and
+       jersey-colored headers back so they keep their true colors */
+    html.dark .wrap { filter: invert(1) hue-rotate(180deg); }
+    html.dark .wrap img,
+    html.dark .wrap .emo,
+    html.dark .wrap .team-header-bar { filter: invert(1) hue-rotate(180deg); }
+    .emo { display: inline-block; }
+
+    .theme-toggle {
+      margin-left: auto;
+      font-size: 16px;
+      padding: 6px 10px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      flex-shrink: 0;
     }
 
     .tab-panel { display: none; }
@@ -561,7 +587,7 @@
       cursor: pointer;
     }
     .filter-btn.active { background: #1C1C1E; color: white; border-color: #1C1C1E; }
-    .filter-btn.maria-btn.active { background: #DC2626; border-color: #DC2626; color: #1C1C1E; }
+    .filter-btn.maria-btn.active { background: #DC2626; border-color: #DC2626; color: white; }
     .filter-btn.danielle-btn.active { background: #1D4ED8; border-color: #1D4ED8; color: white; }
     .filter-btn.win-btn.active { background: #065F46; border-color: #065F46; color: white; }
     .filter-btn.loss-btn.active { background: #991B1B; border-color: #991B1B; color: white; }
@@ -588,6 +614,7 @@
       <button class="tab-btn" onclick="switchTab('legacy')">Legacy</button>
       <button class="tab-btn" onclick="switchTab('bethistory')">Bet History</button>
       <button class="tab-btn" onclick="switchTab('rosters')">2026 Roster</button>
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode">🌙</button>
     </nav>
 
     <div id="tab-stats" class="tab-panel active">
@@ -1016,12 +1043,6 @@
         const dDolStr = (danielleDollars >= 0 ? '+' : '') + '$' + danielleDollars.toFixed(2);
         const mUnitStr = (mariaUnits >= 0 ? '+' : '') + mariaUnits.toFixed(1);
         const dUnitStr = (danielleUnits >= 0 ? '+' : '') + danielleUnits.toFixed(1);
-        function streakBadge(streak, name, color) {
-          if (!streak.count) return '';
-          const emoji = streak.type === 'win' ? '🔥' : '❄️';
-          const label = streak.type === 'win' ? 'win streak' : 'loss streak';
-          return `<span style="font-size:12px;font-weight:500;color:${color};margin-left:8px">${emoji} ${streak.count} ${label}</span>`;
-        }
         // Calculate weeks won — group by week number (col B = r[1]), only count complete weeks
         const weekWins = {};
         for (const r of rows) {
@@ -1127,106 +1148,65 @@
       }
     }
 
+
+    // ── Dark mode ────────────────────────────────────────────────────────────
+    function updateThemeIcon() {
+      var dark = document.documentElement.classList.contains('dark');
+      var b = document.getElementById('theme-toggle');
+      if (b) b.textContent = dark ? '☀️' : '🌙';
+    }
+    function toggleTheme() {
+      var dark = !document.documentElement.classList.contains('dark');
+      document.documentElement.classList.toggle('dark', dark);
+      try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
+      updateThemeIcon();
+    }
+
+    // Wrap emoji in <span class="emo"> so dark mode can keep their real colors
+    var EMOJI_RE = /(\p{Extended_Pictographic}(?:️|‍\p{Extended_Pictographic})*️?)/gu;
+    function wrapEmoji(root) {
+      if (!root) return;
+      var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+      var nodes = [];
+      while (walker.nextNode()) {
+        var n = walker.currentNode, par = n.parentNode;
+        if (!par || (par.classList && par.classList.contains('emo'))) continue;
+        if (/^(script|style|textarea|title)$/i.test(par.nodeName)) continue;
+        EMOJI_RE.lastIndex = 0;
+        if (EMOJI_RE.test(n.nodeValue)) nodes.push(n);
+      }
+      nodes.forEach(function(n) {
+        var frag = document.createDocumentFragment();
+        n.nodeValue.split(EMOJI_RE).forEach(function(part, i) {
+          if (!part) return;
+          if (i % 2 === 1) {
+            var sp = document.createElement('span');
+            sp.className = 'emo';
+            sp.textContent = part;
+            frag.appendChild(sp);
+          } else {
+            frag.appendChild(document.createTextNode(part));
+          }
+        });
+        n.parentNode.replaceChild(frag, n);
+      });
+    }
+    (function() {
+      var wrap = document.querySelector('.wrap');
+      wrapEmoji(wrap);
+      new MutationObserver(function(muts) {
+        muts.forEach(function(m) {
+          m.addedNodes.forEach(function(n) {
+            if (n.nodeType === 1) wrapEmoji(n);
+            else if (n.nodeType === 3 && n.parentNode) wrapEmoji(n.parentNode);
+          });
+        });
+      }).observe(wrap, { childList: true, subtree: true });
+      updateThemeIcon();
+    })();
+
     load();
     loadRosters();
-
-    let ALL_HISTORY_ROWS = [];
-
-    async function loadHistory() {
-      try {
-        const bets = await fetchSheet('Winnings', 'A1:R200');
-        const rows = bets.slice(1).filter(r => r[0] && r[3]);
-
-        const historyData = [];
-        for (const r of rows) {
-          const week = r[1] || '';
-          const time = r[2] || '';
-          const picker = (r[3] || '').trim();
-          const homeTeam = r[4] || '';
-          const awayTeam = r[5] || '';
-          const homePick = (r[6] || '').trim();
-          const awayPick = (r[7] || '').trim();
-          const homeOdds = r[8] || '';
-          const awayOdds = r[9] || '';
-          const correct = (r[12] || '').trim();
-          const whichSide = (r[13] || '').trim();
-          const wasOffered = (r[14] || '').trim();
-          const netUnits = parseFloat(r[15]) || 0;
-          const game = homeTeam && awayTeam ? `${homeTeam} vs ${awayTeam}` : '';
-
-          historyData.push({
-            week, time, picker, homeTeam, awayTeam, game,
-            homePick, awayPick, homeOdds, awayOdds,
-            correct, whichSide, wasOffered, netUnits,
-            searchText: `${week} ${game} ${picker} ${homePick} ${awayPick}`.toLowerCase()
-          });
-        }
-
-        ALL_HISTORY_ROWS = historyData;
-        renderHistory(historyData);
-      } catch(e) {
-        console.error(e);
-        document.getElementById('history-table').innerHTML = '<div class="loading">Error loading history.</div>';
-      }
-    }
-
-    function filterHistory() {
-      const q = document.getElementById('history-search').value.toLowerCase().trim();
-      const filtered = q ? ALL_HISTORY_ROWS.filter(r => r.searchText.includes(q)) : ALL_HISTORY_ROWS;
-      renderHistory(filtered);
-    }
-
-    function renderHistory(data) {
-      const el = document.getElementById('history-table');
-      const countEl = document.getElementById('history-count');
-      countEl.textContent = `${data.length} bet${data.length !== 1 ? 's' : ''}`;
-
-      if (data.length === 0) {
-        el.innerHTML = '<div class="loading">No results.</div>';
-        return;
-      }
-
-      const header = `<div class="history-row header">
-        <span class="h-week">Wk</span>
-        <span class="h-game">Game</span>
-        <span>Picker</span>
-        <span>Players</span>
-        <span>Odds</span>
-        <span>Result</span>
-        <span class="h-units">Units</span>
-      </div>`;
-
-      const rowsHtml = [...data].reverse().map(r => {
-        const pickerClass = r.picker.toLowerCase();
-        const resultClass = r.correct === 'Yes' ? 'win' : r.correct === 'No' ? 'loss' : 'na';
-        const resultText = r.correct === 'Yes' ? 'Win' : r.correct === 'No' ? 'Loss' : '—';
-        const notOfferedNote = r.wasOffered === 'No' ? '<div class="not-offered-note">scorer not offered</div>' : '';
-
-        const homeColored = r.homePick ? coloredText(r.homePick, r.homeTeam) : '';
-        const awayColored = r.awayPick ? coloredText(r.awayPick, r.awayTeam) : '';
-        const players = [homeColored, awayColored].filter(Boolean).join('<span style="color:#9CA3AF"> / </span>') || '—';
-        const odds = [
-          r.homePick && r.homeOdds ? '+' + Math.round(parseFloat(r.homeOdds) * 100) : '',
-          r.awayPick && r.awayOdds ? '+' + Math.round(parseFloat(r.awayOdds) * 100) : ''
-        ].filter(Boolean).join(' / ') || '—';
-
-        const unitClass = r.netUnits > 0 ? 'pos' : r.netUnits < 0 ? 'neg' : 'zero';
-        const unitStr = r.netUnits !== 0 ? (r.netUnits > 0 ? '+' : '') + r.netUnits + 'u' : '0u';
-        const gameDisplay = r.homeTeam && r.awayTeam ? coloredGame(r.homeTeam, r.awayTeam) : (r.game || '—');
-
-        return `<div class="bet-row">
-          <span class="h-week">${r.week}</span>
-          <span class="h-game">${gameDisplay}</span>
-          <span class="h-picker ${pickerClass}">${r.picker}</span>
-          <span class="h-player">${players}${notOfferedNote}</span>
-          <span class="h-odds">${odds}</span>
-          <span class="h-result ${resultClass}">${resultText}</span>
-          <span class="h-units ${unitClass}">${unitStr}u</span>
-        </div>`;
-      }).join('');
-
-      el.innerHTML = header + rowsHtml;
-    }
 
     function switchTab(name) {
       document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
@@ -1244,14 +1224,6 @@
     var BH_LOADED = false;
     var ALL_BH_BETS = [];
     var BH_FILTERS = { year: 'all', picker: 'all', result: 'all', order: 'desc' };
-
-    function setBHFilter(key, value, btn) {
-      BH_FILTERS[key] = value;
-      var group = btn.parentElement;
-      group.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      filterBHHistory();
-    }
 
     function filterBHHistory() {
       var q = document.getElementById('bh-search') ? document.getElementById('bh-search').value.toLowerCase().trim() : '';
@@ -1399,28 +1371,6 @@
     }
 
     var ALL_LEGACY_BETS = [];
-    var LEGACY_FILTERS = { year: 'all', picker: 'all', result: 'all' };
-
-    function setLegacyFilter(key, value, btn) {
-      LEGACY_FILTERS[key] = value;
-      var group = btn.parentElement;
-      group.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      filterLegacyHistory();
-    }
-
-    function filterLegacyHistory() {
-      var q = document.getElementById('legacy-search') ? document.getElementById('legacy-search').value.toLowerCase().trim() : '';
-      var filtered = ALL_LEGACY_BETS.filter(function(b) {
-        if (q && !b.searchText.includes(q)) return false;
-        if (LEGACY_FILTERS.year !== 'all' && b.year !== LEGACY_FILTERS.year) return false;
-        if (LEGACY_FILTERS.picker !== 'all' && b.picker !== LEGACY_FILTERS.picker) return false;
-        if (LEGACY_FILTERS.result !== 'all' && b.correct !== LEGACY_FILTERS.result) return false;
-        return true;
-      });
-      renderLegacyHistory(filtered);
-    }
-
     function fetchLegacySeason(season) {
       var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + season.sheetId +
         '/values/' + encodeURIComponent(season.tab + '!A1:R200') + '?key=' + API_KEY;
@@ -1546,50 +1496,6 @@
         '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px"><span style="font-size:20px;font-weight:700;color:#DC2626">' + mVal + '</span><span style="font-size:11px;color:#9CA3AF">Maria</span></div>' +
         '<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:20px;font-weight:700;color:#1D4ED8">' + dVal + '</span><span style="font-size:11px;color:#9CA3AF">Danielle</span></div>' +
         '</div>';
-    }
-
-    function legacyFunRow(label, val, cls) {
-      var color = cls === 'maria' ? '#DC2626' : cls === 'danielle' ? '#1D4ED8' : cls === 'red' ? '#DC2626' : '#1C1C1E';
-      return '<div style="display:flex;justify-content:space-between;padding:11px 0;border-bottom:0.5px solid #F3F4F6;font-size:13px;gap:16px">' +
-        '<span style="color:#6B7280;max-width:220px">' + label + '</span>' +
-        '<span style="font-weight:600;text-align:right;color:' + color + '">' + val + '</span></div>';
-    }
-
-    function renderLegacyHistory(bets) {
-      var el = document.getElementById('legacy-history-table');
-      var countEl = document.getElementById('legacy-hist-count');
-      if (countEl) countEl.textContent = bets.length + ' bet' + (bets.length !== 1 ? 's' : '');
-      if (!el) return;
-
-      var header = '<div class="bh-head" style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 60px 50px;gap:8px;padding-bottom:8px;border-bottom:0.5px solid #F3F4F6;font-size:10px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em">' +
-        '<span>Year</span><span>Wk</span><span>Game</span><span>Picker</span><span>Players</span><span>Odds</span><span>Result</span><span>Units</span></div>';
-
-      var rows = bets.map(function(b) {
-        var resultClass = b.correct === 'Yes' ? 'win' : b.correct === 'No' ? 'loss' : 'na';
-        var resultText = b.correct === 'Yes' ? 'Win' : b.correct === 'No' ? 'Loss' : '—';
-        var pickerColor = b.picker === 'Maria' ? '#DC2626' : '#1D4ED8';
-        var unitClass = b.netUnits > 0 ? '#065F46' : b.netUnits < 0 ? '#DC2626' : '#9CA3AF';
-        var unitStr = b.netUnits !== 0 ? (b.netUnits > 0 ? '+' : '') + b.netUnits + 'u' : '0u';
-        var notOffered = b.wasOffered === 'No' ? '<div style="font-size:10px;color:#9CA3AF;font-style:italic">scorer not offered</div>' : '';
-        var homeColored = b.homePick ? legacyColoredText(b.homePick, b.homeTeam) : '';
-        var awayColored = b.awayPick ? legacyColoredText(b.awayPick, b.awayTeam) : '';
-        var players = [homeColored, awayColored].filter(Boolean).join('<span style="color:#9CA3AF"> / </span>') || '—';
-        var gameDisplay = b.homeTeam && b.awayTeam ? legacyColoredGame(b.homeTeam, b.awayTeam) : (b.game || '—');
-        var resultBg = b.correct === 'Yes' ? '#D1FAE5' : b.correct === 'No' ? '#FEE2E2' : '#F3F4F6';
-        var resultColor = b.correct === 'Yes' ? '#065F46' : b.correct === 'No' ? '#991B1B' : '#9CA3AF';
-        return '<div class="bh-row" style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 60px 50px;gap:8px;padding:10px 0;border-bottom:0.5px solid #F3F4F6;font-size:12px;align-items:start">' +
-          '<span style="font-size:11px;font-weight:600;color:' + (b.year === '2026' ? '#1D4ED8' : '#065F46') + '">' + b.year + '</span>' +
-          '<span style="color:#9CA3AF;text-align:center">' + b.week + '</span>' +
-          '<span style="font-weight:500">' + gameDisplay + '</span>' +
-          '<span style="font-weight:500;color:' + pickerColor + '">' + b.picker + '</span>' +
-          '<span>' + players + notOffered + '</span>' +
-          '<span style="color:#6B7280">' + b.odds + '</span>' +
-          '<span style="font-size:11px;font-weight:500;padding:2px 6px;border-radius:4px;text-align:center;background:' + resultBg + ';color:' + resultColor + '">' + resultText + '</span>' +
-          '<span style="text-align:right;font-weight:500;color:' + unitClass + '">' + unitStr + '</span>' +
-          '</div>';
-      }).join('');
-
-      el.innerHTML = bets.length === 0 ? '<div style="color:#9CA3AF;text-align:center;padding:32px">No results.</div>' : header + rows;
     }
 
     function loadLegacyTab() {
@@ -1815,8 +1721,10 @@
           const data = await res.json();
           return (data.values || []).slice(1).filter(function(r) {
             return r[0] && r[3] && r[3].trim() && r[3].trim() !== "John";
-          }).map(function(r) {
+          }).map(function(r, i) {
             return {
+              idx: i,
+              game: (r[0] || '').toString().trim(),
               year: s.year,
               week: parseInt(r[1]) || 0,
               picker: (r[3] || "").trim(),
@@ -1935,6 +1843,112 @@
         }
 
         // ── Streaks ───────────────────────────────────────────────────────────
+        // ── Jinx Tracker ──────────────────────────────────────────────────────
+        html += section("Jinx Tracker");
+        html += '<div style="font-size:12px;color:#6B7280;margin-bottom:12px">A <b>jinx</b> is when someone picks a player, skips him the next time his team comes up, and he scores the first TD. <b>Loyalty</b> is how often they stick with a player when his team comes back around.</div>';
+
+        // Build games in chronological order (2025 before 2026, sheet order within a year)
+        var chrono = rows.slice().sort(function(a, b) {
+          return a.year !== b.year ? parseInt(a.year) - parseInt(b.year) : a.idx - b.idx;
+        });
+        var jGames = [], jIdx = {};
+        chrono.forEach(function(r) {
+          if (r.picker !== 'Maria' && r.picker !== 'Danielle') return;
+          var k = r.year + '_' + r.week + '_' + r.game + '_' + r.homeTeam + '_' + r.awayTeam;
+          if (!(k in jIdx)) {
+            jIdx[k] = jGames.length;
+            jGames.push({ year: r.year, week: r.week, home: resolveTeam(r.homeTeam), away: resolveTeam(r.awayTeam),
+              homeRaw: r.homeTeam, awayRaw: r.awayTeam, scorer: '', rows: {} });
+          }
+          var g = jGames[jIdx[k]];
+          g.rows[r.picker] = r;
+          if (r.firstScorer) g.scorer = r.firstScorer;
+        });
+
+        var tracking = { Maria: {}, Danielle: {} }; // player -> where they were last picked
+        var jinxes = { Maria: [], Danielle: [] };
+        var loyalty = { Maria: { kept: 0, dropped: 0 }, Danielle: { kept: 0, dropped: 0 } };
+
+        jGames.forEach(function(g) {
+          if (!g.scorer) return; // unscored games don't count yet
+          // 1) Check players each person was tracking whose team is in this game
+          ['Maria', 'Danielle'].forEach(function(p) {
+            var mine = g.rows[p];
+            if (!mine || (!mine.homePick && !mine.awayPick)) return;
+            var picks = [mine.homePick, mine.awayPick];
+            Object.keys(tracking[p]).forEach(function(player) {
+              var t = tracking[p][player];
+              if (t.team !== g.home && t.team !== g.away) return;
+              delete tracking[p][player]; // only the next appearance counts
+              if (picks.indexOf(player) !== -1) { loyalty[p].kept++; return; }
+              loyalty[p].dropped++;
+              if (g.scorer === player) {
+                var other = p === 'Maria' ? 'Danielle' : 'Maria';
+                var o = g.rows[other], cashed = null;
+                if (o && o.correct === 'Yes' && (o.homePick === player || o.awayPick === player)) {
+                  cashed = { units: o.netUnits, odds: o.homePick === player ? o.homeOdds : o.awayOdds };
+                }
+                jinxes[p].push({ picker: p, other: other, player: player, team: t.rawTeam,
+                  fromYear: t.year, fromWeek: t.week, year: g.year, week: g.week, cashed: cashed });
+              }
+            });
+          });
+          // 2) Start tracking this game's picks
+          ['Maria', 'Danielle'].forEach(function(p) {
+            var mine = g.rows[p];
+            if (!mine) return;
+            if (mine.homePick) tracking[p][mine.homePick] = { team: g.home, rawTeam: g.homeRaw, year: g.year, week: g.week };
+            if (mine.awayPick) tracking[p][mine.awayPick] = { team: g.away, rawTeam: g.awayRaw, year: g.year, week: g.week };
+          });
+        });
+
+        function loyaltyStr(p) {
+          var L = loyalty[p], total = L.kept + L.dropped;
+          return total ? pct(L.kept, total) + ' (' + L.kept + '/' + total + ')' : '—';
+        }
+        html += twoCol(
+          personCard("Maria", statRow("Jinxes", jinxes.Maria.length) + statRow("Loyalty", loyaltyStr("Maria"))),
+          personCard("Danielle", statRow("Jinxes", jinxes.Danielle.length) + statRow("Loyalty", loyaltyStr("Danielle")))
+        );
+
+        function jinxSentence(j) {
+          var pColor = j.picker === 'Maria' ? '#DC2626' : '#1D4ED8';
+          var oColor = j.other === 'Maria' ? '#DC2626' : '#1D4ED8';
+          var from = (j.fromYear !== j.year ? j.fromYear + ' ' : '') + 'Wk ' + j.fromWeek;
+          var to = (j.fromYear !== j.year ? j.year + ' ' : '') + 'Wk ' + j.week;
+          var txt = '<span style="color:' + pColor + ';font-weight:600">' + j.picker + '</span> dropped ' +
+            legacyColoredText(j.player, j.team) + ' after ' + from + '. He scored first in ' + to + '.';
+          if (j.cashed) {
+            txt += ' And <span style="color:' + oColor + ';font-weight:600">' + j.other + '</span> cashed him' +
+              (j.cashed.odds ? ' at ' + formatOdds(j.cashed.odds) : '') +
+              ' (' + (j.cashed.units >= 0 ? '+' : '') + j.cashed.units + 'u).';
+          }
+          return txt;
+        }
+
+        var allJinx = jinxes.Maria.concat(jinxes.Danielle);
+        var worst = allJinx.filter(function(j) { return j.cashed; })
+          .sort(function(a, b) { return b.cashed.units - a.cashed.units; })[0];
+        if (worst) {
+          html += '<div style="background:#FEF3C7;border-radius:10px;padding:14px 16px;margin:8px 0 12px">' +
+            '<div style="font-size:11px;font-weight:600;color:#92400E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Worst Jinx</div>' +
+            '<div style="font-size:13px;color:#374151;line-height:1.6">' + jinxSentence(worst) + '</div></div>';
+        }
+
+        allJinx.sort(function(a, b) {
+          if (a.year !== b.year) return parseInt(b.year) - parseInt(a.year);
+          return b.week - a.week;
+        });
+        if (!allJinx.length) {
+          html += '<div style="color:#9CA3AF;font-size:13px;text-align:center;padding:12px">No jinxes yet.</div>';
+        } else {
+          html += '<div style="margin-bottom:8px">';
+          allJinx.forEach(function(j) {
+            html += '<div style="padding:10px 0;border-bottom:0.5px solid #F3F4F6;font-size:13px;color:#374151;line-height:1.5">' + jinxSentence(j) + '</div>';
+          });
+          html += '</div>';
+        }
+
         html += section("Streaks");
         function isNotOffered(r) { return r.wasOffered === "No" && r.netUnits === 0 && r.firstScorer !== ""; }
         function streaks(personRows) {

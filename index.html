@@ -1,4 +1,4 @@
-<!-- v29 -->
+<!-- v30 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2110,45 +2110,77 @@
 
         // ── TD Scorers ──────────────────────────────────────────────────────────
         html += section("TD Scorer Leaderboard");
-        html += '<div style="font-size:12px;color:#6B7280;margin-bottom:12px">Every player who has scored a first TD in a game this season, how many times they've done it, and whether Maria or Danielle ever picked them.</div>';
+        html += '<div style="font-size:12px;color:#6B7280;margin-bottom:12px">Every player who has scored a first TD this season. <b>Picked</b> = how many of those TDs someone actually had them picked for that game.</div>';
 
-        // Build scorer map: name → { count, pickedBy: Set }
+        // Build scorer map: name → { total, picked, pickedBy: Set }
+        // "picked" = times they scored AND were picked by Maria or Danielle in that same game
         var tdMap = {};
-        rows.forEach(function(r) {
-          var scorer = (r.firstScorer || '').trim();
-          if (!scorer) return;
-          if (!tdMap[scorer]) tdMap[scorer] = { count: 0, pickedBy: new Set() };
-          tdMap[scorer].count++;
-          // Check if this player was ever picked by Maria or Danielle (in any row, not just this game)
-        });
-        // Second pass: mark who picked them
+        // Group rows by game so we can check if scorer was picked in that specific game
+        var gamePickMap = {}; // gameKey → { Maria: pick, Danielle: pick }
         rows.forEach(function(r) {
           var picker = (r.picker || '').trim();
           if (picker !== 'Maria' && picker !== 'Danielle') return;
-          [r.homePick, r.awayPick].forEach(function(pick) {
-            var p = (pick || '').trim();
-            if (p && tdMap[p]) tdMap[p].pickedBy.add(picker);
+          var gameKey = (r.game || r.homeTeam || '') + '_' + (r.week || '') + '_' + (r.homeTeam || '') + '_' + (r.awayTeam || '');
+          if (!gamePickMap[gameKey]) gamePickMap[gameKey] = {};
+          gamePickMap[gameKey][picker] = { home: (r.homePick || '').trim(), away: (r.awayPick || '').trim() };
+        });
+
+        rows.forEach(function(r) {
+          var scorer = (r.firstScorer || '').trim();
+          if (!scorer) return;
+          // Only count rows that have a scorer result (avoid duplicate game rows)
+          var picker = (r.picker || '').trim();
+          // Use a unique game key to deduplicate — one entry per game
+          var gameKey = (r.game || r.homeTeam || '') + '_' + (r.week || '') + '_' + (r.homeTeam || '') + '_' + (r.awayTeam || '');
+          if (!tdMap[scorer]) tdMap[scorer] = { total: 0, picked: 0, pickedBy: new Set(), seenGames: new Set() };
+          if (tdMap[scorer].seenGames.has(gameKey)) return; // already counted this game
+          tdMap[scorer].seenGames.add(gameKey);
+          tdMap[scorer].total++;
+          // Was this scorer picked by anyone for this specific game?
+          var gamePicks = gamePickMap[gameKey] || {};
+          ['Maria', 'Danielle'].forEach(function(person) {
+            var picks = gamePicks[person];
+            if (!picks) return;
+            if (picks.home === scorer || picks.away === scorer) {
+              tdMap[scorer].pickedBy.add(person);
+              // Only count as a "picked TD" once per game even if both picked them
+              tdMap[scorer]._pickedThisGame = true;
+            }
           });
+          if (tdMap[scorer]._pickedThisGame) {
+            tdMap[scorer].picked++;
+            delete tdMap[scorer]._pickedThisGame;
+          }
         });
 
         var tdArr = Object.entries(tdMap)
-          .sort(function(a, b) { return b[1].count - a[1].count || a[0].localeCompare(b[0]); });
+          .sort(function(a, b) { return b[1].total - a[1].total || a[0].localeCompare(b[0]); });
 
         if (tdArr.length === 0) {
           html += '<div style="color:#9CA3AF;font-size:13px;text-align:center;padding:16px">No TD scorers recorded yet.</div>';
         } else {
           html += '<div style="background:#F9FAFB;border-radius:10px;padding:8px 12px">';
-          html += '<div style="display:grid;grid-template-columns:1fr 40px 80px;gap:8px;padding:8px 0 4px;border-bottom:1px solid #E5E7EB">';
+          html += '<div style="display:grid;grid-template-columns:1fr 90px 80px;gap:8px;padding:8px 0 4px;border-bottom:1px solid #E5E7EB">';
           html += '<span style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Player</span>';
-          html += '<span style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">TDs</span>';
+          html += '<span style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">TDs (picked)</span>';
           html += '<span style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Picked By</span>';
           html += '</div>';
           tdArr.forEach(function(entry, i) {
-            var name = entry[0];
+            var pName = entry[0];
             var data = entry[1];
             var pickedBy = data.pickedBy;
             var border = i < tdArr.length - 1 ? 'border-bottom:0.5px solid #F3F4F6' : '';
-            // Picked-by tag(s)
+            // TD count display: "3 (2 picked)" or just "2" if all were picked or none were
+            var tdDisplay;
+            if (data.picked === 0) {
+              tdDisplay = '<span style="font-size:14px;font-weight:700;color:#374151">' + data.total + '</span>';
+            } else if (data.picked === data.total) {
+              tdDisplay = '<span style="font-size:14px;font-weight:700;color:#374151">' + data.total + '</span>';
+            } else {
+              tdDisplay = '<span style="font-size:14px;font-weight:700;color:#374151">' + data.total + '</span>' +
+                          '<span style="font-size:11px;color:#9CA3AF;margin-left:3px">(' + data.picked + ' picked)</span>';
+            }
+            // Picked-by tag
             var tagHtml = '';
             if (pickedBy.has('Maria') && pickedBy.has('Danielle')) {
               tagHtml = '<span style="font-size:10px;font-weight:600;color:#6B21A8;background:#EDE9FE;border-radius:4px;padding:2px 6px">Both</span>';
@@ -2159,9 +2191,9 @@
             } else {
               tagHtml = '<span style="font-size:10px;color:#9CA3AF">—</span>';
             }
-            html += '<div style="display:grid;grid-template-columns:1fr 40px 80px;gap:8px;padding:9px 0;' + border + ';align-items:center">';
-            html += '<span style="font-size:13px;font-weight:600;color:#1C1C1E">' + name + '</span>';
-            html += '<span style="text-align:center;font-size:14px;font-weight:700;color:#374151">' + data.count + '</span>';
+            html += '<div style="display:grid;grid-template-columns:1fr 90px 80px;gap:8px;padding:9px 0;' + border + ';align-items:center">';
+            html += '<span style="font-size:13px;font-weight:600;color:#1C1C1E">' + pName + '</span>';
+            html += '<span style="text-align:center">' + tdDisplay + '</span>';
             html += '<span style="text-align:center">' + tagHtml + '</span>';
             html += '</div>';
           });

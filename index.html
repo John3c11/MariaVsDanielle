@@ -1,4 +1,4 @@
-<!-- v27 -->
+<!-- v29 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1698,6 +1698,15 @@
           html += podium(name + "'s Most Picked Players", top);
         });
 
+        // Combined most picked players (both together)
+        var combinedPickCount = {};
+        rows.filter(function(r){return r.picker==="Maria"||r.picker==="Danielle";}).forEach(function(r) {
+          if (r.homePick) combinedPickCount[r.homePick] = (combinedPickCount[r.homePick] || 0) + 1;
+          if (r.awayPick) combinedPickCount[r.awayPick] = (combinedPickCount[r.awayPick] || 0) + 1;
+        });
+        var combinedTop = Object.entries(combinedPickCount).sort(function(a,b){return b[1]-a[1];}).map(function(e){return {name:e[0],count:e[1]+"x"};});
+        html += podium("Most Picked Overall (Both)", combinedTop);
+
         // Most picked player who never scored
         ["Maria", "Danielle"].forEach(function(name) {
           var pickCount = {};
@@ -1785,6 +1794,79 @@
           var yrBets = scored.filter(function(r){return r.year===yr;});
           html += pickCard(getBestPick(yrBets), yr + " Season");
         });
+
+        // ── Performance: Home vs Away ─────────────────────────────────────────
+        html += section("Home vs Away Pick Accuracy");
+        function homeAwayStats(personRows) {
+          var home = { wins: 0, total: 0 }, away = { wins: 0, total: 0 };
+          personRows.forEach(function(r) {
+            if (r.homePick) { home.total++; if (r.correct === "Yes" && r.homePick === r.firstScorer) home.wins++; }
+            if (r.awayPick) { away.total++; if (r.correct === "Yes" && r.awayPick === r.firstScorer) away.wins++; }
+          });
+          // fallback: if can't determine which pick won, count overall correct
+          if (home.wins === 0 && away.wins === 0) {
+            personRows.forEach(function(r) {
+              if (r.homePick) { home.total++; }
+              if (r.awayPick) { away.total++; }
+              if (r.correct === "Yes") { if (r.homePick) home.wins += 0.5; if (r.awayPick) away.wins += 0.5; }
+            });
+          }
+          return '<div>' +
+            statRow("Home picks", pct(Math.round(home.wins), home.total) + " (" + Math.round(home.wins) + "/" + home.total + ")") +
+            statRow("Away picks", pct(Math.round(away.wins), away.total) + " (" + Math.round(away.wins) + "/" + away.total + ")") +
+          '</div>';
+        }
+        html += twoCol(
+          personCard("Maria", homeAwayStats(scored.filter(function(r){return r.picker==="Maria";}))),
+          personCard("Danielle", homeAwayStats(scored.filter(function(r){return r.picker==="Danielle";})))
+        );
+
+        // ── Best Stretch & Biggest Wins (from all-time data) ───────────────────
+        html += section("Best Stretches & Biggest Wins");
+        html += '<div style="margin-bottom:16px">';
+
+        // Best 10-game stretch by money
+        function bestStretchAll(betsArr) {
+          var best = { dollars: -Infinity, label: 'No profitable stretch yet' };
+          for (var i = 0; i < betsArr.length; i++) {
+            for (var j = i+1; j <= Math.min(i+10, betsArr.length); j++) {
+              var w = betsArr.slice(i,j);
+              var wins = w.filter(function(b){return b.correct==="Yes";}).length;
+              var u = w.reduce(function(a,b){return a+b.netUnits;},0);
+              var d = w.reduce(function(a,b){return a+b.netDollars;},0);
+              if (d > best.dollars) best = { wins:wins, total:w.length, units:u, dollars:d,
+                label: '$'+d.toFixed(2)+' (+'+u.toFixed(1)+'u) — '+wins+'/'+w.length+' correct' };
+            }
+          }
+          return best;
+        }
+
+        var mStretchAll = bestStretchAll(rows.filter(function(r){return r.picker==="Maria" && (r.correct==="Yes"||r.correct==="No");}));
+        var dStretchAll = bestStretchAll(rows.filter(function(r){return r.picker==="Danielle" && (r.correct==="Yes"||r.correct==="No");}));
+        if (mStretchAll.dollars > -Infinity) html += legFun("Maria's best 10-game stretch", mStretchAll.label, 'maria');
+        if (dStretchAll.dollars > -Infinity) html += legFun("Danielle's best 10-game stretch", dStretchAll.label, 'danielle');
+
+        // Biggest wins all-time
+        var mBigWin = null, dBigWin = null;
+        rows.filter(function(r){return r.correct==="Yes";}).forEach(function(r) {
+          if (r.picker==="Maria" && (!mBigWin || r.netUnits > mBigWin.netUnits)) mBigWin = r;
+          if (r.picker==="Danielle" && (!dBigWin || r.netUnits > dBigWin.netUnits)) dBigWin = r;
+        });
+        if (mBigWin) html += legFun("Maria's biggest win ever", '+'+mBigWin.netUnits+'u ($'+mBigWin.netDollars+') — Wk '+mBigWin.week+' '+mBigWin.year, 'maria');
+        if (dBigWin) html += legFun("Danielle's biggest win ever", '+'+dBigWin.netUnits+'u ($'+dBigWin.netDollars+') — Wk '+dBigWin.week+' '+dBigWin.year, 'danielle');
+
+        // Most scored first TD (correctly guessed)
+        var csc = {};
+        rows.forEach(function(r){ if (r.firstScorer && r.correct==="Yes") csc[r.firstScorer]=(csc[r.firstScorer]||0)+1; });
+        var cscArr = Object.keys(csc).map(function(n){return {name:n,count:csc[n]};}).sort(function(a,b){return b.count-a.count;});
+        if (cscArr.length > 0) {
+          var topC = cscArr[0].count;
+          var tied = cscArr.filter(function(s){return s.count===topC;});
+          var cVal = topC<=1 ? 'Tied at 1 — '+tied.map(function(s){return s.name;}).join(', ') : tied.map(function(s){return s.name;}).join(', ')+' ('+topC+'x)';
+          html += legFun('Most scored first TD (correctly guessed)', cVal, '');
+        }
+
+        html += '</div>';
 
         // ── Game Type Breakdown ──────────────────────────────────────────────
         html += section("Correct Picks by Game Type");
@@ -1926,32 +2008,6 @@
           html += statRow("Worst week", "Week " + worstWeek + " — " + pct(weekData[worstWeek].wins, weekData[worstWeek].total));
         }
 
-        // ── Performance: Home vs Away ─────────────────────────────────────────
-        html += section("Home vs Away Pick Accuracy");
-        function homeAwayStats(personRows) {
-          var home = { wins: 0, total: 0 }, away = { wins: 0, total: 0 };
-          personRows.forEach(function(r) {
-            if (r.homePick) { home.total++; if (r.correct === "Yes" && r.homePick === r.firstScorer) home.wins++; }
-            if (r.awayPick) { away.total++; if (r.correct === "Yes" && r.awayPick === r.firstScorer) away.wins++; }
-          });
-          // fallback: if can't determine which pick won, count overall correct
-          if (home.wins === 0 && away.wins === 0) {
-            personRows.forEach(function(r) {
-              if (r.homePick) { home.total++; }
-              if (r.awayPick) { away.total++; }
-              if (r.correct === "Yes") { if (r.homePick) home.wins += 0.5; if (r.awayPick) away.wins += 0.5; }
-            });
-          }
-          return '<div>' +
-            statRow("Home picks", pct(Math.round(home.wins), home.total) + " (" + Math.round(home.wins) + "/" + home.total + ")") +
-            statRow("Away picks", pct(Math.round(away.wins), away.total) + " (" + Math.round(away.wins) + "/" + away.total + ")") +
-          '</div>';
-        }
-        html += twoCol(
-          personCard("Maria", homeAwayStats(scored.filter(function(r){return r.picker==="Maria";}))),
-          personCard("Danielle", homeAwayStats(scored.filter(function(r){return r.picker==="Danielle";})))
-        );
-
         // ── Performance: Win rate by odds range ───────────────────────────────
         html += section("Win Rate by Odds Range");
         var oddsRanges = [
@@ -1969,53 +2025,6 @@
           var wins = rangeRows.filter(function(r){return r.correct==="Yes";}).length;
           html += statRow(range.label, pct(wins, rangeRows.length) + " (" + wins + "/" + rangeRows.length + ")");
         });
-        html += '</div>';
-
-        // ── Best Stretch & Biggest Wins (from all-time data) ───────────────────
-        html += section("Best Stretches & Biggest Wins");
-        html += '<div style="margin-bottom:16px">';
-
-        // Best 10-game stretch by money
-        function bestStretchAll(betsArr) {
-          var best = { dollars: -Infinity, label: 'No profitable stretch yet' };
-          for (var i = 0; i < betsArr.length; i++) {
-            for (var j = i+1; j <= Math.min(i+10, betsArr.length); j++) {
-              var w = betsArr.slice(i,j);
-              var wins = w.filter(function(b){return b.correct==="Yes";}).length;
-              var u = w.reduce(function(a,b){return a+b.netUnits;},0);
-              var d = w.reduce(function(a,b){return a+b.netDollars;},0);
-              if (d > best.dollars) best = { wins:wins, total:w.length, units:u, dollars:d,
-                label: '$'+d.toFixed(2)+' (+'+u.toFixed(1)+'u) — '+wins+'/'+w.length+' correct' };
-            }
-          }
-          return best;
-        }
-
-        var mStretchAll = bestStretchAll(rows.filter(function(r){return r.picker==="Maria" && (r.correct==="Yes"||r.correct==="No");}));
-        var dStretchAll = bestStretchAll(rows.filter(function(r){return r.picker==="Danielle" && (r.correct==="Yes"||r.correct==="No");}));
-        if (mStretchAll.dollars > -Infinity) html += legFun("Maria's best 10-game stretch", mStretchAll.label, 'maria');
-        if (dStretchAll.dollars > -Infinity) html += legFun("Danielle's best 10-game stretch", dStretchAll.label, 'danielle');
-
-        // Biggest wins all-time
-        var mBigWin = null, dBigWin = null;
-        rows.filter(function(r){return r.correct==="Yes";}).forEach(function(r) {
-          if (r.picker==="Maria" && (!mBigWin || r.netUnits > mBigWin.netUnits)) mBigWin = r;
-          if (r.picker==="Danielle" && (!dBigWin || r.netUnits > dBigWin.netUnits)) dBigWin = r;
-        });
-        if (mBigWin) html += legFun("Maria's biggest win ever", '+'+mBigWin.netUnits+'u ($'+mBigWin.netDollars+') — Wk '+mBigWin.week+' '+mBigWin.year, 'maria');
-        if (dBigWin) html += legFun("Danielle's biggest win ever", '+'+dBigWin.netUnits+'u ($'+dBigWin.netDollars+') — Wk '+dBigWin.week+' '+dBigWin.year, 'danielle');
-
-        // Most scored first TD (correctly guessed)
-        var csc = {};
-        rows.forEach(function(r){ if (r.firstScorer && r.correct==="Yes") csc[r.firstScorer]=(csc[r.firstScorer]||0)+1; });
-        var cscArr = Object.keys(csc).map(function(n){return {name:n,count:csc[n]};}).sort(function(a,b){return b.count-a.count;});
-        if (cscArr.length > 0) {
-          var topC = cscArr[0].count;
-          var tied = cscArr.filter(function(s){return s.count===topC;});
-          var cVal = topC<=1 ? 'Tied at 1 — '+tied.map(function(s){return s.name;}).join(', ') : tied.map(function(s){return s.name;}).join(', ')+' ('+topC+'x)';
-          html += legFun('Most scored first TD (correctly guessed)', cVal, '');
-        }
-
         html += '</div>';
 
         // ── Season Comparison ────────────────────────────────────────────────
@@ -2098,6 +2107,66 @@
         });
         html += '</table></div>';
         html += '<div style="font-size:11px;color:#9CA3AF;margin-top:8px">Score rate = times a correctly-guessed player from that team scored ÷ times any player from that team was picked.</div>';
+
+        // ── TD Scorers ──────────────────────────────────────────────────────────
+        html += section("TD Scorer Leaderboard");
+        html += '<div style="font-size:12px;color:#6B7280;margin-bottom:12px">Every player who has scored a first TD in a game this season, how many times they've done it, and whether Maria or Danielle ever picked them.</div>';
+
+        // Build scorer map: name → { count, pickedBy: Set }
+        var tdMap = {};
+        rows.forEach(function(r) {
+          var scorer = (r.firstScorer || '').trim();
+          if (!scorer) return;
+          if (!tdMap[scorer]) tdMap[scorer] = { count: 0, pickedBy: new Set() };
+          tdMap[scorer].count++;
+          // Check if this player was ever picked by Maria or Danielle (in any row, not just this game)
+        });
+        // Second pass: mark who picked them
+        rows.forEach(function(r) {
+          var picker = (r.picker || '').trim();
+          if (picker !== 'Maria' && picker !== 'Danielle') return;
+          [r.homePick, r.awayPick].forEach(function(pick) {
+            var p = (pick || '').trim();
+            if (p && tdMap[p]) tdMap[p].pickedBy.add(picker);
+          });
+        });
+
+        var tdArr = Object.entries(tdMap)
+          .sort(function(a, b) { return b[1].count - a[1].count || a[0].localeCompare(b[0]); });
+
+        if (tdArr.length === 0) {
+          html += '<div style="color:#9CA3AF;font-size:13px;text-align:center;padding:16px">No TD scorers recorded yet.</div>';
+        } else {
+          html += '<div style="background:#F9FAFB;border-radius:10px;padding:8px 12px">';
+          html += '<div style="display:grid;grid-template-columns:1fr 40px 80px;gap:8px;padding:8px 0 4px;border-bottom:1px solid #E5E7EB">';
+          html += '<span style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Player</span>';
+          html += '<span style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">TDs</span>';
+          html += '<span style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Picked By</span>';
+          html += '</div>';
+          tdArr.forEach(function(entry, i) {
+            var name = entry[0];
+            var data = entry[1];
+            var pickedBy = data.pickedBy;
+            var border = i < tdArr.length - 1 ? 'border-bottom:0.5px solid #F3F4F6' : '';
+            // Picked-by tag(s)
+            var tagHtml = '';
+            if (pickedBy.has('Maria') && pickedBy.has('Danielle')) {
+              tagHtml = '<span style="font-size:10px;font-weight:600;color:#6B21A8;background:#EDE9FE;border-radius:4px;padding:2px 6px">Both</span>';
+            } else if (pickedBy.has('Maria')) {
+              tagHtml = '<span style="font-size:10px;font-weight:600;color:#DC2626;background:#FEE2E2;border-radius:4px;padding:2px 6px">Maria</span>';
+            } else if (pickedBy.has('Danielle')) {
+              tagHtml = '<span style="font-size:10px;font-weight:600;color:#1D4ED8;background:#DBEAFE;border-radius:4px;padding:2px 6px">Danielle</span>';
+            } else {
+              tagHtml = '<span style="font-size:10px;color:#9CA3AF">—</span>';
+            }
+            html += '<div style="display:grid;grid-template-columns:1fr 40px 80px;gap:8px;padding:9px 0;' + border + ';align-items:center">';
+            html += '<span style="font-size:13px;font-weight:600;color:#1C1C1E">' + name + '</span>';
+            html += '<span style="text-align:center;font-size:14px;font-weight:700;color:#374151">' + data.count + '</span>';
+            html += '<span style="text-align:center">' + tagHtml + '</span>';
+            html += '</div>';
+          });
+          html += '</div>';
+        }
 
                 document.getElementById("analytics-content").innerHTML = html;
       } catch(e) {

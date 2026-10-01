@@ -1,4 +1,4 @@
-<!-- v59 -->
+<!-- v60 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1093,6 +1093,42 @@
   <script>
     const API_KEY = CONFIG.API_KEY;
 
+    // ── Google Sheets request sharing ───────────────────────────────────────
+    // Google allows about 60 reads a minute. Many tabs read the same sheet, so identical
+    // requests made within 30 seconds share one answer, and a "too many requests" reply
+    // is retried after a short wait instead of failing.
+    (function() {
+      var realFetch = window.fetch.bind(window);
+      var memo = {};
+      var TTL = 30000;
+      function getWithRetry(url, n) {
+        return realFetch(url).then(function(res) {
+          if (res.status === 429 && n < 4) {
+            return new Promise(function(r) { setTimeout(r, [2000, 5000, 10000, 20000][n]); })
+              .then(function() { return getWithRetry(url, n + 1); });
+          }
+          return res.text().then(function(body) { return { status: res.status, body: body }; });
+        });
+      }
+      function toResponse(x) {
+        return new Response(x.body, { status: x.status, headers: { 'Content-Type': 'application/json' } });
+      }
+      window.fetch = function(input, init) {
+        var url = typeof input === 'string' ? input : (input && input.url) || '';
+        if (url.indexOf('sheets.googleapis.com') < 0 || (init && init.method && init.method !== 'GET')) return realFetch(input, init);
+        var live = url.indexOf('Trash%20Talk') >= 0; // chat always asks fresh
+        var hit = memo[url];
+        if (!live && hit && Date.now() - hit.t < TTL) return hit.p.then(toResponse);
+        var p = getWithRetry(url, 0);
+        if (!live) {
+          memo[url] = { t: Date.now(), p: p };
+          p.then(function(x) { if (x.status !== 200) delete memo[url]; }, function() { delete memo[url]; });
+        }
+        return p.then(toResponse);
+      };
+      window.clearSheetCache = function() { memo = {}; };
+    })();
+
     // ── Seasons ─────────────────────────────────────────────────────────────
     // Set in config.js as CONFIG.SEASONS (newest first). The first one is the current season.
     // New season = add one line there. These are only used if config.js doesn't list any.
@@ -1359,7 +1395,7 @@
 
     async function load() {
       try {
-        const bets = await fetchSheet('Winnings', 'A1:Q200');
+        const bets = await fetchSheet('Winnings', 'A1:Q400');
         const rows = bets.slice(1).filter(r => r[0] && r[3]);
 
         let mCorrect = 0, mTotal = 0, dCorrect = 0, dTotal = 0;
@@ -1598,7 +1634,7 @@
           clearInterval(window.REVEAL_POLL);
           if (html.indexOf('has picked. Waiting on') >= 0) {
             window.REVEAL_POLL = setInterval(function() {
-              if (document.visibilityState === 'visible' && document.getElementById('tab-stats').classList.contains('active')) load();
+              if (document.visibilityState === 'visible' && document.getElementById('tab-stats').classList.contains('active')) { clearSheetCache(); load(); }
             }, 60000);
           }
         }
@@ -1880,7 +1916,7 @@
       if (PLAYER_DB_LOADING) return PLAYER_DB_LOADING;
       PLAYER_DB_LOADING = Promise.all(SEASONS.map(function(season) {
         var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + season.sheetId +
-          '/values/' + encodeURIComponent(season.tab + '!A1:Q300') + '?key=' + API_KEY;
+          '/values/' + encodeURIComponent(season.tab + '!A1:Q400') + '?key=' + API_KEY;
         return fetch(url).then(function(r) { return r.json(); }).then(function(d) {
           return (d.values || []).slice(1).map(function(r, i) {
             return {
@@ -2386,6 +2422,7 @@
         coloredText(res.homePick, res.home) + ' / ' + coloredText(res.awayPick, res.away) +
         '. You\'ve been logged out.</div>';
       renderPinScreen('', done);
+      clearSheetCache();
       load(); // refresh Stats / Live Picks
     }
 
@@ -2983,6 +3020,7 @@
           var done = '<div style="background:rgba(52,211,153,0.15);border-radius:10px;padding:14px 16px;font-size:13px;color:#34D399">' +
             '✅ Saved ' + res.saved + ' odds. You\'ve been logged out.</div>';
           renderPinScreen('', done);
+          clearSheetCache();
           load();
         })
         .catch(function() {
@@ -3168,7 +3206,7 @@
     var ALL_LEGACY_BETS = [];
     function fetchLegacySeason(season) {
       var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + season.sheetId +
-        '/values/' + encodeURIComponent(season.tab + '!A1:R400') + '?key=' + API_KEY;
+        '/values/' + encodeURIComponent(season.tab + '!A1:Q400') + '?key=' + API_KEY;
       return fetch(url).then(function(res) {
         if (!res.ok) throw new Error('HTTP ' + res.status);
         return res.json();
@@ -3627,11 +3665,11 @@
         // Build pick counts per player per picker from bet history
         const pickCounts = {}; // { playerName: { Maria: N, Danielle: N } }
         try {
-          const betRows = await fetchSheet('Winnings', 'D1:H200');
+          const betRows = await fetchSheet('Winnings', 'A1:Q400');
           for (const r of betRows.slice(1)) {
-            const picker = (r[0] || '').trim();
-            const homePick = (r[3] || '').trim();
-            const awayPick = (r[4] || '').trim();
+            const picker = (r[3] || '').trim();
+            const homePick = (r[6] || '').trim();
+            const awayPick = (r[7] || '').trim();
             if (!picker) continue;
             for (const player of [homePick, awayPick].filter(Boolean)) {
               if (!pickCounts[player]) pickCounts[player] = {};

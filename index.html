@@ -1,4 +1,4 @@
-<!-- v51 -->
+<!-- v52 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -682,6 +682,10 @@
     .sb .live-pick-card.danielle .picker-label { color: var(--d); }
     .sb .live-pick-card .pick-player { color: #FFFFFF; line-height: 1.8; }
     .sb .live-pick-card .pick-odds { color: rgba(255,255,255,0.6); }
+    /* Injured players */
+    .out-badge { display: inline-block; font-size: 9px; font-weight: 800; letter-spacing: 0.08em; color: #FCA5A5; background: rgba(248,113,113,0.16); border: 1px solid rgba(248,113,113,0.35); border-radius: 4px; padding: 0 5px; margin-left: 6px; vertical-align: 1px; text-decoration: none !important; }
+    .player-row.is-out > span:last-child > span:first-child { text-decoration: line-through; text-decoration-color: rgba(248,113,113,0.6); opacity: 0.6; }
+
     /* Player cards */
     .pl-link { cursor: pointer; }
     .pl-link:hover { text-decoration: underline; text-decoration-color: rgba(255,255,255,0.5); text-underline-offset: 3px; }
@@ -1612,6 +1616,13 @@
 
     // ── Player cards: tap any player name for their history ──────────────────
     var ROSTER_INFO = {};      // playerKey -> { team, pos } from the Rosters tab
+    var INJURED = {};          // playerKey -> note, from the optional "Injured" tab
+    function outBadge(name) {
+      var k = playerKey(name);
+      if (!(k in INJURED)) return '';
+      return '<span class="out-badge" title="' + (INJURED[k] || 'Injured') + '">🚑 OUT' + (INJURED[k] ? ' · ' + INJURED[k] : '') + '</span>';
+    }
+    function outRow(name) { return playerKey(name) in INJURED ? ' is-out' : ''; }
     var PLAYER_DB = null;      // playerKey -> stats, built from every season's sheet
     var PLAYER_DB_LOADING = null;
 
@@ -1758,7 +1769,7 @@
           '<div class="pc-head" style="background:linear-gradient(150deg,' + hexA(headBg, 0.95) + ' 0%,' + hexA(headBg, 0.35) + ' 70%, rgba(17,19,24,1) 100%)">' +
             '<button class="pc-close" id="pc-close" aria-label="Close">×</button>' +
             (team ? teamPill((ri.pos ? ri.pos + ' · ' : '') + team, team) : '') +
-            '<div class="pc-name">' + p.name + '</div>' +
+            '<div class="pc-name">' + p.name + outBadge(p.name) + '</div>' +
             (p.lastOdds ? '<div class="pc-sub">Last odds ' + formatOdds(p.lastOdds.odds) + ' (' + p.lastOdds.year + ' Wk ' + p.lastOdds.week + ')</div>' : '') +
           '</div>' +
           '<div class="pc-body">' +
@@ -2759,10 +2770,16 @@
 
     async function loadRosters() {
       try {
-        const [rosterRows, qbRows] = await Promise.all([
+        const [rosterRows, qbRows, injuredRows] = await Promise.all([
           fetchSheet('Rosters', 'A1:AG10'),
           fetchSheet('QBs', 'A1:A50'),
+          fetchSheet('Injured', 'A1:B100').catch(() => []),   // optional tab
         ]);
+        INJURED = {};
+        injuredRows.slice(1).forEach(r => {
+          const n = (r[0] || '').trim();
+          if (n) INJURED[playerKey(n)] = (r[1] || '').trim();
+        });
 
         // Parse valid QBs — A3 onward (index 2+)
         const validQBs = new Set(qbRows.slice(2).map(r => (r[0] || '').trim()).filter(Boolean));
@@ -2836,7 +2853,7 @@
               if (counts['Danielle']) pickNotes.push(`Danielle x${counts['Danielle']}`);
               const pickNote = pickNotes.length ? `<span style="font-size:10px;color:#9CA3AF;margin-left:6px">${pickNotes.join(', ')}</span>` : '';
               const posColor = tc.dark || tc.primary;
-              html += `<div class="player-row"><span class="pos-label" style="color:${posColor}">${pos}</span><span class="${nameClass}"><span>${name}</span>${pickNote}</span></div>`;
+              html += `<div class="player-row${outRow(name)}"><span class="pos-label" style="color:${posColor}">${pos}</span><span class="${nameClass}"><span>${name}</span>${outBadge(name)}${pickNote}</span></div>`;
             }
             for (const extra of td.extras) {
               const counts = pickCounts[extra] || {};
@@ -2844,7 +2861,7 @@
               if (counts['Maria']) pickNotes.push(`Maria x${counts['Maria']}`);
               if (counts['Danielle']) pickNotes.push(`Danielle x${counts['Danielle']}`);
               const pickNote = pickNotes.length ? `<span style="font-size:10px;color:#9CA3AF;margin-left:6px">${pickNotes.join(', ')}</span>` : '';
-              html += `<div class="player-row"><span class="pos-label" style="color:${tc.dark || tc.primary}">+</span><span class="player-name-text extra"><span>${extra}</span>${pickNote}</span></div>`;
+              html += `<div class="player-row${outRow(extra)}"><span class="pos-label" style="color:${tc.dark || tc.primary}">+</span><span class="player-name-text extra"><span>${extra}</span>${outBadge(extra)}${pickNote}</span></div>`;
             }
             html += `</div></div></div>`;
           }

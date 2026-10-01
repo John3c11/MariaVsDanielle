@@ -1,4 +1,4 @@
-<!-- v65 -->
+<!-- v66 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -783,6 +783,14 @@
     .pf-switch { flex-wrap: wrap; }
     .pf-hero { position: relative; }
     .fr-cust { position: absolute; top: 12px; right: 12px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700; color: #FFFFFF; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18); border-radius: 999px; padding: 5px 11px; cursor: pointer; }
+    .ns-step { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .ns-num { flex: none; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; background: rgba(255,255,255,0.08); color: #A1A9B6; }
+    .ns-step.now .ns-num { background: #F3F4F6; color: #0F0F12; }
+    .ns-step.done .ns-num { background: rgba(52,211,153,0.2); color: #34D399; }
+    .ns-step.later { opacity: 0.55; }
+    .ns-title { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+    .ns-sub { font-size: 12px; color: #A1A9B6; line-height: 1.5; }
+    .ns-config { display: block; width: 100%; box-sizing: border-box; margin: 10px 0 8px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11px; line-height: 1.5; color: #E5E7EB; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 10px 12px; resize: none; white-space: pre; overflow-x: auto; }
     .fr-link { cursor: pointer; text-decoration: none; font-weight: 700; }
     .fr-link:hover { text-decoration: underline; }
     .fr-avatar { width: 96px; height: 96px; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 800; background: rgba(255,255,255,0.08); border: 3px solid; }
@@ -3853,7 +3861,7 @@
     var ADMIN = { oddsRes: null };
 
     function adminHeader(active) {
-      var tabs = [['odds', '💲 Odds'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['check', '🔍 Data Check']];
+      var tabs = [['odds', '💲 Odds'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['check', '🔍 Data Check'], ['season', '🆕 Season']];
       return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
         '<div style="font-size:16px;font-weight:700">Hi John</div>' +
         '<button class="link-btn" id="sub-switch">Log out</button></div>' +
@@ -3872,6 +3880,78 @@
       bindSwitch(); bindAdminNav();
       return document.getElementById('adm-body');
     }
+    // ── 🆕 Season: start next year's sheet ──────────────────────────────────
+    function seasonConfigText(add) {
+      var list = SEASONS.filter(function(x) { return x.year !== add.year; }).concat([{ year: add.year, sheetId: add.id }])
+        .sort(function(a, b) { return parseInt(b.year) - parseInt(a.year); });
+      var lines = ['const CONFIG = {'];
+      Object.keys(CONFIG).forEach(function(k) { if (k !== 'SEASONS') lines.push('  ' + k + ': ' + JSON.stringify(CONFIG[k]) + ','); });
+      lines.push('  SEASONS: [');
+      list.forEach(function(x) { lines.push("    { year: '" + x.year + "', sheetId: '" + x.sheetId + "'" + (x.tab && x.tab !== 'Winnings' ? ", tab: '" + x.tab + "'" : '') + ' },'); });
+      lines.push('  ],', '};');
+      return lines.join('\n');
+    }
+    function adminSeason() {
+      var body = adminScreen('season', '<div class="loading">Loading…</div>');
+      picksApi({ pin: SUB.pin, action: 'season' }).then(function(r) {
+        if (r.error) { body.innerHTML = '<div class="loading">' + escHtml(r.error) + '</div>'; return; }
+        var cur = r.current, pend = r.pending, prev = r.prev;
+        var next = String(parseInt(cur.year, 10) + 1);
+        var siteYear = CURRENT_YEAR;
+        function link(x) { return '<a href="' + x.url + '" target="_blank" rel="noopener" style="color:#93C5FD">Open sheet ↗</a>'; }
+        function step(n, title, state, inner) {
+          return '<div class="ns-step ' + state + '"><div class="ns-num">' + (state === 'done' ? '✓' : n) + '</div><div style="flex:1;min-width:0"><div class="ns-title">' + title + '</div>' + (inner || '') + '</div></div>';
+        }
+        var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:14px">Picks, odds, Trash Talk, first TDs and the Tuesday email all use the <b style="color:#F3F4F6">' + cur.year + '</b> sheet right now. ' + link(cur) + '</div>';
+        var configFor = pend || (prev ? cur : null);
+        var needConfig = configFor && SEASONS.map(function(x) { return x.year; }).indexOf(configFor.year) < 0;
+
+        h += step(1, 'Make the ' + (pend ? pend.year : prev ? cur.year : next) + ' sheet', (pend || prev) ? 'done' : 'now',
+          (pend || prev) ? '<div class="ns-sub">Copied from ' + (pend ? cur.year : prev.year) + ' with the formulas, tabs and team colors. Game rows, Trash Talk and Injured were blanked. ' + link(pend || cur) + '</div>'
+            : '<div class="ns-sub">Copies the ' + cur.year + ' sheet into a new "' + next + '" sheet in the same Drive folder, keeping every formula, tab, dropdown and the team-color script, then blanks the game rows, Trash Talk and Injured list. The ' + cur.year + ' sheet is not changed. Nothing switches yet.</div>' +
+              '<button class="primary-btn" id="ns-make" style="margin-top:10px">Make ' + next + ' sheet</button>');
+        h += step(2, 'Fill it in', pend ? 'now' : prev ? 'done' : 'later',
+          '<div class="ns-sub">Pre-fill the game rows like you always do, and update the Rosters and QBs tabs for the new year. The site and scripts keep using ' + (pend ? cur.year : 'the old sheet') + ' until step 3.</div>');
+        h += step(3, 'Switch over', pend ? 'now' : prev ? 'done' : 'later',
+          pend ? '<div class="ns-sub">Do this before ' + pend.year + ' Week 1. Picks, odds, chat, first TDs and the Tuesday email move to the ' + pend.year + ' sheet. Friends and their old picks stay.</div><button class="adm-btn green" id="ns-switch" style="margin-top:10px;padding:9px 16px;font-size:13px">Switch to ' + pend.year + '</button>'
+            : prev ? '<div class="ns-sub">Switched from ' + prev.year + ' to ' + cur.year + '. <button class="link-btn" id="ns-undo">Undo, go back to ' + prev.year + '</button></div>' : '');
+        h += step(4, 'Upload the new config.js', needConfig ? (prev ? 'now' : 'later') : (configFor ? 'done' : 'later'),
+          configFor ? (needConfig
+            ? '<div class="ns-sub">Replace config.js on GitHub with this, right after step 3. Then the site shows ' + configFor.year + ' as the current season and ' + (parseInt(configFor.year) - 1) + ' gets its Season Wrapped and Crowd Wrapped cards.</div>' +
+              '<textarea class="ns-config" id="ns-config" readonly rows="' + (seasonConfigText(configFor).split('\n').length) + '">' + escHtml(seasonConfigText(configFor)) + '</textarea>' +
+              '<button class="adm-btn" id="ns-copy">Copy</button>'
+            : '<div class="ns-sub">The site already lists ' + configFor.year + ' (it shows ' + siteYear + ' as the current season).</div>')
+          : '<div class="ns-sub">You\'ll get the exact file to paste here.</div>');
+        h += '<div class="submit-msg" id="adm-msg" style="text-align:left"></div>' +
+          '<div style="font-size:11px;color:#6B7280;margin-top:14px">Keep editing the scripts in the 2026 sheet\'s Apps Script. The new sheet gets a copy of them only so the team colors keep working there.</div>';
+        body.innerHTML = h;
+
+        function run(action, btn, label) {
+          btn.disabled = true; btn.textContent = label;
+          picksApi({ pin: SUB.pin, action: action }).then(function(x) {
+            if (x.error) { btn.disabled = false; adminMsg(x.error); return; }
+            CROWD.data = null; adminSeason();
+          }).catch(function() { btn.disabled = false; adminMsg('Couldn\'t reach the script. Check the sheet before trying again.'); });
+        }
+        var mk = document.getElementById('ns-make');
+        if (mk) mk.addEventListener('click', function() { run('newseason', mk, 'Copying… (about 30 seconds)'); });
+        var sw = document.getElementById('ns-switch');
+        if (sw) sw.addEventListener('click', function() {
+          if (confirm('Switch to ' + pend.year + '? New picks, odds, chat and first TDs will go into the ' + pend.year + ' sheet. Upload the new config.js right after.')) run('switchseason', sw, 'Switching…');
+        });
+        var un = document.getElementById('ns-undo');
+        if (un) un.addEventListener('click', function() {
+          if (confirm('Go back to the ' + prev.year + ' sheet? (The ' + cur.year + ' sheet stays in Drive, ready to switch again.)')) run('undoseason', un, 'Switching back…');
+        });
+        var cp = document.getElementById('ns-copy');
+        if (cp) cp.addEventListener('click', function() {
+          var ta = document.getElementById('ns-config'); ta.select();
+          (navigator.clipboard ? navigator.clipboard.writeText(ta.value) : Promise.reject()).catch(function() { document.execCommand('copy'); });
+          cp.textContent = 'Copied ✓';
+        });
+      }).catch(function() { body.innerHTML = '<div class="loading">Couldn\'t reach the script.</div>'; });
+    }
+
     function adminMsg(text, ok) {
       var m = document.getElementById('adm-msg');
       if (m) { m.style.color = ok ? '#6EE7B7' : '#F87171'; m.textContent = text; }
@@ -3886,6 +3966,7 @@
       if (section === 'injuries') adminInjuries();
       if (section === 'chat') adminChat();
       if (section === 'check') adminCheck();
+      if (section === 'season') adminSeason();
     }
 
     // Injuries

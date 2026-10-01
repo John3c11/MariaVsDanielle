@@ -1,4 +1,4 @@
-<!-- v46 -->
+<!-- v47 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -320,7 +320,7 @@
 
     body {
       font-family: 'Inter', system-ui, sans-serif;
-      background: url('pics/background.png') repeat;
+      background: #E9EBEF;
       color: #1C1C1E;
       min-height: 100vh;
     }
@@ -654,6 +654,71 @@
     .filter-btn.win-btn.active { background: #065F46; border-color: #065F46; color: white; }
     .filter-btn.loss-btn.active { background: #991B1B; border-color: #991B1B; color: white; }
 
+    /* ── Stats tab scoreboard (same look as Season Wrapped) ── */
+    .sb {
+      --m: #F87171; --d: #60A5FA;
+      border-radius: 18px;
+      padding: 28px 22px 22px;
+      margin-bottom: 18px;
+      color: #FFFFFF;
+      background: linear-gradient(140deg, #0F0F12 0%, #1F2937 100%);
+    }
+    .sb.sb-maria    { background: linear-gradient(140deg, #0F0F12 0%, #3B0D0D 55%, #991B1B 100%); }
+    .sb.sb-danielle { background: linear-gradient(140deg, #0F0F12 0%, #0C1A3D 55%, #1E40AF 100%); }
+    .sb.sb-live { background: linear-gradient(160deg, #0F0F12 0%, #1A1D24 100%); padding: 20px 22px; }
+    .sb header { margin-bottom: 24px; }
+    .sb header h1 { color: rgba(255,255,255,0.6); letter-spacing: 0.22em; font-weight: 700; }
+    .sb .player img { border: 2px solid rgba(255,255,255,0.25); }
+    .sb .maria .player-name { color: var(--m); }
+    .sb .danielle .player-name { color: var(--d); }
+    .sb .vs-badge { color: rgba(255,255,255,0.3); }
+    .sb .last-updated { color: rgba(255,255,255,0.4); }
+    .sb .leader-banner { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); margin-bottom: 22px; font-size: 15px; }
+    .sb .leader-banner span { color: #FFFFFF; }
+    .sb .stat-label { color: rgba(255,255,255,0.55); }
+    .sb .stat-value.maria { color: var(--m); }
+    .sb .stat-value.danielle { color: var(--d); }
+    .sb .stat-divider { color: rgba(255,255,255,0.25); }
+    .sb .bar.maria { background: var(--m); }
+    .sb .bar.danielle { background: var(--d); }
+    .sb .divider { border-top-color: rgba(255,255,255,0.08); }
+    .sb .loading, .sb .no-live { color: rgba(255,255,255,0.55); }
+    .sb .section-title { color: rgba(255,255,255,0.55); letter-spacing: 0.18em; font-weight: 700; }
+    .sb .sb-glass { background: rgba(255,255,255,0.07); border-radius: 12px; }
+    .sb .sb-dim { color: rgba(255,255,255,0.6); }
+    .sb .live-game-title { color: #FFFFFF; }
+    .sb .live-pick-card { background: rgba(255,255,255,0.07); border-radius: 12px; }
+    .sb .live-pick-card.maria .picker-label { color: var(--m); }
+    .sb .live-pick-card.danielle .picker-label { color: var(--d); }
+    .sb .live-pick-card .pick-player { color: #FFFFFF; line-height: 1.8; }
+    .sb .live-pick-card .pick-odds { color: rgba(255,255,255,0.6); }
+    /* Team "jersey" pills: real team colors that read on dark backgrounds */
+    .tpill { display: inline-block; padding: 0 7px; border-radius: 5px; font-weight: 700; line-height: 1.55; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.14); }
+    html.dark .wrap .sb { filter: invert(1) hue-rotate(180deg); }
+    html.dark .wrap .sb img, html.dark .wrap .sb .emo { filter: none; }
+    @media (max-width: 700px) {
+      .sb { padding: 22px 14px 16px; border-radius: 14px; }
+      .sb .player img { width: 84px; height: 84px; }
+      .sb .live-picks-grid { grid-template-columns: 1fr; }
+      .sb .sb-weeks { gap: 6px !important; flex-wrap: nowrap !important; justify-content: space-around !important; }
+      .sb .sb-weeks > div > div:last-child { font-size: 9px !important; }
+    }
+
+    /* Dark mode readability: inverted light grays came out too dim, so use darker grays
+       (which invert to brighter ones). Scoped to outside the always-dark cards. */
+    html.dark body { background: #0B0B0D; }
+    html.dark .wrap :not(.sb):not(.sb *):not(.wrapped):not(.wrapped *)[style*="color:#9CA3AF" i],
+    html.dark .wrap :not(.sb):not(.sb *):not(.wrapped):not(.wrapped *)[style*="color: #9CA3AF" i],
+    html.dark .wrap :not(.sb *) > .section-title, html.dark .wrap .af-bar-label,
+    html.dark .wrap :not(.sb *).stat-label, html.dark .wrap .bet-units,
+    html.dark .wrap .tab-btn, html.dark .wrap .link-btn { color: #4B5563 !important; }
+    html.dark .wrap :not(.sb):not(.sb *):not(.wrapped):not(.wrapped *)[style*="color:#6B7280" i],
+    html.dark .wrap :not(.sb):not(.sb *):not(.wrapped):not(.wrapped *)[style*="color: #6B7280" i],
+    html.dark .wrap .filter-btn { color: #374151 !important; }
+    html.dark .wrap :not(.sb):not(.sb *):not(.wrapped):not(.wrapped *)[style*="color:#D1D5DB" i] { color: #6B7280 !important; }
+    html.dark .wrap .tab-btn.active { color: #1C1C1E !important; }
+    html.dark .wrap .filter-btn.active { color: #FFFFFF !important; }
+
     /* Season Wrapped cards (Legacy tab) — always dark, so dark mode leaves them alone */
     .wrapped {
       border-radius: 18px;
@@ -724,6 +789,7 @@
     </nav>
 
     <div id="tab-stats" class="tab-panel active">
+    <div class="sb" id="sb-main">
     <header>
       <h1>2026 Touchdown Bets</h1>
       <div class="vs-row">
@@ -743,11 +809,12 @@
     <div id="leader-banner" class="leader-banner" style="display:none"></div>
 
     <div id="stats-section"><div class="loading">Loading stats...</div></div>
+    </div><!-- end sb-main -->
 
-    <hr class="divider">
-
-    <div class="section-title">Live Picks</div>
-    <div id="live-picks"><div class="loading">Loading...</div></div>
+    <div class="sb sb-live">
+      <div class="section-title">Live Picks</div>
+      <div id="live-picks"><div class="loading">Loading...</div></div>
+    </div>
 
     </div><!-- end tab-stats -->
 
@@ -791,6 +858,12 @@
   <script>
     const SHEET_ID = '1eokxqa-RCuH4qNh486OMSnIeZdXbhHnw_FygbzUwGj4';
     const API_KEY = CONFIG.API_KEY;
+    var SB_M = '#F87171', SB_D = '#60A5FA'; // Maria / Danielle on dark cards
+    function teamPill(text, team) {
+      var tc = TEAM_COLORS[resolveTeam(team)];
+      if (!tc) return '<b>' + text + '</b>';
+      return '<span class="tpill" style="background:' + (tc.bg || tc.primary) + ';color:' + tc.text + '">' + text + '</span>';
+    }
 
     function blendWithWhite(hex, alpha) {
       if (!hex) return '#F9FAFB';
@@ -890,8 +963,8 @@
       // Horizontal gridlines + y labels
       for (var v = lo; v <= hi + 0.001; v += step) {
         var zero = Math.abs(v) < 0.001;
-        svg += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="' + (zero ? '#9CA3AF' : '#F3F4F6') + '" stroke-width="1"' + (zero ? ' stroke-dasharray="4 3"' : '') + '/>';
-        svg += '<text x="' + (L - 6) + '" y="' + (y(v) + 4) + '" font-size="10" fill="#9CA3AF" text-anchor="end">' + (v > 0 ? '+' : '') + v + '</text>';
+        svg += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="' + (zero ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.07)') + '" stroke-width="1"' + (zero ? ' stroke-dasharray="4 3"' : '') + '/>';
+        svg += '<text x="' + (L - 6) + '" y="' + (y(v) + 4) + '" font-size="10" fill="rgba(255,255,255,0.45)" text-anchor="end">' + (v > 0 ? '+' : '') + v + '</text>';
       }
 
       // Week labels on first game of each week
@@ -901,8 +974,8 @@
       weekStarts.forEach(function(i, n) {
         if (n % every) return;
         var gx = x(i + 1);
-        svg += '<line x1="' + gx + '" x2="' + gx + '" y1="' + T + '" y2="' + (H - B) + '" stroke="#F9FAFB" stroke-width="1"/>';
-        svg += '<text x="' + gx + '" y="' + (H - B + 16) + '" font-size="10" fill="#9CA3AF" text-anchor="middle">Wk ' + games[i].week + '</text>';
+        svg += '<line x1="' + gx + '" x2="' + gx + '" y1="' + T + '" y2="' + (H - B) + '" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>';
+        svg += '<text x="' + gx + '" y="' + (H - B + 16) + '" font-size="10" fill="rgba(255,255,255,0.45)" text-anchor="middle">Wk ' + games[i].week + '</text>';
       });
 
       function line(vals, color, name) {
@@ -913,12 +986,12 @@
           var g = games[i - 1];
           var delta = g[name];
           var tip = name + ' · Wk ' + g.week + ' ' + g.home + ' vs ' + g.away + ': ' + (delta >= 0 ? '+' : '') + delta + 'u (total ' + (v >= 0 ? '+' : '') + v.toFixed(1) + 'u)';
-          out += '<circle cx="' + x(i) + '" cy="' + y(v) + '" r="3.5" fill="' + color + '" stroke="white" stroke-width="1.5"><title>' + tip + '</title></circle>';
+          out += '<circle cx="' + x(i) + '" cy="' + y(v) + '" r="3.5" fill="' + color + '" stroke="#111318" stroke-width="1.5"><title>' + tip + '</title></circle>';
         });
         return out;
       }
-      svg += line(d, '#1D4ED8', 'Danielle');
-      svg += line(m, '#DC2626', 'Maria');
+      svg += line(d, SB_D, 'Danielle');
+      svg += line(m, SB_M, 'Maria');
 
       // End labels, nudged apart if they'd overlap
       var n = games.length, ym = y(m[n]), yd = y(d[n]);
@@ -927,15 +1000,15 @@
         ym = mid + (up ? -7 : 7); yd = mid + (up ? 7 : -7);
       }
       function fmt(v) { return (v >= 0 ? '+' : '') + v.toFixed(1); }
-      svg += '<text x="' + (x(n) + 8) + '" y="' + (ym + 4) + '" font-size="12" font-weight="700" fill="#DC2626">' + fmt(m[n]) + '</text>';
-      svg += '<text x="' + (x(n) + 8) + '" y="' + (yd + 4) + '" font-size="12" font-weight="700" fill="#1D4ED8">' + fmt(d[n]) + '</text>';
+      svg += '<text x="' + (x(n) + 8) + '" y="' + (ym + 4) + '" font-size="12" font-weight="700" fill="' + SB_M + '">' + fmt(m[n]) + '</text>';
+      svg += '<text x="' + (x(n) + 8) + '" y="' + (yd + 4) + '" font-size="12" font-weight="700" fill="' + SB_D + '">' + fmt(d[n]) + '</text>';
       svg += '</svg>';
 
       return '<hr class="divider">' +
         '<div class="stat-label">Units Over the Season</div>' +
         '<div style="display:flex;justify-content:center;gap:16px;font-size:12px;margin-bottom:6px">' +
-          '<span style="color:#DC2626;font-weight:600">● Maria</span>' +
-          '<span style="color:#1D4ED8;font-weight:600">● Danielle</span></div>' +
+          '<span style="color:' + SB_M + ';font-weight:600">● Maria</span>' +
+          '<span style="color:' + SB_D + ';font-weight:600">● Danielle</span></div>' +
         svg;
     }
 
@@ -981,12 +1054,12 @@
       var wk = keys[0], W = weeks[wk], M = W.Maria, D = W.Danielle;
       var live = false;
       function u(n) { return (n >= 0 ? '+' : '') + n.toFixed(1) + 'u'; }
-      var mName = '<span style="color:#DC2626;font-weight:600">Maria</span>';
-      var dName = '<span style="color:#1D4ED8;font-weight:600">Danielle</span>';
+      var mName = '<span style="color:' + SB_M + ';font-weight:700">Maria</span>';
+      var dName = '<span style="color:' + SB_D + ';font-weight:700">Danielle</span>';
 
       var text, accent;
       if (M.w === D.w) {
-        accent = '#9CA3AF';
+        accent = 'rgba(255,255,255,0.35)';
         if (M.w === 0) {
           text = 'Nobody hit' + (live ? ' yet' : '') + '. ' + mName + ' went 0/' + M.t + ' (' + u(M.u) + '), ' + dName + ' went 0/' + D.t + ' (' + u(D.u) + ').';
         } else {
@@ -995,20 +1068,20 @@
       } else {
         var mWins = M.w > D.w;
         var win = mWins ? M : D, lose = mWins ? D : M;
-        accent = mWins ? '#DC2626' : '#1D4ED8';
+        accent = mWins ? SB_M : SB_D;
         text = (mWins ? mName : dName) + (live ? ' is leading the week' : ' took the week') + ', going ' + win.w + '/' + win.t + ' (' + u(win.u) + '). ' +
           (mWins ? dName : mName) + ' went ' + lose.w + '/' + lose.t + ' (' + u(lose.u) + ').';
       }
       if (W.best) {
-        var pc = W.best.p === 'Maria' ? '#DC2626' : '#1D4ED8';
-        var player = W.best.team ? coloredText(W.best.player, W.best.team) : '<b>' + W.best.player + '</b>';
+        var pc = W.best.p === 'Maria' ? SB_M : SB_D;
+        var player = W.best.team ? teamPill(W.best.player, W.best.team) : '<b>' + W.best.player + '</b>';
         text += ' Biggest hit: ' + player + (W.best.odds ? ' at ' + formatOdds(W.best.odds) : '') +
           ' for <span style="color:' + pc + ';font-weight:600">' + W.best.p + '</span>.';
       }
 
-      return '<div style="background:#F9FAFB;border-left:3px solid ' + accent + ';border-radius:8px;padding:12px 16px;margin-bottom:20px">' +
-        '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Week ' + wk + ' Recap' + (live ? ' · in progress' : '') + '</div>' +
-        '<div style="font-size:13px;color:#374151;line-height:1.6">' + text + '</div></div>';
+      return '<div class="sb-glass" style="border-left:3px solid ' + accent + ';padding:12px 16px;margin-bottom:20px">' +
+        '<div class="sb-dim" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:6px">Week ' + wk + ' Recap' + (live ? ' · in progress' : '') + '</div>' +
+        '<div style="font-size:13px;color:rgba(255,255,255,0.85);line-height:1.8">' + text + '</div></div>';
     }
 
     function formatOdds(val) {
@@ -1139,6 +1212,8 @@
         if ((mariaStreak.type === 'win' && mariaStreak.count >= 2) || (danielleStreak.type === 'win' && danielleStreak.count >= 2)) {
           setTimeout(fireConfetti, 500);
         }
+        document.getElementById('sb-main').className = 'sb ' +
+          (mariaUnits > danielleUnits ? 'sb-maria' : danielleUnits > mariaUnits ? 'sb-danielle' : '');
         if (mariaUnits > danielleUnits) {
           banner.innerHTML = `<span>Maria</span> is leading by ${(mariaUnits - danielleUnits).toFixed(1)} units`;
         } else if (danielleUnits > mariaUnits) {
@@ -1177,15 +1252,15 @@
         statsEl.innerHTML = `
           ${weeklyRecap(rows)}
           <div style="display:flex;justify-content:center;gap:32px;margin-bottom:12px;flex-wrap:wrap">
-            <div style="font-size:13px;color:#DC2626;font-weight:500">Maria ${mariaStreak.count > 0 ? (mariaStreak.type === 'win' ? '🔥' : '❄️') + ' ' + mariaStreak.count + ' ' + mariaStreak.type + ' streak' : ''}</div>
-            <div style="font-size:13px;color:#1D4ED8;font-weight:500">Danielle ${danielleStreak.count > 0 ? (danielleStreak.type === 'win' ? '🔥' : '❄️') + ' ' + danielleStreak.count + ' ' + danielleStreak.type + ' streak' : ''}</div>
+            <div style="font-size:13px;color:${SB_M};font-weight:600">Maria ${mariaStreak.count > 0 ? (mariaStreak.type === 'win' ? '🔥' : '❄️') + ' ' + mariaStreak.count + ' ' + mariaStreak.type + ' streak' : ''}</div>
+            <div style="font-size:13px;color:${SB_D};font-weight:600">Danielle ${danielleStreak.count > 0 ? (danielleStreak.type === 'win' ? '🔥' : '❄️') + ' ' + danielleStreak.count + ' ' + danielleStreak.type + ' streak' : ''}</div>
           </div>
-          ${combinedStreak.count > 0 ? '<div style="text-align:center;font-size:12px;color:#6B7280;margin-bottom:16px">' + (combinedStreak.type === 'win' ? '🔥' : '❄️') + ' Combined <strong>' + combinedStreak.count + '-game ' + combinedStreak.type + ' streak</strong> (at least one right)</div>' : ''}
+          ${combinedStreak.count > 0 ? '<div style="text-align:center;font-size:12px;color:rgba(255,255,255,0.65);margin-bottom:16px">' + (combinedStreak.type === 'win' ? '🔥' : '❄️') + ' Combined <strong>' + combinedStreak.count + '-game ' + combinedStreak.type + ' streak</strong> (at least one right)</div>' : ''}
 
-          <div style="display:flex;justify-content:center;gap:24px;margin-bottom:20px;background:#F9FAFB;border-radius:8px;padding:12px;flex-wrap:wrap">
-            <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:#DC2626">${mariaWeeksWon}</div><div style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em">Maria weeks won</div></div>
-            <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:#6B7280">${tiedWeeks}</div><div style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em">Tied</div></div>
-            <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:#1D4ED8">${danielleWeeksWon}</div><div style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em">Danielle weeks won</div></div>
+          <div class="sb-weeks" style="display:flex;justify-content:center;gap:24px;margin-bottom:20px;background:rgba(255,255,255,0.07);border-radius:12px;padding:12px;flex-wrap:wrap">
+            <div style="text-align:center"><div style="font-size:24px;font-weight:800;color:${SB_M}">${mariaWeeksWon}</div><div style="font-size:11px;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.08em">Maria weeks won</div></div>
+            <div style="text-align:center"><div style="font-size:24px;font-weight:800;color:rgba(255,255,255,0.75)">${tiedWeeks}</div><div style="font-size:11px;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.08em">Tied</div></div>
+            <div style="text-align:center"><div style="font-size:24px;font-weight:800;color:${SB_D}">${danielleWeeksWon}</div><div style="font-size:11px;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.08em">Danielle weeks won</div></div>
           </div>
           ${statBlock('Correct Guesses', mCorrect, dCorrect, `${mCorrect} / ${mTotal}`, `${dCorrect} / ${dTotal}`)}
           <hr class="divider">
@@ -1218,15 +1293,15 @@
             if (!mariaRow || !danielleRow) {
               const done = mariaRow ? 'Maria' : 'Danielle';
               const waiting = mariaRow ? 'Danielle' : 'Maria';
-              const doneC = done === 'Maria' ? '#DC2626' : '#1D4ED8';
-              const waitC = waiting === 'Maria' ? '#DC2626' : '#1D4ED8';
+              const doneC = done === 'Maria' ? SB_M : SB_D;
+              const waitC = waiting === 'Maria' ? SB_M : SB_D;
               html += `
               <div class="live-game-title" style="margin-top:${html ? '20px' : '0'}">
-                <span style="color:${homeC};font-weight:700">${homeTeamName}</span>
-                <span style="color:#9CA3AF"> vs </span>
-                <span style="color:${awayC};font-weight:700">${awayTeamName}</span>
+                ${teamPill(homeTeamName, homeTeamName)}
+                <span style="color:rgba(255,255,255,0.45)"> vs </span>
+                ${teamPill(awayTeamName, awayTeamName)}
               </div>
-              <div style="background:#F9FAFB;border-radius:8px;padding:14px 16px;font-size:13px;color:#6B7280">
+              <div style="background:rgba(255,255,255,0.07);border-radius:12px;padding:14px 16px;font-size:13px;color:rgba(255,255,255,0.7)">
                 🔒 <span style="color:${doneC};font-weight:600">${done}</span> has picked. Waiting on
                 <span style="color:${waitC};font-weight:600">${waiting}</span>. Picks show once both are in.
               </div>`;
@@ -1239,16 +1314,16 @@
               if (!pickStr || pickStr === '—') return pickStr;
               var parts = pickStr.split(' / ');
               var colored = parts.map(function(p, i) {
-                return '<span style="color:' + (i === 0 ? homeC : awayC) + ';font-weight:600">' + p + '</span>';
+                return teamPill(p, i === 0 ? homeTeamName : awayTeamName);
               });
-              return colored.join(' / ');
+              return colored.join('<br>');
             }
 
             html += `
               <div class="live-game-title" style="margin-top:${html ? '20px' : '0'}">
-                <span style="color:${homeC};font-weight:700">${homeTeamName}</span>
-                <span style="color:#9CA3AF"> vs </span>
-                <span style="color:${awayC};font-weight:700">${awayTeamName}</span>
+                ${teamPill(homeTeamName, homeTeamName)}
+                <span style="color:rgba(255,255,255,0.45)"> vs </span>
+                ${teamPill(awayTeamName, awayTeamName)}
               </div>
               <div class="live-picks-grid">
                 <div class="live-pick-card maria">

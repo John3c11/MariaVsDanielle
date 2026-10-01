@@ -1,4 +1,4 @@
-<!-- v52 -->
+<!-- v53 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -750,6 +750,20 @@
     .lp-pick.lp-hit { box-shadow: 0 0 0 2px #34D399, 0 0 18px rgba(52,211,153,0.6); }
     .lp-pick.lp-hit::after { content: ' ✅'; }
     .lp-pick.lp-miss { opacity: 0.35; filter: grayscale(0.6); }
+    /* Hit celebration: pure CSS, runs a few times then stops */
+    .live-pick-card.lp-celebrate { animation: lpWin 1.1s ease-in-out 4; }
+    .live-pick-card.maria.lp-celebrate { --win: 248,113,113; }
+    .live-pick-card.danielle.lp-celebrate { --win: 96,165,250; }
+    @keyframes lpWin {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(var(--win),0); transform: scale(1); }
+      50% { box-shadow: 0 0 0 3px rgba(var(--win),0.9), 0 0 36px rgba(var(--win),0.55); transform: scale(1.025); }
+    }
+    .live-strip.ls-celebrate { animation: lsFlash 1.05s ease-in-out 4; }
+    @keyframes lsFlash { 50% { background: rgba(52,211,153,0.22); border-color: rgba(52,211,153,0.6); } }
+    @media (prefers-reduced-motion: reduce) { .live-pick-card.lp-celebrate, .live-strip.ls-celebrate { animation: none; } }
+    /* Scouting line on Submit Picks options */
+    .chip-scout { display: block; font-size: 11px; font-weight: 500; opacity: 0.65; margin-top: 3px; }
+    .chip-scout:empty { display: none; }
 
     /* Team "jersey" pills: real team colors that read on dark backgrounds */
     .tpill { display: inline-block; padding: 0 7px; border-radius: 5px; font-weight: 700; line-height: 1.55; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.14); }
@@ -806,7 +820,6 @@
   </style>
 </head>
 <body>
-  <canvas id="confetti-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;display:none"></canvas>
   <div class="page-layout">
 
 <div class="kalshi-ad">
@@ -1257,9 +1270,6 @@
         // Leader banner
         const banner = document.getElementById('leader-banner');
         banner.style.display = 'block';
-        if ((mariaStreak.type === 'win' && mariaStreak.count >= 2) || (danielleStreak.type === 'win' && danielleStreak.count >= 2)) {
-          setTimeout(fireConfetti, 500);
-        }
         document.getElementById('sb-main').className = 'sb ' +
           (mariaUnits > danielleUnits ? 'sb-maria' : danielleUnits > mariaUnits ? 'sb-danielle' : '');
         if (mariaUnits > danielleUnits) {
@@ -1394,8 +1404,12 @@
 
 
 
-        document.getElementById('last-updated').textContent =
-          `Last refreshed ${new Date().toLocaleString()}`;
+        if (navigator.onLine) {
+          try { localStorage.setItem('mvd-last-online', String(Date.now())); } catch (e) {}
+          document.getElementById('last-updated').textContent = `Last refreshed ${new Date().toLocaleString()}`;
+        } else {
+          showOfflineNote();
+        }
 
       } catch (e) {
         console.error(e);
@@ -1463,7 +1477,7 @@
     // ── Live game tracker (Live Picks) ──────────────────────────────────────
     // Reads ESPN's public scoreboard in the browser. If ESPN can't be reached,
     // the strips simply stay hidden and Live Picks works as before.
-    var LIVE = { timer: null, firstTD: {} };
+    var LIVE = { timer: null, firstTD: {}, celebrated: {} };
     var ESPN_HOSTS = [
       'https://site.api.espn.com/apis/site/v2/sports/football/nfl/',
       'https://site.web.api.espn.com/apis/site/v2/sports/football/nfl/',
@@ -1601,6 +1615,17 @@
                 if (card) hitBy.push(card.classList.contains('maria') ? 'Maria' : 'Danielle');
               }
             });
+            // Celebrate once per game (cards pulse, scoreboard flashes)
+            if (hitBy.length && !LIVE.celebrated[ev.id]) {
+              LIVE.celebrated[ev.id] = true;
+              picks.forEach(function(el) {
+                if (!el.classList.contains('lp-hit')) return;
+                var card = el.closest('.live-pick-card');
+                if (card) { card.classList.remove('lp-celebrate'); void card.offsetWidth; card.classList.add('lp-celebrate'); }
+              });
+              strip.classList.add('ls-celebrate');
+              setTimeout(function(s) { s.classList.remove('ls-celebrate'); }, 4200, strip);
+            }
             var who = hitBy.map(function(n) { return '<span style="color:' + (n === 'Maria' ? SB_M : SB_D) + ';font-weight:700">' + n + '</span>'; });
             tdHtml = '<div class="ls-td">🏈 First TD: <b>' + scorer + '</b>' +
               (picks.length ? (who.length ? ' · 🎉 ' + who.join(' & ') + (who.length > 1 ? ' both' : '') + ' hit it!' : ' · Nobody had him') : '') +
@@ -1833,6 +1858,25 @@
       schedulePlayerTagging();
     }
 
+    // Short scouting line under each Submit Picks option
+    function scoutLine(name) {
+      var p = PLAYER_DB && PLAYER_DB[playerKey(name)];
+      if (!p) return 'No history yet';
+      var k = playerKey(name);
+      var tds = Object.keys(p.tds).length;
+      var picked = p.gameOrder.map(function(g) { return p.games[g]; }).filter(function(g) { return g.by.length && g.scorer; });
+      var hits = picked.filter(function(g) { return playerKey(g.scorer) === k; }).length;
+      var bits = ['🏈 ' + tds + ' TD' + (tds === 1 ? '' : 's')];
+      if (picked.length) bits.push('hit ' + hits + '/' + picked.length);
+      if (p.lastOdds) bits.push('last ' + formatOdds(p.lastOdds.odds));
+      return bits.join(' · ');
+    }
+    function fillScouting() {
+      document.querySelectorAll('.chip-scout').forEach(function(el) {
+        el.textContent = scoutLine(el.getAttribute('data-scout'));
+      });
+    }
+
     function closePlayerCard() {
       var bd = document.getElementById('pc-backdrop');
       if (bd) bd.remove();
@@ -1849,6 +1893,28 @@
       if (muts.some(function(m) { return m.addedNodes.length && !(m.target.closest && m.target.closest('.pc-card')); })) schedulePlayerTagging();
     }).observe(document.body, { childList: true, subtree: true });
     setTimeout(loadPlayerDB, 0); // after the season list further down is defined
+
+    // ── Offline / instant launch ────────────────────────────────────────────
+    function showOfflineNote() {
+      var saved = null;
+      try { saved = parseInt(localStorage.getItem('mvd-last-online'), 10); } catch (e) {}
+      var when = saved ? new Date(saved).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : 'your last visit';
+      var lu = document.getElementById('last-updated');
+      if (lu) lu.textContent = 'Offline · saved data from ' + when;
+      if (document.getElementById('offline-note')) return;
+      var note = document.createElement('div');
+      note.id = 'offline-note';
+      note.textContent = '📡 No connection. Showing saved data from ' + when + '.';
+      note.style.cssText = 'position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:900;' +
+        'background:rgba(17,19,24,0.95);border:1px solid rgba(255,255,255,0.15);color:#F3F4F6;font-size:12px;font-weight:600;' +
+        'padding:9px 14px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,0.5);max-width:92vw;text-align:center';
+      document.body.appendChild(note);
+    }
+    window.addEventListener('offline', showOfflineNote);
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+      navigator.serviceWorker.register('sw.js').catch(function() {});
+      window.addEventListener('online', function() { var n = document.getElementById('offline-note'); if (n) n.remove(); load(); });
+    }
 
     load();
     loadRosters();
@@ -1983,7 +2049,8 @@
             out += '<button class="pick-chip" disabled style="opacity:0.45;cursor:not-allowed;text-decoration:line-through">' +
               name + '<span class="pos-hint">Taken</span></button>';
           } else {
-            out += '<button class="pick-chip" data-side="' + side + '" data-idx="' + i + '">' + name + '</button>';
+            out += '<button class="pick-chip" data-side="' + side + '" data-idx="' + i + '">' + name +
+              '<span class="chip-scout" data-scout="' + name.replace(/"/g, '&quot;') + '"></span></button>';
           }
         });
         return out + '</div>';
@@ -1998,6 +2065,7 @@
 
       el.innerHTML = html;
       bindSwitch();
+      loadPlayerDB().then(fillScouting);
 
       el.querySelectorAll('.pick-chip[data-side]').forEach(function(btn) {
         btn.addEventListener('click', function() {
@@ -3665,48 +3733,6 @@
         console.error(e);
         document.getElementById("analytics-content").innerHTML = '<div class="loading">Error loading analytics.</div>';
       }
-    }
-
-    // ── Confetti ──────────────────────────────────────────────────────────────
-    function fireConfetti() {
-      var canvas = document.getElementById('confetti-canvas');
-      canvas.style.display = 'block';
-      var ctx = canvas.getContext('2d');
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      var pieces = [];
-      var colors = ['#F87171','#60A5FA','#34D399','#FBBF24','#7C3AED','#EA580C'];
-      for (var i = 0; i < 150; i++) {
-        pieces.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * -canvas.height,
-          w: Math.random() * 10 + 5,
-          h: Math.random() * 5 + 3,
-          color: colors[Math.floor(Math.random()*colors.length)],
-          speed: Math.random() * 3 + 2,
-          angle: Math.random() * 360,
-          spin: Math.random() * 5 - 2.5,
-        });
-      }
-      var frame = 0;
-      function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        pieces.forEach(function(p) {
-          ctx.save();
-          ctx.translate(p.x, p.y);
-          ctx.rotate(p.angle * Math.PI / 180);
-          ctx.fillStyle = p.color;
-          ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
-          ctx.restore();
-          p.y += p.speed;
-          p.angle += p.spin;
-          p.x += Math.sin(p.angle * 0.05) * 1.5;
-        });
-        frame++;
-        if (frame < 180) requestAnimationFrame(draw);
-        else canvas.style.display = 'none';
-      }
-      draw();
     }
 
     var MONEY_LOADED = false;

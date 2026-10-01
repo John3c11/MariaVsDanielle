@@ -1,4 +1,4 @@
-<!-- v61 -->
+<!-- v62 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1022,7 +1022,7 @@
   <div class="wrap">
     <nav class="tabs-nav">
       <button class="tab-btn active" onclick="switchTab('stats')">Stats</button>
-      <button class="tab-btn" onclick="switchTab('submit')">Submit Picks</button>
+      <button class="tab-btn" onclick="switchTab('submit')">Log In</button>
       <button class="tab-btn" onclick="switchTab('chat')">Trash Talk</button>
       <button class="tab-btn" onclick="switchTab('profiles')">Profiles</button>
       <button class="tab-btn" onclick="switchTab('analytics')">Analytics</button>
@@ -2285,8 +2285,8 @@
       }
       el.innerHTML = (successHtml || '') +
         '<div style="text-align:center;padding:24px 0 8px">' +
-          '<div style="font-size:18px;font-weight:700;margin-bottom:6px">Submit Your Picks</div>' +
-          '<div style="font-size:13px;color:#A1A9B6;margin-bottom:20px">Enter your PIN</div>' +
+          '<div style="font-size:18px;font-weight:700;margin-bottom:6px">Log In</div>' +
+          '<div style="font-size:13px;color:#A1A9B6;margin-bottom:20px">Enter your PIN to see what you can do</div>' +
           '<input id="pin-input" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off">' +
           '<div style="margin-top:16px"><button class="primary-btn" id="pin-go">Enter</button></div>' +
           '<div class="submit-msg" id="pin-msg" style="color:#F87171">' + (msg || '') + '</div>' +
@@ -2325,9 +2325,7 @@
       var el = document.getElementById('submit-content');
       var pc = personColor(res.name);
 
-      var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">' +
-        '<div style="font-size:16px;font-weight:700">Hi <span style="color:' + pc + '">' + res.name + '</span></div>' +
-        '<button class="link-btn" id="sub-switch">Not you?</button></div>';
+      var html = playerHeader(res.name, 'pick');
 
       if (done) {
         html += '<div style="background:rgba(52,211,153,0.15);border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:#34D399;line-height:1.6">' +
@@ -2339,7 +2337,7 @@
       if (res.done) {
         html += '<div style="text-align:center;padding:32px 0;color:#A1A9B6;font-size:14px">🎉 You\'re all caught up. No open games right now.</div>';
         el.innerHTML = html;
-        bindSwitch();
+        bindSwitch(); bindPlayerNav();
         return;
       }
 
@@ -2375,7 +2373,7 @@
         '<div class="submit-msg" id="sub-msg"></div></div>';
 
       el.innerHTML = html;
-      bindSwitch();
+      bindSwitch(); bindPlayerNav();
       loadPlayerDB().then(fillScouting);
 
       el.querySelectorAll('.pick-chip[data-side]').forEach(function(btn) {
@@ -3157,6 +3155,32 @@
         });
     }
 
+
+
+    // ── Logged-in menu for Maria / Danielle ────────────────────────────────
+    // Each entry is one thing they can do. More get added here over time.
+    var PLAYER_SECTIONS = [['pick', '🏈 Make Pick']];
+
+    function playerHeader(name, active) {
+      var pc = personColor(name);
+      return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
+        '<div style="font-size:16px;font-weight:700">Hi <span style="color:' + pc + '">' + name + '</span></div>' +
+        '<button class="link-btn" id="sub-switch">Log out</button></div>' +
+        '<div class="adm-nav">' + PLAYER_SECTIONS.map(function(t) {
+          return '<button data-pl="' + t[0] + '" class="' + (t[0] === active ? 'on' : '') + '">' + t[1] + '</button>';
+        }).join('') + '</div>';
+    }
+    function bindPlayerNav() {
+      document.querySelectorAll('[data-pl]').forEach(function(b) {
+        b.addEventListener('click', function() { showPlayer(b.getAttribute('data-pl')); });
+      });
+    }
+    function showPlayer(section) {
+      if (section === 'pick') {
+        document.getElementById('submit-content').innerHTML = '<div class="loading">Loading…</div>';
+        picksApi({ pin: SUB.pin }).then(function(res) { if (!res.error) renderGame(res, null); else renderPinScreen(res.error); });
+      }
+    }
 
     // ── Admin tools (0328): Odds · Injuries · Trash Talk · Data Check ───────
     var ADMIN = { oddsRes: null };

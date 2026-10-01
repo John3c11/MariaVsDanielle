@@ -1,4 +1,4 @@
-<!-- v58 -->
+<!-- v59 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -47,9 +47,9 @@
 
     .tab-btn {
       font-family: 'Inter', sans-serif;
-      font-size: 12.5px;
+      font-size: 13.5px;
       font-weight: 500;
-      padding: 10px 6px;
+      padding: 10px 12px;
       white-space: nowrap;
       flex: 1 0 auto;
       border: none;
@@ -63,6 +63,27 @@
     .tab-btn.active {
       color: #FFFFFF;
       border-bottom: 2px solid #FFFFFF;
+    }
+
+    /* Laptop: 5 main tabs + a "More" menu. Phones keep the single scrolling row. */
+    .tab-more-wrap { position: relative; flex: 1 0 auto; display: flex; }
+    .tab-more { width: 100%; }
+    .tab-caret { font-size: 10px; opacity: 0.7; margin-left: 2px; }
+    .tab-menu {
+      display: none; position: absolute; right: 0; top: calc(100% + 6px); z-index: 50; min-width: 180px;
+      flex-direction: column; padding: 6px; border-radius: 12px;
+      background: rgba(17,19,24,0.98); border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    }
+    .tab-menu.open { display: flex; }
+    .tab-menu .tab-btn { text-align: left; border-bottom: none; margin: 0; border-radius: 8px; padding: 9px 12px; font-size: 14px; }
+    .tab-menu .tab-btn:hover { background: rgba(255,255,255,0.06); color: #FFFFFF; }
+    .tab-menu .tab-btn.active { background: rgba(255,255,255,0.1); border-bottom: none; }
+    @media (min-width: 701px) {
+      .tabs-nav { overflow: visible; }
+      .tabs-nav > .tab-extra { display: none; }
+    }
+    @media (max-width: 700px) {
+      .tab-more-wrap { display: none; }
     }
 
     /* Submit Picks tab */
@@ -978,10 +999,20 @@
       <button class="tab-btn" onclick="switchTab('chat')">Trash Talk</button>
       <button class="tab-btn" onclick="switchTab('profiles')">Profiles</button>
       <button class="tab-btn" onclick="switchTab('analytics')">Analytics</button>
-      <button class="tab-btn" onclick="switchTab('money')">Money</button>
-      <button class="tab-btn" onclick="switchTab('legacy')">Legacy</button>
-      <button class="tab-btn" onclick="switchTab('bethistory')">Bet History</button>
-      <button class="tab-btn" onclick="switchTab('rosters')">Roster</button>
+      <button class="tab-btn tab-extra" onclick="switchTab('money')">Money</button>
+      <button class="tab-btn tab-extra" onclick="switchTab('legacy')">Legacy</button>
+      <button class="tab-btn tab-extra" onclick="switchTab('bethistory')">Bet History</button>
+      <button class="tab-btn tab-extra" onclick="switchTab('rosters')">Roster</button>
+      <!-- Laptop: the four above move into this menu -->
+      <div class="tab-more-wrap">
+        <button class="tab-btn tab-more" id="tab-more" onclick="toggleTabMenu(event)">More <span class="tab-caret">▾</span></button>
+        <div class="tab-menu" id="tab-menu">
+          <button class="tab-btn" onclick="switchTab('money')">💵 Money</button>
+          <button class="tab-btn" onclick="switchTab('legacy')">📜 Legacy</button>
+          <button class="tab-btn" onclick="switchTab('bethistory')">🧾 Bet History</button>
+          <button class="tab-btn" onclick="switchTab('rosters')">📋 Roster</button>
+        </div>
+      </div>
     </nav>
 
     <div id="tab-stats" class="tab-panel active">
@@ -2109,6 +2140,15 @@
     load();
     loadRosters();
 
+    function toggleTabMenu(e) {
+      e.stopPropagation();
+      document.getElementById('tab-menu').classList.toggle('open');
+    }
+    document.addEventListener('click', function(e) {
+      var m = document.getElementById('tab-menu');
+      if (m && m.classList.contains('open') && !e.target.closest('.tab-more-wrap')) m.classList.remove('open');
+    });
+
     function switchTab(name) {
       document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
       document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
@@ -2116,6 +2156,15 @@
         if (b.getAttribute('onclick') === "switchTab('" + name + "')") b.classList.add('active');
       });
       document.getElementById('tab-' + name).classList.add('active');
+      // "More" shows which hidden tab you're on
+      var extra = { money: 'Money', legacy: 'Legacy', bethistory: 'Bet History', rosters: 'Roster' }[name];
+      var more = document.getElementById('tab-more');
+      if (more) {
+        more.innerHTML = (extra || 'More') + ' <span class="tab-caret">▾</span>';
+        more.classList.toggle('active', !!extra);
+      }
+      var menu = document.getElementById('tab-menu');
+      if (menu) menu.classList.remove('open');
       if (name === 'legacy') loadLegacyTab();
       if (name === 'money') loadMoneyTab();
       if (name === 'analytics') loadAnalyticsTab();

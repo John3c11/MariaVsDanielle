@@ -1,4 +1,4 @@
-<!-- v56 -->
+<!-- v57 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -765,6 +765,13 @@
     .chat-meta { font-size: 11px; font-weight: 700; margin-bottom: 3px; display: flex; gap: 8px; align-items: baseline; }
     .chat-meta .chat-time { font-weight: 500; color: rgba(255,255,255,0.45); }
     .chat-day { align-self: center; font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin: 8px 0 2px; }
+    .chat-msg[data-row] { cursor: pointer; position: relative; }
+    .chat-reacts { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+    .chat-react { font-size: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.12); border-radius: 999px; padding: 1px 7px; }
+    .chat-react.mine { border-color: rgba(255,255,255,0.5); }
+    .chat-tray { display: flex; gap: 2px; margin-top: 8px; background: rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.15); border-radius: 999px; padding: 3px 6px; width: fit-content; animation: pcFade 0.12s ease; }
+    .chat-tray button { font-size: 18px; background: none; border: none; cursor: pointer; padding: 2px 4px; border-radius: 8px; transition: transform 0.1s; }
+    .chat-tray button:hover { transform: scale(1.25); }
     .chat-pinned { border: 1px solid rgba(251,191,36,0.4); background: linear-gradient(150deg, rgba(251,191,36,0.14), rgba(251,191,36,0.05)); border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; font-size: 14px; }
 
     /* Injured players */
@@ -835,6 +842,17 @@
     .lp-pick.lp-hit { box-shadow: 0 0 0 2px #34D399, 0 0 18px rgba(52,211,153,0.6); }
     .lp-pick.lp-hit::after { content: ' ✅'; }
     .lp-pick.lp-miss { opacity: 0.35; filter: grayscale(0.6); }
+    /* Pick reveal: plays once per device the first time both picks for a game are shown */
+    .live-game.revealing .live-pick-card { animation: revealFlip 0.9s cubic-bezier(.2,.8,.2,1) both; transform-origin: center; backface-visibility: hidden; }
+    .live-game.revealing .live-pick-card.danielle { animation-delay: 0.35s; }
+    @keyframes revealFlip {
+      0% { transform: perspective(700px) rotateY(-90deg); opacity: 0; filter: brightness(2); }
+      60% { transform: perspective(700px) rotateY(12deg); opacity: 1; }
+      100% { transform: perspective(700px) rotateY(0); filter: brightness(1); }
+    }
+    .reveal-banner { text-align: center; font-size: 11px; font-weight: 800; letter-spacing: 0.18em; color: #FCD34D; margin-bottom: 8px; animation: revealBanner 2.6s ease both; }
+    @keyframes revealBanner { 0% { opacity: 0; transform: translateY(-4px); } 15%, 75% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .live-game.revealing .live-pick-card, .reveal-banner { animation: none; } }
     /* Hit celebration: pure CSS, runs a few times then stops */
     .live-pick-card.lp-celebrate { animation: lpWin 1.1s ease-in-out 4; }
     .live-pick-card.maria.lp-celebrate { --win: 248,113,113; }
@@ -1468,7 +1486,8 @@
               return colored.join('<br>');
             }
 
-            html += `<div class="live-game" style="margin-top:${html ? '22px' : '0'}">
+            const revealKey = (mariaRow[1] || '') + '_' + gameNum + '_' + homeTeamName;
+            html += `<div class="live-game" data-reveal="${revealKey}" style="margin-top:${html ? '22px' : '0'}">
               <div class="live-game-title">
                 ${teamPill(homeTeamName, homeTeamName)}
                 <span style="color:rgba(255,255,255,0.45)"> vs </span>
@@ -1489,7 +1508,15 @@
               </div></div>`;
           }
           liveEl.innerHTML = html;
+          playPickReveals(liveEl);
           startLiveTracker();
+          // A game is still waiting on someone's picks: check back every minute so the reveal can happen live
+          clearInterval(window.REVEAL_POLL);
+          if (html.indexOf('has picked. Waiting on') >= 0) {
+            window.REVEAL_POLL = setInterval(function() {
+              if (document.visibilityState === 'visible' && document.getElementById('tab-stats').classList.contains('active')) load();
+            }, 60000);
+          }
         }
 
 
@@ -1562,6 +1589,26 @@
         else { console.error(e); btn.textContent = 'Try again'; }
       }
       setTimeout(function() { btn.textContent = label; btn.disabled = false; }, 1800);
+    }
+
+    // ── Pick reveal ─────────────────────────────────────────────────────────
+    function playPickReveals(root) {
+      var seen = {};
+      try { seen = JSON.parse(localStorage.getItem('mvd-revealed') || '{}'); } catch (e) {}
+      var changed = false;
+      root.querySelectorAll('.live-game[data-reveal]').forEach(function(g) {
+        var k = g.getAttribute('data-reveal');
+        if (seen[k]) return;
+        seen[k] = Date.now();
+        changed = true;
+        g.classList.add('revealing');
+        g.querySelector('.live-picks-grid').insertAdjacentHTML('beforebegin', '<div class="reveal-banner">🔓 PICKS REVEALED</div>');
+        setTimeout(function() {
+          g.classList.remove('revealing');
+          var b = g.querySelector('.reveal-banner'); if (b) b.remove();
+        }, 2800);
+      });
+      if (changed) { try { localStorage.setItem('mvd-revealed', JSON.stringify(seen)); } catch (e) {} }
     }
 
     // ── Live game tracker (Live Picks) ──────────────────────────────────────
@@ -2273,21 +2320,67 @@
     })();
 
     // ── Trash Talk wall ─────────────────────────────────────────────────────
-    // Everyone can read; only Maria and Danielle can post (with their PIN).
-    var CHAT = { timer: null, pin: '', name: '', lastKey: '' };
+    // Everyone can read; only Maria and Danielle can post and react (with their PIN).
+    var CHAT = { timer: null, pin: '', name: '', lastKey: '', season: null, seasons: [], msgs: [] };
+    var CHAT_REACTIONS = ['🔥', '😂', '💀', '👏', '🤡'];
 
     function escHtml(t) {
       return (t || '').toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
+    function chatSeason() {
+      return SEASONS.filter(function(x) { return x.year === CHAT.season; })[0] || SEASONS.filter(function(x) { return x.year === CURRENT_YEAR; })[0] || SEASONS[0];
+    }
+    function isCurrentChat() { return chatSeason().year === CURRENT_YEAR; }
+
+    function fetchChatRows(season) {
+      var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + season.sheetId + '/values/' +
+        encodeURIComponent("'Trash Talk'!A1:E20000") + '?key=' + API_KEY;
+      return fetch(url).then(function(r) { if (!r.ok) throw new Error('no tab'); return r.json(); })
+        .then(function(d) { return d.values || []; });
+    }
+
     function loadChatTab() {
       try { CHAT.pin = localStorage.getItem('mvd-chat-pin') || ''; CHAT.name = localStorage.getItem('mvd-chat-name') || ''; } catch (e) {}
+      if (!CHAT.season) CHAT.season = CURRENT_YEAR;
       renderChatShell();
       refreshChat();
+      findChatSeasons();
       stopChatRefresh();
-      CHAT.timer = setInterval(refreshChat, 20000);
+      CHAT.timer = setInterval(function() { if (isCurrentChat()) refreshChat(); }, 20000);
     }
     function stopChatRefresh() { if (CHAT.timer) { clearInterval(CHAT.timer); CHAT.timer = null; } }
+
+    // Only show a season switcher for seasons that actually have a Trash Talk tab
+    function findChatSeasons() {
+      if (CHAT.seasons.length) return drawSeasonSwitch();
+      Promise.all(SEASONS.map(function(se) {
+        return se.year === CURRENT_YEAR ? Promise.resolve(se) : fetchChatRows(se).then(function() { return se; }).catch(function() { return null; });
+      })).then(function(list) {
+        CHAT.seasons = list.filter(Boolean).map(function(se) { return se.year; }).sort().reverse();
+        drawSeasonSwitch();
+      });
+    }
+    function drawSeasonSwitch() {
+      var box = document.getElementById('chat-seasons');
+      if (!box) return;
+      if (CHAT.seasons.length < 2) { box.innerHTML = ''; return; }
+      box.innerHTML = '<div class="af-bar" style="justify-content:center;margin-bottom:14px"><span class="af-bar-label">Season</span>' +
+        CHAT.seasons.map(function(y) {
+          return '<button class="filter-btn' + (y === CHAT.season ? ' active' : '') + '" data-chat-season="' + y + '">' + y + '</button>';
+        }).join('') + '</div>';
+      box.querySelectorAll('[data-chat-season]').forEach(function(b) {
+        b.addEventListener('click', function() {
+          CHAT.season = b.getAttribute('data-chat-season');
+          CHAT.lastKey = '';
+          drawSeasonSwitch();
+          renderComposer();
+          document.getElementById('chat-feed').innerHTML = '<div class="loading">Loading…</div>';
+          document.getElementById('chat-pinned').innerHTML = '';
+          refreshChat();
+        });
+      });
+    }
 
     function renderChatShell() {
       var el = document.getElementById('chat-content');
@@ -2295,17 +2388,24 @@
       el.innerHTML =
         '<div style="text-align:center;margin-bottom:18px">' +
           '<div style="font-size:22px;font-weight:800;letter-spacing:-0.3px">Trash Talk 🗣️</div>' +
-          '<div style="font-size:12px;color:#A1A9B6;margin-top:4px">Everyone can read. Only <span style="color:' + SB_M + ';font-weight:700">Maria</span> and <span style="color:' + SB_D + ';font-weight:700">Danielle</span> can post.</div>' +
+          '<div style="font-size:12px;color:#A1A9B6;margin-top:4px">Everyone can read. Only <span style="color:' + SB_M + ';font-weight:700">Maria</span> and <span style="color:' + SB_D + ';font-weight:700">Danielle</span> can post. Tap a message to react.</div>' +
         '</div>' +
+        '<div id="chat-seasons"></div>' +
         '<div id="chat-compose"></div>' +
         '<div id="chat-pinned"></div>' +
         '<div class="chat-feed" id="chat-feed"><div class="loading">Loading…</div></div>';
       renderComposer();
+      document.getElementById('chat-feed').addEventListener('click', onChatClick);
+      document.getElementById('chat-pinned').addEventListener('click', onChatClick);
     }
 
     function renderComposer() {
       var box = document.getElementById('chat-compose');
       if (!PICKS_URL) { box.innerHTML = ''; return; }
+      if (!isCurrentChat()) {
+        box.innerHTML = '<div style="text-align:center;font-size:12px;color:#A1A9B6;margin-bottom:16px">📜 ' + CHAT.season + ' archive. Read only.</div>';
+        return;
+      }
       var c = CHAT.name === 'Maria' ? SB_M : CHAT.name === 'Danielle' ? SB_D : '#F3F4F6';
       box.innerHTML = '<div class="chat-compose">' +
         '<textarea class="chat-input" id="chat-text" maxlength="280" placeholder="' + (CHAT.name ? 'Talk your trash, ' + CHAT.name + '…' : 'Say something…') + '"></textarea>' +
@@ -2330,29 +2430,36 @@
       });
     }
 
+    // PIN to use: the remembered one, or whatever is typed in the PIN box
+    function chatPin() { return CHAT.pin || ((document.getElementById('chat-pin') || {}).value || '').trim(); }
+
+    function rememberChatUser(pin, name) {
+      CHAT.name = name;
+      var remember = document.getElementById('chat-remember');
+      if (!CHAT.pin && remember && remember.checked) {
+        CHAT.pin = pin;
+        try { localStorage.setItem('mvd-chat-pin', pin); localStorage.setItem('mvd-chat-name', name); } catch (e) {}
+        renderComposer();
+      }
+    }
+
     function sendChat() {
       var ta = document.getElementById('chat-text');
       var msg = document.getElementById('chat-msg');
       var btn = document.getElementById('chat-send');
       var text = ta.value.trim();
-      var pin = CHAT.pin || ((document.getElementById('chat-pin') || {}).value || '').trim();
+      var pin = chatPin();
       if (!text) return;
       if (!pin) { msg.style.color = '#F87171'; msg.textContent = 'Enter your PIN to post.'; return; }
       btn.disabled = true; btn.textContent = 'Posting…'; msg.textContent = '';
       picksApi({ pin: pin, action: 'chat', text: text }).then(function(res) {
         btn.disabled = false; btn.textContent = 'Post';
         if (res.error) { msg.style.color = '#F87171'; msg.textContent = res.error; return; }
-        if (!CHAT.pin) {
-          var remember = document.getElementById('chat-remember');
-          CHAT.name = res.name;
-          if (remember && remember.checked) {
-            CHAT.pin = pin;
-            try { localStorage.setItem('mvd-chat-pin', pin); localStorage.setItem('mvd-chat-name', res.name); } catch (e) {}
-          }
-        }
-        // Show it right away, then sync with the sheet
+        var hadPin = !!CHAT.pin;
+        rememberChatUser(pin, res.name);
         addLocalMessage(res.name, text);
-        if (CHAT.pin) renderComposer(); else { ta.value = ''; document.getElementById('chat-count').textContent = '280'; }
+        var t2 = document.getElementById('chat-text');
+        if (t2) { t2.value = ''; document.getElementById('chat-count').textContent = '280'; }
         setTimeout(refreshChat, 1500);
       }).catch(function() {
         btn.disabled = false; btn.textContent = 'Post';
@@ -2360,18 +2467,68 @@
       });
     }
 
-    function chatBubble(who, text, when) {
-      var cls = who === 'Maria' ? 'maria' : 'danielle';
-      var c = who === 'Maria' ? SB_M : SB_D;
-      var t = when ? when.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : 'now';
-      return '<div class="chat-msg ' + cls + '"><div class="chat-meta"><span style="color:' + c + '">' + who + '</span><span class="chat-time">' + t + '</span></div>' + escHtml(text) + '</div>';
+    function reactionPills(m) {
+      var counts = {};
+      Object.keys(m.reactions).forEach(function(who) { var e = m.reactions[who]; (counts[e] = counts[e] || []).push(who); });
+      return Object.keys(counts).map(function(e) {
+        var mine = CHAT.name && counts[e].indexOf(CHAT.name) >= 0;
+        return '<span class="chat-react' + (mine ? ' mine' : '') + '" title="' + counts[e].join(' & ') + '">' + e +
+          (counts[e].length > 1 ? ' ' + counts[e].length : '') + '</span>';
+      }).join('');
+    }
+
+    function chatBubble(m) {
+      var cls = m.who === 'Maria' ? 'maria' : 'danielle';
+      var c = m.who === 'Maria' ? SB_M : SB_D;
+      var t = m.when ? m.when.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : 'now';
+      var pills = m.reactions ? reactionPills(m) : '';
+      return '<div class="chat-msg ' + cls + '"' + (m.row ? ' data-row="' + m.row + '"' : '') + '>' +
+        '<div class="chat-meta"><span style="color:' + c + '">' + m.who + '</span><span class="chat-time">' + t + '</span></div>' +
+        escHtml(m.text) +
+        (pills ? '<div class="chat-reacts">' + pills + '</div>' : '') +
+        '</div>';
     }
 
     function addLocalMessage(who, text) {
       var feed = document.getElementById('chat-feed');
       if (!feed) return;
       if (feed.querySelector('.loading') || feed.querySelector('.chat-empty')) feed.innerHTML = '';
-      feed.insertAdjacentHTML('afterbegin', chatBubble(who, text, new Date()));
+      feed.insertAdjacentHTML('afterbegin', chatBubble({ who: who, text: text, when: new Date() }));
+    }
+
+    // Tap a message: show the reaction tray (current season only)
+    function onChatClick(e) {
+      var pick = e.target.closest('[data-emoji]');
+      if (pick) { e.stopPropagation(); sendReaction(+pick.closest('[data-row]').getAttribute('data-row'), pick.getAttribute('data-emoji')); return; }
+      var bubble = e.target.closest('[data-row]');
+      document.querySelectorAll('.chat-tray').forEach(function(t) { t.remove(); });
+      if (!bubble || !isCurrentChat()) return;
+      var tray = document.createElement('div');
+      tray.className = 'chat-tray';
+      tray.innerHTML = CHAT_REACTIONS.map(function(em) { return '<button data-emoji="' + em + '">' + em + '</button>'; }).join('');
+      bubble.appendChild(tray);
+    }
+
+    function sendReaction(row, emoji) {
+      document.querySelectorAll('.chat-tray').forEach(function(t) { t.remove(); });
+      var pin = chatPin();
+      var msg = document.getElementById('chat-msg');
+      if (!pin) {
+        if (msg) { msg.style.color = '#F87171'; msg.textContent = 'Enter your PIN above to react.'; }
+        var pinBox = document.getElementById('chat-pin'); if (pinBox) pinBox.focus();
+        return;
+      }
+      // Show it right away; the sheet catches up a moment later
+      var m = CHAT.msgs.filter(function(x) { return x.row === row; })[0];
+      if (m && CHAT.name) {
+        if (m.reactions[CHAT.name] === emoji) delete m.reactions[CHAT.name]; else m.reactions[CHAT.name] = emoji;
+        drawChat(CHAT.msgs);
+      }
+      picksApi({ pin: pin, action: 'react', row: row, emoji: emoji }).then(function(res) {
+        if (res.error) { if (msg) { msg.style.color = '#F87171'; msg.textContent = res.error; } CHAT.lastKey = ''; refreshChat(); return; }
+        if (!CHAT.name || !CHAT.pin) rememberChatUser(pin, res.name);
+        if (m) { m.reactions = res.reactions || {}; drawChat(CHAT.msgs); }
+      }).catch(function() { CHAT.lastKey = ''; refreshChat(); });
     }
 
     function parseSheetTime(v) {
@@ -2382,16 +2539,32 @@
       return isNaN(d) ? null : d;
     }
 
+    function parseReactions(v) {
+      var out = {};
+      (v || '').split(';').forEach(function(part) {
+        var kv = part.split('=');
+        if (kv.length === 2 && (kv[0].trim() === 'Maria' || kv[0].trim() === 'Danielle')) out[kv[0].trim()] = kv[1].trim();
+      });
+      return out;
+    }
+
     function refreshChat() {
-      fetchSheet("'Trash Talk'", 'A1:D20000').then(function(rows) {
-        var msgs = rows.slice(1).filter(function(r) { return (r[1] === 'Maria' || r[1] === 'Danielle') && (r[2] || '').trim(); })
-          .map(function(r) { return { when: parseSheetTime(r[0]), who: r[1], text: r[2], pinned: /pin/i.test(r[3] || '') }; });
-        var key = msgs.length + '|' + (msgs.length ? msgs[msgs.length - 1].text : '') + '|' + msgs.filter(function(m) { return m.pinned; }).length;
+      var season = chatSeason();
+      fetchChatRows(season).then(function(rows) {
+        if (chatSeason() !== season) return; // switched seasons meanwhile
+        var msgs = [];
+        rows.forEach(function(r, i) {
+          if (i === 0 || !(r[1] === 'Maria' || r[1] === 'Danielle') || !(r[2] || '').trim()) return;
+          msgs.push({ row: i + 1, when: parseSheetTime(r[0]), who: r[1], text: r[2], pinned: /pin/i.test(r[3] || ''), reactions: parseReactions(r[4]) });
+        });
+        var key = season.year + '|' + JSON.stringify(msgs.map(function(m) { return [m.row, m.text, m.pinned, m.reactions]; }));
         if (key === CHAT.lastKey) return;
         CHAT.lastKey = key;
-        drawChat(msgs);
+        CHAT.msgs = msgs;
+        if (!document.querySelector('.chat-tray')) drawChat(msgs);
       }).catch(function() {
-        if (CHAT.lastKey === '') drawChat([]); // tab doesn't exist yet
+        CHAT.msgs = [];
+        drawChat([]); // tab doesn't exist yet
       });
     }
 
@@ -2404,14 +2577,15 @@
         return '<div class="chat-pinned">📌 <b style="color:' + (m.who === 'Maria' ? SB_M : SB_D) + '">' + m.who + ':</b> ' + escHtml(m.text) + '</div>';
       }).join('');
       if (!msgs.length) {
-        feed.innerHTML = '<div class="chat-empty" style="text-align:center;color:#A1A9B6;padding:28px 0">No trash talk yet. Somebody start it. 👀</div>';
+        feed.innerHTML = '<div class="chat-empty" style="text-align:center;color:#A1A9B6;padding:28px 0">' +
+          (isCurrentChat() ? 'No trash talk yet. Somebody start it. 👀' : 'No trash talk saved for ' + CHAT.season + '.') + '</div>';
         return;
       }
       var html = '', lastDay = '';
       msgs.slice().reverse().forEach(function(m) {
         var day = m.when ? m.when.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) : '';
         if (day && day !== lastDay) { html += '<div class="chat-day">' + day + '</div>'; lastDay = day; }
-        html += chatBubble(m.who, m.text, m.when);
+        html += chatBubble(m);
       });
       feed.innerHTML = html;
     }
@@ -3544,6 +3718,11 @@
           });
         }
 
+        // ── Bad Beats (filled in after ESPN is checked) ─────────────────────
+        html += section("Bad Beats");
+        html += '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">A <b>bad beat</b> is when someone\'s pick scored a touchdown in that game, just not the first one.</div>';
+        html += '<div id="bad-beats"><div class="loading">Checking every game with ESPN…</div></div>';
+
         html += section("Streaks");
         function isNotOffered(r) { return r.wasOffered === "No" && r.netUnits === 0 && r.firstScorer !== ""; }
         function streaks(personRows) {
@@ -3994,9 +4173,131 @@
           });
         });
 
+
+        // ── Bad Beats: every TD from ESPN for each tracked game ──────────────
+        async function loadBadBeats() {
+          var box = document.getElementById('bad-beats');
+          if (!box) return;
+          var games = {}, order = [];
+          rows.forEach(function(r) {
+            if (!r.firstScorer || (r.picker !== 'Maria' && r.picker !== 'Danielle')) return;
+            var k = r.year + '_' + r.week + '_' + r.homeTeam + '_' + r.awayTeam;
+            if (!games[k]) { games[k] = { key: k, year: r.year, week: r.week, home: r.homeTeam, away: r.awayTeam, first: r.firstScorer, picks: { Maria: [], Danielle: [] } }; order.push(k); }
+            [[r.homePick, r.homeTeam], [r.awayPick, r.awayTeam]].forEach(function(x) { if (x[0]) games[k].picks[r.picker].push({ name: x[0], team: x[1] }); });
+          });
+
+          var cache = {};
+          try { cache = JSON.parse(localStorage.getItem('mvd-tds-v1') || '{}'); } catch (e) {}
+          var boards = {}, failed = 0, done = 0;
+          function board(year, week) {
+            var k = year + '_' + week;
+            if (!boards[k]) {
+              var path = week > 18
+                ? 'scoreboard?dates=' + year + '&seasontype=3&week=' + (week - 18)
+                : 'scoreboard?dates=' + year + '&seasontype=2&week=' + week;
+              boards[k] = espnGet(path).then(function(d) { return d.events || []; }).catch(function() { return []; });
+            }
+            return boards[k];
+          }
+          function clockSecs(c) { var m = (c || '').match(/(\d+):(\d+)/); return m ? +m[1] * 60 + +m[2] : 0; }
+
+          async function tdsFor(g) {
+            if (cache[g.key]) return cache[g.key];
+            var events = await board(g.year, g.week);
+            var hk = espnTeamKey(g.home), ak = espnTeamKey(g.away), ev = null;
+            events.forEach(function(e) {
+              var c = e.competitions && e.competitions[0];
+              if (!c) return;
+              var keys = c.competitors.map(function(x) { return espnTeamKey(x.team.displayName); });
+              if (keys.indexOf(hk) >= 0 && keys.indexOf(ak) >= 0) ev = e;
+            });
+            if (!ev) { failed++; return null; }
+            var sum = await espnGet('summary?event=' + ev.id);
+            var tds = (sum.scoringPlays || []).filter(tdPlay).map(function(p) {
+              var per = (p.period && p.period.number) || 1;
+              return { n: tdScorerName(p.text), p: per, c: (p.clock && p.clock.displayValue) || '', t: (per - 1) * 900 + (900 - clockSecs(p.clock && p.clock.displayValue)) };
+            });
+            if (ev.status && ev.status.type && ev.status.type.state === 'post') cache[g.key] = tds;
+            return tds;
+          }
+
+          // A few at a time so it's gentle on ESPN
+          var queue = order.slice(), results = {};
+          async function worker() {
+            while (queue.length) {
+              var k = queue.shift();
+              try { results[k] = await tdsFor(games[k]); } catch (e) { failed++; }
+              done++;
+              if (done % 5 === 0 && box.querySelector('.loading')) box.querySelector('.loading').textContent = 'Checking every game with ESPN… ' + done + '/' + order.length;
+            }
+          }
+          await Promise.all([worker(), worker(), worker(), worker()]);
+          try { localStorage.setItem('mvd-tds-v1', JSON.stringify(cache)); } catch (e) {}
+
+          var beats = [];
+          order.forEach(function(k) {
+            var g = games[k], tds = results[k];
+            if (!tds || !tds.length) return;
+            var firstT = tds[0].t;
+            ['Maria', 'Danielle'].forEach(function(who) {
+              g.picks[who].forEach(function(pk) {
+                if (normName(pk.name) === normName(g.first)) return; // that's a hit, not a bad beat
+                var td = tds.filter(function(t, i) { return i > 0 && sameScorer(t.n, pk.name); })[0];
+                if (!td) return;
+                beats.push({ who: who, player: pk.name, team: pk.team, year: g.year, week: g.week, first: g.first,
+                  q: td.p > 4 ? 'OT' : 'Q' + td.p, clock: td.c, gap: Math.max(0, Math.round((td.t - firstT) / 60)) });
+              });
+            });
+          });
+
+          if (!order.length) { box.innerHTML = EMPTY('No finished games yet.'); return; }
+          if (Object.keys(results).every(function(k) { return !results[k]; })) {
+            box.innerHTML = EMPTY('Couldn\'t reach ESPN right now. Try again later.');
+            return;
+          }
+
+          function gapText(b) { return b.gap <= 0 ? 'right after' : b.gap === 1 ? '1 min after' : b.gap + ' min after'; }
+          function line(b) {
+            var c = b.who === 'Maria' ? '#F87171' : '#60A5FA';
+            return '<span style="color:' + c + ';font-weight:600">' + b.who + '</span> had ' + legacyColoredText(b.player, b.team) +
+              '. He scored in ' + b.q + (b.clock ? ' (' + b.clock + ')' : '') + ', ' + gapText(b) + ' <b>' + b.first + '</b> scored first · ' + wkLabel(b.year, b.week) + '.';
+          }
+          var count = { Maria: 0, Danielle: 0 }, closest = { Maria: null, Danielle: null };
+          beats.forEach(function(b) {
+            count[b.who]++;
+            if (!closest[b.who] || b.gap < closest[b.who].gap) closest[b.who] = b;
+          });
+          var out = twoCol(
+            personCard('Maria', statRow('Bad beats', count.Maria) + statRow('Closest call', closest.Maria ? closest.Maria.player + ' (' + gapText(closest.Maria) + ')' : '—')),
+            personCard('Danielle', statRow('Bad beats', count.Danielle) + statRow('Closest call', closest.Danielle ? closest.Danielle.player + ' (' + gapText(closest.Danielle) + ')' : '—'))
+          );
+          var worst = beats.slice().sort(function(a, b) { return a.gap - b.gap; })[0];
+          if (worst) {
+            out += '<div style="background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.3);border-radius:10px;padding:14px 16px;margin:8px 0 12px">' +
+              '<div style="font-size:11px;font-weight:700;color:#FCA5A5;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">💔 Most Painful</div>' +
+              '<div style="font-size:13px;color:#D1D5DB;line-height:1.6">' + line(worst) + '</div></div>';
+          }
+          beats.sort(function(a, b) { return a.year !== b.year ? parseInt(b.year) - parseInt(a.year) : b.week - a.week; });
+          if (beats.length) {
+            out += '<div class="af-bars">' + afBar('bb', 'picker', 'Show', PICKER_OPTS, 'all') + '</div>';
+            PICKER_OPTS.forEach(function(po) {
+              var list = beats.filter(function(b) { return po[0] === 'all' || b.who === po[0]; });
+              out += afVariant('bb', [po[0]], list.length ? afList(list.map(function(b) {
+                return '<div style="padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:13px;color:#D1D5DB;line-height:1.5">' + line(b) + '</div>';
+              }), 5) : EMPTY('No bad beats for ' + po[1] + '.'));
+            });
+          } else {
+            out += EMPTY('No bad beats yet. Every picked player who scored was first.');
+          }
+          if (failed) out += '<div style="font-size:11px;color:#A1A9B6;margin-top:6px">' + failed + ' game' + (failed > 1 ? 's' : '') + ' couldn\'t be matched on ESPN and were skipped.</div>';
+          box.innerHTML = out;
+          if (AF.bb) afApply('bb');
+        }
+
         var analyticsEl = document.getElementById("analytics-content");
         analyticsEl.innerHTML = html;
         afInit(analyticsEl);
+        loadBadBeats();
       } catch(e) {
         console.error(e);
         document.getElementById("analytics-content").innerHTML = '<div class="loading">Error loading analytics.</div>';

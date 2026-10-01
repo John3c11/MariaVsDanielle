@@ -1,11 +1,19 @@
-<!-- v48 -->
+<!-- v49 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏈</text></svg>">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Maria vs Danielle</title>
+  <!-- Home screen app -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="app/apple-touch-icon.png">
+  <meta name="theme-color" content="#08090C">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="MvD">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -259,7 +267,7 @@
       .campbell-ad { display: none; }
     }
     @media (max-width: 700px) {
-      .page-layout { padding: 24px 12px 60px; }
+      .page-layout { padding: calc(24px + env(safe-area-inset-top)) 12px calc(60px + env(safe-area-inset-bottom)); }
       .wrap { padding: 20px 14px; border-radius: 12px; }
 
       /* Tabs scroll sideways instead of overflowing */
@@ -674,6 +682,34 @@
     .sb .live-pick-card.danielle .picker-label { color: var(--d); }
     .sb .live-pick-card .pick-player { color: #FFFFFF; line-height: 1.8; }
     .sb .live-pick-card .pick-odds { color: rgba(255,255,255,0.6); }
+    /* Share-as-image button */
+    .share-btn {
+      position: absolute; top: 12px; right: 12px; z-index: 2;
+      font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.04em;
+      color: #FFFFFF; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 999px; padding: 5px 11px 5px 26px; cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v12'/%3E%3Cpath d='M7 8l5-5 5 5'/%3E%3Cpath d='M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-size: 12px; background-position: 10px center;
+    }
+    .share-btn:hover { background-color: rgba(255,255,255,0.2); }
+    .share-btn:disabled { opacity: 0.6; cursor: default; }
+
+    /* Live game tracker strip */
+    .live-strip:empty { display: none; }
+    .live-strip { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; }
+    .ls-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .ls-score { font-size: 17px; font-weight: 800; letter-spacing: -0.2px; display: flex; align-items: center; gap: 8px; }
+    .ls-score .ls-dash { color: rgba(255,255,255,0.35); font-weight: 500; }
+    .ls-status { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.65); display: flex; align-items: center; gap: 6px; }
+    .ls-live { color: #F87171; letter-spacing: 0.1em; font-size: 11px; font-weight: 800; }
+    .ls-dot { width: 7px; height: 7px; border-radius: 50%; background: #F87171; box-shadow: 0 0 0 0 rgba(248,113,113,0.7); animation: lsPulse 1.6s infinite; }
+    @keyframes lsPulse { 0% { box-shadow: 0 0 0 0 rgba(248,113,113,0.7); } 70% { box-shadow: 0 0 0 8px rgba(248,113,113,0); } 100% { box-shadow: 0 0 0 0 rgba(248,113,113,0); } }
+    .ls-td { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 13px; color: rgba(255,255,255,0.85); }
+    .lp-pick { display: inline-block; border-radius: 7px; transition: all 0.3s ease; }
+    .lp-pick.lp-hit { box-shadow: 0 0 0 2px #34D399, 0 0 18px rgba(52,211,153,0.6); }
+    .lp-pick.lp-hit::after { content: ' ✅'; }
+    .lp-pick.lp-miss { opacity: 0.35; filter: grayscale(0.6); }
+
     /* Team "jersey" pills: real team colors that read on dark backgrounds */
     .tpill { display: inline-block; padding: 0 7px; border-radius: 5px; font-weight: 700; line-height: 1.55; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.14); }
     @media (max-width: 700px) {
@@ -1049,7 +1085,8 @@
           ' for <span style="color:' + pc + ';font-weight:600">' + W.best.p + '</span>.';
       }
 
-      return '<div class="sb-glass" style="border-left:3px solid ' + accent + ';padding:12px 16px;margin-bottom:20px">' +
+      return '<div class="sb-glass" data-share="recap-week-' + wk + '" style="position:relative;border-left:3px solid ' + accent + ';padding:12px 16px;margin-bottom:20px">' +
+        '<button class="share-btn" onclick="shareCard(this)" title="Share as image">Share</button>' +
         '<div class="sb-dim" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:6px">Week ' + wk + ' Recap' + (live ? ' · in progress' : '') + '</div>' +
         '<div style="font-size:13px;color:rgba(255,255,255,0.85);line-height:1.8">' + text + '</div></div>';
     }
@@ -1265,16 +1302,17 @@
               const waiting = mariaRow ? 'Danielle' : 'Maria';
               const doneC = done === 'Maria' ? SB_M : SB_D;
               const waitC = waiting === 'Maria' ? SB_M : SB_D;
-              html += `
-              <div class="live-game-title" style="margin-top:${html ? '20px' : '0'}">
+              html += `<div class="live-game" style="margin-top:${html ? '22px' : '0'}">
+              <div class="live-game-title">
                 ${teamPill(homeTeamName, homeTeamName)}
                 <span style="color:rgba(255,255,255,0.45)"> vs </span>
                 ${teamPill(awayTeamName, awayTeamName)}
               </div>
+              <div class="live-strip" data-home="${homeTeamName}" data-away="${awayTeamName}"></div>
               <div style="background:rgba(255,255,255,0.07);border-radius:12px;padding:14px 16px;font-size:13px;color:rgba(255,255,255,0.7)">
                 🔒 <span style="color:${doneC};font-weight:600">${done}</span> has picked. Waiting on
                 <span style="color:${waitC};font-weight:600">${waiting}</span>. Picks show once both are in.
-              </div>`;
+              </div></div>`;
               continue;
             }
             const mariaPick = getPickAndOdds(mariaRow);
@@ -1284,17 +1322,18 @@
               if (!pickStr || pickStr === '—') return pickStr;
               var parts = pickStr.split(' / ');
               var colored = parts.map(function(p, i) {
-                return teamPill(p, i === 0 ? homeTeamName : awayTeamName);
+                return '<span class="lp-pick" data-player="' + p.replace(/"/g, '&quot;') + '">' + teamPill(p, i === 0 ? homeTeamName : awayTeamName) + '</span>';
               });
               return colored.join('<br>');
             }
 
-            html += `
-              <div class="live-game-title" style="margin-top:${html ? '20px' : '0'}">
+            html += `<div class="live-game" style="margin-top:${html ? '22px' : '0'}">
+              <div class="live-game-title">
                 ${teamPill(homeTeamName, homeTeamName)}
                 <span style="color:rgba(255,255,255,0.45)"> vs </span>
                 ${teamPill(awayTeamName, awayTeamName)}
               </div>
+              <div class="live-strip" data-home="${homeTeamName}" data-away="${awayTeamName}"></div>
               <div class="live-picks-grid">
                 <div class="live-pick-card maria">
                   <div class="picker-label">Maria</div>
@@ -1306,9 +1345,10 @@
                   <div class="pick-player">${coloredPick(daniellePick.player)}</div>
                   <div class="pick-odds">${daniellePick.odds}</div>
                 </div>
-              </div>`;
+              </div></div>`;
           }
           liveEl.innerHTML = html;
+          startLiveTracker();
         }
 
 
@@ -1322,6 +1362,216 @@
       }
     }
 
+
+
+    // ── Share as image (weekly recap + Season Wrapped) ──────────────────────
+    function loadHtml2Canvas() {
+      if (window.html2canvas) return Promise.resolve();
+      return new Promise(function(resolve, reject) {
+        var sc = document.createElement('script');
+        sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        sc.onload = resolve;
+        sc.onerror = function() { reject(new Error('Could not load the image tool')); };
+        document.head.appendChild(sc);
+      });
+    }
+
+    async function shareCard(btn) {
+      var card = btn.closest('[data-share]');
+      if (!card || btn.disabled) return;
+      var name = 'maria-vs-danielle-' + card.getAttribute('data-share') + '.png';
+      var label = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+      try {
+        await loadHtml2Canvas();
+        // The recap sits on a see-through panel, so give the picture the scoreboard's background
+        var sb = card.closest('.sb');
+        var bg = sb ? getComputedStyle(sb).backgroundImage : 'none';
+        var canvas = await html2canvas(card, {
+          backgroundColor: '#0B0C10',
+          scale: 2,
+          useCORS: true,
+          ignoreElements: function(n) { return n.classList && n.classList.contains('share-btn'); },
+          onclone: function(doc) {
+            var c = doc.querySelector('[data-share="' + card.getAttribute('data-share') + '"]');
+            if (c && sb) { c.style.backgroundImage = bg; c.style.margin = '0'; }
+          },
+        });
+        var blob = await new Promise(function(r) { canvas.toBlob(r, 'image/png'); });
+        var file = new File([blob], name, { type: 'image/png' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: 'Maria vs Danielle' });
+        } else {
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = name;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(function() { URL.revokeObjectURL(a.href); }, 5000);
+        }
+        btn.textContent = 'Saved ✓';
+      } catch (e) {
+        if (e && e.name === 'AbortError') btn.textContent = label; // closed the share sheet
+        else { console.error(e); btn.textContent = 'Try again'; }
+      }
+      setTimeout(function() { btn.textContent = label; btn.disabled = false; }, 1800);
+    }
+
+    // ── Live game tracker (Live Picks) ──────────────────────────────────────
+    // Reads ESPN's public scoreboard in the browser. If ESPN can't be reached,
+    // the strips simply stay hidden and Live Picks works as before.
+    var LIVE = { timer: null, firstTD: {} };
+    var ESPN_HOSTS = [
+      'https://site.api.espn.com/apis/site/v2/sports/football/nfl/',
+      'https://site.web.api.espn.com/apis/site/v2/sports/football/nfl/',
+    ];
+
+    async function espnGet(path) {
+      for (var i = 0; i < ESPN_HOSTS.length; i++) {
+        try {
+          var res = await fetch(ESPN_HOSTS[i] + path, { cache: 'no-store' });
+          if (res.ok) return await res.json();
+        } catch (e) {}
+      }
+      throw new Error('ESPN unreachable');
+    }
+
+    function espnTeamKey(name) {
+      var n = (resolveTeam(name) || '').toLowerCase();
+      if (/buc|tampa/.test(n)) return 'buccaneers';
+      if (/niner|49/.test(n)) return '49ers';
+      return n.trim().split(/\s+/).pop();
+    }
+
+    function normName(n) {
+      return (n || '').toLowerCase().replace(/\b(jr|sr|ii|iii|iv|v)\b\.?/g, '').replace(/[^a-z0-9]/g, '');
+    }
+
+    // Does ESPN's scorer name ("Jaylen Warren" or "J.Warren") match a pick?
+    function sameScorer(espnName, pick) {
+      if (normName(espnName) === normName(pick)) return true;
+      var m = (espnName || '').match(/^([A-Za-z]{1,2})\.\s?(.+)$/);
+      if (!m) return false;
+      var parts = pick.replace(/\b(Jr|Sr|II|III|IV|V)\b\.?/g, '').trim().split(/\s+/);
+      return parts.length > 1 && normName(parts.slice(1).join(' ')) === normName(m[2]) &&
+        parts[0].toLowerCase().indexOf(m[1].toLowerCase()) === 0;
+    }
+
+    function tdPlay(p) {
+      var t = [(p.type && p.type.text) || '', (p.scoringType && (p.scoringType.name + ' ' + p.scoringType.abbreviation)) || '', p.text || ''].join(' ');
+      return /touchdown/i.test(t) || / Yd (pass|run|rush)\b/i.test(p.text || '') || / Yd .*Return/i.test(p.text || '');
+    }
+
+    function tdScorerName(text) {
+      var t = (text || '').replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim();
+      var m = t.match(/^(.+?)\s+\d+\s+Yd\b/i);
+      if (m) return m[1].trim();
+      m = t.match(/^(.+?)\s+(Fumble Recovery|Fumble Return|Interception Return|Blocked|Punt Return|Kickoff Return)/i);
+      if (m) return m[1].trim();
+      var s = t.split(/\.\s+/).filter(function(x) { return /TOUCHDOWN/i.test(x); }).pop() || t;
+      if (!/INTERCEPTED|FUMBLE|MUFF|BLOCKED|RECOVERED/i.test(s)) {
+        m = s.match(/pass .*?\bto\s+([A-Z][a-zA-Z]?\.\s?[A-Z][A-Za-z'\-]+)/);
+        if (m) return m[1];
+      }
+      var names = s.match(/[A-Z][a-zA-Z]?\.\s?[A-Z][A-Za-z'\-]+/g);
+      return names ? names[0] : t;
+    }
+
+    async function firstTouchdown(eventId) {
+      var s = await espnGet('summary?event=' + eventId);
+      var sp = (s.scoringPlays || []).filter(tdPlay);
+      if (sp.length) return tdScorerName(sp[0].text);
+      var drives = (s.drives && s.drives.previous) || [];
+      for (var i = 0; i < drives.length; i++) {
+        var plays = drives[i].plays || [];
+        for (var j = 0; j < plays.length; j++) if (plays[j].scoringPlay && tdPlay(plays[j])) return tdScorerName(plays[j].text);
+      }
+      return null;
+    }
+
+    function startLiveTracker() {
+      clearTimeout(LIVE.timer);
+      updateLive();
+    }
+
+    async function updateLive() {
+      var strips = document.querySelectorAll('.live-strip');
+      if (!strips.length) return;
+      var board;
+      try { board = await espnGet('scoreboard'); } catch (e) { return; }
+      var events = board.events || [];
+      var nextIn = 0; // ms until the next refresh (0 = none needed)
+
+      for (var i = 0; i < strips.length; i++) {
+        var strip = strips[i];
+        var hk = espnTeamKey(strip.getAttribute('data-home')), ak = espnTeamKey(strip.getAttribute('data-away'));
+        var ev = null, comp = null;
+        events.forEach(function(e) {
+          var c = e.competitions && e.competitions[0];
+          if (!c) return;
+          var keys = c.competitors.map(function(x) { return espnTeamKey(x.team.displayName); });
+          if (keys.indexOf(hk) >= 0 && keys.indexOf(ak) >= 0) { ev = e; comp = c; }
+        });
+        if (!ev) { strip.innerHTML = ''; continue; }
+
+        var state = ev.status.type.state;
+        var find = function(k) { return comp.competitors.filter(function(x) { return espnTeamKey(x.team.displayName) === k; })[0]; };
+        var H = find(hk), A = find(ak);
+        var team = function(c) {
+          var tc = TEAM_COLORS[resolveTeam(c.team.displayName)];
+          return '<span style="color:' + (tc ? tc.dark : '#F3F4F6') + '">' + c.team.abbreviation + '</span>';
+        };
+
+        var scoreHtml, statusHtml;
+        if (state === 'pre') {
+          var ko = new Date(ev.date);
+          var mins = (ko - Date.now()) / 60000;
+          scoreHtml = team(H) + '<span class="ls-dash">vs</span>' + team(A);
+          statusHtml = 'Kickoff ' + ko.toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' });
+          if (mins < 15) nextIn = Math.min(nextIn || Infinity, 60000);
+          else if (mins < 240) nextIn = Math.min(nextIn || Infinity, 5 * 60000);
+        } else {
+          scoreHtml = team(H) + ' ' + (H.score || 0) + '<span class="ls-dash">–</span>' + (A.score || 0) + ' ' + team(A);
+          statusHtml = state === 'in'
+            ? '<span class="ls-dot"></span><span class="ls-live">LIVE</span> ' + (ev.status.type.shortDetail || '')
+            : 'Final';
+          if (state === 'in') nextIn = Math.min(nextIn || Infinity, 45000);
+        }
+
+        // First TD (cached once found; it can't change after that)
+        var tdHtml = '';
+        if (state !== 'pre') {
+          if (!LIVE.firstTD[ev.id]) {
+            try { var name = await firstTouchdown(ev.id); if (name) LIVE.firstTD[ev.id] = name; } catch (e) {}
+          }
+          var scorer = LIVE.firstTD[ev.id];
+          var game = strip.closest('.live-game');
+          var picks = game ? game.querySelectorAll('.lp-pick') : [];
+          if (scorer) {
+            var hitBy = [];
+            picks.forEach(function(el) {
+              var hit = sameScorer(scorer, el.getAttribute('data-player'));
+              el.classList.toggle('lp-hit', hit);
+              el.classList.toggle('lp-miss', !hit);
+              if (hit) {
+                var card = el.closest('.live-pick-card');
+                if (card) hitBy.push(card.classList.contains('maria') ? 'Maria' : 'Danielle');
+              }
+            });
+            var who = hitBy.map(function(n) { return '<span style="color:' + (n === 'Maria' ? SB_M : SB_D) + ';font-weight:700">' + n + '</span>'; });
+            tdHtml = '<div class="ls-td">🏈 First TD: <b>' + scorer + '</b>' +
+              (picks.length ? (who.length ? ' · 🎉 ' + who.join(' & ') + (who.length > 1 ? ' both' : '') + ' hit it!' : ' · Nobody had him') : '') +
+              '</div>';
+          } else if (state === 'in') {
+            tdHtml = '<div class="ls-td" style="color:rgba(255,255,255,0.55)">🏈 No touchdowns yet</div>';
+          }
+        }
+        strip.innerHTML = '<div class="ls-row"><div class="ls-score">' + scoreHtml + '</div><div class="ls-status">' + statusHtml + '</div></div>' + tdHtml;
+      }
+      if (nextIn) LIVE.timer = setTimeout(updateLive, nextIn);
+    }
 
     load();
     loadRosters();
@@ -2065,7 +2315,8 @@
 
       // ── Build the card ──
       var glow = champ === 'Maria' ? 'rgba(239,68,68,0.55)' : champ === 'Danielle' ? 'rgba(59,130,246,0.55)' : 'rgba(255,255,255,0.25)';
-      var h = '<div class="wrapped" style="background:' + bg + ';--wr-glow:' + glow + '">';
+      var h = '<div class="wrapped" data-share="' + year + '-wrapped" style="background:' + bg + ';--wr-glow:' + glow + '">';
+      h += '<button class="share-btn" onclick="shareCard(this)" title="Share as image">Share</button>';
       h += '<div class="wr-kicker">Season Wrapped</div>';
       h += '<div class="wr-year">' + year + '</div>';
       h += '<div class="wr-champ">' + (champ

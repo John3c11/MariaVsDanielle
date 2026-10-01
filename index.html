@@ -1,4 +1,4 @@
-<!-- v47 -->
+<!-- v48 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,14 +6,6 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏈</text></svg>">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Maria vs Danielle</title>
-  <script>
-    try {
-      var t = localStorage.getItem('theme');
-      if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-      }
-    } catch (e) {}
-  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -22,7 +14,7 @@
       align-items: flex-end;
       gap: 0;
       margin-bottom: 36px;
-      border-bottom: 1.5px solid #1C1C1E;
+      border-bottom: 1.5px solid rgba(255,255,255,0.16);
       overflow-x: auto;
       scrollbar-width: none;
     }
@@ -44,27 +36,8 @@
     }
 
     .tab-btn.active {
-      color: #1C1C1E;
-      border-bottom: 2px solid #1C1C1E;
-    }
-
-    /* Dark mode: invert the content card, then flip photos, emoji and
-       jersey-colored headers back so they keep their true colors */
-    html.dark .wrap { filter: invert(1) hue-rotate(180deg); }
-    html.dark .wrap img,
-    html.dark .wrap .emo,
-    html.dark .wrap .team-header-bar,
-    html.dark .wrap .pick-chip.chip-on { filter: invert(1) hue-rotate(180deg); }
-    .emo { display: inline-block; }
-
-    .theme-toggle {
-      margin-left: auto;
-      font-size: 16px;
-      padding: 6px 10px;
-      border: none;
-      background: none;
-      cursor: pointer;
-      flex-shrink: 0;
+      color: #FFFFFF;
+      border-bottom: 2px solid #FFFFFF;
     }
 
     /* Submit Picks tab */
@@ -75,13 +48,13 @@
       text-align: center;
       width: 180px;
       padding: 10px 0 10px 0.5em;
-      border: 1.5px solid #E5E7EB;
+      border: 1.5px solid rgba(255,255,255,0.10);
       border-radius: 10px;
       outline: none;
-      background: #F9FAFB;
-      color: #1C1C1E;
+      background: rgba(255,255,255,0.05);
+      color: #F3F4F6;
     }
-    .pin-input:focus { border-color: #1C1C1E; }
+    .pin-input:focus { border-color: rgba(255,255,255,0.6); }
     .primary-btn {
       font-family: 'Inter', sans-serif;
       font-size: 14px;
@@ -89,11 +62,11 @@
       padding: 12px 28px;
       border: none;
       border-radius: 10px;
-      background: #1C1C1E;
-      color: white;
+      background: #F3F4F6;
+      color: #0B0C10;
       cursor: pointer;
     }
-    .primary-btn:disabled { background: #D1D5DB; cursor: default; }
+    .primary-btn:disabled { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.4); cursor: default; }
     .link-btn {
       font-family: 'Inter', sans-serif;
       font-size: 12px;
@@ -113,9 +86,9 @@
       padding: 11px 14px;
       margin-bottom: 6px;
       border-radius: 8px;
-      border: 1.5px solid #E5E7EB;
-      background: #FFFFFF;
-      color: #1C1C1E;
+      border: 1.5px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.04);
+      color: #F3F4F6;
       cursor: pointer;
     }
     .pick-chip:hover { border-color: #9CA3AF; }
@@ -135,7 +108,7 @@
       text-transform: uppercase;
       letter-spacing: 0.06em;
       padding: 10px 0 8px;
-      border-bottom: 0.5px solid #E5E7EB;
+      border-bottom: 0.5px solid rgba(255,255,255,0.10);
       cursor: pointer;
       display: flex;
       justify-content: space-between;
@@ -143,7 +116,7 @@
       user-select: none;
     }
 
-    .division-header:hover { color: #6B7280; }
+    .division-header:hover { color: #A1A9B6; }
     .division-chevron { font-size: 10px; transition: transform 0.2s; }
     .division-header.open .division-chevron { transform: rotate(180deg); }
 
@@ -170,9 +143,9 @@
       min-width: 32px;
     }
 
-    .player-name-text { color: #1C1C1E; }
-    .player-name-text.qb-valid { color: #065F46; font-weight: 500; }
-    .player-name-text.extra { color: #6B7280; }
+    .player-name-text { color: #F3F4F6; }
+    .player-name-text.qb-valid { color: #34D399; font-weight: 500; }
+    .player-name-text.extra { color: #A1A9B6; }
 
   
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -247,7 +220,7 @@
       text-align: center;
       padding: 32px 0 48px;
       margin-top: 48px;
-      border-top: 0.5px solid #E5E7EB;
+      border-top: 0.5px solid rgba(255,255,255,0.10);
     }
 
         .campbell-ad {
@@ -320,18 +293,27 @@
 
     body {
       font-family: 'Inter', system-ui, sans-serif;
-      background: #E9EBEF;
-      color: #1C1C1E;
+      background:
+        radial-gradient(900px 600px at -10% -10%, rgba(220,38,38,0.22), transparent 60%),
+        radial-gradient(900px 600px at 110% 0%, rgba(37,99,235,0.22), transparent 60%),
+        radial-gradient(1200px 800px at 50% 120%, rgba(255,255,255,0.05), transparent 60%),
+        #08090C;
+      background-attachment: fixed;
+      color: #F3F4F6;
       min-height: 100vh;
     }
 
     .wrap {
       max-width: 680px;
       margin: 0 auto;
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 16px;
+      background: linear-gradient(170deg, rgba(24,26,32,0.86) 0%, rgba(14,15,19,0.9) 100%);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 20px;
       padding: 32px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      box-shadow: 0 30px 80px -20px rgba(0,0,0,0.7);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      color: #F3F4F6;
     }
 
     header {
@@ -369,7 +351,7 @@
       height: 100px;
       border-radius: 50%;
       object-fit: cover;
-      border: 2px solid #E5E7EB;
+      border: 2px solid rgba(255,255,255,0.10);
     }
 
     .player .player-name {
@@ -378,19 +360,19 @@
       letter-spacing: -0.3px;
     }
 
-    .maria .player-name { color: #DC2626; }
-    .danielle .player-name { color: #1D4ED8; }
+    .maria .player-name { color: #F87171; }
+    .danielle .player-name { color: #60A5FA; }
 
     .vs-badge {
       font-size: 22px;
       font-weight: 700;
-      color: #D1D5DB;
+      color: #4B5563;
       flex-shrink: 0;
     }
 
     .last-updated {
       font-size: 12px;
-      color: #D1D5DB;
+      color: #4B5563;
       margin-top: 8px;
     }
 
@@ -399,14 +381,14 @@
       text-align: center;
       font-size: 14px;
       font-weight: 500;
-      color: #6B7280;
+      color: #A1A9B6;
       margin-bottom: 32px;
       padding: 10px;
-      background: #F9FAFB;
+      background: rgba(255,255,255,0.05);
       border-radius: 8px;
     }
 
-    .leader-banner span { font-weight: 700; color: #1C1C1E; }
+    .leader-banner span { font-weight: 700; color: #F3F4F6; }
 
     /* Stat comparison */
     .stat-block {
@@ -436,12 +418,12 @@
       letter-spacing: -0.5px;
     }
 
-    .stat-value.maria { color: #DC2626; text-align: right; }
-    .stat-value.danielle { color: #1D4ED8; text-align: left; }
+    .stat-value.maria { color: #F87171; text-align: right; }
+    .stat-value.danielle { color: #60A5FA; text-align: left; }
 
     .stat-divider {
       font-size: 12px;
-      color: #E5E7EB;
+      color: rgba(255,255,255,0.3);
       font-weight: 400;
     }
 
@@ -460,17 +442,17 @@
     }
 
     .bar.maria {
-      background: #DC2626;
+      background: #F87171;
       margin-left: auto;
     }
 
     .bar.danielle {
-      background: #2563EB;
+      background: #60A5FA;
     }
 
     .divider {
       border: none;
-      border-top: 0.5px solid #F3F4F6;
+      border-top: 0.5px solid rgba(255,255,255,0.06);
       margin: 20px 0;
     }
 
@@ -489,17 +471,17 @@
       grid-template-columns: 1fr auto auto auto;
       gap: 8px;
       padding: 10px 0;
-      border-bottom: 0.5px solid #F3F4F6;
+      border-bottom: 0.5px solid rgba(255,255,255,0.06);
       font-size: 13px;
       align-items: center;
     }
 
     .bet-row:last-child { border-bottom: none; }
 
-    .bet-game { font-weight: 500; color: #1C1C1E; }
+    .bet-game { font-weight: 500; color: #F3F4F6; }
     .bet-picker { font-size: 12px; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
-    .bet-picker.maria { background: #FEF3C7; color: #DC2626; }
-    .bet-picker.danielle { background: #DBEAFE; color: #1D4ED8; }
+    .bet-picker.maria { background: rgba(251,191,36,0.15); color: #F87171; }
+    .bet-picker.danielle { background: rgba(96,165,250,0.16); color: #60A5FA; }
 
     .bet-result {
       font-size: 12px;
@@ -508,16 +490,16 @@
       font-weight: 500;
     }
 
-    .bet-result.win { background: #D1FAE5; color: #065F46; }
-    .bet-result.loss { background: #FEE2E2; color: #991B1B; }
-    .bet-result.pending { background: #F3F4F6; color: #9CA3AF; }
+    .bet-result.win { background: rgba(52,211,153,0.15); color: #34D399; }
+    .bet-result.loss { background: rgba(248,113,113,0.15); color: #F87171; }
+    .bet-result.pending { background: rgba(255,255,255,0.08); color: #9CA3AF; }
 
     .bet-units { font-size: 12px; color: #9CA3AF; }
 
     .live-game-title {
       font-size: 15px;
       font-weight: 600;
-      color: #1C1C1E;
+      color: #F3F4F6;
       margin-bottom: 12px;
     }
 
@@ -528,7 +510,7 @@
     }
 
     .live-pick-card {
-      background: #F9FAFB;
+      background: rgba(255,255,255,0.05);
       border-radius: 8px;
       padding: 14px 16px;
     }
@@ -541,28 +523,28 @@
       margin-bottom: 6px;
     }
 
-    .live-pick-card.maria .picker-label { color: #DC2626; }
-    .live-pick-card.danielle .picker-label { color: #1D4ED8; }
+    .live-pick-card.maria .picker-label { color: #F87171; }
+    .live-pick-card.danielle .picker-label { color: #60A5FA; }
 
     .live-pick-card .pick-player {
       font-size: 16px;
       font-weight: 600;
-      color: #1C1C1E;
+      color: #F3F4F6;
       margin-bottom: 4px;
     }
 
     .live-pick-card .pick-odds {
       font-size: 13px;
-      color: #6B7280;
+      color: #A1A9B6;
     }
 
     .no-live { color: #9CA3AF; font-size: 14px; }
 
     footer {
       font-size: 12px;
-      color: #D1D5DB;
+      color: #4B5563;
       margin-top: 48px;
-      border-top: 0.5px solid #E5E7EB;
+      border-top: 0.5px solid rgba(255,255,255,0.10);
       padding-top: 20px;
       text-align: center;
     }
@@ -574,7 +556,7 @@
       grid-template-columns: 30px 1fr 65px 1fr 75px 50px 42px;
       gap: 8px;
       padding: 10px 0;
-      border-bottom: 0.5px solid #F3F4F6;
+      border-bottom: 0.5px solid rgba(255,255,255,0.06);
       font-size: 12px;
       align-items: start;
     }
@@ -591,14 +573,14 @@
     .history-row:last-child { border-bottom: none; }
 
     .h-week { color: #9CA3AF; text-align: center; }
-    .h-game { font-weight: 500; color: #1C1C1E; }
-    .h-picker.maria { color: #DC2626; font-weight: 500; }
-    .h-picker.danielle { color: #1D4ED8; font-weight: 500; }
-    .h-player { color: #1C1C1E; }
-    .h-odds { color: #6B7280; }
+    .h-game { font-weight: 500; color: #F3F4F6; }
+    .h-picker.maria { color: #F87171; font-weight: 500; }
+    .h-picker.danielle { color: #60A5FA; font-weight: 500; }
+    .h-player { color: #F3F4F6; }
+    .h-odds { color: #A1A9B6; }
     .h-units { text-align: right; font-weight: 500; }
-    .h-units.pos { color: #065F46; }
-    .h-units.neg { color: #DC2626; }
+    .h-units.pos { color: #34D399; }
+    .h-units.neg { color: #F87171; }
     .h-units.zero { color: #9CA3AF; }
 
     .h-result {
@@ -608,9 +590,9 @@
       border-radius: 4px;
       text-align: center;
     }
-    .h-result.win { background:#D1FAE5; color:#065F46; }
-    .h-result.loss { background:#FEE2E2; color:#991B1B; }
-    .h-result.na { background:#F3F4F6; color:#9CA3AF; }
+    .h-result.win { background:rgba(52,211,153,0.15); color:#34D399; }
+    .h-result.loss { background:rgba(248,113,113,0.15); color:#F87171; }
+    .h-result.na { background:rgba(255,255,255,0.08); color:#9CA3AF; }
 
     .team-block {
       margin-bottom: 16px;
@@ -628,7 +610,7 @@
 
     .team-players-inner {
       padding: 10px 16px 14px;
-      background: #F9FAFB;
+      background: rgba(255,255,255,0.05);
     }
 
     .not-offered-note {
@@ -642,17 +624,17 @@
       font-size: 12px;
       font-weight: 500;
       padding: 4px 10px;
-      border: 0.5px solid #E5E7EB;
+      border: 0.5px solid rgba(255,255,255,0.10);
       border-radius: 4px;
-      background: white;
-      color: #6B7280;
+      background: rgba(255,255,255,0.04);
+      color: #A1A9B6;
       cursor: pointer;
     }
-    .filter-btn.active { background: #1C1C1E; color: white; border-color: #1C1C1E; }
-    .filter-btn.maria-btn.active { background: #DC2626; border-color: #DC2626; color: white; }
-    .filter-btn.danielle-btn.active { background: #1D4ED8; border-color: #1D4ED8; color: white; }
-    .filter-btn.win-btn.active { background: #065F46; border-color: #065F46; color: white; }
-    .filter-btn.loss-btn.active { background: #991B1B; border-color: #991B1B; color: white; }
+    .filter-btn.active { background: #F3F4F6; color: #0B0C10; border-color: #F3F4F6; }
+    .filter-btn.maria-btn.active { background: #F87171; border-color: #F87171; color: white; }
+    .filter-btn.danielle-btn.active { background: #60A5FA; border-color: #60A5FA; color: white; }
+    .filter-btn.win-btn.active { background: #34D399; border-color: #34D399; color: white; }
+    .filter-btn.loss-btn.active { background: #F87171; border-color: #F87171; color: white; }
 
     /* ── Stats tab scoreboard (same look as Season Wrapped) ── */
     .sb {
@@ -694,8 +676,6 @@
     .sb .live-pick-card .pick-odds { color: rgba(255,255,255,0.6); }
     /* Team "jersey" pills: real team colors that read on dark backgrounds */
     .tpill { display: inline-block; padding: 0 7px; border-radius: 5px; font-weight: 700; line-height: 1.55; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.14); }
-    html.dark .wrap .sb { filter: invert(1) hue-rotate(180deg); }
-    html.dark .wrap .sb img, html.dark .wrap .sb .emo { filter: none; }
     @media (max-width: 700px) {
       .sb { padding: 22px 14px 16px; border-radius: 14px; }
       .sb .player img { width: 84px; height: 84px; }
@@ -704,23 +684,10 @@
       .sb .sb-weeks > div > div:last-child { font-size: 9px !important; }
     }
 
-    /* Dark mode readability: inverted light grays came out too dim, so use darker grays
-       (which invert to brighter ones). Scoped to outside the always-dark cards. */
-    html.dark body { background: #0B0B0D; }
-    html.dark .wrap :not(.sb):not(.sb *):not(.wrapped):not(.wrapped *)[style*="color:#9CA3AF" i],
-    html.dark .wrap :not(.sb):not(.sb *):not(.wrapped):not(.wrapped *)[style*="color: #9CA3AF" i],
-    html.dark .wrap :not(.sb *) > .section-title, html.dark .wrap .af-bar-label,
-    html.dark .wrap :not(.sb *).stat-label, html.dark .wrap .bet-units,
-    html.dark .wrap .tab-btn, html.dark .wrap .link-btn { color: #4B5563 !important; }
-    html.dark .wrap :not(.sb):not(.sb *):not(.wrapped):not(.wrapped *)[style*="color:#6B7280" i],
-    html.dark .wrap :not(.sb):not(.sb *):not(.wrapped):not(.wrapped *)[style*="color: #6B7280" i],
-    html.dark .wrap .filter-btn { color: #374151 !important; }
-    html.dark .wrap :not(.sb):not(.sb *):not(.wrapped):not(.wrapped *)[style*="color:#D1D5DB" i] { color: #6B7280 !important; }
-    html.dark .wrap .tab-btn.active { color: #1C1C1E !important; }
-    html.dark .wrap .filter-btn.active { color: #FFFFFF !important; }
-
     /* Season Wrapped cards (Legacy tab) — always dark, so dark mode leaves them alone */
     .wrapped {
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 24px 70px -18px var(--wr-glow, rgba(255,255,255,0.25)), inset 0 1px 0 rgba(255,255,255,0.12);
       border-radius: 18px;
       padding: 26px 22px 22px;
       margin-bottom: 22px;
@@ -752,8 +719,6 @@
       .wrapped .wr-tile { padding: 10px 12px; }
       .wrapped .wr-tile-main { font-size: 14px; }
     }
-    html.dark .wrap .wrapped { filter: invert(1) hue-rotate(180deg); }
-    html.dark .wrap .wrapped .emo { filter: none; }
 
     /* Analytics section filters + "show all" lists */
     .af-bars { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 12px; }
@@ -785,7 +750,6 @@
       <button class="tab-btn" onclick="switchTab('legacy')">Legacy</button>
       <button class="tab-btn" onclick="switchTab('bethistory')">Bet History</button>
       <button class="tab-btn" onclick="switchTab('rosters')">2026 Roster</button>
-      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode">🌙</button>
     </nav>
 
     <div id="tab-stats" class="tab-panel active">
@@ -843,7 +807,7 @@
 
     <div id="tab-money" class="tab-panel">
       <div id="money-content"><div class="loading">Loading...</div></div>
-      <div style="margin-top:20px;padding:14px;background:#F9FAFB;border-radius:8px;font-size:13px;color:#6B7280;line-height:1.6">The big number doesn't count games where the first TD scorer wasn't offered. The small one does, treating them as losses.</div>
+      <div style="margin-top:20px;padding:14px;background:rgba(255,255,255,0.05);border-radius:8px;font-size:13px;color:#A1A9B6;line-height:1.6">The big number doesn't count games where the first TD scorer wasn't offered. The small one does, treating them as losses.</div>
     </div>
 
     <footer>Data pulled from Google Sheets · Refresh to update</footer>
@@ -877,13 +841,19 @@
     }
 
     function teamColor(teamName) {
-      var tc = TEAM_COLORS[teamName];
-      return tc ? tc.primary : '#6B7280';
+      var tc = TEAM_COLORS[resolveTeam(teamName)];
+      return tc ? tc.dark : '#A1A9B6';
     }
 
     function coloredText(text, teamName) {
-      if (!teamName || !TEAM_COLORS[teamName]) return text;
-      return '<span style="color:' + TEAM_COLORS[teamName].primary + ';font-weight:600">' + text + '</span>';
+      var tc = TEAM_COLORS[resolveTeam(teamName)];
+      if (!tc) return text;
+      return '<span style="color:' + tc.dark + ';font-weight:600">' + text + '</span>';
+    }
+
+    function hexA(hex, a) {
+      var r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+      return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
     }
 
     function coloredGame(homeTeam, awayTeam) {
@@ -1353,62 +1323,6 @@
     }
 
 
-    // ── Dark mode ────────────────────────────────────────────────────────────
-    function updateThemeIcon() {
-      var dark = document.documentElement.classList.contains('dark');
-      var b = document.getElementById('theme-toggle');
-      if (b) b.textContent = dark ? '☀️' : '🌙';
-    }
-    function toggleTheme() {
-      var dark = !document.documentElement.classList.contains('dark');
-      document.documentElement.classList.toggle('dark', dark);
-      try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
-      updateThemeIcon();
-    }
-
-    // Wrap emoji in <span class="emo"> so dark mode can keep their real colors
-    var EMOJI_RE = /(\p{Extended_Pictographic}(?:️|‍\p{Extended_Pictographic})*️?)/gu;
-    function wrapEmoji(root) {
-      if (!root) return;
-      var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
-      var nodes = [];
-      while (walker.nextNode()) {
-        var n = walker.currentNode, par = n.parentNode;
-        if (!par || (par.classList && par.classList.contains('emo'))) continue;
-        if (/^(script|style|textarea|title)$/i.test(par.nodeName)) continue;
-        EMOJI_RE.lastIndex = 0;
-        if (EMOJI_RE.test(n.nodeValue)) nodes.push(n);
-      }
-      nodes.forEach(function(n) {
-        var frag = document.createDocumentFragment();
-        n.nodeValue.split(EMOJI_RE).forEach(function(part, i) {
-          if (!part) return;
-          if (i % 2 === 1) {
-            var sp = document.createElement('span');
-            sp.className = 'emo';
-            sp.textContent = part;
-            frag.appendChild(sp);
-          } else {
-            frag.appendChild(document.createTextNode(part));
-          }
-        });
-        n.parentNode.replaceChild(frag, n);
-      });
-    }
-    (function() {
-      var wrap = document.querySelector('.wrap');
-      wrapEmoji(wrap);
-      new MutationObserver(function(muts) {
-        muts.forEach(function(m) {
-          m.addedNodes.forEach(function(n) {
-            if (n.nodeType === 1) wrapEmoji(n);
-            else if (n.nodeType === 3 && n.parentNode) wrapEmoji(n.parentNode);
-          });
-        });
-      }).observe(wrap, { childList: true, subtree: true });
-      updateThemeIcon();
-    })();
-
     load();
     loadRosters();
 
@@ -1452,7 +1366,7 @@
       });
     }
 
-    function personColor(name) { return name === 'Maria' ? '#DC2626' : '#1D4ED8'; }
+    function personColor(name) { return name === 'Maria' ? '#F87171' : '#60A5FA'; }
 
     function loadSubmitTab() {
       if (!SUB.pin) renderPinScreen('');
@@ -1468,10 +1382,10 @@
       el.innerHTML = (successHtml || '') +
         '<div style="text-align:center;padding:24px 0 8px">' +
           '<div style="font-size:18px;font-weight:700;margin-bottom:6px">Submit Your Picks</div>' +
-          '<div style="font-size:13px;color:#6B7280;margin-bottom:20px">Enter your PIN</div>' +
+          '<div style="font-size:13px;color:#A1A9B6;margin-bottom:20px">Enter your PIN</div>' +
           '<input id="pin-input" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off">' +
           '<div style="margin-top:16px"><button class="primary-btn" id="pin-go">Enter</button></div>' +
-          '<div class="submit-msg" id="pin-msg" style="color:#DC2626">' + (msg || '') + '</div>' +
+          '<div class="submit-msg" id="pin-msg" style="color:#F87171">' + (msg || '') + '</div>' +
         '</div>';
       var input = document.getElementById('pin-input');
       if (!successHtml) input.focus();
@@ -1512,14 +1426,14 @@
         '<button class="link-btn" id="sub-switch">Not you?</button></div>';
 
       if (done) {
-        html += '<div style="background:#D1FAE5;border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:#065F46;line-height:1.6">' +
+        html += '<div style="background:rgba(52,211,153,0.15);border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:#34D399;line-height:1.6">' +
           '✅ Locked in for Week ' + done.week + ' ' + done.slot + ': ' +
           coloredText(done.homePick, done.home) + ' / ' + coloredText(done.awayPick, done.away) +
           '. Odds get added later.</div>';
       }
 
       if (res.done) {
-        html += '<div style="text-align:center;padding:32px 0;color:#6B7280;font-size:14px">🎉 You\'re all caught up. No open games right now.</div>';
+        html += '<div style="text-align:center;padding:32px 0;color:#A1A9B6;font-size:14px">🎉 You\'re all caught up. No open games right now.</div>';
         el.innerHTML = html;
         bindSwitch();
         return;
@@ -1529,7 +1443,7 @@
       html += '<div style="text-align:center;margin-bottom:16px">' +
         '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Week ' + g.week + ' · ' + g.slot + '</div>' +
         '<div style="font-size:17px;font-weight:700">' + coloredGame(g.home, g.away) + '</div>' +
-        '<div style="font-size:12px;color:#6B7280;margin-top:6px">Pick one player from each team.</div></div>';
+        '<div style="font-size:12px;color:#A1A9B6;margin-top:6px">Pick one player from each team.</div></div>';
 
       function column(side, team, players) {
         var tc = TEAM_COLORS[team] || { bg: '#1C1C1E', text: '#FFFFFF', primary: '#1C1C1E' };
@@ -1551,7 +1465,7 @@
         column('home', g.home, g.homePlayers) + column('away', g.away, g.awayPlayers) + '</div>';
 
       html += '<div style="text-align:center;margin-top:16px">' +
-        '<div id="sub-summary" style="font-size:13px;color:#6B7280;margin-bottom:12px;min-height:20px"></div>' +
+        '<div id="sub-summary" style="font-size:13px;color:#A1A9B6;margin-bottom:12px;min-height:20px"></div>' +
         '<button class="primary-btn" id="sub-go" disabled>Submit Picks</button>' +
         '<div class="submit-msg" id="sub-msg"></div></div>';
 
@@ -1579,9 +1493,9 @@
         var team = side === 'home' ? g.home : g.away;
         var tc = TEAM_COLORS[team] || { bg: '#1C1C1E', text: '#FFFFFF', primary: '#1C1C1E' };
         var selected = (side === 'home' ? SUB.homeSel : SUB.awaySel) === name;
-        btn.style.background = selected ? (tc.bg || tc.primary) : '#FFFFFF';
-        btn.style.color = selected ? tc.text : '#1C1C1E';
-        btn.style.borderColor = selected ? tc.primary : '#E5E7EB';
+        btn.style.background = selected ? (tc.bg || tc.primary) : 'rgba(255,255,255,0.04)';
+        btn.style.color = selected ? tc.text : '#F3F4F6';
+        btn.style.borderColor = selected ? (tc.dark || tc.primary) : 'rgba(255,255,255,0.12)';
         btn.style.fontWeight = selected ? '700' : '500';
         btn.classList.toggle('chip-on', selected);
       });
@@ -1607,7 +1521,7 @@
         SUB.busy = false;
         btn.textContent = 'Submit Picks';
         var msg = document.getElementById('sub-msg');
-        msg.style.color = '#DC2626';
+        msg.style.color = '#F87171';
         msg.textContent = text;
         updateChips();
       }
@@ -1631,7 +1545,7 @@
     // Confirmation + log out after one game's picks
     function showSubmitted(res) {
       SUB.busy = false;
-      var done = '<div style="background:#D1FAE5;border-radius:10px;padding:14px 16px;font-size:13px;color:#065F46;line-height:1.6">' +
+      var done = '<div style="background:rgba(52,211,153,0.15);border-radius:10px;padding:14px 16px;font-size:13px;color:#34D399;line-height:1.6">' +
         '✅ <b>' + res.name + '</b>, you\'re locked in for Week ' + res.week + ' ' + res.slot + ': ' +
         coloredText(res.homePick, res.home) + ' / ' + coloredText(res.awayPick, res.away) +
         '. You\'ve been logged out.</div>';
@@ -1645,10 +1559,10 @@
       var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
         '<div style="font-size:16px;font-weight:700">Hi John</div>' +
         '<button class="link-btn" id="sub-switch">Log out</button></div>' +
-        '<div style="font-size:12px;color:#6B7280;margin-bottom:18px">Enter odds for picks that don\'t have them yet. Type them the way you do in the sheet (15, 4.7) or as American odds (+1500, +470). Leave a box blank to skip it.</div>';
+        '<div style="font-size:12px;color:#A1A9B6;margin-bottom:18px">Enter odds for picks that don\'t have them yet. Type them the way you do in the sheet (15, 4.7) or as American odds (+1500, +470). Leave a box blank to skip it.</div>';
 
       if (!res.rows.length) {
-        html += '<div style="text-align:center;padding:32px 0;color:#6B7280;font-size:14px">🎉 All odds are filled in.</div>';
+        html += '<div style="text-align:center;padding:32px 0;color:#A1A9B6;font-size:14px">🎉 All odds are filled in.</div>';
         el.innerHTML = html;
         bindSwitch();
         return;
@@ -1664,11 +1578,11 @@
 
       function oddsInput(row, side, val) {
         return '<input class="odds-input" data-row="' + row + '" data-side="' + side + '" inputmode="decimal" autocomplete="off" placeholder="+" value="' + (val || '') + '" ' +
-          'style="width:84px;font-family:Inter,sans-serif;font-size:14px;padding:7px 10px;border:1.5px solid #E5E7EB;border-radius:8px;background:#FFFFFF;color:#1C1C1E;text-align:right">';
+          'style="width:84px;font-family:Inter,sans-serif;font-size:14px;padding:7px 10px;border:1.5px solid rgba(255,255,255,0.10);border-radius:8px;background:rgba(255,255,255,0.04);color:#F3F4F6;text-align:right">';
       }
 
       games.forEach(function(g) {
-        html += '<div style="background:#F9FAFB;border-radius:10px;padding:14px 16px;margin-bottom:14px">' +
+        html += '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:14px 16px;margin-bottom:14px">' +
           '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Week ' + g.week + ' · ' + g.slot + '</div>' +
           '<div style="font-size:15px;font-weight:700;margin-bottom:10px">' + coloredGame(g.home, g.away) + '</div>';
         g.rows.forEach(function(r) {
@@ -1702,7 +1616,7 @@
       });
       var items = Object.keys(byRow).map(function(k) { return byRow[k]; });
       var msg = document.getElementById('odds-msg');
-      if (!items.length) { msg.style.color = '#DC2626'; msg.textContent = 'Nothing entered yet.'; return; }
+      if (!items.length) { msg.style.color = '#F87171'; msg.textContent = 'Nothing entered yet.'; return; }
 
       SUB.busy = true;
       var btn = document.getElementById('odds-go');
@@ -1714,11 +1628,11 @@
           if (res.error || (res.bad && res.bad.length)) {
             btn.disabled = false;
             btn.textContent = 'Save Odds';
-            msg.style.color = '#DC2626';
+            msg.style.color = '#F87171';
             msg.textContent = res.error || ('Couldn\'t read: ' + res.bad.join(', ') + '. Everything else was saved.');
             return;
           }
-          var done = '<div style="background:#D1FAE5;border-radius:10px;padding:14px 16px;font-size:13px;color:#065F46">' +
+          var done = '<div style="background:rgba(52,211,153,0.15);border-radius:10px;padding:14px 16px;font-size:13px;color:#34D399">' +
             '✅ Saved ' + res.saved + ' odds. You\'ve been logged out.</div>';
           renderPinScreen('', done);
           load();
@@ -1727,7 +1641,7 @@
           SUB.busy = false;
           btn.disabled = false;
           btn.textContent = 'Save Odds';
-          msg.style.color = '#DC2626';
+          msg.style.color = '#F87171';
           msg.textContent = 'Couldn\'t reach the sheet. Check the sheet, then try again.';
         });
     }
@@ -1770,27 +1684,27 @@
       var countEl = document.getElementById('bh-hist-count');
       if (countEl) countEl.textContent = bets.length + ' bet' + (bets.length !== 1 ? 's' : '');
       if (!el) return;
-      var header = '<div class="bh-head" style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 60px 50px;gap:8px;padding-bottom:8px;border-bottom:0.5px solid #F3F4F6;font-size:10px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em">' +
+      var header = '<div class="bh-head" style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 60px 50px;gap:8px;padding-bottom:8px;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:10px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em">' +
         '<span>Year</span><span>Wk</span><span>Game</span><span>Picker</span><span>Players</span><span>Odds</span><span>Result</span><span>Units</span></div>';
       var rows = bets.map(function(b) {
-        var resultBg = b.correct === 'Yes' ? '#D1FAE5' : b.correct === 'No' ? '#FEE2E2' : '#F3F4F6';
-        var resultColor = b.correct === 'Yes' ? '#065F46' : b.correct === 'No' ? '#991B1B' : '#9CA3AF';
+        var resultBg = b.correct === 'Yes' ? 'rgba(52,211,153,0.15)' : b.correct === 'No' ? 'rgba(248,113,113,0.15)' : 'rgba(255,255,255,0.08)';
+        var resultColor = b.correct === 'Yes' ? '#34D399' : b.correct === 'No' ? '#F87171' : '#9CA3AF';
         var resultText = b.correct === 'Yes' ? 'Win' : b.correct === 'No' ? 'Loss' : '—';
-        var pickerColor = b.picker === 'Maria' ? '#DC2626' : '#1D4ED8';
-        var unitColor = b.netUnits > 0 ? '#065F46' : b.netUnits < 0 ? '#DC2626' : '#9CA3AF';
+        var pickerColor = b.picker === 'Maria' ? '#F87171' : '#60A5FA';
+        var unitColor = b.netUnits > 0 ? '#34D399' : b.netUnits < 0 ? '#F87171' : '#9CA3AF';
         var unitStr = b.netUnits !== 0 ? (b.netUnits > 0 ? '+' : '') + b.netUnits + 'u' : '0u';
         var notOffered = b.wasOffered === 'No' ? '<div style="font-size:10px;color:#9CA3AF;font-style:italic">scorer not offered</div>' : '';
         var homeColored = b.homePick ? legacyColoredText(b.homePick, b.homeTeam) : '';
         var awayColored = b.awayPick ? legacyColoredText(b.awayPick, b.awayTeam) : '';
         var players = [homeColored, awayColored].filter(Boolean).join('<span style="color:#9CA3AF"> / </span>') || '—';
         var gameDisplay = b.homeTeam && b.awayTeam ? legacyColoredGame(b.homeTeam, b.awayTeam) : (b.game || '—');
-        return '<div class="bh-row" style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 60px 50px;gap:8px;padding:10px 0;border-bottom:0.5px solid #F3F4F6;font-size:12px;align-items:start">' +
-          '<span style="font-size:11px;font-weight:600;color:' + (b.year === '2026' ? '#1D4ED8' : '#065F46') + '">' + b.year + '</span>' +
+        return '<div class="bh-row" style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 60px 50px;gap:8px;padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:12px;align-items:start">' +
+          '<span style="font-size:11px;font-weight:600;color:' + (b.year === '2026' ? '#60A5FA' : '#34D399') + '">' + b.year + '</span>' +
           '<span style="color:#9CA3AF;text-align:center">' + b.week + '</span>' +
           '<span style="font-weight:500">' + gameDisplay + '</span>' +
           '<span style="font-weight:500;color:' + pickerColor + '">' + b.picker + '</span>' +
           '<span>' + players + notOffered + '</span>' +
-          '<span style="color:#6B7280">' + b.odds + '</span>' +
+          '<span style="color:#A1A9B6">' + b.odds + '</span>' +
           '<span style="font-size:11px;font-weight:500;padding:2px 6px;border-radius:4px;text-align:center;background:' + resultBg + ';color:' + resultColor + '">' + resultText + '</span>' +
           '<span style="text-align:right;font-weight:500;color:' + unitColor + '">' + unitStr + '</span>' +
           '</div>';
@@ -1824,7 +1738,7 @@
           '<button class="filter-btn loss-btn" data-key="result" data-val="No">Loss</button></div>' +
           '<div style="display:flex;gap:4px;align-items:center;margin-left:12px"><span style="font-size:11px;color:#9CA3AF;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Order</span><button class="filter-btn" data-key="order" data-val="asc">Oldest First</button><button class="filter-btn active" data-key="order" data-val="desc">Newest First</button></div>' +
           '</div>' +
-          '<input type="text" id="bh-search" style="width:100%;padding:10px 14px;font-family:Inter,sans-serif;font-size:14px;border:0.5px solid #E5E7EB;border-radius:8px;background:#F9FAFB;color:#1C1C1E;outline:none;margin-bottom:12px" placeholder="Search player, team, week, year, or picker..." oninput="filterBHHistory()">' +
+          '<input type="text" id="bh-search" style="width:100%;padding:10px 14px;font-family:Inter,sans-serif;font-size:14px;border:0.5px solid rgba(255,255,255,0.10);border-radius:8px;background:rgba(255,255,255,0.05);color:#F3F4F6;outline:none;margin-bottom:12px" placeholder="Search player, team, week, year, or picker..." oninput="filterBHHistory()">' +
           '<div id="bh-hist-count" style="font-size:12px;color:#9CA3AF;margin-bottom:12px"></div>' +
           '<div id="bh-history-table"></div>';
 
@@ -1903,7 +1817,7 @@
     function legacyColoredText(text, team) {
       var r = resolveTeam(team);
       if (!r || !TEAM_COLORS[r]) return text;
-      return '<span style="color:' + TEAM_COLORS[r].primary + ';font-weight:600">' + text + '</span>';
+      return '<span style="color:' + TEAM_COLORS[r].dark + ';font-weight:600">' + text + '</span>';
     }
     function legacyColoredGame(h, a) {
       return legacyColoredText(h, h) + '<span style="color:#9CA3AF"> vs </span>' + legacyColoredText(a, a);
@@ -2031,10 +1945,10 @@
     }
 
     function legacyStatCard(label, mVal, dVal) {
-      return '<div style="background:#F9FAFB;border-radius:8px;padding:14px 16px">' +
+      return '<div style="background:rgba(255,255,255,0.05);border-radius:8px;padding:14px 16px">' +
         '<div style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">' + label + '</div>' +
-        '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px"><span style="font-size:20px;font-weight:700;color:#DC2626">' + mVal + '</span><span style="font-size:11px;color:#9CA3AF">Maria</span></div>' +
-        '<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:20px;font-weight:700;color:#1D4ED8">' + dVal + '</span><span style="font-size:11px;color:#9CA3AF">Danielle</span></div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px"><span style="font-size:20px;font-weight:700;color:#F87171">' + mVal + '</span><span style="font-size:11px;color:#9CA3AF">Maria</span></div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:20px;font-weight:700;color:#60A5FA">' + dVal + '</span><span style="font-size:11px;color:#9CA3AF">Danielle</span></div>' +
         '</div>';
     }
 
@@ -2150,7 +2064,8 @@
       });
 
       // ── Build the card ──
-      var h = '<div class="wrapped" style="background:' + bg + '">';
+      var glow = champ === 'Maria' ? 'rgba(239,68,68,0.55)' : champ === 'Danielle' ? 'rgba(59,130,246,0.55)' : 'rgba(255,255,255,0.25)';
+      var h = '<div class="wrapped" style="background:' + bg + ';--wr-glow:' + glow + '">';
       h += '<div class="wr-kicker">Season Wrapped</div>';
       h += '<div class="wr-year">' + year + '</div>';
       h += '<div class="wr-champ">' + (champ
@@ -2251,7 +2166,7 @@
 
         var winner = s.mUnits > s.dUnits ? 'Maria leads all-time' : s.dUnits > s.mUnits ? 'Danielle leads all-time' : 'All-time tied';
 
-        var html = '<div style="font-size:13px;color:#6B7280;margin-bottom:24px">' + winner + ' · ' + SEASONS.length + ' seasons of data</div>';
+        var html = '<div style="font-size:13px;color:#A1A9B6;margin-bottom:24px">' + winner + ' · ' + SEASONS.length + ' seasons of data</div>';
 
         // All-time stats
         html += '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">All-Time Totals</div>';
@@ -2289,38 +2204,38 @@
 
     // bg/text match the Google Sheet (jersey style). primary = readable team color on white.
     const TEAM_COLORS = {
-      "Philadelphia Eagles":    { primary: "#004C54", bg: "#004C54", text: "#A5ACAF" },
-      "New York Giants":        { primary: "#0B2265", bg: "#0B2265", text: "#FFFFFF" },
-      "Dallas Cowboys":         { primary: "#041E42", bg: "#869397", text: "#041E42" },
-      "Washington Commanders":  { primary: "#5A1414", bg: "#5A1414", text: "#FFB612" },
-      "Detroit Lions":          { primary: "#0076B6", bg: "#0076B6", text: "#FFFFFF" },
-      "Green Bay Packers":      { primary: "#203731", bg: "#203731", text: "#FFB612" },
-      "Minnesota Vikings":      { primary: "#4F2683", bg: "#4F2683", text: "#FFC62F" },
-      "Chicago Bears":          { primary: "#0B162A", bg: "#0B162A", text: "#E64100" },
-      "Tampa Bay Buccaneers":   { primary: "#D50A0A", bg: "#D50A0A", text: "#FFFFFF" },
-      "Atlanta Falcons":        { primary: "#000000", bg: "#000000", text: "#E0243E" },
-      "Carolina Panthers":      { primary: "#0085CA", bg: "#0085CA", text: "#101820" },
-      "New Orleans Saints":     { primary: "#9A7B3E", bg: "#D3BC8D", text: "#101820" },
-      "Los Angeles Rams":       { primary: "#003594", bg: "#003594", text: "#FFD100" },
-      "Seattle Seahawks":       { primary: "#002244", bg: "#002244", text: "#69BE28" },
-      "San Francisco 49ers":    { primary: "#AA0000", bg: "#AA0000", text: "#E6C98A" },
-      "Arizona Cardinals":      { primary: "#97233F", bg: "#97233F", text: "#FFFFFF" },
-      "Buffalo Bills":          { primary: "#00338D", bg: "#00338D", text: "#FFFFFF" },
-      "New York Jets":          { primary: "#125740", bg: "#125740", text: "#FFFFFF" },
-      "New England Patriots":   { primary: "#002244", bg: "#002244", text: "#C60C30" },
-      "Miami Dolphins":         { primary: "#008E97", bg: "#008E97", text: "#FFFFFF" },
-      "Baltimore Ravens":       { primary: "#241773", bg: "#241773", text: "#C9A227" },
-      "Cincinnati Bengals":     { primary: "#FB4F14", bg: "#FB4F14", text: "#000000" },
-      "Pittsburgh Steelers":    { primary: "#101820", bg: "#101820", text: "#FFB612" },
-      "Cleveland Browns":       { primary: "#311D00", bg: "#311D00", text: "#FF3C00" },
-      "Indianapolis Colts":     { primary: "#002C5F", bg: "#FFFFFF", text: "#002C5F" },
-      "Jacksonville Jaguars":   { primary: "#006778", bg: "#006778", text: "#D7A22A" },
-      "Houston Texans":         { primary: "#A71930", bg: "#A71930", text: "#03202F" },
-      "Tennessee Titans":       { primary: "#0C2340", bg: "#0C2340", text: "#4B92DB" },
-      "Kansas City Chiefs":     { primary: "#E31837", bg: "#E31837", text: "#FFB81C" },
-      "Los Angeles Chargers":   { primary: "#0080C6", bg: "#0080C6", text: "#FFC20E" },
-      "Denver Broncos":         { primary: "#002244", bg: "#002244", text: "#FB4F14" },
-      "Las Vegas Raiders":      { primary: "#000000", bg: "#000000", text: "#A5ACAF" },
+      "Philadelphia Eagles":    { primary: "#004C54", bg: "#004C54", text: "#A5ACAF", dark: "#3FA9A8" },
+      "New York Giants":        { primary: "#0B2265", bg: "#0B2265", text: "#FFFFFF", dark: "#7B93E6" },
+      "Dallas Cowboys":         { primary: "#041E42", bg: "#869397", text: "#041E42", dark: "#B4C2CF" },
+      "Washington Commanders":  { primary: "#5A1414", bg: "#5A1414", text: "#FFB612", dark: "#FFB612" },
+      "Detroit Lions":          { primary: "#0076B6", bg: "#0076B6", text: "#FFFFFF", dark: "#3BA3E8" },
+      "Green Bay Packers":      { primary: "#203731", bg: "#203731", text: "#FFB612", dark: "#FFB612" },
+      "Minnesota Vikings":      { primary: "#4F2683", bg: "#4F2683", text: "#FFC62F", dark: "#A784E0" },
+      "Chicago Bears":          { primary: "#0B162A", bg: "#0B162A", text: "#E64100", dark: "#F26B21" },
+      "Tampa Bay Buccaneers":   { primary: "#D50A0A", bg: "#D50A0A", text: "#FFFFFF", dark: "#F0443A" },
+      "Atlanta Falcons":        { primary: "#000000", bg: "#000000", text: "#E0243E", dark: "#EF3B52" },
+      "Carolina Panthers":      { primary: "#0085CA", bg: "#0085CA", text: "#101820", dark: "#3DB2EE" },
+      "New Orleans Saints":     { primary: "#9A7B3E", bg: "#D3BC8D", text: "#101820", dark: "#D3BC8D" },
+      "Los Angeles Rams":       { primary: "#003594", bg: "#003594", text: "#FFD100", dark: "#FFD100" },
+      "Seattle Seahawks":       { primary: "#002244", bg: "#002244", text: "#69BE28", dark: "#69BE28" },
+      "San Francisco 49ers":    { primary: "#AA0000", bg: "#AA0000", text: "#E6C98A", dark: "#E5484D" },
+      "Arizona Cardinals":      { primary: "#97233F", bg: "#97233F", text: "#FFFFFF", dark: "#E0577A" },
+      "Buffalo Bills":          { primary: "#00338D", bg: "#00338D", text: "#FFFFFF", dark: "#5B8EF7" },
+      "New York Jets":          { primary: "#125740", bg: "#125740", text: "#FFFFFF", dark: "#3BB27D" },
+      "New England Patriots":   { primary: "#002244", bg: "#002244", text: "#C60C30", dark: "#E1334F" },
+      "Miami Dolphins":         { primary: "#008E97", bg: "#008E97", text: "#FFFFFF", dark: "#1FBFC9" },
+      "Baltimore Ravens":       { primary: "#241773", bg: "#241773", text: "#C9A227", dark: "#9B87F5" },
+      "Cincinnati Bengals":     { primary: "#FB4F14", bg: "#FB4F14", text: "#000000", dark: "#FB4F14" },
+      "Pittsburgh Steelers":    { primary: "#101820", bg: "#101820", text: "#FFB612", dark: "#FFB612" },
+      "Cleveland Browns":       { primary: "#311D00", bg: "#311D00", text: "#FF3C00", dark: "#FF6A2B" },
+      "Indianapolis Colts":     { primary: "#002C5F", bg: "#FFFFFF", text: "#002C5F", dark: "#6FA0E8" },
+      "Jacksonville Jaguars":   { primary: "#006778", bg: "#006778", text: "#D7A22A", dark: "#2BB3C5" },
+      "Houston Texans":         { primary: "#A71930", bg: "#A71930", text: "#03202F", dark: "#EF4E63" },
+      "Tennessee Titans":       { primary: "#0C2340", bg: "#0C2340", text: "#4B92DB", dark: "#4B92DB" },
+      "Kansas City Chiefs":     { primary: "#E31837", bg: "#E31837", text: "#FFB81C", dark: "#F5334F" },
+      "Los Angeles Chargers":   { primary: "#0080C6", bg: "#0080C6", text: "#FFC20E", dark: "#FFC20E" },
+      "Denver Broncos":         { primary: "#002244", bg: "#002244", text: "#FB4F14", dark: "#FB4F14" },
+      "Las Vegas Raiders":      { primary: "#000000", bg: "#000000", text: "#A5ACAF", dark: "#C4C8CB" },
     };
 
     const DIVISIONS = {"NFC East": ["Philadelphia Eagles", "New York Giants", "Dallas Cowboys", "Washington Commanders"], "NFC North": ["Detroit Lions", "Green Bay Packers", "Minnesota Vikings", "Chicago Bears"], "NFC South": ["Tampa Bay Buccaneers", "Atlanta Falcons", "Carolina Panthers", "New Orleans Saints"], "NFC West": ["Los Angeles Rams", "Seattle Seahawks", "San Francisco 49ers", "Arizona Cardinals"], "AFC East": ["Buffalo Bills", "New York Jets", "New England Patriots", "Miami Dolphins"], "AFC North": ["Baltimore Ravens", "Cincinnati Bengals", "Pittsburgh Steelers", "Cleveland Browns"], "AFC South": ["Indianapolis Colts", "Jacksonville Jaguars", "Houston Texans", "Tennessee Titans"], "AFC West": ["Kansas City Chiefs", "Los Angeles Chargers", "Denver Broncos", "Las Vegas Raiders"]};
@@ -2389,7 +2304,8 @@
             const td = teamData[teamName];
             if (!td) continue;
             const tc = TEAM_COLORS[teamName] || { primary: '#1C1C1E', secondary: '#6B7280', text: '#ffffff' };
-            html += `<div class="team-block" style="border:1.5px solid ${tc.primary}">
+            const fade = hexA(tc.bg === '#FFFFFF' ? tc.primary : tc.bg, 0.45);
+            html += `<div class="team-block" style="border:1px solid ${hexA(tc.dark || '#FFFFFF', 0.35)};background:linear-gradient(160deg, ${fade} 0%, rgba(255,255,255,0.03) 75%)">
               <div class="team-header-bar" style="background:${tc.bg || tc.primary};color:${tc.text}">${teamName}</div>
               <div class="team-players-inner"><div class="player-list">`;
             for (const { pos, name } of td.players) {
@@ -2402,7 +2318,7 @@
               if (counts['Maria']) pickNotes.push(`Maria x${counts['Maria']}`);
               if (counts['Danielle']) pickNotes.push(`Danielle x${counts['Danielle']}`);
               const pickNote = pickNotes.length ? `<span style="font-size:10px;color:#9CA3AF;margin-left:6px">${pickNotes.join(', ')}</span>` : '';
-              const posColor = tc.primary;
+              const posColor = tc.dark || tc.primary;
               html += `<div class="player-row"><span class="pos-label" style="color:${posColor}">${pos}</span><span class="${nameClass}">${name}${pickNote}</span></div>`;
             }
             for (const extra of td.extras) {
@@ -2411,7 +2327,7 @@
               if (counts['Maria']) pickNotes.push(`Maria x${counts['Maria']}`);
               if (counts['Danielle']) pickNotes.push(`Danielle x${counts['Danielle']}`);
               const pickNote = pickNotes.length ? `<span style="font-size:10px;color:#9CA3AF;margin-left:6px">${pickNotes.join(', ')}</span>` : '';
-              html += `<div class="player-row"><span class="pos-label" style="color:${tc.primary}">+</span><span class="player-name-text extra">${extra}${pickNote}</span></div>`;
+              html += `<div class="player-row"><span class="pos-label" style="color:${tc.dark || tc.primary}">+</span><span class="player-name-text extra">${extra}${pickNote}</span></div>`;
             }
             html += `</div></div></div>`;
           }
@@ -2540,15 +2456,15 @@
         });
 
         const medals = ["🥇", "🥈", "🥉"];
-        const medalColors = ["#B8860B", "#888", "#8B4513"];
+        const medalColors = ["#FBBF24", "#888", "#8B4513"];
 
         function podium(title, items) {
           var html = '<div style="margin-bottom:28px"><div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">' + title + '</div>';
           items.slice(0, 3).forEach(function(item, i) {
-            html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid #F3F4F6">' +
+            html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,0.06)">' +
               '<span style="font-size:20px">' + medals[i] + '</span>' +
-              '<span style="flex:1;font-weight:600;color:#1C1C1E">' + item.name + '</span>' +
-              '<span style="font-size:13px;color:#6B7280">' + item.count + '</span>' +
+              '<span style="flex:1;font-weight:600;color:#F3F4F6">' + item.name + '</span>' +
+              '<span style="font-size:13px;color:#A1A9B6">' + item.count + '</span>' +
             '</div>';
           });
           html += '</div>';
@@ -2556,11 +2472,11 @@
         }
 
         function section(title) {
-          return '<div style="font-size:13px;font-weight:700;color:#1C1C1E;margin:24px 0 12px;padding-bottom:8px;border-bottom:1.5px solid #1C1C1E">' + title + '</div>';
+          return '<div style="font-size:13px;font-weight:700;color:#F3F4F6;margin:24px 0 12px;padding-bottom:8px;border-bottom:1.5px solid rgba(255,255,255,0.16)">' + title + '</div>';
         }
 
         function statRow(label, val) {
-          return '<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid #F3F4F6;font-size:13px"><span style="color:#6B7280">' + label + '</span><span style="font-weight:600;color:#1C1C1E">' + val + '</span></div>';
+          return '<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:13px"><span style="color:#A1A9B6">' + label + '</span><span style="font-weight:600;color:#F3F4F6">' + val + '</span></div>';
         }
 
         function pct(n, d) { return d ? Math.round(n/d*100) + "%" : "—"; }
@@ -2570,8 +2486,8 @@
         }
 
         function personCard(name, contentHtml) {
-          var color = name === "Maria" ? "#DC2626" : "#1D4ED8";
-          return '<div style="background:#F9FAFB;border-radius:10px;padding:16px">' +
+          var color = name === "Maria" ? "#F87171" : "#60A5FA";
+          return '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:16px">' +
             '<div style="font-size:14px;font-weight:700;color:' + color + ';margin-bottom:12px">' + name + '</div>' +
             contentHtml + '</div>';
         }
@@ -2629,9 +2545,9 @@
             .filter(function(e){ return !scored2.has(e[0]) && e[1] > 1; })
             .sort(function(a,b){return b[1]-a[1];});
           if (cursed.length > 0) {
-            var color = name === "Maria" ? "#DC2626" : "#1D4ED8";
+            var color = name === "Maria" ? "#F87171" : "#60A5FA";
           html += '<div style="margin-bottom:16px"><div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">' + name + "'s Cursed Pick</div>" +
-              '<div style="background:#F9FAFB;border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between">' +
+              '<div style="background:rgba(255,255,255,0.05);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between">' +
               '<span style="font-weight:600;color:' + color + '">' + cursed[0][0] + '</span>' +
               '<span style="font-size:12px;color:#9CA3AF">picked ' + cursed[0][1] + 'x, never scored</span>' +
               '</div></div>';
@@ -2640,14 +2556,14 @@
 
         // ── Fun Stats from Legacy ─────────────────────────────────────────────
         function legFun(label, val, cls) {
-          var color = cls === 'maria' ? '#DC2626' : cls === 'danielle' ? '#1D4ED8' : cls === 'red' ? '#DC2626' : '#1C1C1E';
-          return '<div style="display:flex;justify-content:space-between;padding:11px 0;border-bottom:0.5px solid #F3F4F6;font-size:13px;gap:16px"><span style="color:#6B7280">' + label + '</span><span style="font-weight:600;text-align:right;color:' + color + '">' + val + '</span></div>';
+          var color = cls === 'maria' ? '#F87171' : cls === 'danielle' ? '#60A5FA' : cls === 'red' ? '#F87171' : '#1C1C1E';
+          return '<div style="display:flex;justify-content:space-between;padding:11px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:13px;gap:16px"><span style="color:#A1A9B6">' + label + '</span><span style="font-weight:600;text-align:right;color:' + color + '">' + val + '</span></div>';
         }
 
         // ── Streaks ───────────────────────────────────────────────────────────
         // ── Jinx Tracker ──────────────────────────────────────────────────────
         html += section("Jinx Tracker");
-        html += '<div style="font-size:12px;color:#6B7280;margin-bottom:12px">A <b>jinx</b> is when someone picks a player, skips him the next time his team comes up, and he scores the first TD. <b>Loyalty</b> is how often they stick with a player when his team comes back around.</div>';
+        html += '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">A <b>jinx</b> is when someone picks a player, skips him the next time his team comes up, and he scores the first TD. <b>Loyalty</b> is how often they stick with a player when his team comes back around.</div>';
 
         // Build games in chronological order (2025 before 2026, sheet order within a year)
         var chrono = rows.slice().sort(function(a, b) {
@@ -2714,8 +2630,8 @@
         );
 
         function jinxSentence(j) {
-          var pColor = j.picker === 'Maria' ? '#DC2626' : '#1D4ED8';
-          var oColor = j.other === 'Maria' ? '#DC2626' : '#1D4ED8';
+          var pColor = j.picker === 'Maria' ? '#F87171' : '#60A5FA';
+          var oColor = j.other === 'Maria' ? '#F87171' : '#60A5FA';
           // Year on the scoring week always; on the drop week only if it was a different season
           var from = j.fromYear !== j.year ? wkLabel(j.fromYear, j.fromWeek) : 'Wk ' + j.fromWeek;
           var to = wkLabel(j.year, j.week);
@@ -2733,9 +2649,9 @@
         var worst = allJinx.filter(function(j) { return j.cashed; })
           .sort(function(a, b) { return b.cashed.units - a.cashed.units; })[0];
         if (worst) {
-          html += '<div style="background:#FEF3C7;border-radius:10px;padding:14px 16px;margin:8px 0 12px">' +
-            '<div style="font-size:11px;font-weight:600;color:#92400E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Worst Jinx</div>' +
-            '<div style="font-size:13px;color:#374151;line-height:1.6">' + jinxSentence(worst) + '</div></div>';
+          html += '<div style="background:rgba(251,191,36,0.15);border-radius:10px;padding:14px 16px;margin:8px 0 12px">' +
+            '<div style="font-size:11px;font-weight:600;color:#FCD34D;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Worst Jinx</div>' +
+            '<div style="font-size:13px;color:#D1D5DB;line-height:1.6">' + jinxSentence(worst) + '</div></div>';
         }
 
         allJinx.sort(function(a, b) {
@@ -2749,7 +2665,7 @@
           ['all', 'Maria', 'Danielle'].forEach(function(p) {
             var list = allJinx.filter(function(j) { return p === 'all' || j.picker === p; });
             var inner = list.length ? afList(list.map(function(j) {
-              return '<div style="padding:10px 0;border-bottom:0.5px solid #F3F4F6;font-size:13px;color:#374151;line-height:1.5">' + jinxSentence(j) + '</div>';
+              return '<div style="padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:13px;color:#D1D5DB;line-height:1.5">' + jinxSentence(j) + '</div>';
             }), 5) : EMPTY('No jinxes for ' + p + ' yet.');
             html += afVariant('jinx', [p], '<div style="margin-bottom:8px">' + inner + '</div>');
           });
@@ -2792,16 +2708,16 @@
         }
 
         function pickCard(pick, yearLabel) {
-          if (!pick) return '<div style="background:#F9FAFB;border-radius:10px;padding:16px;margin-bottom:10px;color:#9CA3AF;font-size:13px">' + yearLabel + ' — No winning picks yet.</div>';
-          var pColor = pick.picker === "Maria" ? "#DC2626" : "#1D4ED8";
+          if (!pick) return '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:16px;margin-bottom:10px;color:#9CA3AF;font-size:13px">' + yearLabel + ' — No winning picks yet.</div>';
+          var pColor = pick.picker === "Maria" ? "#F87171" : "#60A5FA";
           var gameDisplay = pick.homeTeam && pick.awayTeam ? pick.homeTeam + ' vs ' + pick.awayTeam : 'Game';
           var oddsDisplay = pick.odds >= 100 ? '+' + Math.round(pick.odds) : '+' + Math.round(pick.odds * 100);
-          return '<div style="background:#F9FAFB;border-radius:10px;padding:16px;margin-bottom:10px">' +
+          return '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:16px;margin-bottom:10px">' +
             '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">' + yearLabel + '</div>' +
             '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">' +
-              '<div><div style="font-size:20px;font-weight:700;color:#1C1C1E">' + pick.player + '</div>' +
-              '<div style="font-size:12px;color:#6B7280;margin-top:2px">' + gameDisplay + ' · ' + wkLabel(pick.year, pick.week) + '</div></div>' +
-              '<div style="text-align:right"><div style="font-size:18px;font-weight:700;color:#065F46">' + oddsDisplay + '</div>' +
+              '<div><div style="font-size:20px;font-weight:700;color:#F3F4F6">' + pick.player + '</div>' +
+              '<div style="font-size:12px;color:#A1A9B6;margin-top:2px">' + gameDisplay + ' · ' + wkLabel(pick.year, pick.week) + '</div></div>' +
+              '<div style="text-align:right"><div style="font-size:18px;font-weight:700;color:#34D399">' + oddsDisplay + '</div>' +
               '<div style="font-size:12px;font-weight:600;color:' + pColor + ';margin-top:2px">' + pick.picker + '</div></div>' +
             '</div></div>';
         }
@@ -2890,7 +2806,7 @@
 
         // ── Game Type Breakdown ──────────────────────────────────────────────
         html += section("Correct Picks by Game Type");
-        html += '<div style="font-size:12px;color:#6B7280;margin-bottom:12px">How many picks each person got right, broken down by game slot. Fraction = correct out of total scored games of that type.</div>';
+        html += '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">How many picks each person got right, broken down by game slot. Fraction = correct out of total scored games of that type.</div>';
         html += '<div class="af-bars">' + afBar('gt', 'season', 'Season', SEASON_OPTS, CUR_SEASON) + '</div>';
 
         const GAME_TYPE_ORDER = ['TNF','FNF','SNF','MNF','International','Thanksgiving','Black Friday','Saturday','Christmas','WNF'];
@@ -2913,11 +2829,11 @@
             return ai - bi;
           });
           if (!slotKeys.length) { html += afVariant('gt', [season], EMPTY('No scored games yet.')); return; }
-          var inner = '<div style="background:#F9FAFB;border-radius:10px;padding:8px 12px">' +
-            '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:8px 0 4px;border-bottom:1px solid #E5E7EB">' +
+          var inner = '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:8px 12px">' +
+            '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:8px 0 4px;border-bottom:1px solid rgba(255,255,255,0.10)">' +
             '<span style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Slot</span>' +
-            '<span style="font-size:11px;color:#DC2626;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Maria</span>' +
-            '<span style="font-size:11px;color:#1D4ED8;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Danielle</span>' +
+            '<span style="font-size:11px;color:#F87171;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Maria</span>' +
+            '<span style="font-size:11px;color:#60A5FA;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Danielle</span>' +
             '</div>';
           slotKeys.forEach(function(slot, i) {
             var ms = gameTypeStats[slot].Maria, ds = gameTypeStats[slot].Danielle;
@@ -2926,10 +2842,10 @@
               return '<span style="text-align:center;font-size:14px;font-weight:700;color:' + color + '">' + st.correct + '/' + st.total +
                 ' <span style="color:#9CA3AF;font-size:11px">(' + Math.round(st.correct / st.total * 100) + '%)</span></span>';
             }
-            var border = i < slotKeys.length - 1 ? 'border-bottom:0.5px solid #F3F4F6' : '';
+            var border = i < slotKeys.length - 1 ? 'border-bottom:0.5px solid rgba(255,255,255,0.06)' : '';
             inner += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 0;' + border + ';align-items:center">' +
-              '<span style="font-size:13px;font-weight:600;color:#374151">' + slot + '</span>' +
-              cell(ms, '#DC2626') + cell(ds, '#1D4ED8') + '</div>';
+              '<span style="font-size:13px;font-weight:600;color:#D1D5DB">' + slot + '</span>' +
+              cell(ms, '#F87171') + cell(ds, '#60A5FA') + '</div>';
           });
           html += afVariant('gt', [season], inner + '</div>');
         });
@@ -2958,14 +2874,14 @@
           var rowsHtml = wkKeys.map(function(key) {
             var wk = wkResults[key];
             var mW = wk.Maria.w, mL = wk.Maria.l, dW = wk.Danielle.w, dL = wk.Danielle.l;
-            var winnerColor = mW > dW ? '#DC2626' : dW > mW ? '#1D4ED8' : '#6B7280';
+            var winnerColor = mW > dW ? '#F87171' : dW > mW ? '#60A5FA' : '#6B7280';
             var winnerLabel = mW > dW ? 'Maria' : dW > mW ? 'Danielle' : 'Tied';
-            return '<div style="display:grid;grid-template-columns:80px 1fr 80px;gap:8px;align-items:center;padding:8px 0;border-bottom:0.5px solid #F3F4F6">' +
+            return '<div style="display:grid;grid-template-columns:80px 1fr 80px;gap:8px;align-items:center;padding:8px 0;border-bottom:0.5px solid rgba(255,255,255,0.06)">' +
               '<span style="font-size:11px;color:#9CA3AF">' + wkLabel(wk.year, wk.week) + '</span>' +
               '<div style="display:flex;align-items:center;gap:6px">' +
-                '<span style="font-size:12px;color:#DC2626;font-weight:600">M: ' + mW + '/' + (mW + mL) + '</span>' +
-                '<span style="color:#D1D5DB;font-size:10px">·</span>' +
-                '<span style="font-size:12px;color:#1D4ED8;font-weight:600">D: ' + dW + '/' + (dW + dL) + '</span>' +
+                '<span style="font-size:12px;color:#F87171;font-weight:600">M: ' + mW + '/' + (mW + mL) + '</span>' +
+                '<span style="color:#4B5563;font-size:10px">·</span>' +
+                '<span style="font-size:12px;color:#60A5FA;font-weight:600">D: ' + dW + '/' + (dW + dL) + '</span>' +
               '</div>' +
               '<span style="font-size:12px;font-weight:700;color:' + winnerColor + ';text-align:right">' + winnerLabel + '</span>' +
             '</div>';
@@ -2979,7 +2895,7 @@
         html += '<div class="af-bars">' +
           afBar('wrw', 'season', 'Season', SEASON_OPTS, CUR_SEASON) +
           afBar('wrw', 'picker', 'Picker', PICKER_OPTS, 'all') + '</div>';
-        html += '<div style="font-size:12px;color:#6B7280;margin-bottom:10px">A game counts as a win if any selected pick was right. Newest weeks first.</div>';
+        html += '<div style="font-size:12px;color:#A1A9B6;margin-bottom:10px">A game counts as a win if any selected pick was right. Newest weeks first.</div>';
         SEASON_OPTS.forEach(function(so) {
           PICKER_OPTS.forEach(function(po) {
             var season = so[0], picker = po[0];
@@ -3010,16 +2926,16 @@
               if (d.rate < worst.rate) worst = d;
             });
             var bars = weeks.map(function(d) {
-              var barColor = d.rate > 0.5 ? "#065F46" : d.rate > 0.25 ? "#B45309" : "#DC2626";
+              var barColor = d.rate > 0.5 ? "#34D399" : d.rate > 0.25 ? "#FBBF24" : "#F87171";
               return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">' +
                 '<span style="font-size:11px;color:#9CA3AF;width:72px;flex-shrink:0">' + wkLabel(d.year, d.week) + '</span>' +
-                '<div style="flex:1;background:#E5E7EB;border-radius:4px;height:10px">' +
+                '<div style="flex:1;background:rgba(255,255,255,0.12);border-radius:4px;height:10px">' +
                   '<div style="width:' + Math.round(d.rate * 100) + '%;background:' + barColor + ';height:10px;border-radius:4px"></div>' +
                 '</div>' +
-                '<span style="font-size:11px;color:#6B7280;width:62px;text-align:right;flex-shrink:0">' + pct(d.wins, d.total) + ' (' + d.wins + '/' + d.total + ')</span>' +
+                '<span style="font-size:11px;color:#A1A9B6;width:62px;text-align:right;flex-shrink:0">' + pct(d.wins, d.total) + ' (' + d.wins + '/' + d.total + ')</span>' +
               '</div>';
             });
-            var inner = afList(bars, 8, '<div style="background:#F9FAFB;border-radius:10px;padding:16px;margin-bottom:12px">', '</div>');
+            var inner = afList(bars, 8, '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:16px;margin-bottom:12px">', '</div>');
             inner += statRow("Best week", wkLabel(best.year, best.week) + " — " + pct(best.wins, best.total));
             inner += statRow("Worst week", wkLabel(worst.year, worst.week) + " — " + pct(worst.wins, worst.total));
             html += afVariant('wrw', [season, picker], inner);
@@ -3034,7 +2950,7 @@
           { label: "+1000–+2000", min: 10, max: 20 },
           { label: "+2000+ (Longshots)", min: 20, max: Infinity },
         ];
-        html += '<div style="background:#F9FAFB;border-radius:10px;padding:16px;margin-bottom:12px">';
+        html += '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:16px;margin-bottom:12px">';
         oddsRanges.forEach(function(range) {
           var rangeRows = scored.filter(function(r) {
             var odds = r.homePick ? Math.abs(r.homeOdds) : Math.abs(r.awayOdds);
@@ -3064,8 +2980,8 @@
           };
         });
 
-        html += '<div style="background:#F9FAFB;border-radius:10px;padding:16px;margin-bottom:12px">';
-        html += '<div style="display:grid;grid-template-columns:1fr 80px 80px;gap:8px;padding-bottom:8px;border-bottom:0.5px solid #E5E7EB;font-size:10px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em"><span></span><span style="text-align:center;color:#065F46">2025</span><span style="text-align:center;color:#1D4ED8">2026</span></div>';
+        html += '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:16px;margin-bottom:12px">';
+        html += '<div style="display:grid;grid-template-columns:1fr 80px 80px;gap:8px;padding-bottom:8px;border-bottom:0.5px solid rgba(255,255,255,0.10);font-size:10px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em"><span></span><span style="text-align:center;color:#34D399">2025</span><span style="text-align:center;color:#60A5FA">2026</span></div>';
 
         var compRows = [
           {label:"Bets played", fn:function(d){return d.total||0;}},
@@ -3077,19 +2993,19 @@
         compRows.forEach(function(row) {
           var v25 = row.fn(compData["2025"]||{});
           var v26 = row.fn(compData["2026"]||{});
-          html += '<div style="display:grid;grid-template-columns:1fr 80px 80px;gap:8px;padding:8px 0;border-bottom:0.5px solid #F3F4F6;font-size:13px"><span style="color:#6B7280">'+row.label+'</span><span style="text-align:center;font-weight:600;color:#065F46">'+v25+'</span><span style="text-align:center;font-weight:600;color:#1D4ED8">'+v26+'</span></div>';
+          html += '<div style="display:grid;grid-template-columns:1fr 80px 80px;gap:8px;padding:8px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:13px"><span style="color:#A1A9B6">'+row.label+'</span><span style="text-align:center;font-weight:600;color:#34D399">'+v25+'</span><span style="text-align:center;font-weight:600;color:#60A5FA">'+v26+'</span></div>';
         });
         html += '</div>';
 
         // ── NFL Team Heat Map ────────────────────────────────────────────────
         html += section("NFL Team Heat Map");
-        html += '<div style="font-size:12px;color:#6B7280;margin-bottom:12px">How often each team appears in picks vs how often they actually produce a first TD scorer.</div>';
+        html += '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">How often each team appears in picks vs how often they actually produce a first TD scorer.</div>';
         html += '<div class="af-bars">' +
           afBar('heat', 'season', 'Season', SEASON_OPTS, CUR_SEASON) +
           afBar('heat', 'picker', 'Picker', PICKER_OPTS, 'all') + '</div>';
         var thStyle = 'padding:6px 8px;color:#9CA3AF;font-size:10px;text-transform:uppercase;letter-spacing:0.05em';
         var heatHead = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">' +
-          '<tr style="border-bottom:1.5px solid #1C1C1E"><th style="text-align:left;' + thStyle + '">Team</th><th style="text-align:center;' + thStyle + '">Times Picked</th><th style="text-align:center;' + thStyle + '">Times Scored</th><th style="text-align:center;' + thStyle + '">Score Rate</th></tr>';
+          '<tr style="border-bottom:1.5px solid rgba(255,255,255,0.16)"><th style="text-align:left;' + thStyle + '">Team</th><th style="text-align:center;' + thStyle + '">Times Picked</th><th style="text-align:center;' + thStyle + '">Times Scored</th><th style="text-align:center;' + thStyle + '">Score Rate</th></tr>';
         SEASON_OPTS.forEach(function(so) {
           PICKER_OPTS.forEach(function(po) {
             var season = so[0], picker = po[0];
@@ -3114,14 +3030,14 @@
               var sc = teamScored[team] || 0;
               var rate = picks > 0 ? sc / picks : 0;
               var tc = TEAM_COLORS[resolveTeam(team)];
-              var bgColor = tc ? blendWithWhite(tc.primary, 0.08) : (i % 2 === 0 ? '#F9FAFB' : '#ffffff');
-              var rateColor = rate >= 0.3 ? '#065F46' : rate >= 0.15 ? '#B45309' : '#DC2626';
-              return '<tr style="background:' + bgColor + ';border-bottom:0.5px solid #F3F4F6">' +
-                '<td style="padding:7px 8px;font-weight:500">' + team + '</td>' +
+              var bgColor = tc ? 'linear-gradient(90deg,' + hexA(tc.bg === '#FFFFFF' ? tc.primary : tc.bg, 0.35) + ',rgba(255,255,255,0.02) 70%)' : 'transparent';
+              var rateColor = rate >= 0.3 ? '#34D399' : rate >= 0.15 ? '#FBBF24' : '#F87171';
+              return '<tr style="background:' + bgColor + ';border-bottom:0.5px solid rgba(255,255,255,0.06)">' +
+                '<td style="padding:7px 8px;font-weight:600;color:' + (tc ? tc.dark : '#F3F4F6') + '">' + team + '</td>' +
                 '<td style="text-align:center;padding:7px 8px">' + picks + '</td>' +
                 '<td style="text-align:center;padding:7px 8px">' + sc + '</td>' +
                 '<td style="padding:7px 8px"><div style="display:flex;align-items:center;gap:6px">' +
-                  '<div style="flex:1;background:#E5E7EB;border-radius:3px;height:8px"><div style="width:' + Math.round(rate * 100) + '%;background:' + rateColor + ';height:8px;border-radius:3px"></div></div>' +
+                  '<div style="flex:1;background:rgba(255,255,255,0.12);border-radius:3px;height:8px"><div style="width:' + Math.round(rate * 100) + '%;background:' + rateColor + ';height:8px;border-radius:3px"></div></div>' +
                   '<span style="font-size:11px;color:' + rateColor + ';font-weight:600;min-width:30px">' + Math.round(rate * 100) + '%</span>' +
                 '</div></td>' +
               '</tr>';
@@ -3133,7 +3049,7 @@
 
         // ── TD Scorers ──────────────────────────────────────────────────────────
         html += section("TD Scorer Leaderboard");
-        html += '<div style="font-size:12px;color:#6B7280;margin-bottom:12px">Every player who has scored a first TD. <b>Picked</b> = how many of those TDs someone actually had them picked for that game.</div>';
+        html += '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">Every player who has scored a first TD. <b>Picked</b> = how many of those TDs someone actually had them picked for that game.</div>';
         html += '<div class="af-bars">' +
           afBar('td', 'season', 'Season', SEASON_OPTS, CUR_SEASON) +
           afBar('td', 'who', 'Picked by', [['all', 'Anyone'], ['Maria', 'Maria', 'maria-btn'], ['Danielle', 'Danielle', 'danielle-btn']], 'all') + '</div>';
@@ -3148,14 +3064,14 @@
         });
 
         function tdTag(pickedBy) {
-          if (pickedBy.has('Maria') && pickedBy.has('Danielle')) return '<span style="font-size:10px;font-weight:600;color:#6B21A8;background:#EDE9FE;border-radius:4px;padding:2px 6px">Both</span>';
-          if (pickedBy.has('Maria')) return '<span style="font-size:10px;font-weight:600;color:#DC2626;background:#FEE2E2;border-radius:4px;padding:2px 6px">Maria</span>';
-          if (pickedBy.has('Danielle')) return '<span style="font-size:10px;font-weight:600;color:#1D4ED8;background:#DBEAFE;border-radius:4px;padding:2px 6px">Danielle</span>';
+          if (pickedBy.has('Maria') && pickedBy.has('Danielle')) return '<span style="font-size:10px;font-weight:600;color:#C4B5FD;background:rgba(167,139,250,0.18);border-radius:4px;padding:2px 6px">Both</span>';
+          if (pickedBy.has('Maria')) return '<span style="font-size:10px;font-weight:600;color:#F87171;background:rgba(248,113,113,0.15);border-radius:4px;padding:2px 6px">Maria</span>';
+          if (pickedBy.has('Danielle')) return '<span style="font-size:10px;font-weight:600;color:#60A5FA;background:rgba(96,165,250,0.16);border-radius:4px;padding:2px 6px">Danielle</span>';
           return '<span style="font-size:10px;color:#9CA3AF">—</span>';
         }
 
-        var tdHead = '<div style="background:#F9FAFB;border-radius:10px;padding:8px 12px">' +
-          '<div style="display:grid;grid-template-columns:1fr 90px 80px;gap:8px;padding:8px 0 4px;border-bottom:1px solid #E5E7EB">' +
+        var tdHead = '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:8px 12px">' +
+          '<div style="display:grid;grid-template-columns:1fr 90px 80px;gap:8px;padding:8px 0 4px;border-bottom:1px solid rgba(255,255,255,0.10)">' +
           '<span style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Player</span>' +
           '<span style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">TDs (picked)</span>' +
           '<span style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Picked By</span>' +
@@ -3193,10 +3109,10 @@
             }
             var divs = list.map(function(entry) {
               var data = entry[1];
-              var tdDisplay = '<span style="font-size:14px;font-weight:700;color:#374151">' + data.total + '</span>' +
+              var tdDisplay = '<span style="font-size:14px;font-weight:700;color:#D1D5DB">' + data.total + '</span>' +
                 (data.picked > 0 && data.picked < data.total ? '<span style="font-size:11px;color:#9CA3AF;margin-left:3px">(' + data.picked + ' picked)</span>' : '');
-              return '<div style="display:grid;grid-template-columns:1fr 90px 80px;gap:8px;padding:9px 0;border-bottom:0.5px solid #F3F4F6;align-items:center">' +
-                '<span style="font-size:13px;font-weight:600;color:#1C1C1E">' + entry[0] + '</span>' +
+              return '<div style="display:grid;grid-template-columns:1fr 90px 80px;gap:8px;padding:9px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);align-items:center">' +
+                '<span style="font-size:13px;font-weight:600;color:#F3F4F6">' + entry[0] + '</span>' +
                 '<span style="text-align:center">' + tdDisplay + '</span>' +
                 '<span style="text-align:center">' + tdTag(data.pickedBy) + '</span>' +
               '</div>';
@@ -3222,7 +3138,7 @@
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       var pieces = [];
-      var colors = ['#DC2626','#1D4ED8','#065F46','#B8860B','#7C3AED','#EA580C'];
+      var colors = ['#F87171','#60A5FA','#34D399','#FBBF24','#7C3AED','#EA580C'];
       for (var i = 0; i < 150; i++) {
         pieces.push({
           x: Math.random() * canvas.width,
@@ -3314,12 +3230,12 @@
 
         function fmtU(n) { return (n >= 0 ? "+" : "") + n.toFixed(1) + "u"; }
         function fmtD(n) { return (n >= 0 ? "+$" : "-$") + Math.abs(n).toFixed(2); }
-        function uColor(n) { return n > 0 ? "#065F46" : n < 0 ? "#DC2626" : "#9CA3AF"; }
+        function uColor(n) { return n > 0 ? "#34D399" : n < 0 ? "#F87171" : "#9CA3AF"; }
 
         function yearCard(r, isTotal) {
           var label = isTotal ? "All-Time Total" : r.year + " Season";
-          var bg = isTotal ? "#F3F4F6" : "#F9FAFB";
-          var border = isTotal ? "border-top:2px solid #1C1C1E;" : "";
+          var bg = isTotal ? "linear-gradient(140deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04))" : "rgba(255,255,255,0.05)";
+          var border = isTotal ? "border-top:2px solid rgba(255,255,255,0.16);" : "";
 
           function statCol(labelText, actualN, worstN, fmtFn) {
             var aColor = uColor(actualN);
@@ -3332,10 +3248,10 @@
           }
 
           return '<div style="background:' + bg + ';border-radius:10px;padding:18px 20px;margin-bottom:12px;' + border + '">' +
-            '<div style="font-size:15px;font-weight:700;color:#1C1C1E;margin-bottom:14px">' + label + '</div>' +
+            '<div style="font-size:15px;font-weight:700;color:#F3F4F6;margin-bottom:14px">' + label + '</div>' +
             '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">' +
               '<div><div style="font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Bets Made</div>' +
-                '<div class="money-num" style="font-size:20px;font-weight:700;color:#1C1C1E">' + r.bets + '</div>' +
+                '<div class="money-num" style="font-size:20px;font-weight:700;color:#F3F4F6">' + r.bets + '</div>' +
                 '<div style="font-size:12px;color:#9CA3AF;margin-top:2px">' + r.notOffered + ' not offered</div></div>' +
               statCol("Units", r.units, r.unitsWorst, fmtU) +
               statCol("Money", r.dollars, r.dollarsWorst, fmtD) +

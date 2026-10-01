@@ -1,4 +1,4 @@
-<!-- v64 -->
+<!-- v65 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -781,6 +781,34 @@
     .pf-switch button.on-danielle { background: rgba(37,99,235,0.28); border-color: #60A5FA; color: #FFFFFF; }
     .pf-switch button.on-friend { background: rgba(20,184,166,0.25); border-color: #2DD4BF; color: #FFFFFF; }
     .pf-switch { flex-wrap: wrap; }
+    .pf-hero { position: relative; }
+    .fr-cust { position: absolute; top: 12px; right: 12px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700; color: #FFFFFF; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18); border-radius: 999px; padding: 5px 11px; cursor: pointer; }
+    .fr-link { cursor: pointer; text-decoration: none; font-weight: 700; }
+    .fr-link:hover { text-decoration: underline; }
+    .fr-avatar { width: 96px; height: 96px; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 800; background: rgba(255,255,255,0.08); border: 3px solid; }
+    .pf-select { padding: 7px 10px; font-size: 13px; border-radius: 999px; width: auto; }
+    .h2h { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
+    .h2h-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 15px; }
+    .h2h-mid { font-size: 11px; color: #A1A9B6; text-align: center; }
+    .h2h-bar { display: flex; height: 8px; border-radius: 999px; overflow: hidden; margin: 8px 0 6px; gap: 2px; }
+    .h2h-bar i { display: block; }
+    .h2h-foot { font-size: 11px; color: #A1A9B6; }
+    .hist-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 13px; }
+    .hist-wk { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #A1A9B6; margin-bottom: 3px; }
+    .hist-sc { font-size: 11px; color: #A1A9B6; margin-top: 3px; }
+    .hist-hit { font-weight: 800; }
+    .hist-tag { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; padding: 3px 8px; border-radius: 999px; background: rgba(255,255,255,0.08); color: #A1A9B6; white-space: nowrap; }
+    .hist-tag.hit { background: rgba(52,211,153,0.18); color: #34D399; }
+    .hist-tag.miss { background: rgba(248,113,113,0.14); color: #F87171; }
+    .hist-tag.live { background: rgba(250,204,21,0.15); color: #FACC15; }
+    .fr-style { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 14px; margin: -6px 0 18px; }
+    .fr-style-h { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #A1A9B6; margin: 4px 0 8px; }
+    .fr-emojis { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 6px; margin-bottom: 12px; }
+    .fr-emojis button { font-size: 22px; height: 40px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #FFFFFF; cursor: pointer; }
+    .fr-emojis button.on { border-color: #FFFFFF; background: rgba(255,255,255,0.16); }
+    .fr-colors { display: flex; flex-wrap: wrap; gap: 8px; }
+    .fr-colors button { width: 34px; height: 34px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; }
+    .fr-colors button.on { border-color: #FFFFFF; box-shadow: 0 0 0 2px #0F0F12 inset; }
     .cr-table { width: 100%; border-collapse: collapse; font-size: 13px; }
     .cr-table th { text-align: left; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #A1A9B6; padding: 6px 8px; border-bottom: 1.5px solid rgba(255,255,255,0.16); }
     .cr-table td { padding: 9px 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
@@ -2640,23 +2668,24 @@
 
     var PROFILE_WHO = 'Maria';
     function openProfile(name) { PROFILE_WHO = name; switchTab('profiles'); }
-    function canSeeProfile(name) {
-      return name === 'Maria' || name === 'Danielle' || SUB.role === 'admin' || (SUB.role === 'friend' && SUB.name === name);
-    }
+    // Every profile is public. Friends' upcoming picks are only shown to them and admin.
     function loadProfilesTab() {
-      if (!canSeeProfile(PROFILE_WHO)) PROFILE_WHO = 'Maria';
-      if (PROFILE_WHO === 'Maria' || PROFILE_WHO === 'Danielle') renderProfile(PROFILE_WHO);
-      else renderFriendProfile(PROFILE_WHO);
+      if (PROFILE_WHO === 'Maria' || PROFILE_WHO === 'Danielle') {
+        renderProfile(PROFILE_WHO);
+        if (!CROWD.data) getCrowd().then(function() { if (PROFILE_WHO === 'Maria' || PROFILE_WHO === 'Danielle') { var sw = document.querySelector('#profiles-content .pf-switch'); if (sw) { sw.outerHTML = profileSwitchHtml(PROFILE_WHO); bindProfileSwitch(document.getElementById('profiles-content')); } } }).catch(function() {});
+      } else renderFriendProfile(PROFILE_WHO);
     }
     // Maria / Danielle buttons, plus "you" for a logged-in friend, plus every friend for admin
     function profileSwitchHtml(active) {
       var h = '<div class="pf-switch">' + ['Maria', 'Danielle'].map(function(n) {
         return '<button data-pf="' + n + '" class="' + (n === active ? 'on-' + n.toLowerCase() : '') + '">' + n + '</button>';
       }).join('');
-      if (SUB.role === 'friend') h += '<button data-pf="' + escHtml(SUB.name) + '" class="' + (SUB.name === active ? 'on-friend' : '') + '">' + escHtml(SUB.name) + '</button>';
-      if (SUB.role === 'admin' && ADMIN.friends && ADMIN.friends.length) {
-        h += '<select class="adm-input" id="pf-friend" style="padding:7px 10px;font-size:13px"><option value="">Friends…</option>' +
-          ADMIN.friends.map(function(f) { return '<option' + (f.name === active ? ' selected' : '') + '>' + escHtml(f.name) + '</option>'; }).join('') + '</select>';
+      if (SUB.role === 'friend') h += '<button data-pf="' + escHtml(SUB.name) + '" class="' + (SUB.name === active ? 'on-friend' : '') + '"' + (SUB.name === active ? ' style="border-color:' + fStyle(SUB.name).color + ';background:' + hexA(fStyle(SUB.name).color, 0.25) + '"' : '') + '>' + (fStyle(SUB.name).emoji ? fStyle(SUB.name).emoji + ' ' : '') + escHtml(SUB.name) + '</button>';
+      var others = ((CROWD.data && CROWD.data.friends) || []).filter(function(n) { return !(SUB.role === 'friend' && n === SUB.name); });
+      if (others.length) {
+        var onOther = others.indexOf(active) >= 0;
+        h += '<select class="adm-input pf-select' + (onOther ? ' on' : '') + '" id="pf-friend" style="' + (onOther ? 'border-color:' + fStyle(active).color + ';color:#FFFFFF' : '') + '"><option value="">The Crowd…</option>' +
+          others.map(function(n) { var st = fStyle(n); return '<option value="' + escHtml(n) + '"' + (n === active ? ' selected' : '') + '>' + (st.emoji ? st.emoji + ' ' : '') + escHtml(n) + '</option>'; }).join('') + '</select>';
       }
       return h + '</div>';
     }
@@ -3214,6 +3243,21 @@
 
     var FRIEND_SECTIONS = [['fpick', '🏈 Make Picks'], ['fprofile', '👤 My Profile'], ['crowd', '🏅 Crowd']];
     var FRIEND_COLOR = '#2DD4BF';
+    var FRIEND_EMOJI = ['🏈','🔥','🐐','🦅','🐻','🦁','🐯','🐺','🦈','🐍','👑','💎','🚀','⚡','🎯','🍀','🌮','🍕','🌭','🍺','😎','🤠','👽','🤡'];
+    var FRIEND_COLORS = ['#2DD4BF','#34D399','#A3E635','#FACC15','#FB923C','#F472B6','#E879F9','#A78BFA','#22D3EE','#E5E7EB'];
+    function fStyle(name) {
+      var s = ((CROWD.data && CROWD.data.styles) || {})[name] || {};
+      return { color: s.color || FRIEND_COLOR, emoji: s.emoji || '' };
+    }
+    // A friend's name in their color; tap to open their profile
+    function fName(name) {
+      var st = fStyle(name);
+      return '<a class="fr-link" data-fname="' + escHtml(name) + '" style="color:' + st.color + '">' + (st.emoji ? st.emoji + ' ' : '') + escHtml(name) + '</a>';
+    }
+    document.addEventListener('click', function(e) {
+      var a = e.target.closest && e.target.closest('.fr-link');
+      if (a) { e.preventDefault(); openProfile(a.getAttribute('data-fname')); }
+    });
 
     // ── Friend: pick list ───────────────────────────────────────────────────
     var FRIEND = { showLater: false };
@@ -3309,7 +3353,7 @@
           '</div><div class="submit-msg" id="adm-msg" style="text-align:left"></div>' +
           '<div style="font-size:11px;font-weight:800;letter-spacing:0.12em;color:#A1A9B6;margin:14px 0 4px">FRIENDS (' + list.length + ')</div>';
         h += list.length ? list.map(function(f) {
-          return '<div class="adm-row"><div><b style="color:' + FRIEND_COLOR + '">' + escHtml(f.name) + '</b> <span style="color:#A1A9B6;letter-spacing:0.15em;margin-left:6px">' + f.pin + '</span></div>' +
+          return '<div class="adm-row"><div><b style="color:' + fStyle(f.name).color + '">' + (fStyle(f.name).emoji ? fStyle(f.name).emoji + ' ' : '') + escHtml(f.name) + '</b> <span style="color:#A1A9B6;letter-spacing:0.15em;margin-left:6px">' + f.pin + '</span></div>' +
             '<div style="display:flex;gap:6px"><button class="adm-btn" data-fprof="' + escHtml(f.name) + '">Profile</button>' +
             '<button class="adm-btn red" data-frm="' + escHtml(f.name) + '">Remove</button></div></div>';
         }).join('') : '<div style="color:#A1A9B6;font-size:13px;padding:10px 0">No friends yet.</div>';
@@ -3374,14 +3418,24 @@
       var list = rows.map(function(r) { return { r: r, g: G[r.week + '_' + r.game] }; })
         .filter(function(x) { return x.g; })
         .sort(function(a, b) { return a.g.week - b.g.week || a.g.game - b.g.game; });
-      var S = { name: name, picks: list.length, w: 0, n: 0, heater: { n: 0 }, drought: { n: 0 }, cur: { type: '', n: 0 }, lone: [], hits: [], weeks: {}, players: {}, playerHits: {}, upcoming: [] };
+      var S = { name: name, history: [], h2h: { Maria: { me: 0, them: 0, both: 0, neither: 0, n: 0, theirW: 0 }, Danielle: { me: 0, them: 0, both: 0, neither: 0, n: 0, theirW: 0 } }, picks: list.length, w: 0, n: 0, heater: { n: 0 }, drought: { n: 0 }, cur: { type: '', n: 0 }, lone: [], hits: [], weeks: {}, players: {}, playerHits: {}, upcoming: [] };
       var cw = 0, cl = 0;
       list.forEach(function(x) {
         var r = x.r, g = x.g;
         [r.homePick, r.awayPick].filter(Boolean).forEach(function(p) { S.players[p] = (S.players[p] || 0) + 1; });
-        if (!g.scorer) { S.upcoming.push(x); return; }
-        if (g.notOffered) return;
+        if (!g.scorer) {
+          if (r.revealed === false) S.upcoming.push(x); else S.history.push({ r: r, g: g, status: 'live' });
+          return;
+        }
+        if (g.notOffered) { S.history.push({ r: r, g: g, status: 'void' }); return; }
         var hit = playerKey(g.scorer) === playerKey(r.homePick) || playerKey(g.scorer) === playerKey(r.awayPick);
+        S.history.push({ r: r, g: g, status: hit ? 'hit' : 'miss' });
+        ['Maria', 'Danielle'].forEach(function(who) {
+          var c = g.mdCorrect[who]; if (c !== 'Yes' && c !== 'No') return;
+          var H = S.h2h[who], them = c === 'Yes';
+          H.n++; if (them) H.theirW++;
+          if (hit && !them) H.me++; else if (them && !hit) H.them++; else if (hit) H.both++; else H.neither++;
+        });
         S.n++;
         var W = S.weeks[g.week] || (S.weeks[g.week] = { w: 0, n: 0 });
         W.n++;
@@ -3444,19 +3498,19 @@
         // Leaderboard, with Maria and Danielle slotted in as reference rows
         var board = R.ranked.concat(ref).sort(function(a, b) { return b.pct - a.pct || b.n - a.n; });
         var rank = 0;
-        h += '<table class="cr-table"><tr><th>#</th><th>Name</th><th>Record</th><th>Win %</th><th>Streak</th></tr>';
+        h += '<div style="font-size:11px;color:#A1A9B6;text-align:right;margin-bottom:4px">Tap a name to see their profile</div><table class="cr-table"><tr><th>#</th><th>Name</th><th>Record</th><th>Win %</th><th>Streak</th></tr>';
         board.forEach(function(s) {
           var c = s.ref ? (s.name === 'Maria' ? SB_M : SB_D) : FRIEND_COLOR;
           if (!s.ref) rank++;
           h += '<tr class="' + (s.ref ? 'ref' : '') + '"><td>' + (s.ref ? '' : (rank === 1 ? '👑' : rank)) + '</td>' +
-            '<td style="font-weight:700;color:' + c + '">' + escHtml(s.name) + (s.ref ? ' <span style="font-size:10px;color:#A1A9B6">(for reference)</span>' : '') + '</td>' +
+            '<td style="font-weight:700;color:' + c + '">' + (s.ref ? '<a class="fr-link" data-fname="' + s.name + '" style="color:' + c + '">' + s.name + '</a> <span style="font-size:10px;color:#A1A9B6">(for reference)</span>' : fName(s.name)) + '</td>' +
             '<td>' + s.w + '–' + (s.n - s.w) + '</td><td style="font-weight:800">' + pctTxt(s.pct) + '</td><td>' + streakTxt(s.cur) + '</td></tr>';
         });
         h += '</table>';
         if (R.unranked.length) {
           h += '<div style="font-size:11px;font-weight:800;letter-spacing:0.12em;color:#A1A9B6;margin:16px 0 6px">UNRANKED (UNDER ' + CROWD_MIN + ' GAMES)</div>' +
             R.unranked.map(function(s) {
-              return '<div class="adm-row"><span style="font-weight:700;color:' + FRIEND_COLOR + '">' + escHtml(s.name) + '</span><span style="color:#A1A9B6">' + s.w + '–' + (s.n - s.w) + ' · ' + s.n + ' game' + (s.n === 1 ? '' : 's') + '</span></div>';
+              return '<div class="adm-row"><span style="font-weight:700">' + fName(s.name) + '</span><span style="color:#A1A9B6">' + s.w + '–' + (s.n - s.w) + ' · ' + s.n + ' game' + (s.n === 1 ? '' : 's') + '</span></div>';
             }).join('');
         }
 
@@ -3472,7 +3526,7 @@
         var wkKeys = Object.keys(weeks).filter(function(w) { return weeks[w].best > 0; }).sort(function(a, b) { return b - a; });
         if (wkKeys.length) {
           h += '<div class="pf-h" style="margin-top:22px">🗓️ Weekly Best</div>' + wkKeys.map(function(w) {
-            return '<div class="adm-row"><span style="color:#A1A9B6">Week ' + w + '</span><span><b style="color:' + FRIEND_COLOR + '">' + weeks[w].who.map(escHtml).join(' & ') + '</b> · ' + weeks[w].best + ' hit' + (weeks[w].best > 1 ? 's' : '') + '</span></div>';
+            return '<div class="adm-row"><span style="color:#A1A9B6">Week ' + w + '</span><span><b>' + weeks[w].who.map(fName).join(' & ') + '</b> · ' + weeks[w].best + ' hit' + (weeks[w].best > 1 ? 's' : '') + '</span></div>';
           }).join('');
         }
 
@@ -3492,7 +3546,7 @@
               '<span class="sch-ko">' + (g.scorer ? '🏈 ' + escHtml(g.scorer) : '⏳ In progress') + '</span></div>' +
               '<div class="sch-teams">' + teamPill(g.home, g.home) + ' <span style="color:rgba(255,255,255,0.45)">vs</span> ' + teamPill(g.away, g.away) + '</div>' +
               byGame[k].map(function(p) {
-                return '<div style="font-size:12px;padding:3px 0"><b style="color:' + FRIEND_COLOR + '">' + escHtml(p.friend) + '</b> · ' + pk(p.homePick) + ' / ' + pk(p.awayPick) + '</div>';
+                return '<div style="font-size:12px;padding:3px 0"><b>' + fName(p.friend) + '</b> · ' + pk(p.homePick) + ' / ' + pk(p.awayPick) + '</div>';
               }).join('') + '</div>';
           });
           if (gKeys.length > 6) h += '<div style="text-align:center"><button class="link-btn" id="cr-more">Show all ' + gKeys.length + ' games</button></div>';
@@ -3519,17 +3573,25 @@
     // ── Friend profiles (only that friend, or admin) ────────────────────────
     function renderFriendProfile(name) {
       var el = document.getElementById('profiles-content');
+      var owner = SUB.role === 'friend' && SUB.name === name, admin = SUB.role === 'admin';
       el.innerHTML = profileSwitchHtml(name) + '<div class="loading">Loading profile…</div>';
       bindProfileSwitch(el);
-      var mine = SUB.role === 'admin' ? picksApi({ pin: SUB.pin, action: 'fall' }) : picksApi({ pin: SUB.pin, action: 'fmine' });
-      Promise.all([mine, getCrowd(), fetchSheet('Winnings', 'A1:Q400')]).then(function(res) {
-        if (res[0].error) { el.innerHTML = profileSwitchHtml('Maria') + '<div class="loading">' + res[0].error + '</div>'; bindProfileSwitch(el); return; }
-        if (SUB.role === 'admin' && res[0].friends && !(ADMIN.friends && ADMIN.friends.length)) ADMIN.friends = res[0].friends.map(function(n) { return { name: n }; });
-        var rows = (res[0].rows || []).filter(function(r) { return r.friend === name && String(r.season) === String(CURRENT_YEAR); });
+      var priv = owner ? picksApi({ pin: SUB.pin, action: 'fmine' }) : admin ? picksApi({ pin: SUB.pin, action: 'fall' }) : Promise.resolve(null);
+      Promise.all([priv, getCrowd(), fetchSheet('Winnings', 'A1:Q400')]).then(function(res) {
         var crowd = res[1], G = crowdGames(res[2]);
+        if (res[0] && res[0].error) { PROFILE_WHO = 'Maria'; renderProfile('Maria'); return; }
+        if ((crowd.friends || []).indexOf(name) < 0 && !owner) { PROFILE_WHO = 'Maria'; renderProfile('Maria'); return; }
+        // Public view: only picks for games that have kicked off. Owner and admin also see upcoming ones.
+        var rows = res[0]
+          ? (res[0].rows || []).filter(function(r) { return r.friend === name && String(r.season) === String(CURRENT_YEAR); })
+          : crowd.picks.filter(function(p) { return p.friend === name; });
+        if (res[0]) rows.forEach(function(r) {
+          r.revealed = crowd.picks.some(function(p) { return p.friend === r.friend && String(p.week) === String(r.week) && String(p.game) === String(r.game); });
+        });
         var S = friendStats(name, rows, G, crowd.picks);
         var R = rankFriends(crowd, G);
         var rank = R.ranked.map(function(s) { return s.name; }).indexOf(name) + 1;
+        var st = fStyle(name), col = st.color;
         var favs = Object.keys(S.players).sort(function(a, b) { return S.players[b] - S.players[a]; });
         var fav = favs[0];
         var cursed = favs.filter(function(p) { return !S.playerHits[p] && S.players[p] >= 5; })[0];
@@ -3540,13 +3602,15 @@
         function hitW(x) { return x ? 'Wk ' + x.g.week + ' · ' + x.g.scorer : ''; }
 
         var h = profileSwitchHtml(name);
-        h += '<div class="pf-hero" style="--pc:' + FRIEND_COLOR + ';background:linear-gradient(140deg,#0F0F12 0%,#0B2E2B 55%,#0F766E 100%)">' +
-          '<div style="width:96px;height:96px;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:800;background:rgba(255,255,255,0.08);border:3px solid ' + FRIEND_COLOR + ';box-shadow:0 0 30px -4px ' + FRIEND_COLOR + '">' + escHtml(name.charAt(0).toUpperCase()) + '</div>' +
-          '<div class="pf-name">' + escHtml(name) + '</div>' +
-          '<div class="pf-sub">' + CURRENT_YEAR + ' Crowd · ' + (rank ? 'Ranked #' + rank + ' of ' + R.ranked.length : 'Unranked (' + S.n + '/' + CROWD_MIN + ' games)') + (SUB.role === 'admin' ? ' · 🔒 Admin view' : ' · 🔒 Only you can see this') + '</div>' +
+        h += '<div class="pf-hero" style="--pc:' + col + ';background:linear-gradient(140deg,#0F0F12 0%,' + hexA(col, 0.16) + ' 55%,' + hexA(col, 0.45) + ' 100%)">' +
+          (owner ? '<button class="fr-cust" id="fr-style-btn">🎨 Customize</button>' : '') +
+          '<div class="fr-avatar" style="border-color:' + col + ';box-shadow:0 0 30px -4px ' + col + ';' + (st.emoji ? 'font-size:46px' : 'color:' + col) + '">' + (st.emoji || escHtml(name.charAt(0).toUpperCase())) + '</div>' +
+          '<div class="pf-name" style="color:' + col + '">' + escHtml(name) + '</div>' +
+          '<div class="pf-sub">' + CURRENT_YEAR + ' Crowd · ' + (rank ? 'Ranked #' + rank + ' of ' + R.ranked.length : 'Unranked (' + S.n + '/' + CROWD_MIN + ' games)') + (admin ? ' · 🔒 Admin view' : '') + '</div>' +
           '<div class="pf-big"><div><b>' + S.w + '–' + (S.n - S.w) + '</b><span>Record</span></div>' +
           '<div><b style="color:#34D399">' + pctTxt(S.pct) + '</b><span>Win %</span></div>' +
           '<div><b>' + streakTxt(S.cur) + '</b><span>Streak</span></div></div></div>';
+        if (owner) h += '<div id="fr-style" style="display:none"></div>';
 
         function tile(l, v, sub) { return '<div class="pf-tile"><div class="l">' + l + '</div><div class="v">' + v + '</div>' + (sub ? '<div class="s">' + sub + '</div>' : '') + '</div>'; }
         var last = S.hits[S.hits.length - 1];
@@ -3555,14 +3619,44 @@
           tile('Lone Wolves', S.lone.length, 'Hits nobody else had') +
           tile('Longest Heater', S.heater.n + ' straight', S.heater.n ? 'through Wk ' + S.heater.at : '') +
           tile('Ride or Die', fav ? escHtml(fav) : '—', fav ? 'picked ' + S.players[fav] + 'x' : '') +
-          tile('Games Picked', S.picks, S.upcoming.length + ' still to play') +
-          tile('vs Maria & Danielle', (function() { var m = mdStats('Maria', G), d = mdStats('Danielle', G); return 'M ' + pctTxt(m.pct) + ' · D ' + pctTxt(d.pct); })(), 'their win % this season') +
+          tile('Games Picked', S.picks, (owner || admin) ? S.upcoming.length + ' still to play' : 'that have kicked off') +
+          tile('Best Week', (function() { var b = Object.keys(S.weeks).sort(function(a, c) { return S.weeks[c].w - S.weeks[a].w; })[0]; return b && S.weeks[b].w ? S.weeks[b].w + ' hit' + (S.weeks[b].w > 1 ? 's' : '') : '—'; })(),
+            (function() { var b = Object.keys(S.weeks).sort(function(a, c) { return S.weeks[c].w - S.weeks[a].w; })[0]; return b && S.weeks[b].w ? 'Week ' + b : ''; })()) +
           '</div>';
 
-        if (S.upcoming.length) {
-          h += '<div class="pf-h">⏳ Upcoming Picks <small>hidden from others until kickoff</small></div>' + S.upcoming.map(function(x) {
+        // ⚔️ Head to head vs Maria and Danielle: games where only one of them hit
+        h += '<div class="pf-h">⚔️ Head to Head <small>games where only one side hit</small></div>';
+        ['Maria', 'Danielle'].forEach(function(who) {
+          var x = S.h2h[who], c2 = who === 'Maria' ? SB_M : SB_D, tot = x.me + x.them;
+          var verdict = !tot ? 'No decided games yet' : x.me > x.them ? escHtml(name) + ' leads' : x.them > x.me ? who + ' leads' : 'All square';
+          h += '<div class="h2h"><div class="h2h-top"><span><b style="color:' + col + '">' + escHtml(name) + ' ' + x.me + '</b></span>' +
+            '<span class="h2h-mid">vs ' + who + ' · ' + verdict + '</span><span><b style="color:' + c2 + '">' + x.them + ' ' + who + '</b></span></div>' +
+            '<div class="h2h-bar"><i style="width:' + (tot ? x.me / tot * 100 : 50) + '%;background:' + col + '"></i><i style="flex:1;background:' + c2 + '"></i></div>' +
+            '<div class="h2h-foot">Both hit ' + x.both + ' · Both missed ' + x.neither + ' · ' + escHtml(name) + ' ' + pctTxt(x.n ? (x.me + x.both) / x.n : 0) + ' vs ' + who + ' ' + pctTxt(x.n ? x.theirW / x.n : 0) + ' on the same games</div></div>';
+        });
+
+        if ((owner || admin) && S.upcoming.length) {
+          h += '<div class="pf-h">⏳ Upcoming Picks <small>🔒 only ' + (owner ? 'you' : escHtml(name)) + ' and admin can see these</small></div>' + S.upcoming.map(function(x) {
             return '<div class="adm-row"><span style="color:#A1A9B6">Wk ' + x.g.week + ' · ' + escHtml(x.g.slot) + '</span><span>' + coloredText(x.r.homePick, x.g.home) + ' / ' + coloredText(x.r.awayPick, x.g.away) + '</span></div>';
           }).join('') + '<div style="height:18px"></div>';
+        }
+
+        // 📜 Pick history (kicked-off games, newest first)
+        var hist = S.history.slice().reverse();
+        if (hist.length) {
+          h += '<div class="pf-h">📜 Pick History <small>' + hist.length + ' game' + (hist.length > 1 ? 's' : '') + '</small></div>';
+          hist.forEach(function(x, i) {
+            var g = x.g, sk = playerKey(g.scorer);
+            function pk(p, team) { var hit = g.scorer && playerKey(p) === sk; return '<span class="' + (hit ? 'hist-hit' : '') + '">' + coloredText(p, team) + (hit ? ' ✅' : '') + '</span>'; }
+            var tag = x.status === 'hit' ? '<span class="hist-tag hit">HIT</span>' : x.status === 'miss' ? '<span class="hist-tag miss">MISS</span>' :
+              x.status === 'void' ? '<span class="hist-tag">NOT OFFERED</span>' : '<span class="hist-tag live">LIVE</span>';
+            h += '<div class="hist-row"' + (i >= 8 ? ' data-hist style="display:none"' : '') + '>' +
+              '<div class="hist-l"><div class="hist-wk">Wk ' + g.week + ' · ' + escHtml(g.slot) + '</div>' +
+              '<div>' + pk(x.r.homePick, g.home) + ' <span style="color:rgba(255,255,255,0.35)">/</span> ' + pk(x.r.awayPick, g.away) + '</div>' +
+              (g.scorer ? '<div class="hist-sc">🏈 ' + escHtml(g.scorer) + '</div>' : '') + '</div>' + tag + '</div>';
+          });
+          if (hist.length > 8) h += '<div style="text-align:center;margin-top:6px"><button class="link-btn" id="hist-more">Show all ' + hist.length + '</button></div>';
+          h += '<div style="height:18px"></div>';
         }
 
         var A = [
@@ -3590,7 +3684,42 @@
         h += '<div class="pf-h">🤡 Hall of Shame <small>' + shame.filter(function(a) { return a.got; }).length + ' / ' + shame.length + '</small></div>' + badges(shame);
         el.innerHTML = h;
         bindProfileSwitch(el);
+        var more = document.getElementById('hist-more');
+        if (more) more.addEventListener('click', function() { el.querySelectorAll('[data-hist]').forEach(function(d) { d.style.display = ''; }); more.remove(); });
+        if (owner) document.getElementById('fr-style-btn').addEventListener('click', function() { openStylePicker(name); });
       }).catch(function() { el.innerHTML = profileSwitchHtml('Maria') + '<div class="loading">Couldn\'t load this profile.</div>'; bindProfileSwitch(el); });
+    }
+
+    // 🎨 A friend picks their own emoji + color (shows on the Crowd tab and their profile)
+    function openStylePicker(name) {
+      var box = document.getElementById('fr-style');
+      if (box.style.display !== 'none') { box.style.display = 'none'; return; }
+      var cur = fStyle(name), sel = { emoji: cur.emoji, color: (CROWD.data.styles[name] || {}).color || '' };
+      box.style.display = '';
+      function paint() {
+        box.innerHTML = '<div class="fr-style">' +
+          '<div class="fr-style-h">Your emoji</div><div class="fr-emojis">' +
+            '<button data-em="" class="' + (!sel.emoji ? 'on' : '') + '" style="font-size:15px;font-weight:800">' + escHtml(name.charAt(0).toUpperCase()) + '</button>' +
+            FRIEND_EMOJI.map(function(e) { return '<button data-em="' + e + '" class="' + (sel.emoji === e ? 'on' : '') + '">' + e + '</button>'; }).join('') + '</div>' +
+          '<div class="fr-style-h">Your color</div><div class="fr-colors">' +
+            FRIEND_COLORS.map(function(c) { return '<button data-col="' + c + '" class="' + ((sel.color || FRIEND_COLOR) === c ? 'on' : '') + '" style="background:' + c + '"></button>'; }).join('') + '</div>' +
+          '<div style="text-align:center;margin-top:14px"><span style="font-size:20px;font-weight:800;color:' + (sel.color || FRIEND_COLOR) + '">' + (sel.emoji ? sel.emoji + ' ' : '') + escHtml(name) + '</span></div>' +
+          '<div style="text-align:center;margin-top:12px"><button class="primary-btn" id="fr-style-save">Save</button> <button class="link-btn" id="fr-style-cancel" style="margin-left:10px">Cancel</button>' +
+          '<div class="submit-msg" id="fr-style-msg"></div></div></div>';
+        box.querySelectorAll('[data-em]').forEach(function(b) { b.addEventListener('click', function() { sel.emoji = b.getAttribute('data-em'); paint(); }); });
+        box.querySelectorAll('[data-col]').forEach(function(b) { b.addEventListener('click', function() { sel.color = b.getAttribute('data-col'); paint(); }); });
+        document.getElementById('fr-style-cancel').addEventListener('click', function() { box.style.display = 'none'; });
+        document.getElementById('fr-style-save').addEventListener('click', function() {
+          var btn = this; btn.disabled = true; btn.textContent = 'Saving…';
+          picksApi({ pin: SUB.pin, action: 'fstyle', emoji: sel.emoji, color: sel.color }).then(function(r) {
+            if (r.error) { btn.disabled = false; btn.textContent = 'Save'; var m = document.getElementById('fr-style-msg'); m.style.color = '#F87171'; m.textContent = r.error; return; }
+            CROWD.data.styles = CROWD.data.styles || {};
+            CROWD.data.styles[name] = { emoji: r.emoji, color: r.color };
+            renderFriendProfile(name);
+          }).catch(function() { btn.disabled = false; btn.textContent = 'Save'; });
+        });
+      }
+      paint();
     }
 
 
@@ -4467,7 +4596,10 @@
         // Previous seasons: one Season Wrapped card each, newest first
         if (legacyYears.length > 0) {
           html += '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">Season Wrapped</div>';
-          legacyYears.forEach(function(ys) { html += wrappedCard(ys.year, ys.bets); });
+          legacyYears.forEach(function(ys) {
+            html += wrappedCard(ys.year, ys.bets);
+            if (parseInt(ys.year, 10) >= 2026) html += '<div class="crowd-wr-slot" data-year="' + ys.year + '"></div>'; // the Crowd started in 2026
+          });
         }
         html += '<div style="font-size:12px;color:#9CA3AF;text-align:center;margin:-8px 0 20px">' + CURRENT_YEAR + ' Wrapped unlocks when the season is over.</div>';
 
@@ -4477,12 +4609,72 @@
                 html += '</div>';
 
         document.getElementById('legacy-content').innerHTML = html;
+        fillCrowdWrapped();
       }).catch(function(e) {
         console.error(e);
         document.getElementById('legacy-content').innerHTML = '<div style="color:#9CA3AF;text-align:center;padding:32px">Error loading legacy data: ' + e.message + '</div>';
       });
     }
 
+
+    // ── Crowd Wrapped: one card per finished season, 2026 and later ─────────
+    function fillCrowdWrapped() {
+      document.querySelectorAll('.crowd-wr-slot').forEach(function(slot) {
+        var year = slot.getAttribute('data-year');
+        var season = SEASONS.filter(function(s) { return String(s.year) === String(year); })[0];
+        if (!season || !PICKS_URL) return;
+        var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + season.sheetId + '/values/' + encodeURIComponent(season.tab + '!A1:Q400') + '?key=' + API_KEY;
+        Promise.all([picksApi({ action: 'crowd', season: year }), fetch(url).then(function(r) { return r.json(); })]).then(function(res) {
+          slot.outerHTML = crowdWrappedCard(year, res[0], crowdGames(res[1].values || []));
+        }).catch(function() { slot.remove(); });
+      });
+    }
+    function crowdWrappedCard(year, crowd, G) {
+      if (!crowd || !crowd.picks || !crowd.picks.length) return '';
+      var styles = crowd.styles || {};
+      function col(n) { return (styles[n] && styles[n].color) || FRIEND_COLOR; }
+      function nm(n) { var e = styles[n] && styles[n].emoji; return '<span style="color:' + col(n) + ';font-weight:800">' + (e ? e + ' ' : '') + escHtml(n) + '</span>'; }
+      var R = rankFriends(crowd, G);
+      var all = R.stats.filter(function(s) { return s.n > 0; });
+      if (!all.length) return '';
+      var board = R.ranked.length ? R.ranked : all.slice().sort(function(a, b) { return b.pct - a.pct || b.n - a.n; });
+      var champ = board[0];
+      var m = mdStats('Maria', G), d = mdStats('Danielle', G);
+      function top(fn) { return all.slice().sort(function(a, b) { return fn(b) - fn(a); })[0]; }
+      var heat = top(function(s) { return s.heater.n; });
+      var wolf = top(function(s) { return s.lone.length; });
+      var beatM = top(function(s) { return s.h2h.Maria.me; });
+      var beatD = top(function(s) { return s.h2h.Danielle.me; });
+      var bestWk = null;
+      all.forEach(function(s) { Object.keys(s.weeks).forEach(function(w) { if (!bestWk || s.weeks[w].w > bestWk.n) bestWk = { n: s.weeks[w].w, who: s.name, week: w }; }); });
+      var pc = {};
+      crowd.picks.forEach(function(p) { [p.homePick, p.awayPick].filter(Boolean).forEach(function(x) { pc[x] = (pc[x] || 0) + 1; }); });
+      var favP = Object.keys(pc).sort(function(a, b) { return pc[b] - pc[a]; })[0];
+      var beatBoth = all.filter(function(s) { return s.n >= CROWD_MIN && s.pct > m.pct && s.pct > d.pct; }).length;
+
+      var cc = col(champ.name);
+      var h = '<div class="wrapped" data-share="' + year + '-crowd-wrapped" style="background:linear-gradient(140deg,#0F0F12 0%,#0B2E2B 55%,#0F766E 100%);--wr-glow:' + hexA(cc, 0.55) + '">';
+      h += '<button class="share-btn" onclick="shareCard(this)" title="Share as image">Share</button>';
+      h += '<div class="wr-kicker">Crowd Wrapped</div><div class="wr-year">' + year + '</div>';
+      h += '<div class="wr-champ">👑 ' + nm(champ.name) + ' wins the Crowd at ' + pctTxt(champ.pct) + ' (' + champ.w + '–' + (champ.n - champ.w) + ')</div>';
+      h += '<div class="wr-chart" style="padding:10px 14px">' + board.slice(0, 5).map(function(s, i) {
+        return '<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:14px' + (i ? ';border-top:1px solid rgba(255,255,255,0.08)' : '') + '"><span>' + (i === 0 ? '👑' : i + 1) + '&nbsp; ' + nm(s.name) + '</span><span style="opacity:0.85">' + s.w + '–' + (s.n - s.w) + ' · <b>' + pctTxt(s.pct) + '</b></span></div>';
+      }).join('') +
+        '<div style="display:flex;justify-content:space-between;padding:6px 0 2px;font-size:12px;opacity:0.7;border-top:1px dashed rgba(255,255,255,0.15)"><span>For reference: <span style="color:' + SB_M + '">Maria ' + pctTxt(m.pct) + '</span> · <span style="color:' + SB_D + '">Danielle ' + pctTxt(d.pct) + '</span></span><span>' + all.length + ' friends played</span></div></div>';
+      function tile(label, main, sub) {
+        return '<div class="wr-tile"><div class="wr-tile-label">' + label + '</div><div class="wr-tile-main">' + main + '</div>' + (sub ? '<div class="wr-tile-sub">' + sub + '</div>' : '') + '</div>';
+      }
+      h += '<div class="wr-tiles">';
+      if (heat && heat.heater.n) h += tile('🔥 Longest Heater', heat.heater.n + ' straight', nm(heat.name));
+      if (bestWk && bestWk.n) h += tile('📈 Best Week', bestWk.n + ' hits', nm(bestWk.who) + ' · Week ' + bestWk.week);
+      if (wolf && wolf.lone.length) h += tile('🐺 Lone Wolf', wolf.lone.length + ' solo hit' + (wolf.lone.length > 1 ? 's' : ''), nm(wolf.name));
+      if (beatM && beatM.h2h.Maria.me) h += tile('⚔️ Maria\'s Rival', nm(beatM.name), 'beat her ' + beatM.h2h.Maria.me + ' time' + (beatM.h2h.Maria.me > 1 ? 's' : ''));
+      if (beatD && beatD.h2h.Danielle.me) h += tile('⚔️ Danielle\'s Rival', nm(beatD.name), 'beat her ' + beatD.h2h.Danielle.me + ' time' + (beatD.h2h.Danielle.me > 1 ? 's' : ''));
+      if (favP) h += tile('❤️ Crowd Favorite', escHtml(favP), 'picked ' + pc[favP] + ' times');
+      h += tile('🏆 Beat Both', beatBoth + ' friend' + (beatBoth === 1 ? '' : 's'), 'better win % than Maria and Danielle');
+      h += '</div></div>';
+      return h;
+    }
 
     function toggleDivision(el) {
       el.classList.toggle('open');

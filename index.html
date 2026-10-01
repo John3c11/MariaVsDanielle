@@ -1,4 +1,4 @@
-<!-- v57 -->
+<!-- v58 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -47,9 +47,9 @@
 
     .tab-btn {
       font-family: 'Inter', sans-serif;
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 500;
-      padding: 10px 8px;
+      padding: 10px 6px;
       white-space: nowrap;
       flex: 1 0 auto;
       border: none;
@@ -752,6 +752,43 @@
     @keyframes hfxFall { to { transform: translate3d(var(--drift, 20px), 1400px, 0) rotate(var(--spin, 180deg)); } }
     @media (prefers-reduced-motion: reduce) { .holiday-fx { display: none; } }
 
+
+    /* ── Profiles ── */
+    .pf-switch { display: flex; gap: 8px; justify-content: center; margin-bottom: 18px; }
+    .pf-switch button { font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; padding: 9px 22px; border-radius: 999px; cursor: pointer; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04); color: #A1A9B6; }
+    .pf-switch button.on-maria { background: rgba(220,38,38,0.25); border-color: #F87171; color: #FFFFFF; }
+    .pf-switch button.on-danielle { background: rgba(37,99,235,0.28); border-color: #60A5FA; color: #FFFFFF; }
+    .pf-hero { border-radius: 18px; padding: 24px 20px 20px; text-align: center; margin-bottom: 16px; }
+    .pf-hero img { width: 108px; height: 108px; border-radius: 50%; object-fit: cover; border: 3px solid var(--pc); box-shadow: 0 0 30px -4px var(--pc); }
+    .pf-name { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; margin: 10px 0 2px; color: var(--pc); }
+    .pf-sub { font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 16px; }
+    .pf-big { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+    .pf-big > div { background: rgba(255,255,255,0.08); border-radius: 12px; padding: 10px 8px; }
+    .pf-big b { display: block; font-size: 20px; font-weight: 800; }
+    .pf-big span { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+    .pf-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(170px, 45%), 1fr)); gap: 10px; margin-bottom: 22px; }
+    .pf-tile { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 12px 14px; }
+    .pf-tile .l { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 5px; }
+    .pf-tile .v { font-size: 16px; font-weight: 700; line-height: 1.25; }
+    .pf-tile .s { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 3px; }
+    .pf-h { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; font-weight: 800; margin: 6px 0 10px; padding-bottom: 8px; border-bottom: 1.5px solid rgba(255,255,255,0.16); }
+    .pf-h small { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); }
+    .pf-badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(150px, 45%), 1fr)); gap: 10px; margin-bottom: 24px; }
+    .pf-badge { border-radius: 14px; padding: 14px 12px 12px; text-align: center; position: relative; }
+    .pf-badge.got { background: linear-gradient(160deg, rgba(251,191,36,0.20), rgba(251,191,36,0.05)); border: 1px solid rgba(251,191,36,0.45); }
+    .pf-badge.got.shame { background: linear-gradient(160deg, rgba(248,113,113,0.20), rgba(248,113,113,0.05)); border-color: rgba(248,113,113,0.45); }
+    .pf-badge.locked { background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.14); }
+    .pf-badge .ic { font-size: 30px; line-height: 1; margin-bottom: 6px; }
+    .pf-badge.locked .ic { filter: grayscale(1) brightness(0.6); opacity: 0.45; }
+    .pf-badge .n { font-size: 13px; font-weight: 800; }
+    .pf-badge.locked .n { color: rgba(255,255,255,0.55); }
+    .pf-badge .d { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 3px; line-height: 1.35; }
+    .pf-badge .w { font-size: 10px; font-weight: 700; color: #FCD34D; margin-top: 6px; }
+    .pf-badge.shame .w { color: #FCA5A5; }
+    .pf-bar { height: 5px; border-radius: 3px; background: rgba(255,255,255,0.08); margin-top: 8px; overflow: hidden; }
+    .pf-bar > i { display: block; height: 100%; background: rgba(255,255,255,0.4); border-radius: 3px; }
+    .pf-badge .pg { font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 4px; }
+
     /* Trash Talk */
     .chat-compose { background: linear-gradient(160deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03)); border: 1px solid rgba(255,255,255,0.09); border-radius: 16px; padding: 16px; margin-bottom: 20px; }
     .chat-input { width: 100%; resize: none; font-family: 'Inter', sans-serif; font-size: 15px; line-height: 1.45; color: #F3F4F6; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 12px 14px; outline: none; min-height: 72px; }
@@ -939,24 +976,25 @@
       <button class="tab-btn active" onclick="switchTab('stats')">Stats</button>
       <button class="tab-btn" onclick="switchTab('submit')">Submit Picks</button>
       <button class="tab-btn" onclick="switchTab('chat')">Trash Talk</button>
+      <button class="tab-btn" onclick="switchTab('profiles')">Profiles</button>
       <button class="tab-btn" onclick="switchTab('analytics')">Analytics</button>
       <button class="tab-btn" onclick="switchTab('money')">Money</button>
       <button class="tab-btn" onclick="switchTab('legacy')">Legacy</button>
       <button class="tab-btn" onclick="switchTab('bethistory')">Bet History</button>
-      <button class="tab-btn" onclick="switchTab('rosters')">2026 Roster</button>
+      <button class="tab-btn" onclick="switchTab('rosters')">Roster</button>
     </nav>
 
     <div id="tab-stats" class="tab-panel active">
     <div class="sb" id="sb-main">
     <header>
-      <h1>2026 Touchdown Bets</h1>
+      <h1 id="season-title">Touchdown Bets</h1>
       <div class="vs-row">
-        <div class="player maria">
+        <div class="player maria" onclick="openProfile('Maria')" title="Maria's profile" style="cursor:pointer">
           <img src="pics/Maria.jpeg" alt="Maria">
           <div class="player-name">Maria</div>
         </div>
         <div class="vs-badge">VS</div>
-        <div class="player danielle">
+        <div class="player danielle" onclick="openProfile('Danielle')" title="Danielle's profile" style="cursor:pointer">
           <img src="pics/Danielle.jpeg" alt="Danielle">
           <div class="player-name">Danielle</div>
         </div>
@@ -975,6 +1013,10 @@
     </div>
 
     </div><!-- end tab-stats -->
+
+    <div id="tab-profiles" class="tab-panel">
+      <div id="profiles-content"></div>
+    </div>
 
     <div id="tab-chat" class="tab-panel">
       <div id="chat-content"></div>
@@ -1018,9 +1060,20 @@
 
   <script src="config.js"></script>
   <script>
-    const SHEET_ID = '1eokxqa-RCuH4qNh486OMSnIeZdXbhHnw_FygbzUwGj4';
     const API_KEY = CONFIG.API_KEY;
+
+    // ── Seasons ─────────────────────────────────────────────────────────────
+    // Set in config.js as CONFIG.SEASONS (newest first). The first one is the current season.
+    // New season = add one line there. These are only used if config.js doesn't list any.
+    var SEASONS = ((CONFIG.SEASONS && CONFIG.SEASONS.length) ? CONFIG.SEASONS : [
+      { year: '2026', sheetId: '1eokxqa-RCuH4qNh486OMSnIeZdXbhHnw_FygbzUwGj4' },
+      { year: '2025', sheetId: '1DWLYS9RYuOv97ajIcsak69Z97ODtegnBXvlDKJgpwYc' },
+    ]).map(function(x) { return { year: String(x.year), sheetId: x.sheetId, tab: x.tab || 'Winnings' }; })
+      .sort(function(a, b) { return parseInt(b.year) - parseInt(a.year); });
+    var CURRENT_YEAR = SEASONS[0].year;
+    const SHEET_ID = SEASONS[0].sheetId;
     var SB_M = '#F87171', SB_D = '#60A5FA'; // Maria / Danielle on dark cards
+    document.getElementById('season-title').textContent = CURRENT_YEAR + ' Touchdown Bets';
     function teamPill(text, team) {
       var tc = TEAM_COLORS[resolveTeam(team)];
       if (!tc) return '<b>' + text + '</b>';
@@ -2069,6 +2122,7 @@
       if (name === 'bethistory') loadBetHistoryTab();
       if (name === 'submit') loadSubmitTab();
       if (name === 'chat') loadChatTab(); else stopChatRefresh();
+      if (name === 'profiles') loadProfilesTab();
     }
 
     // ── Submit Picks tab ─────────────────────────────────────────────────────
@@ -2318,6 +2372,214 @@
       }
       card.insertBefore(fx, card.firstChild);
     })();
+
+
+    // ── Profiles: career stats + trophy case ────────────────────────────────
+    var ALL_BETS_PROMISE = null;
+    function loadAllBets() {
+      if (ALL_BETS_PROMISE) return ALL_BETS_PROMISE;
+      ALL_BETS_PROMISE = Promise.all(SEASONS.map(function(s) {
+        var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + s.sheetId + '/values/' + encodeURIComponent(s.tab + '!A1:Q400') + '?key=' + API_KEY;
+        return fetch(url).then(function(r) { return r.json(); }).then(function(d) {
+          return (d.values || []).slice(1).filter(function(r) { return r[0] && r[3] && r[3].trim() && r[3].trim() !== 'John'; })
+            .map(function(r, i) {
+              return {
+                idx: i, game: (r[0] || '').toString().trim(), year: s.year, week: parseInt(r[1]) || 0, slot: (r[2] || '').trim(),
+                picker: (r[3] || '').trim(), homeTeam: resolveTeam(r[4]), awayTeam: resolveTeam(r[5]),
+                homePick: (r[6] || '').trim(), awayPick: (r[7] || '').trim(),
+                homeOdds: parseFloat(r[8]) || 0, awayOdds: parseFloat(r[9]) || 0,
+                firstScorer: (r[11] || '').trim(), correct: (r[12] || '').trim(), wasOffered: (r[14] || '').trim(),
+                netUnits: parseFloat(r[15]) || 0, netDollars: parseFloat(String(r[16] || '').replace(/[$,]/g, '')) || 0,
+              };
+            });
+        }).catch(function() { return []; });
+      })).then(function(lists) {
+        return [].concat.apply([], lists).sort(function(a, b) {
+          return a.year !== b.year ? parseInt(a.year) - parseInt(b.year) : a.idx - b.idx;
+        });
+      });
+      return ALL_BETS_PROMISE;
+    }
+
+    var PROFILE_WHO = 'Maria';
+    function openProfile(name) { PROFILE_WHO = name; switchTab('profiles'); }
+    function loadProfilesTab() { renderProfile(PROFILE_WHO); }
+
+    function profileStats(who, rows, jx, bb) {
+      var other = who === 'Maria' ? 'Danielle' : 'Maria';
+      function notOffered(r) { return r.wasOffered === 'No' && r.netUnits === 0 && r.firstScorer !== ''; }
+      function wk(r) { return r.year + ' Wk ' + r.week; }
+      function hitOdds(r) {
+        var o = r.firstScorer === r.homePick ? r.homeOdds : r.firstScorer === r.awayPick ? r.awayOdds : Math.max(r.homeOdds, r.awayOdds);
+        return Math.abs(o);
+      }
+      var mine = rows.filter(function(r) { return r.picker === who && (r.homePick || r.awayPick); });
+      var scored = mine.filter(function(r) { return (r.correct === 'Yes' || r.correct === 'No') && !notOffered(r); });
+      var allScored = mine.filter(function(r) { return r.correct === 'Yes' || r.correct === 'No'; });
+      var S = { who: who, picks: mine.length, w: 0, n: scored.length, units: 0, dollars: 0 };
+      allScored.forEach(function(r) { S.units += r.netUnits; S.dollars += r.netDollars; });
+      scored.forEach(function(r) { if (r.correct === 'Yes') S.w++; });
+
+      // Streaks
+      var cw = 0, cl = 0; S.heater = { n: 0 }; S.drought = { n: 0 };
+      scored.forEach(function(r) {
+        if (r.correct === 'Yes') { cw++; cl = 0; if (cw > S.heater.n) S.heater = { n: cw, at: wk(r) }; }
+        else { cl++; cw = 0; if (cl > S.drought.n) S.drought = { n: cl, at: wk(r) }; }
+      });
+
+      // Hits
+      S.hits = scored.filter(function(r) { return r.correct === 'Yes'; }).map(function(r) { return { r: r, odds: hitOdds(r) }; });
+      S.best = S.hits.slice().sort(function(a, b) { return b.odds - a.odds; })[0];
+      S.payday = mine.filter(function(r) { return r.netDollars >= 100; })[0];
+
+      // Weeks: who got more correct, complete weeks only
+      var weeks = {};
+      rows.forEach(function(r) {
+        if ((r.picker !== 'Maria' && r.picker !== 'Danielle') || !(r.homePick || r.awayPick)) return;
+        var k = r.year + '_' + r.week;
+        var W = weeks[k] || (weeks[k] = { year: r.year, week: r.week, done: true, c: { Maria: 0, Danielle: 0 }, g: { Maria: 0, Danielle: 0 } });
+        if (r.correct !== 'Yes' && r.correct !== 'No') { W.done = false; return; }
+        if (notOffered(r)) return;
+        W.g[r.picker]++;
+        if (r.correct === 'Yes') W.c[r.picker]++;
+      });
+      S.weeksWon = 0; S.sweep = null;
+      Object.keys(weeks).forEach(function(k) {
+        var W = weeks[k];
+        if (!W.done) return;
+        if (W.c[who] > W.c[other]) S.weeksWon++;
+        if (W.g[who] >= 2 && W.c[who] === W.g[who] && !S.sweep) S.sweep = W.year + ' Wk ' + W.week;
+      });
+
+      // Seasons (finished seasons only for titles)
+      S.seasons = {};
+      rows.forEach(function(r) {
+        if ((r.correct !== 'Yes' && r.correct !== 'No') || (r.picker !== 'Maria' && r.picker !== 'Danielle')) return;
+        var Y = S.seasons[r.year] || (S.seasons[r.year] = { Maria: 0, Danielle: 0 });
+        Y[r.picker] += r.netUnits;
+      });
+      S.titles = Object.keys(S.seasons).filter(function(y) { return y !== CURRENT_YEAR && S.seasons[y][who] > S.seasons[y][other]; });
+      S.inBlack = Object.keys(S.seasons).filter(function(y) { return y !== CURRENT_YEAR && S.seasons[y][who] > 0; });
+
+      // Players
+      var count = {}, hitBy = {};
+      mine.forEach(function(r) {
+        [r.homePick, r.awayPick].filter(Boolean).forEach(function(p) { count[p] = (count[p] || 0) + 1; });
+        if (r.correct === 'Yes' && r.firstScorer) hitBy[r.firstScorer] = true;
+      });
+      var players = Object.keys(count).sort(function(a, b) { return count[b] - count[a]; });
+      S.fav = players[0] ? { name: players[0], n: count[players[0]] } : null;
+      var cursed = players.filter(function(p) { return !hitBy[p]; });
+      S.cursed = cursed[0] ? { name: cursed[0], n: count[cursed[0]] } : null;
+
+      S.holiday = S.hits.filter(function(h) { return /thanksgiving|black friday|christmas/i.test(h.r.slot); })[0];
+      S.intl = S.hits.filter(function(h) { return /international/i.test(h.r.slot); })[0];
+      S.jinxes = jx.jinxes[who];
+      var L = jx.loyalty[who], lt = L.kept + L.dropped;
+      S.loyalty = lt ? Math.round(L.kept / lt * 100) + '%' : '—';
+      S.beats = bb && bb.anyData ? bb.beats.filter(function(b) { return b.who === who; }) : null;
+      S.beatsState = !bb ? 'loading' : bb.anyData ? 'ok' : 'down';
+      S.closest = S.beats ? S.beats.slice().sort(function(a, b) { return a.gap - b.gap; })[0] : null;
+      return S;
+    }
+
+    function achievementsFor(S) {
+      function odds(n) { return '+' + Math.round(n < 100 ? n * 100 : n); }
+      function hitAt(min) { return S.hits.filter(function(h) { return h.odds >= min; })[0]; }
+      function hitLabel(h) { return h ? h.r.year + ' Wk ' + h.r.week + ' · ' + h.r.firstScorer + ' ' + odds(h.odds) : ''; }
+      var sniper = hitAt(20), moon = hitAt(30);
+      var beats = S.beats;
+      var heart = beats ? beats.filter(function(b) { return b.gap <= 2; })[0] : null;
+      var A = [
+        { ic: '🎯', n: 'Sniper', d: 'Hit a pick at +2000 or longer', got: !!sniper, w: hitLabel(sniper), p: [S.best ? Math.min(S.best.odds, 20) : 0, 20], pl: S.best ? 'Best so far ' + odds(S.best.odds) : '' },
+        { ic: '🚀', n: 'Moonshot', d: 'Hit a pick at +3000 or longer', got: !!moon, w: hitLabel(moon), p: [S.best ? Math.min(S.best.odds, 30) : 0, 30], pl: S.best ? 'Best so far ' + odds(S.best.odds) : '' },
+        { ic: '🔥', n: 'Heater', d: '3 correct picks in a row', got: S.heater.n >= 3, w: S.heater.n >= 3 ? 'Best run: ' + S.heater.n + ' · ' + S.heater.at : '', p: [Math.min(S.heater.n, 3), 3] },
+        { ic: '🌋', n: 'On Fire', d: '5 correct picks in a row', got: S.heater.n >= 5, w: S.heater.n >= 5 ? 'Best run: ' + S.heater.n + ' · ' + S.heater.at : '', p: [Math.min(S.heater.n, 5), 5] },
+        { ic: '🧹', n: 'Clean Sweep', d: 'Go perfect in a week (2+ games)', got: !!S.sweep, w: S.sweep || '' },
+        { ic: '👑', n: 'Weekly Champ', d: 'Win 5 weeks', got: S.weeksWon >= 5, w: S.weeksWon + ' weeks won', p: [Math.min(S.weeksWon, 5), 5] },
+        { ic: '💰', n: 'Big Payday', d: 'Win $100+ on one bet', got: !!S.payday, w: S.payday ? S.payday.year + ' Wk ' + S.payday.week + ' · +$' + S.payday.netDollars : '' },
+        { ic: '📈', n: 'In the Black', d: 'Finish a season up in units', got: S.inBlack.length > 0, w: S.inBlack.join(', ') },
+        { ic: '🏆', n: 'Champion', d: 'Win a season', got: S.titles.length > 0, w: S.titles.length ? S.titles.join(', ') + ' champ' : '' },
+        { ic: '❤️', n: 'Ride or Die', d: 'Pick the same player 10 times', got: !!(S.fav && S.fav.n >= 10), w: S.fav && S.fav.n >= 10 ? S.fav.name + ' · ' + S.fav.n + 'x' : '', p: [S.fav ? Math.min(S.fav.n, 10) : 0, 10] },
+        { ic: '🦃', n: 'Holiday Hero', d: 'Hit on Thanksgiving, Black Friday or Christmas', got: !!S.holiday, w: hitLabel(S.holiday) },
+        { ic: '🌍', n: 'Globetrotter', d: 'Hit in an International game', got: !!S.intl, w: hitLabel(S.intl) },
+        { ic: '💯', n: 'Century', d: 'Make 100 picks', got: S.picks >= 100, w: S.picks + ' picks', p: [Math.min(S.picks, 100), 100] },
+        // Hall of Shame
+        { shame: true, ic: '🧊', n: 'Ice Cold', d: '5 misses in a row', got: S.drought.n >= 5, w: S.drought.n >= 5 ? 'Worst run: ' + S.drought.n + ' · ' + S.drought.at : '', p: [Math.min(S.drought.n, 5), 5] },
+        { shame: true, ic: '💀', n: 'Cursed', d: 'Pick a player 5 times who never hits for you', got: !!(S.cursed && S.cursed.n >= 5), w: S.cursed && S.cursed.n >= 5 ? S.cursed.name + ' · 0 for ' + S.cursed.n : '', p: [S.cursed ? Math.min(S.cursed.n, 5) : 0, 5] },
+        { shame: true, ic: '🪄', n: 'Jinx Master', d: '3 jinxes', got: S.jinxes.length >= 3, w: S.jinxes.length + ' jinxes', p: [Math.min(S.jinxes.length, 3), 3] },
+        { shame: true, ic: '💔', n: 'Heartbreaker', d: 'A bad beat within 2 minutes', got: !!heart, w: heart ? heart.year + ' Wk ' + heart.week + ' · ' + heart.player : '' },
+        { shame: true, ic: '🐍', n: 'Snakebitten', d: '5 bad beats', got: !!(beats && beats.length >= 5), w: beats ? beats.length + ' bad beats' : '', p: beats ? [Math.min(beats.length, 5), 5] : null },
+      ];
+      return A;
+    }
+
+    async function renderProfile(who) {
+      PROFILE_WHO = who;
+      var el = document.getElementById('profiles-content');
+      if (!el.innerHTML) el.innerHTML = '<div class="loading">Loading profile…</div>';
+      var rows = await loadAllBets();
+      var jx = computeJinxes(rows);
+      draw(null);
+      var bb = null;
+      try { bb = await computeBadBeats(rows); } catch (e) {}
+      if (PROFILE_WHO === who) draw(bb);
+
+      function draw(bb) {
+        var S = profileStats(who, rows, jx, bb);
+        var pc = who === 'Maria' ? SB_M : SB_D;
+        var grad = who === 'Maria' ? 'linear-gradient(140deg,#0F0F12 0%,#3B0D0D 55%,#991B1B 100%)' : 'linear-gradient(140deg,#0F0F12 0%,#0C1A3D 55%,#1E40AF 100%)';
+        function u(n) { return (n >= 0 ? '+' : '') + n.toFixed(1) + 'u'; }
+        function money(n) { return (n >= 0 ? '+$' : '-$') + Math.abs(n).toFixed(2); }
+        function odds(n) { return '+' + Math.round(n < 100 ? n * 100 : n); }
+        var seasons = Object.keys(S.seasons).length;
+
+        var h = '<div class="pf-switch">' + ['Maria', 'Danielle'].map(function(n) {
+          return '<button data-pf="' + n + '" class="' + (n === who ? 'on-' + n.toLowerCase() : '') + '">' + n + '</button>';
+        }).join('') + '</div>';
+
+        h += '<div class="pf-hero" style="--pc:' + pc + ';background:' + grad + '">' +
+          '<img src="pics/' + who + '.jpeg" alt="' + who + '">' +
+          '<div class="pf-name">' + who + '</div>' +
+          '<div class="pf-sub">' + seasons + ' season' + (seasons === 1 ? '' : 's') + ' · ' + S.picks + ' picks' + (S.titles.length ? ' · 🏆 ' + S.titles.join(', ') + ' champ' : '') + '</div>' +
+          '<div class="pf-big">' +
+            '<div><b>' + S.w + '/' + S.n + '</b><span>Record · ' + (S.n ? Math.round(S.w / S.n * 100) : 0) + '%</span></div>' +
+            '<div><b style="color:' + (S.units >= 0 ? '#34D399' : '#F87171') + '">' + u(S.units) + '</b><span>Units</span></div>' +
+            '<div><b style="color:' + (S.dollars >= 0 ? '#34D399' : '#F87171') + '">' + money(S.dollars) + '</b><span>Money</span></div>' +
+          '</div></div>';
+
+        function tile(l, v, sub) { return '<div class="pf-tile"><div class="l">' + l + '</div><div class="v">' + v + '</div>' + (sub ? '<div class="s">' + sub + '</div>' : '') + '</div>'; }
+        h += '<div class="pf-tiles">' +
+          tile('Best Hit', S.best ? S.best.r.firstScorer + ' ' + odds(S.best.odds) : '—', S.best ? S.best.r.year + ' Wk ' + S.best.r.week : '') +
+          tile('Weeks Won', S.weeksWon, 'Most correct that week') +
+          tile('Longest Heater', S.heater.n + ' straight', S.heater.at || '') +
+          tile('Ride or Die', S.fav ? S.fav.name : '—', S.fav ? 'picked ' + S.fav.n + 'x' : '') +
+          tile('Bad Beats', S.beats ? S.beats.length : (S.beatsState === 'down' ? '—' : '…'), S.closest ? 'Closest: ' + S.closest.player + ' (' + S.closest.gap + ' min)' : (S.beats ? 'None yet' : S.beatsState === 'down' ? 'Couldn\'t reach ESPN' : 'Checking ESPN…')) +
+          tile('Jinxes', S.jinxes.length, 'Loyalty ' + S.loyalty) +
+          '</div>';
+
+        var A = achievementsFor(S);
+        function badges(list) {
+          return '<div class="pf-badges">' + list.map(function(a) {
+            var prog = (!a.got && a.p) ? '<div class="pf-bar"><i style="width:' + Math.round(a.p[0] / a.p[1] * 100) + '%"></i></div><div class="pg">' + (a.pl || (a.p[0] + ' / ' + a.p[1])) + '</div>' : '';
+            return '<div class="pf-badge ' + (a.got ? 'got' : 'locked') + (a.shame ? ' shame' : '') + '" title="' + a.d + '">' +
+              '<div class="ic">' + a.ic + '</div><div class="n">' + a.n + '</div><div class="d">' + a.d + '</div>' +
+              (a.got && a.w ? '<div class="w">' + a.w + '</div>' : '') + prog + '</div>';
+          }).join('') + '</div>';
+        }
+        var glory = A.filter(function(a) { return !a.shame; }), shame = A.filter(function(a) { return a.shame; });
+        // Unlocked first
+        glory.sort(function(a, b) { return (b.got ? 1 : 0) - (a.got ? 1 : 0); });
+        shame.sort(function(a, b) { return (b.got ? 1 : 0) - (a.got ? 1 : 0); });
+        h += '<div class="pf-h">🏆 Trophy Case <small>' + glory.filter(function(a) { return a.got; }).length + ' / ' + glory.length + ' unlocked</small></div>' + badges(glory);
+        h += '<div class="pf-h">🤡 Hall of Shame <small>' + shame.filter(function(a) { return a.got; }).length + ' / ' + shame.length + '</small></div>' + badges(shame);
+
+        el.innerHTML = h;
+        el.querySelectorAll('[data-pf]').forEach(function(b) {
+          b.addEventListener('click', function() { renderProfile(b.getAttribute('data-pf')); });
+        });
+      }
+    }
 
     // ── Trash Talk wall ─────────────────────────────────────────────────────
     // Everyone can read; only Maria and Danielle can post and react (with their PIN).
@@ -2736,7 +2998,7 @@
         var players = [homeColored, awayColored].filter(Boolean).join('<span style="color:#9CA3AF"> / </span>') || '—';
         var gameDisplay = b.homeTeam && b.awayTeam ? legacyColoredGame(b.homeTeam, b.awayTeam) : (b.game || '—');
         return '<div class="bh-row" style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 60px 50px;gap:8px;padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:12px;align-items:start">' +
-          '<span style="font-size:11px;font-weight:600;color:' + (b.year === '2026' ? '#60A5FA' : '#34D399') + '">' + b.year + '</span>' +
+          '<span style="font-size:11px;font-weight:600;color:' + (b.year === CURRENT_YEAR ? '#60A5FA' : '#34D399') + '">' + b.year + '</span>' +
           '<span style="color:#9CA3AF;text-align:center">' + b.week + '</span>' +
           '<span style="font-weight:500">' + gameDisplay + '</span>' +
           '<span style="font-weight:500;color:' + pickerColor + '">' + b.picker + '</span>' +
@@ -2763,8 +3025,7 @@
         var html = '<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap" id="bh-filters">' +
           '<div style="display:flex;gap:4px;align-items:center"><span style="font-size:11px;color:#9CA3AF;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Year</span>' +
           '<button class="filter-btn active" data-key="year" data-val="all">All</button>' +
-          '<button class="filter-btn" data-key="year" data-val="2026">2026</button>' +
-          '<button class="filter-btn" data-key="year" data-val="2025">2025</button></div>' +
+          SEASONS.map(function(se) { return '<button class="filter-btn" data-key="year" data-val="' + se.year + '">' + se.year + '</button>'; }).join('') + '</div>' +
           '<div style="display:flex;gap:4px;align-items:center;margin-left:12px"><span style="font-size:11px;color:#9CA3AF;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Picker</span>' +
           '<button class="filter-btn active" data-key="picker" data-val="all">Both</button>' +
           '<button class="filter-btn maria-btn" data-key="picker" data-val="Maria">Maria</button>' +
@@ -2801,11 +3062,6 @@
     }
 
     // ── Legacy tab ────────────────────────────────────────────────────────────
-    var CURRENT_YEAR = "2026";
-    var SEASONS = [
-      { year: "2026", sheetId: "1eokxqa-RCuH4qNh486OMSnIeZdXbhHnw_FygbzUwGj4", tab: "Winnings" },
-      { year: "2025", sheetId: "1DWLYS9RYuOv97ajIcsak69Z97ODtegnBXvlDKJgpwYc", tab: "Winnings" },
-    ];
 
     var TEAM_ALIASES = {
       "Eagles": "Philadelphia Eagles", "Giants": "New York Giants",
@@ -2863,7 +3119,7 @@
     var ALL_LEGACY_BETS = [];
     function fetchLegacySeason(season) {
       var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + season.sheetId +
-        '/values/' + encodeURIComponent(season.tab + '!A1:R200') + '?key=' + API_KEY;
+        '/values/' + encodeURIComponent(season.tab + '!A1:R400') + '?key=' + API_KEY;
       return fetch(url).then(function(res) {
         if (!res.ok) throw new Error('HTTP ' + res.status);
         return res.json();
@@ -3455,17 +3711,153 @@
       });
     }
 
+    // Jinxes + loyalty from analytics-style rows (used by Analytics and Profiles)
+    function computeJinxes(rows) {
+      // Build games in chronological order (2025 before 2026, sheet order within a year)
+      var chrono = rows.slice().sort(function(a, b) {
+        return a.year !== b.year ? parseInt(a.year) - parseInt(b.year) : a.idx - b.idx;
+      });
+      var jGames = [], jIdx = {};
+      chrono.forEach(function(r) {
+        if (r.picker !== 'Maria' && r.picker !== 'Danielle') return;
+        var k = r.year + '_' + r.week + '_' + r.game + '_' + r.homeTeam + '_' + r.awayTeam;
+        if (!(k in jIdx)) {
+          jIdx[k] = jGames.length;
+          jGames.push({ year: r.year, week: r.week, home: resolveTeam(r.homeTeam), away: resolveTeam(r.awayTeam),
+            homeRaw: r.homeTeam, awayRaw: r.awayTeam, scorer: '', rows: {} });
+        }
+        var g = jGames[jIdx[k]];
+        g.rows[r.picker] = r;
+        if (r.firstScorer) g.scorer = r.firstScorer;
+      });
+
+      var tracking = { Maria: {}, Danielle: {} }; // player -> where they were last picked
+      var jinxes = { Maria: [], Danielle: [] };
+      var loyalty = { Maria: { kept: 0, dropped: 0 }, Danielle: { kept: 0, dropped: 0 } };
+
+      jGames.forEach(function(g) {
+        if (!g.scorer) return; // unscored games don't count yet
+        // 1) Check players each person was tracking whose team is in this game
+        ['Maria', 'Danielle'].forEach(function(p) {
+          var mine = g.rows[p];
+          if (!mine || (!mine.homePick && !mine.awayPick)) return;
+          var picks = [mine.homePick, mine.awayPick];
+          Object.keys(tracking[p]).forEach(function(player) {
+            var t = tracking[p][player];
+            if (t.team !== g.home && t.team !== g.away) return;
+            delete tracking[p][player]; // only the next appearance counts
+            if (picks.indexOf(player) !== -1) { loyalty[p].kept++; return; }
+            loyalty[p].dropped++;
+            if (g.scorer === player) {
+              var other = p === 'Maria' ? 'Danielle' : 'Maria';
+              var o = g.rows[other], cashed = null;
+              if (o && o.correct === 'Yes' && (o.homePick === player || o.awayPick === player)) {
+                cashed = { units: o.netUnits, odds: o.homePick === player ? o.homeOdds : o.awayOdds };
+              }
+              jinxes[p].push({ picker: p, other: other, player: player, team: t.rawTeam,
+                fromYear: t.year, fromWeek: t.week, year: g.year, week: g.week, cashed: cashed });
+            }
+          });
+        });
+        // 2) Start tracking this game's picks
+        ['Maria', 'Danielle'].forEach(function(p) {
+          var mine = g.rows[p];
+          if (!mine) return;
+          if (mine.homePick) tracking[p][mine.homePick] = { team: g.home, rawTeam: g.homeRaw, year: g.year, week: g.week };
+          if (mine.awayPick) tracking[p][mine.awayPick] = { team: g.away, rawTeam: g.awayRaw, year: g.year, week: g.week };
+        });
+      });
+      return { jinxes: jinxes, loyalty: loyalty };
+    }
+
+    // Bad beats from analytics-style rows: checks ESPN once per finished game, then caches it
+    var BAD_BEATS_CACHE = null;
+    async function computeBadBeats(rows, onProgress) {
+      if (BAD_BEATS_CACHE) return BAD_BEATS_CACHE;
+    var games = {}, order = [];
+    rows.forEach(function(r) {
+      if (!r.firstScorer || (r.picker !== 'Maria' && r.picker !== 'Danielle')) return;
+      var k = r.year + '_' + r.week + '_' + r.homeTeam + '_' + r.awayTeam;
+      if (!games[k]) { games[k] = { key: k, year: r.year, week: r.week, home: r.homeTeam, away: r.awayTeam, first: r.firstScorer, picks: { Maria: [], Danielle: [] } }; order.push(k); }
+      [[r.homePick, r.homeTeam], [r.awayPick, r.awayTeam]].forEach(function(x) { if (x[0]) games[k].picks[r.picker].push({ name: x[0], team: x[1] }); });
+    });
+
+    var cache = {};
+    try { cache = JSON.parse(localStorage.getItem('mvd-tds-v1') || '{}'); } catch (e) {}
+    var boards = {}, failed = 0, done = 0;
+    function board(year, week) {
+      var k = year + '_' + week;
+      if (!boards[k]) {
+        var path = week > 18
+          ? 'scoreboard?dates=' + year + '&seasontype=3&week=' + (week - 18)
+          : 'scoreboard?dates=' + year + '&seasontype=2&week=' + week;
+        boards[k] = espnGet(path).then(function(d) { return d.events || []; }).catch(function() { return []; });
+      }
+      return boards[k];
+    }
+    function clockSecs(c) { var m = (c || '').match(/(\d+):(\d+)/); return m ? +m[1] * 60 + +m[2] : 0; }
+
+    async function tdsFor(g) {
+      if (cache[g.key]) return cache[g.key];
+      var events = await board(g.year, g.week);
+      var hk = espnTeamKey(g.home), ak = espnTeamKey(g.away), ev = null;
+      events.forEach(function(e) {
+        var c = e.competitions && e.competitions[0];
+        if (!c) return;
+        var keys = c.competitors.map(function(x) { return espnTeamKey(x.team.displayName); });
+        if (keys.indexOf(hk) >= 0 && keys.indexOf(ak) >= 0) ev = e;
+      });
+      if (!ev) { failed++; return null; }
+      var sum = await espnGet('summary?event=' + ev.id);
+      var tds = (sum.scoringPlays || []).filter(tdPlay).map(function(p) {
+        var per = (p.period && p.period.number) || 1;
+        return { n: tdScorerName(p.text), p: per, c: (p.clock && p.clock.displayValue) || '', t: (per - 1) * 900 + (900 - clockSecs(p.clock && p.clock.displayValue)) };
+      });
+      if (ev.status && ev.status.type && ev.status.type.state === 'post') cache[g.key] = tds;
+      return tds;
+    }
+
+    // A few at a time so it's gentle on ESPN
+    var queue = order.slice(), results = {};
+    async function worker() {
+      while (queue.length) {
+        var k = queue.shift();
+        try { results[k] = await tdsFor(games[k]); } catch (e) { failed++; }
+        done++;
+        if (onProgress && done % 5 === 0) onProgress(done, order.length);
+      }
+    }
+    await Promise.all([worker(), worker(), worker(), worker()]);
+    try { localStorage.setItem('mvd-tds-v1', JSON.stringify(cache)); } catch (e) {}
+
+    var beats = [];
+    order.forEach(function(k) {
+      var g = games[k], tds = results[k];
+      if (!tds || !tds.length) return;
+      var firstT = tds[0].t;
+      ['Maria', 'Danielle'].forEach(function(who) {
+        g.picks[who].forEach(function(pk) {
+          if (normName(pk.name) === normName(g.first)) return; // that's a hit, not a bad beat
+          var td = tds.filter(function(t, i) { return i > 0 && sameScorer(t.n, pk.name); })[0];
+          if (!td) return;
+          beats.push({ who: who, player: pk.name, team: pk.team, year: g.year, week: g.week, first: g.first,
+            q: td.p > 4 ? 'OT' : 'Q' + td.p, clock: td.c, gap: Math.max(0, Math.round((td.t - firstT) / 60)) });
+        });
+      });
+    });
+      var anyData = Object.keys(results).some(function(k) { return results[k]; });
+      BAD_BEATS_CACHE = { beats: beats, failed: failed, order: order, results: results, anyData: anyData };
+      return BAD_BEATS_CACHE;
+    }
+
     var ANALYTICS_LOADED = false;
     async function loadAnalyticsTab() {
       if (ANALYTICS_LOADED) return;
       ANALYTICS_LOADED = true;
       try {
-        const allBets = await Promise.all([
-          { year: "2026", sheetId: "1eokxqa-RCuH4qNh486OMSnIeZdXbhHnw_FygbzUwGj4" },
-          { year: "2025", sheetId: "1DWLYS9RYuOv97ajIcsak69Z97ODtegnBXvlDKJgpwYc" },
-        ].map(async function(s) {
+        const allBets = await Promise.all(SEASONS.map(async function(s) {
           const url = "https://sheets.googleapis.com/v4/spreadsheets/" + s.sheetId +
-            "/values/" + encodeURIComponent("Winnings!A1:Q200") + "?key=" + API_KEY;
+            "/values/" + encodeURIComponent("Winnings!A1:Q400") + "?key=" + API_KEY;
           const res = await fetch(url);
           const data = await res.json();
           return (data.values || []).slice(1).filter(function(r) {
@@ -3542,12 +3934,12 @@
         var html = "";
 
         // Filter options shared by sections
-        var SEASONS = rows.map(function(r) { return r.year; })
+        var AN_YEARS = rows.map(function(r) { return r.year; })
           .filter(function(y, i, a) { return a.indexOf(y) === i; })
           .sort(function(a, b) { return parseInt(b) - parseInt(a); });
         var CUR_SEASON = 'all'; // default view: every season
         function wkLabel(year, week) { return year + ' Wk ' + week; }
-        var SEASON_OPTS = SEASONS.map(function(y) { return [y, y]; }).concat([['all', 'All']]);
+        var SEASON_OPTS = AN_YEARS.map(function(y) { return [y, y]; }).concat([['all', 'All']]);
         var PICKER_OPTS = [['all', 'Both'], ['Maria', 'Maria', 'maria-btn'], ['Danielle', 'Danielle', 'danielle-btn']];
         function inSeason(r, season) { return season === 'all' || r.year === season; }
         function byPicker(r, picker) { return picker === 'all' ? (r.picker === 'Maria' || r.picker === 'Danielle') : r.picker === picker; }
@@ -3612,60 +4004,7 @@
         html += section("Jinx Tracker");
         html += '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">A <b>jinx</b> is when someone picks a player, skips him the next time his team comes up, and he scores the first TD. <b>Loyalty</b> is how often they stick with a player when his team comes back around.</div>';
 
-        // Build games in chronological order (2025 before 2026, sheet order within a year)
-        var chrono = rows.slice().sort(function(a, b) {
-          return a.year !== b.year ? parseInt(a.year) - parseInt(b.year) : a.idx - b.idx;
-        });
-        var jGames = [], jIdx = {};
-        chrono.forEach(function(r) {
-          if (r.picker !== 'Maria' && r.picker !== 'Danielle') return;
-          var k = r.year + '_' + r.week + '_' + r.game + '_' + r.homeTeam + '_' + r.awayTeam;
-          if (!(k in jIdx)) {
-            jIdx[k] = jGames.length;
-            jGames.push({ year: r.year, week: r.week, home: resolveTeam(r.homeTeam), away: resolveTeam(r.awayTeam),
-              homeRaw: r.homeTeam, awayRaw: r.awayTeam, scorer: '', rows: {} });
-          }
-          var g = jGames[jIdx[k]];
-          g.rows[r.picker] = r;
-          if (r.firstScorer) g.scorer = r.firstScorer;
-        });
-
-        var tracking = { Maria: {}, Danielle: {} }; // player -> where they were last picked
-        var jinxes = { Maria: [], Danielle: [] };
-        var loyalty = { Maria: { kept: 0, dropped: 0 }, Danielle: { kept: 0, dropped: 0 } };
-
-        jGames.forEach(function(g) {
-          if (!g.scorer) return; // unscored games don't count yet
-          // 1) Check players each person was tracking whose team is in this game
-          ['Maria', 'Danielle'].forEach(function(p) {
-            var mine = g.rows[p];
-            if (!mine || (!mine.homePick && !mine.awayPick)) return;
-            var picks = [mine.homePick, mine.awayPick];
-            Object.keys(tracking[p]).forEach(function(player) {
-              var t = tracking[p][player];
-              if (t.team !== g.home && t.team !== g.away) return;
-              delete tracking[p][player]; // only the next appearance counts
-              if (picks.indexOf(player) !== -1) { loyalty[p].kept++; return; }
-              loyalty[p].dropped++;
-              if (g.scorer === player) {
-                var other = p === 'Maria' ? 'Danielle' : 'Maria';
-                var o = g.rows[other], cashed = null;
-                if (o && o.correct === 'Yes' && (o.homePick === player || o.awayPick === player)) {
-                  cashed = { units: o.netUnits, odds: o.homePick === player ? o.homeOdds : o.awayOdds };
-                }
-                jinxes[p].push({ picker: p, other: other, player: player, team: t.rawTeam,
-                  fromYear: t.year, fromWeek: t.week, year: g.year, week: g.week, cashed: cashed });
-              }
-            });
-          });
-          // 2) Start tracking this game's picks
-          ['Maria', 'Danielle'].forEach(function(p) {
-            var mine = g.rows[p];
-            if (!mine) return;
-            if (mine.homePick) tracking[p][mine.homePick] = { team: g.home, rawTeam: g.homeRaw, year: g.year, week: g.week };
-            if (mine.awayPick) tracking[p][mine.awayPick] = { team: g.away, rawTeam: g.awayRaw, year: g.year, week: g.week };
-          });
-        });
+        var JX = computeJinxes(rows), jinxes = JX.jinxes, loyalty = JX.loyalty;
 
         function loyaltyStr(p) {
           var L = loyalty[p], total = L.kept + L.dropped;
@@ -3774,7 +4113,7 @@
             '</div></div>';
         }
 
-        SEASONS.forEach(function(yr) {
+        AN_YEARS.forEach(function(yr) {
           var yrBets = scored.filter(function(r){return r.year===yr;});
           html += pickCard(getBestPick(yrBets), yr + " Season");
         });
@@ -4013,10 +4352,12 @@
         });
         html += '</div>';
 
-        // ── Season Comparison ────────────────────────────────────────────────
-        html += section("2025 vs 2026 Season Comparison");
+        // ── Season Comparison (every season, oldest → newest) ────────────────
+        var compYears = SEASONS.map(function(x) { return x.year; }).slice().reverse();
+        html += section(compYears.length > 1 ? "Season Comparison" : compYears[0] + " Season");
+        var compColors = ['#34D399', '#FBBF24', '#C4B5FD', '#F472B6'];
         var compData = {};
-        ["2025", "2026"].forEach(function(yr) {
+        compYears.forEach(function(yr) {
           var yrRows = scored.filter(function(r){return r.year === yr;});
           var mRows = yrRows.filter(function(r){return r.picker==="Maria";});
           var dRows = yrRows.filter(function(r){return r.picker==="Danielle";});
@@ -4031,21 +4372,20 @@
             avgOdds: avgOdds,
           };
         });
-
-        html += '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:16px;margin-bottom:12px">';
-        html += '<div style="display:grid;grid-template-columns:1fr 80px 80px;gap:8px;padding-bottom:8px;border-bottom:0.5px solid rgba(255,255,255,0.10);font-size:10px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em"><span></span><span style="text-align:center;color:#34D399">2025</span><span style="text-align:center;color:#60A5FA">2026</span></div>';
-
-        var compRows = [
+        function compColor(yr, i) { return yr === CURRENT_YEAR ? '#60A5FA' : compColors[i % compColors.length]; }
+        var compGrid = 'display:grid;grid-template-columns:1fr repeat(' + compYears.length + ',64px);gap:8px;';
+        html += '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:16px;margin-bottom:12px;overflow-x:auto">';
+        html += '<div style="' + compGrid + 'padding-bottom:8px;border-bottom:0.5px solid rgba(255,255,255,0.10);font-size:10px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em"><span></span>' +
+          compYears.map(function(yr, i) { return '<span style="text-align:center;color:' + compColor(yr, i) + '">' + yr + '</span>'; }).join('') + '</div>';
+        [
           {label:"Bets played", fn:function(d){return d.total||0;}},
           {label:"Overall win rate", fn:function(d){return (d.winRate||0)+"%";}},
           {label:"Maria win rate", fn:function(d){return (d.mWinRate||0)+"%";}},
           {label:"Danielle win rate", fn:function(d){return (d.dWinRate||0)+"%";}},
           {label:"Avg odds picked", fn:function(d){return "+"+(d.avgOdds||0);}},
-        ];
-        compRows.forEach(function(row) {
-          var v25 = row.fn(compData["2025"]||{});
-          var v26 = row.fn(compData["2026"]||{});
-          html += '<div style="display:grid;grid-template-columns:1fr 80px 80px;gap:8px;padding:8px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:13px"><span style="color:#A1A9B6">'+row.label+'</span><span style="text-align:center;font-weight:600;color:#34D399">'+v25+'</span><span style="text-align:center;font-weight:600;color:#60A5FA">'+v26+'</span></div>';
+        ].forEach(function(row) {
+          html += '<div style="' + compGrid + 'padding:8px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:13px"><span style="color:#A1A9B6">' + row.label + '</span>' +
+            compYears.map(function(yr, i) { return '<span style="text-align:center;font-weight:600;color:' + compColor(yr, i) + '">' + row.fn(compData[yr] || {}) + '</span>'; }).join('') + '</div>';
         });
         html += '</div>';
 
@@ -4178,77 +4518,11 @@
         async function loadBadBeats() {
           var box = document.getElementById('bad-beats');
           if (!box) return;
-          var games = {}, order = [];
-          rows.forEach(function(r) {
-            if (!r.firstScorer || (r.picker !== 'Maria' && r.picker !== 'Danielle')) return;
-            var k = r.year + '_' + r.week + '_' + r.homeTeam + '_' + r.awayTeam;
-            if (!games[k]) { games[k] = { key: k, year: r.year, week: r.week, home: r.homeTeam, away: r.awayTeam, first: r.firstScorer, picks: { Maria: [], Danielle: [] } }; order.push(k); }
-            [[r.homePick, r.homeTeam], [r.awayPick, r.awayTeam]].forEach(function(x) { if (x[0]) games[k].picks[r.picker].push({ name: x[0], team: x[1] }); });
+          var BB = await computeBadBeats(rows, function(done, total) {
+            var l = box.querySelector('.loading');
+            if (l) l.textContent = 'Checking every game with ESPN… ' + done + '/' + total;
           });
-
-          var cache = {};
-          try { cache = JSON.parse(localStorage.getItem('mvd-tds-v1') || '{}'); } catch (e) {}
-          var boards = {}, failed = 0, done = 0;
-          function board(year, week) {
-            var k = year + '_' + week;
-            if (!boards[k]) {
-              var path = week > 18
-                ? 'scoreboard?dates=' + year + '&seasontype=3&week=' + (week - 18)
-                : 'scoreboard?dates=' + year + '&seasontype=2&week=' + week;
-              boards[k] = espnGet(path).then(function(d) { return d.events || []; }).catch(function() { return []; });
-            }
-            return boards[k];
-          }
-          function clockSecs(c) { var m = (c || '').match(/(\d+):(\d+)/); return m ? +m[1] * 60 + +m[2] : 0; }
-
-          async function tdsFor(g) {
-            if (cache[g.key]) return cache[g.key];
-            var events = await board(g.year, g.week);
-            var hk = espnTeamKey(g.home), ak = espnTeamKey(g.away), ev = null;
-            events.forEach(function(e) {
-              var c = e.competitions && e.competitions[0];
-              if (!c) return;
-              var keys = c.competitors.map(function(x) { return espnTeamKey(x.team.displayName); });
-              if (keys.indexOf(hk) >= 0 && keys.indexOf(ak) >= 0) ev = e;
-            });
-            if (!ev) { failed++; return null; }
-            var sum = await espnGet('summary?event=' + ev.id);
-            var tds = (sum.scoringPlays || []).filter(tdPlay).map(function(p) {
-              var per = (p.period && p.period.number) || 1;
-              return { n: tdScorerName(p.text), p: per, c: (p.clock && p.clock.displayValue) || '', t: (per - 1) * 900 + (900 - clockSecs(p.clock && p.clock.displayValue)) };
-            });
-            if (ev.status && ev.status.type && ev.status.type.state === 'post') cache[g.key] = tds;
-            return tds;
-          }
-
-          // A few at a time so it's gentle on ESPN
-          var queue = order.slice(), results = {};
-          async function worker() {
-            while (queue.length) {
-              var k = queue.shift();
-              try { results[k] = await tdsFor(games[k]); } catch (e) { failed++; }
-              done++;
-              if (done % 5 === 0 && box.querySelector('.loading')) box.querySelector('.loading').textContent = 'Checking every game with ESPN… ' + done + '/' + order.length;
-            }
-          }
-          await Promise.all([worker(), worker(), worker(), worker()]);
-          try { localStorage.setItem('mvd-tds-v1', JSON.stringify(cache)); } catch (e) {}
-
-          var beats = [];
-          order.forEach(function(k) {
-            var g = games[k], tds = results[k];
-            if (!tds || !tds.length) return;
-            var firstT = tds[0].t;
-            ['Maria', 'Danielle'].forEach(function(who) {
-              g.picks[who].forEach(function(pk) {
-                if (normName(pk.name) === normName(g.first)) return; // that's a hit, not a bad beat
-                var td = tds.filter(function(t, i) { return i > 0 && sameScorer(t.n, pk.name); })[0];
-                if (!td) return;
-                beats.push({ who: who, player: pk.name, team: pk.team, year: g.year, week: g.week, first: g.first,
-                  q: td.p > 4 ? 'OT' : 'Q' + td.p, clock: td.c, gap: Math.max(0, Math.round((td.t - firstT) / 60)) });
-              });
-            });
-          });
+          var beats = BB.beats, failed = BB.failed, order = BB.order, results = BB.results;
 
           if (!order.length) { box.innerHTML = EMPTY('No finished games yet.'); return; }
           if (Object.keys(results).every(function(k) { return !results[k]; })) {
@@ -4309,14 +4583,11 @@
       if (MONEY_LOADED) return;
       MONEY_LOADED = true;
       try {
-        const SEASONS_MONEY = [
-          { year: "2026", sheetId: "1eokxqa-RCuH4qNh486OMSnIeZdXbhHnw_FygbzUwGj4" },
-          { year: "2025", sheetId: "1DWLYS9RYuOv97ajIcsak69Z97ODtegnBXvlDKJgpwYc" },
-        ];
+        const SEASONS_MONEY = SEASONS;
 
         const results = await Promise.all(SEASONS_MONEY.map(async function(s) {
           const url = "https://sheets.googleapis.com/v4/spreadsheets/" + s.sheetId +
-            "/values/" + encodeURIComponent("Winnings!A1:Q200") + "?key=" + API_KEY;
+            "/values/" + encodeURIComponent("Winnings!A1:Q400") + "?key=" + API_KEY;
           const res = await fetch(url);
           const data = await res.json();
           const rows = (data.values || []).slice(1).filter(function(r) {

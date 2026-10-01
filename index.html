@@ -1,4 +1,4 @@
-<!-- v45 -->
+<!-- v46 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -653,6 +653,42 @@
     .filter-btn.danielle-btn.active { background: #1D4ED8; border-color: #1D4ED8; color: white; }
     .filter-btn.win-btn.active { background: #065F46; border-color: #065F46; color: white; }
     .filter-btn.loss-btn.active { background: #991B1B; border-color: #991B1B; color: white; }
+
+    /* Season Wrapped cards (Legacy tab) — always dark, so dark mode leaves them alone */
+    .wrapped {
+      border-radius: 18px;
+      padding: 26px 22px 22px;
+      margin-bottom: 22px;
+      color: #FFFFFF;
+      position: relative;
+      overflow: hidden;
+    }
+    .wrapped .wr-kicker { font-size: 11px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; opacity: 0.65; }
+    .wrapped .wr-year { font-size: 56px; font-weight: 800; line-height: 1; letter-spacing: -0.03em; margin: 6px 0 10px; }
+    .wrapped .wr-champ { font-size: 17px; font-weight: 700; margin-bottom: 18px; }
+    .wrapped .wr-score { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 10px; margin-bottom: 16px; }
+    .wrapped .wr-side { background: rgba(255,255,255,0.08); border-radius: 12px; padding: 12px 14px; }
+    .wrapped .wr-side-name { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+    .wrapped .wr-units { font-size: 28px; font-weight: 800; margin: 4px 0 2px; }
+    .wrapped .wr-sub { font-size: 12px; opacity: 0.7; }
+    .wrapped .wr-chart { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 10px 8px 4px; margin-bottom: 16px; }
+    .wrapped .wr-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(150px, 40%), 1fr)); gap: 10px; }
+    .wrapped .wr-fav { font-size: 14px; font-weight: 700; line-height: 1.3; margin-top: 2px; }
+    .wrapped .wr-tile { background: rgba(255,255,255,0.08); border-radius: 12px; padding: 12px 14px; }
+    .wrapped .wr-tile-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.6; margin-bottom: 6px; }
+    .wrapped .wr-tile-main { font-size: 16px; font-weight: 700; line-height: 1.25; }
+    .wrapped .wr-tile-sub { font-size: 12px; opacity: 0.7; margin-top: 3px; line-height: 1.4; }
+    @media (max-width: 700px) {
+      .wrapped { padding: 22px 16px 16px; }
+      .wrapped .wr-year { font-size: 44px; }
+      .wrapped .wr-champ { font-size: 15px; }
+      .wrapped .wr-units { font-size: 21px; }
+      .wrapped .wr-side { padding: 10px 12px; }
+      .wrapped .wr-tile { padding: 10px 12px; }
+      .wrapped .wr-tile-main { font-size: 14px; }
+    }
+    html.dark .wrap .wrapped { filter: invert(1) hue-rotate(180deg); }
+    html.dark .wrap .wrapped .emo { filter: none; }
 
     /* Analytics section filters + "show all" lists */
     .af-bars { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 12px; }
@@ -1832,6 +1868,7 @@
           if (homePick && !isNaN(parseFloat(homeOdds))) oddsArr.push('+' + Math.round(parseFloat(homeOdds) * 100));
           if (awayPick && !isNaN(parseFloat(awayOdds))) oddsArr.push('+' + Math.round(parseFloat(awayOdds) * 100));
           return {
+            homeOddsN: parseFloat(homeOdds) || 0, awayOddsN: parseFloat(awayOdds) || 0,
             year: season.year, week: week, game: game,
             homeTeam: homeTeam, awayTeam: awayTeam,
             picker: picker, homePick: homePick, awayPick: awayPick,
@@ -1926,6 +1963,203 @@
         '</div>';
     }
 
+
+    // ── Season Wrapped (Legacy tab) ─────────────────────────────────────────
+    var WR_M = '#F87171', WR_D = '#60A5FA'; // Maria / Danielle on dark backgrounds
+
+    function wrappedCard(year, bets) {
+      function notOffered(b) { return b.wasOffered === 'No' && b.netUnits === 0 && b.firstScorer !== ''; }
+      function scoredBet(b) { return (b.correct === 'Yes' || b.correct === 'No') && !notOffered(b); }
+      var P = { Maria: { u: 0, d: 0, w: 0, t: 0 }, Danielle: { u: 0, d: 0, w: 0, t: 0 } };
+      var who = ['Maria', 'Danielle'];
+
+      bets.forEach(function(b) {
+        if (!P[b.picker] || !scoredBet(b)) return;
+        var p = P[b.picker];
+        p.u += b.netUnits; p.d += b.netDollars; p.t++;
+        if (b.correct === 'Yes') p.w++;
+      });
+      if (P.Maria.t + P.Danielle.t === 0) return '';
+
+      var champ = P.Maria.u > P.Danielle.u ? 'Maria' : P.Danielle.u > P.Maria.u ? 'Danielle' : null;
+      var margin = Math.abs(P.Maria.u - P.Danielle.u);
+      var bg = champ === 'Maria' ? 'linear-gradient(140deg,#0F0F12 0%,#3B0D0D 55%,#991B1B 100%)'
+             : champ === 'Danielle' ? 'linear-gradient(140deg,#0F0F12 0%,#0C1A3D 55%,#1E40AF 100%)'
+             : 'linear-gradient(140deg,#0F0F12 0%,#1F2937 100%)';
+      function pc(n) { return n === 'Maria' ? WR_M : n === 'Danielle' ? WR_D : '#E5E7EB'; }
+      function nm(n) { return '<span style="color:' + pc(n) + '">' + n + '</span>'; }
+      function u(n) { return (n >= 0 ? '+' : '') + n.toFixed(1) + 'u'; }
+      function money(n) { return (n >= 0 ? '+$' : '-$') + Math.abs(n).toFixed(2); }
+      function odds(n) { return '+' + Math.round(n < 100 ? n * 100 : n); }
+
+      // Pick of the season: longest odds that hit
+      var pos = null;
+      bets.forEach(function(b) {
+        if (b.correct !== 'Yes' || !P[b.picker]) return;
+        var o = b.firstScorer === b.homePick ? b.homeOddsN : b.firstScorer === b.awayPick ? b.awayOddsN : Math.max(b.homeOddsN, b.awayOddsN);
+        if (!pos || o > pos.o) pos = { o: o, b: b };
+      });
+
+      // Best single week for one person
+      var wk = {};
+      bets.forEach(function(b) {
+        if (!P[b.picker] || !scoredBet(b)) return;
+        var k = b.picker + '|' + b.week;
+        wk[k] = (wk[k] || 0) + b.netUnits;
+      });
+      var bestWk = null;
+      Object.keys(wk).forEach(function(k) { if (!bestWk || wk[k] > bestWk.u) bestWk = { u: wk[k], who: k.split('|')[0], week: k.split('|')[1] }; });
+
+      // Streaks
+      function streak(name, want) {
+        var best = 0, cur = 0;
+        bets.forEach(function(b) {
+          if (b.picker !== name || !scoredBet(b)) return;
+          cur = (b.correct === want) ? cur + 1 : 0;
+          best = Math.max(best, cur);
+        });
+        return best;
+      }
+      function streakTile(want) {
+        var m = streak('Maria', want), d = streak('Danielle', want);
+        var top = Math.max(m, d);
+        var holder = m === d ? 'Both' : m > d ? 'Maria' : 'Danielle';
+        return { n: top, who: holder };
+      }
+      var heater = streakTile('Yes'), drought = streakTile('No');
+
+      // Most-picked players + cursed pick
+      var picks = { Maria: {}, Danielle: {} }, all = {}, hit = {};
+      bets.forEach(function(b) {
+        if (!P[b.picker]) return;
+        [b.homePick, b.awayPick].filter(Boolean).forEach(function(pl) {
+          picks[b.picker][pl] = (picks[b.picker][pl] || 0) + 1;
+          all[pl] = (all[pl] || 0) + 1;
+        });
+        if (b.correct === 'Yes' && b.firstScorer) hit[b.firstScorer] = true;
+      });
+      function top(obj) {
+        var best = null;
+        Object.keys(obj).forEach(function(k) { if (!best || obj[k] > best.n) best = { name: k, n: obj[k] }; });
+        return best;
+      }
+      var favM = top(picks.Maria), favD = top(picks.Danielle);
+      var cursed = null;
+      Object.keys(all).forEach(function(k) {
+        if (hit[k] || all[k] < 2) return;
+        if (!cursed || all[k] > cursed.n) cursed = { name: k, n: all[k] };
+      });
+
+      // Top first-TD scorer of the season (one count per game)
+      var seen = {}, tds = {};
+      bets.forEach(function(b) {
+        if (!b.firstScorer) return;
+        var gk = b.week + '_' + b.game;
+        if (seen[gk]) return;
+        seen[gk] = true;
+        tds[b.firstScorer] = (tds[b.firstScorer] || 0) + 1;
+      });
+      var topTD = top(tds);
+
+      // Weeks won (most correct that week)
+      var wkC = {};
+      bets.forEach(function(b) {
+        if (!P[b.picker] || !scoredBet(b)) return;
+        if (!wkC[b.week]) wkC[b.week] = { Maria: 0, Danielle: 0 };
+        if (b.correct === 'Yes') wkC[b.week][b.picker]++;
+      });
+      var ww = { Maria: 0, Danielle: 0, tie: 0 };
+      Object.keys(wkC).forEach(function(w) {
+        var c = wkC[w];
+        if (c.Maria > c.Danielle) ww.Maria++; else if (c.Danielle > c.Maria) ww.Danielle++; else ww.tie++;
+      });
+
+      // ── Build the card ──
+      var h = '<div class="wrapped" style="background:' + bg + '">';
+      h += '<div class="wr-kicker">Season Wrapped</div>';
+      h += '<div class="wr-year">' + year + '</div>';
+      h += '<div class="wr-champ">' + (champ
+        ? '🏆 ' + nm(champ) + ' takes the season by ' + margin.toFixed(1) + ' units'
+        : '🤝 Dead even. Nobody takes the crown.') + '</div>';
+
+      h += '<div class="wr-score">';
+      who.forEach(function(n) {
+        var p = P[n];
+        h += '<div class="wr-side">' +
+          '<div class="wr-side-name" style="color:' + pc(n) + '">' + n + (champ === n ? ' 👑' : '') + '</div>' +
+          '<div class="wr-units" style="color:' + pc(n) + '">' + u(p.u) + '</div>' +
+          '<div class="wr-sub">' + money(p.d) + '</div>' +
+          '<div class="wr-sub">' + p.w + '/' + p.t + ' correct (' + (p.t ? Math.round(p.w / p.t * 100) : 0) + '%)</div>' +
+        '</div>';
+      });
+      h += '</div>';
+
+      h += '<div class="wr-chart">' + wrappedChart(bets, notOffered) + '</div>';
+
+      function tile(label, main, sub) {
+        return '<div class="wr-tile"><div class="wr-tile-label">' + label + '</div>' +
+          '<div class="wr-tile-main">' + main + '</div>' + (sub ? '<div class="wr-tile-sub">' + sub + '</div>' : '') + '</div>';
+      }
+      h += '<div class="wr-tiles">';
+      if (pos) h += tile('🎯 Pick of the Season', pos.b.firstScorer + ' ' + odds(pos.o),
+        nm(pos.b.picker) + ' · Wk ' + pos.b.week + (pos.b.game ? ' · ' + pos.b.game : ''));
+      if (bestWk && bestWk.u > 0) h += tile('📈 Best Week', nm(bestWk.who) + ' ' + u(bestWk.u), 'Week ' + bestWk.week);
+      if (heater.n) h += tile('🔥 Longest Heater', heater.n + ' straight', nm(heater.who));
+      if (drought.n) h += tile('🧊 Longest Drought', drought.n + ' straight misses', nm(drought.who));
+      h += tile('🗓️ Weeks Won', nm('Maria') + ' ' + ww.Maria + ' · ' + nm('Danielle') + ' ' + ww.Danielle, ww.tie ? ww.tie + ' tied' : '');
+      if (favM || favD) {
+        var fav = function(n, f) {
+          return f ? '<div class="wr-fav"><span style="color:' + pc(n) + '">' + n + '</span> · ' + f.name +
+            ' <span style="opacity:0.6;font-weight:500">' + f.n + 'x</span></div>' : '';
+        };
+        h += '<div class="wr-tile"><div class="wr-tile-label">❤️ Ride or Die</div>' + fav('Maria', favM) + fav('Danielle', favD) + '</div>';
+      }
+      if (topTD) h += tile('🏈 TD Machine', topTD.name, topTD.n + ' first TD' + (topTD.n === 1 ? '' : 's'));
+      if (cursed) h += tile('💀 Cursed Pick', cursed.name, 'Picked ' + cursed.n + 'x, never cashed');
+      h += '</div></div>';
+      return h;
+    }
+
+    // Season race: running units for both, drawn for the dark card
+    function wrappedChart(bets, notOffered) {
+      var games = [], idx = {};
+      bets.forEach(function(b) {
+        if ((b.picker !== 'Maria' && b.picker !== 'Danielle') || (b.correct !== 'Yes' && b.correct !== 'No')) return;
+        var k = b.week + '_' + b.game;
+        if (!(k in idx)) { idx[k] = games.length; games.push({ week: b.week, Maria: 0, Danielle: 0 }); }
+        games[idx[k]][b.picker] += b.netUnits;
+      });
+      if (games.length < 2) return '';
+      var m = [0], d = [0];
+      games.forEach(function(g) { m.push(m[m.length - 1] + g.Maria); d.push(d[d.length - 1] + g.Danielle); });
+      var W = 600, H = 150, L = 8, R = 52, T = 10, B = 18;
+      var lo = Math.min.apply(null, m.concat(d, [0])), hi = Math.max.apply(null, m.concat(d, [0]));
+      if (hi === lo) hi = lo + 1;
+      function x(i) { return L + i * (W - L - R) / games.length; }
+      function y(v) { return T + (hi - v) / (hi - lo) * (H - T - B); }
+      var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block" font-family="Inter,sans-serif">';
+      svg += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(0) + '" y2="' + y(0) + '" stroke="rgba(255,255,255,0.25)" stroke-dasharray="4 3"/>';
+      // first game of each week, label every few
+      var lastWk = null, n = 0;
+      games.forEach(function(g, i) {
+        if (g.week === lastWk) return;
+        lastWk = g.week;
+        if (n++ % 3) return;
+        svg += '<text x="' + x(i + 1) + '" y="' + (H - 4) + '" font-size="10" fill="rgba(255,255,255,0.45)" text-anchor="middle">Wk ' + g.week + '</text>';
+      });
+      function line(vals, color) {
+        var pts = vals.map(function(v, i) { return x(i).toFixed(1) + ',' + y(v).toFixed(1); }).join(' ');
+        return '<polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>';
+      }
+      svg += line(d, WR_D) + line(m, WR_M);
+      var N = games.length, ym = y(m[N]), yd = y(d[N]);
+      if (Math.abs(ym - yd) < 14) { var mid = (ym + yd) / 2, up = m[N] >= d[N]; ym = mid + (up ? -7 : 7); yd = mid + (up ? 7 : -7); }
+      function f(v) { return (v >= 0 ? '+' : '') + v.toFixed(1); }
+      svg += '<text x="' + (x(N) + 8) + '" y="' + (ym + 4) + '" font-size="13" font-weight="700" fill="' + WR_M + '">' + f(m[N]) + '</text>';
+      svg += '<text x="' + (x(N) + 8) + '" y="' + (yd + 4) + '" font-size="13" font-weight="700" fill="' + WR_D + '">' + f(d[N]) + '</text>';
+      return svg + '</svg>';
+    }
+
     function loadLegacyTab() {
       if (ALL_LEGACY_BETS.length > 0) return; // already loaded
       Promise.all(SEASONS.map(fetchLegacySeason)).then(function(results) {
@@ -1933,7 +2167,7 @@
         var byYear = [];
         results.forEach(function(bets, i) {
           allBets = allBets.concat(bets);
-          byYear.push({ year: SEASONS[i].year, stats: calcLegacyStats(bets) });
+          byYear.push({ year: SEASONS[i].year, stats: calcLegacyStats(bets), bets: bets });
         });
         ALL_LEGACY_BETS = allBets.slice().reverse();
 
@@ -1953,27 +2187,12 @@
         html += legacyStatCard('Accuracy', (s.mTotal?Math.round(s.mCorrect/s.mTotal*100):0)+'%', (s.dTotal?Math.round(s.dCorrect/s.dTotal*100):0)+'%');
         html += '</div>';
 
-        // Previous seasons
+        // Previous seasons: one Season Wrapped card each, newest first
         if (legacyYears.length > 0) {
-          html += '<hr style="border:none;border-top:0.5px solid #E5E7EB;margin:24px 0">';
-          html += '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">Previous Seasons</div>';
-          legacyYears.forEach(function(ys) {
-            var winner = ys.stats.mUnits > ys.stats.dUnits ? 'maria' : ys.stats.dUnits > ys.stats.mUnits ? 'danielle' : 'tied';
-            var wLabel = winner === 'maria' ? '🏆 Maria' : winner === 'danielle' ? '🏆 Danielle' : 'Tied';
-            var wColor = winner === 'maria' ? '#DC2626' : winner === 'danielle' ? '#1D4ED8' : '#6B7280';
-            html += '<div style="margin-bottom:16px"><div style="font-size:16px;font-weight:700;margin-bottom:8px">' + ys.year + ' <span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;background:#F3F4F6;color:' + wColor + '">' + wLabel + '</span></div>';
-            html += '<div class="season-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">';
-            ['Units','Dollars','Accuracy','Correct'].forEach(function(label, i) {
-              var mV, dV;
-              if (i===0) { mV=fmtL(ys.stats.mUnits,'u'); dV=fmtL(ys.stats.dUnits,'u'); }
-              else if (i===1) { mV=fmtL(ys.stats.mDollars,'$'); dV=fmtL(ys.stats.dDollars,'$'); }
-              else if (i===2) { mV=(ys.stats.mTotal?Math.round(ys.stats.mCorrect/ys.stats.mTotal*100):0)+'%'; dV=(ys.stats.dTotal?Math.round(ys.stats.dCorrect/ys.stats.dTotal*100):0)+'%'; }
-              else { mV=ys.stats.mCorrect+'/'+ys.stats.mTotal; dV=ys.stats.dCorrect+'/'+ys.stats.dTotal; }
-              html += '<div style="background:#F9FAFB;border-radius:6px;padding:10px 12px"><div style="font-size:10px;color:#9CA3AF;margin-bottom:4px">'+label+'</div><div style="font-weight:600;color:#DC2626">'+mV+' <span style="font-size:10px;color:#9CA3AF">M</span></div><div style="font-weight:600;color:#1D4ED8">'+dV+' <span style="font-size:10px;color:#9CA3AF">D</span></div></div>';
-            });
-            html += '</div></div>';
-          });
+          html += '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">Season Wrapped</div>';
+          legacyYears.forEach(function(ys) { html += wrappedCard(ys.year, ys.bets); });
         }
+        html += '<div style="font-size:12px;color:#9CA3AF;text-align:center;margin:-8px 0 20px">' + CURRENT_YEAR + ' Wrapped unlocks when the season is over.</div>';
 
         html += '<div>';
 

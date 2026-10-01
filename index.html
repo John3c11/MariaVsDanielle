@@ -1,4 +1,4 @@
-<!-- v63 -->
+<!-- v64 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -779,6 +779,13 @@
     .pf-switch button { font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; padding: 9px 22px; border-radius: 999px; cursor: pointer; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04); color: #A1A9B6; }
     .pf-switch button.on-maria { background: rgba(220,38,38,0.25); border-color: #F87171; color: #FFFFFF; }
     .pf-switch button.on-danielle { background: rgba(37,99,235,0.28); border-color: #60A5FA; color: #FFFFFF; }
+    .pf-switch button.on-friend { background: rgba(20,184,166,0.25); border-color: #2DD4BF; color: #FFFFFF; }
+    .pf-switch { flex-wrap: wrap; }
+    .cr-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .cr-table th { text-align: left; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #A1A9B6; padding: 6px 8px; border-bottom: 1.5px solid rgba(255,255,255,0.16); }
+    .cr-table td { padding: 9px 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .cr-table tr.ref td { background: rgba(255,255,255,0.03); font-style: italic; }
+    .cr-line { font-size: 12px; color: #A1A9B6; margin: -4px 0 10px; }
     .pf-hero { border-radius: 18px; padding: 24px 20px 20px; text-align: center; margin-bottom: 16px; }
     .pf-hero img { width: 108px; height: 108px; border-radius: 50%; object-fit: cover; border: 3px solid var(--pc); box-shadow: 0 0 30px -4px var(--pc); }
     .pf-name { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; margin: 10px 0 2px; color: var(--pc); }
@@ -1026,6 +1033,7 @@
       <button class="tab-btn" onclick="switchTab('chat')">Trash Talk</button>
       <button class="tab-btn" onclick="switchTab('profiles')">Profiles</button>
       <button class="tab-btn" onclick="switchTab('analytics')">Analytics</button>
+      <button class="tab-btn tab-extra" onclick="switchTab('crowd')">Crowd</button>
       <button class="tab-btn tab-extra" onclick="switchTab('schedule')">Schedule</button>
       <button class="tab-btn tab-extra" onclick="switchTab('money')">Money</button>
       <button class="tab-btn tab-extra" onclick="switchTab('legacy')">Legacy</button>
@@ -1035,6 +1043,7 @@
       <div class="tab-more-wrap">
         <button class="tab-btn tab-more" id="tab-more" onclick="toggleTabMenu(event)">More <span class="tab-caret">▾</span></button>
         <div class="tab-menu" id="tab-menu">
+          <button class="tab-btn" onclick="switchTab('crowd')">🏅 Crowd</button>
           <button class="tab-btn" onclick="switchTab('schedule')">🗓️ Schedule</button>
           <button class="tab-btn" onclick="switchTab('money')">💵 Money</button>
           <button class="tab-btn" onclick="switchTab('legacy')">📜 Legacy</button>
@@ -1073,6 +1082,10 @@
     </div>
 
     </div><!-- end tab-stats -->
+
+    <div id="tab-crowd" class="tab-panel">
+      <div id="crowd-content"></div>
+    </div>
 
     <div id="tab-schedule" class="tab-panel">
       <div id="schedule-content"></div>
@@ -1614,7 +1627,7 @@
               const waiting = mariaRow ? 'Danielle' : 'Maria';
               const doneC = done === 'Maria' ? SB_M : SB_D;
               const waitC = waiting === 'Maria' ? SB_M : SB_D;
-              html += `<div class="live-game" style="margin-top:${html ? '22px' : '0'}">
+              html += `<div class="live-game" data-wg="${(mariaRow || danielleRow)[1]}_${gameNum}" style="margin-top:${html ? '22px' : '0'}">
               <div class="live-game-title">
                 ${teamPill(homeTeamName, homeTeamName)}
                 <span style="color:rgba(255,255,255,0.45)"> vs </span>
@@ -1640,7 +1653,7 @@
             }
 
             const revealKey = (mariaRow[1] || '') + '_' + gameNum + '_' + homeTeamName;
-            html += `<div class="live-game" data-reveal="${revealKey}" style="margin-top:${html ? '22px' : '0'}">
+            html += `<div class="live-game" data-reveal="${revealKey}" data-wg="${mariaRow[1]}_${gameNum}" style="margin-top:${html ? '22px' : '0'}">
               <div class="live-game-title">
                 ${teamPill(homeTeamName, homeTeamName)}
                 <span style="color:rgba(255,255,255,0.45)"> vs </span>
@@ -1662,6 +1675,7 @@
           }
           liveEl.innerHTML = html;
           playPickReveals(liveEl);
+          addCrowdLines(liveEl);
           startLiveTracker();
           // A game is still waiting on someone's picks: check back every minute so the reveal can happen live
           clearInterval(window.REVEAL_POLL);
@@ -2226,7 +2240,7 @@
       });
       document.getElementById('tab-' + name).classList.add('active');
       // "More" shows which hidden tab you're on
-      var extra = { schedule: 'Schedule', money: 'Money', legacy: 'Legacy', bethistory: 'Bet History', rosters: 'Roster' }[name];
+      var extra = { crowd: 'Crowd', schedule: 'Schedule', money: 'Money', legacy: 'Legacy', bethistory: 'Bet History', rosters: 'Roster' }[name];
       var more = document.getElementById('tab-more');
       if (more) {
         more.innerHTML = (extra || 'More') + ' <span class="tab-caret">▾</span>';
@@ -2242,6 +2256,7 @@
       if (name === 'chat') loadChatTab(); else stopChatRefresh();
       if (name === 'profiles') loadProfilesTab();
       if (name === 'schedule') loadScheduleTab();
+      if (name === 'crowd') loadCrowdTab();
     }
 
     // ── Submit Picks tab ─────────────────────────────────────────────────────
@@ -2277,7 +2292,8 @@
     }
 
     function renderPinScreen(msg, successHtml) {
-      SUB.pin = ''; SUB.game = null; SUB.mode = 'pick';
+      SUB.pin = ''; SUB.game = null; SUB.mode = 'pick'; SUB.role = '';
+      if (PROFILE_WHO !== 'Maria' && PROFILE_WHO !== 'Danielle') PROFILE_WHO = 'Maria';
       // Logging out also ends a Trash Talk session that came from logging in (unless "Remember me" saved it)
       if (CHAT.session) {
         CHAT.session = false;
@@ -2316,8 +2332,10 @@
         SUB.busy = false;
         if (res.error) { renderPinScreen(res.error); return; }
         SUB.pin = pin;
+        SUB.role = res.admin ? 'admin' : res.role === 'friend' ? 'friend' : 'player';
         SUB.name = res.admin ? '' : res.name;
-        if (res.admin) renderOdds(res);
+        if (res.admin) { renderOdds(res); picksApi({ pin: SUB.pin, action: 'friends' }).then(function(r) { if (r.friends) ADMIN.friends = r.friends; }).catch(function() {}); }
+        else if (SUB.role === 'friend') renderFriendHome(res);
         else renderGame(res, null);
       }).catch(function() {
         SUB.busy = false;
@@ -2622,7 +2640,33 @@
 
     var PROFILE_WHO = 'Maria';
     function openProfile(name) { PROFILE_WHO = name; switchTab('profiles'); }
-    function loadProfilesTab() { renderProfile(PROFILE_WHO); }
+    function canSeeProfile(name) {
+      return name === 'Maria' || name === 'Danielle' || SUB.role === 'admin' || (SUB.role === 'friend' && SUB.name === name);
+    }
+    function loadProfilesTab() {
+      if (!canSeeProfile(PROFILE_WHO)) PROFILE_WHO = 'Maria';
+      if (PROFILE_WHO === 'Maria' || PROFILE_WHO === 'Danielle') renderProfile(PROFILE_WHO);
+      else renderFriendProfile(PROFILE_WHO);
+    }
+    // Maria / Danielle buttons, plus "you" for a logged-in friend, plus every friend for admin
+    function profileSwitchHtml(active) {
+      var h = '<div class="pf-switch">' + ['Maria', 'Danielle'].map(function(n) {
+        return '<button data-pf="' + n + '" class="' + (n === active ? 'on-' + n.toLowerCase() : '') + '">' + n + '</button>';
+      }).join('');
+      if (SUB.role === 'friend') h += '<button data-pf="' + escHtml(SUB.name) + '" class="' + (SUB.name === active ? 'on-friend' : '') + '">' + escHtml(SUB.name) + '</button>';
+      if (SUB.role === 'admin' && ADMIN.friends && ADMIN.friends.length) {
+        h += '<select class="adm-input" id="pf-friend" style="padding:7px 10px;font-size:13px"><option value="">Friends…</option>' +
+          ADMIN.friends.map(function(f) { return '<option' + (f.name === active ? ' selected' : '') + '>' + escHtml(f.name) + '</option>'; }).join('') + '</select>';
+      }
+      return h + '</div>';
+    }
+    function bindProfileSwitch(root) {
+      root.querySelectorAll('[data-pf]').forEach(function(b) {
+        b.addEventListener('click', function() { PROFILE_WHO = b.getAttribute('data-pf'); loadProfilesTab(); });
+      });
+      var sel = root.querySelector('#pf-friend');
+      if (sel) sel.addEventListener('change', function() { if (sel.value) { PROFILE_WHO = sel.value; loadProfilesTab(); } });
+    }
 
     function profileStats(who, rows, jx, bb) {
       var other = who === 'Maria' ? 'Danielle' : 'Maria';
@@ -2753,9 +2797,7 @@
         function odds(n) { return '+' + Math.round(n < 100 ? n * 100 : n); }
         var seasons = Object.keys(S.seasons).length;
 
-        var h = '<div class="pf-switch">' + ['Maria', 'Danielle'].map(function(n) {
-          return '<button data-pf="' + n + '" class="' + (n === who ? 'on-' + n.toLowerCase() : '') + '">' + n + '</button>';
-        }).join('') + '</div>';
+        var h = profileSwitchHtml(who);
 
         h += '<div class="pf-hero" style="--pc:' + pc + ';background:' + grad + '">' +
           '<img src="pics/' + who + '.jpeg" alt="' + who + '">' +
@@ -2794,9 +2836,7 @@
         h += '<div class="pf-h">🤡 Hall of Shame <small>' + shame.filter(function(a) { return a.got; }).length + ' / ' + shame.length + '</small></div>' + badges(shame);
 
         el.innerHTML = h;
-        el.querySelectorAll('[data-pf]').forEach(function(b) {
-          b.addEventListener('click', function() { renderProfile(b.getAttribute('data-pf')); });
-        });
+        bindProfileSwitch(el);
       }
     }
 
@@ -3172,12 +3212,396 @@
     // Each entry is one thing they can do. More get added here over time.
     var PLAYER_SECTIONS = [['pick', '🏈 Make Pick'], ['change', '✏️ Change Pick'], ['mine', '📋 My Picks'], ['chat', '🗣️ Trash Talk'], ['profile', '👤 My Profile']];
 
+    var FRIEND_SECTIONS = [['fpick', '🏈 Make Picks'], ['fprofile', '👤 My Profile'], ['crowd', '🏅 Crowd']];
+    var FRIEND_COLOR = '#2DD4BF';
+
+    // ── Friend: pick list ───────────────────────────────────────────────────
+    var FRIEND = { showLater: false };
+    function renderFriendHome(res) {
+      var body = playerScreen('fpick', '');
+      var games = res.games || [];
+      if (!games.length) { body.innerHTML = '<div style="text-align:center;padding:30px 0;color:#A1A9B6">No open games right now. Check back later.</div>'; return; }
+      var weeks = games.map(function(g) { return parseInt(g.week, 10); }).filter(function(w, i, a) { return a.indexOf(w) === i; });
+      var nearWeeks = weeks.slice(0, 2);
+      var shown = FRIEND.showLater ? games : games.filter(function(g) { return nearWeeks.indexOf(parseInt(g.week, 10)) >= 0; });
+      var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:6px">Pick one player from each team. You can change picks until kickoff. Nobody sees your picks until the game starts.</div>' +
+        '<div class="submit-msg" id="fr-msg" style="text-align:left;min-height:0"></div>';
+      var lastWeek = null;
+      shown.forEach(function(g, i) {
+        if (g.week !== lastWeek) { lastWeek = g.week; h += '<div class="sch-week">Week ' + g.week + '</div>'; }
+        var picked = g.myHome && g.myAway;
+        var ko = g.kickoff ? new Date(g.kickoff).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : '';
+        h += '<div class="sch-game"><div class="sch-top"><span class="sch-slot">' + escHtml(g.slot) + '</span><span class="sch-ko">' + ko + '</span></div>' +
+          '<div class="sch-teams">' + teamPill(g.home, g.home) + ' <span style="color:rgba(255,255,255,0.45)">vs</span> ' + teamPill(g.away, g.away) + '</div>' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px">' +
+            '<div class="sch-status">' + (picked ? '✅ ' + coloredText(g.myHome, g.home) + ' / ' + coloredText(g.myAway, g.away) : '<span style="color:#A1A9B6">Not picked yet</span>') + '</div>' +
+            '<button class="adm-btn' + (picked ? '' : ' green') + '" data-fg="' + games.indexOf(g) + '">' + (picked ? 'Change' : 'Pick') + '</button></div></div>';
+      });
+      if (!FRIEND.showLater && shown.length < games.length) h += '<div style="text-align:center;margin-top:8px"><button class="adm-btn" id="fr-later">Show later weeks</button></div>';
+      body.innerHTML = h;
+      body.querySelectorAll('[data-fg]').forEach(function(b) {
+        b.addEventListener('click', function() { renderFriendPicker(games[+b.getAttribute('data-fg')], res); });
+      });
+      var later = document.getElementById('fr-later');
+      if (later) later.addEventListener('click', function() { FRIEND.showLater = true; renderFriendHome(res); });
+    }
+
+    function renderFriendPicker(g, res) {
+      var sel = { home: g.myHome || null, away: g.myAway || null };
+      var body = playerScreen('fpick', '');
+      function column(side, team, players) {
+        var tc = TEAM_COLORS[team] || { bg: '#1C1C1E', text: '#FFFFFF', primary: '#1C1C1E' };
+        return '<div><div class="team-header-bar" style="background:' + (tc.bg || tc.primary) + ';color:' + tc.text + ';border-radius:8px;margin-bottom:8px">' + team + '</div>' +
+          players.map(function(n) {
+            return '<button class="pick-chip fr-chip" data-fs="' + side + '" data-fn="' + escHtml(n) + '">' + escHtml(n) +
+              '<span class="chip-scout" data-scout="' + escHtml(n) + '"></span></button>';
+          }).join('') + '</div>';
+      }
+      body.innerHTML = '<div style="text-align:center;margin-bottom:16px">' +
+          '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Week ' + g.week + ' · ' + escHtml(g.slot) + '</div>' +
+          '<div style="font-size:17px;font-weight:700">' + coloredGame(g.home, g.away) + '</div></div>' +
+        '<div class="two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px">' + column('home', g.home, g.homePlayers) + column('away', g.away, g.awayPlayers) + '</div>' +
+        '<div style="text-align:center;margin-top:16px"><button class="primary-btn" id="fr-save">Save Picks</button> <button class="link-btn" id="fr-back" style="margin-left:10px">Back</button>' +
+        '<div class="submit-msg" id="fr-msg"></div></div>';
+      function paint() {
+        body.querySelectorAll('.fr-chip').forEach(function(b) {
+          var side = b.getAttribute('data-fs'), on = sel[side] === b.getAttribute('data-fn');
+          var tc = TEAM_COLORS[side === 'home' ? g.home : g.away] || { bg: '#1F2937', text: '#FFFFFF', primary: '#1F2937' };
+          b.style.background = on ? (tc.bg || tc.primary) : 'rgba(255,255,255,0.04)';
+          b.style.color = on ? tc.text : '#F3F4F6';
+          b.style.borderColor = on ? (tc.dark || tc.primary) : 'rgba(255,255,255,0.12)';
+          b.classList.toggle('chip-on', on);
+        });
+        document.getElementById('fr-save').disabled = !(sel.home && sel.away);
+      }
+      body.querySelectorAll('.fr-chip').forEach(function(b) {
+        b.addEventListener('click', function() { sel[b.getAttribute('data-fs')] = b.getAttribute('data-fn'); paint(); });
+      });
+      document.getElementById('fr-back').addEventListener('click', function() { renderFriendHome(res); });
+      document.getElementById('fr-save').addEventListener('click', function() {
+        var btn = this, msg = document.getElementById('fr-msg');
+        btn.disabled = true; btn.textContent = 'Saving…';
+        picksApi({ pin: SUB.pin, action: 'fpick', week: g.week, game: g.game, home: sel.home, away: sel.away }).then(function(r) {
+          if (r.error) { btn.disabled = false; btn.textContent = 'Save Picks'; msg.style.color = '#F87171'; msg.textContent = r.error; return; }
+          g.myHome = r.homePick; g.myAway = r.awayPick;
+          CROWD.data = null;
+          renderFriendHome(res);
+          var m = document.getElementById('fr-msg');
+          if (m) { m.style.color = '#6EE7B7'; m.textContent = '✅ Saved Week ' + r.week + ': ' + r.homePick + ' / ' + r.awayPick; }
+        }).catch(function() { btn.disabled = false; btn.textContent = 'Save Picks'; msg.style.color = '#F87171'; msg.textContent = 'Couldn\'t reach the sheet. Try again.'; });
+      });
+      paint();
+      loadPlayerDB().then(fillScouting);
+    }
+
+    // ── Admin: friends ──────────────────────────────────────────────────────
+    function adminFriends() {
+      var body = adminScreen('friends', '<div class="loading">Loading…</div>');
+      picksApi({ pin: SUB.pin, action: 'friends' }).then(function(res) {
+        ADMIN.friends = res.friends || [];
+        var list = ADMIN.friends;
+        var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">Friends log in with their PIN to make their own picks. PINs are stored in the script, not the sheet. Text each friend their PIN.</div>' +
+          '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">' +
+            '<input class="adm-input" id="fr-name" placeholder="Name" maxlength="24" style="flex:2;min-width:140px">' +
+            '<input class="adm-input" id="fr-pin" placeholder="PIN" maxlength="4" inputmode="numeric" style="width:90px;letter-spacing:0.2em;text-align:center">' +
+            '<button class="adm-btn" id="fr-rand" title="Random PIN">🎲</button>' +
+            '<button class="primary-btn" id="fr-add" style="padding:9px 18px">Add Friend</button>' +
+          '</div><div class="submit-msg" id="adm-msg" style="text-align:left"></div>' +
+          '<div style="font-size:11px;font-weight:800;letter-spacing:0.12em;color:#A1A9B6;margin:14px 0 4px">FRIENDS (' + list.length + ')</div>';
+        h += list.length ? list.map(function(f) {
+          return '<div class="adm-row"><div><b style="color:' + FRIEND_COLOR + '">' + escHtml(f.name) + '</b> <span style="color:#A1A9B6;letter-spacing:0.15em;margin-left:6px">' + f.pin + '</span></div>' +
+            '<div style="display:flex;gap:6px"><button class="adm-btn" data-fprof="' + escHtml(f.name) + '">Profile</button>' +
+            '<button class="adm-btn red" data-frm="' + escHtml(f.name) + '">Remove</button></div></div>';
+        }).join('') : '<div style="color:#A1A9B6;font-size:13px;padding:10px 0">No friends yet.</div>';
+        body.innerHTML = h;
+        document.getElementById('fr-rand').addEventListener('click', function() {
+          var taken = list.map(function(f) { return f.pin; }), pin;
+          do { pin = String(Math.floor(Math.random() * 10000)).padStart(4, '0'); } while (taken.indexOf(pin) >= 0);
+          document.getElementById('fr-pin').value = pin;
+        });
+        document.getElementById('fr-add').addEventListener('click', function() {
+          var name = document.getElementById('fr-name').value.trim(), pin = document.getElementById('fr-pin').value.trim();
+          if (!name) return adminMsg('Type a name.');
+          if (!/^\d{4}$/.test(pin)) return adminMsg('PINs are 4 digits.');
+          adminMsg('Saving…', true);
+          picksApi({ pin: SUB.pin, action: 'friendadd', name: name, newpin: pin }).then(function(r) {
+            if (r.error) return adminMsg(r.error);
+            CROWD.data = null; adminFriends();
+          }).catch(function() { adminMsg('Couldn\'t reach the sheet.'); });
+        });
+        body.querySelectorAll('[data-frm]').forEach(function(b) {
+          b.addEventListener('click', function() {
+            var n = b.getAttribute('data-frm');
+            if (!confirm('Remove ' + n + '? Their PIN stops working and they drop off the Crowd tab. Their old picks stay saved in the private sheet.')) return;
+            picksApi({ pin: SUB.pin, action: 'friendrm', name: n }).then(function() { CROWD.data = null; adminFriends(); });
+          });
+        });
+        body.querySelectorAll('[data-fprof]').forEach(function(b) {
+          b.addEventListener('click', function() { openProfile(b.getAttribute('data-fprof')); });
+        });
+      });
+    }
+
+    // ── Crowd data (shared by the Crowd tab, Live Picks and friend profiles) ──
+    var CROWD = { data: null, at: 0 };
+    function getCrowd() {
+      if (!PICKS_URL) return Promise.resolve({ friends: [], picks: [], counts: {} });
+      if (CROWD.data && Date.now() - CROWD.at < 60000) return Promise.resolve(CROWD.data);
+      return picksApi({ action: 'crowd' }).then(function(d) { CROWD.data = d; CROWD.at = Date.now(); return d; });
+    }
+
+    // One entry per game from this season's public sheet
+    function crowdGames(values) {
+      var G = {};
+      values.slice(1).forEach(function(r) {
+        var picker = (r[3] || '').trim();
+        if (!r[0] || !r[4]) return;
+        var k = (r[1] || '') + '_' + r[0];
+        var g = G[k] || (G[k] = { key: k, week: parseInt(r[1]) || 0, game: parseInt(r[0]) || 0, slot: (r[2] || '').trim(), home: resolveTeam(r[4]), away: resolveTeam(r[5]),
+          scorer: '', notOffered: false, md: {}, mdCorrect: {} });
+        if ((r[11] || '').trim()) g.scorer = r[11].trim();
+        if ((r[14] || '').trim() === 'No' && (parseFloat(r[15]) || 0) === 0 && (r[11] || '').trim()) g.notOffered = true;
+        if (picker === 'Maria' || picker === 'Danielle') {
+          g.md[picker] = [(r[6] || '').trim(), (r[7] || '').trim()];
+          g.mdCorrect[picker] = (r[12] || '').trim();
+        }
+      });
+      return G;
+    }
+
+    // Stats for one friend. rows: [{week, game, homePick, awayPick}], others: every revealed friend pick (for Lone Wolf)
+    function friendStats(name, rows, G, others) {
+      var list = rows.map(function(r) { return { r: r, g: G[r.week + '_' + r.game] }; })
+        .filter(function(x) { return x.g; })
+        .sort(function(a, b) { return a.g.week - b.g.week || a.g.game - b.g.game; });
+      var S = { name: name, picks: list.length, w: 0, n: 0, heater: { n: 0 }, drought: { n: 0 }, cur: { type: '', n: 0 }, lone: [], hits: [], weeks: {}, players: {}, playerHits: {}, upcoming: [] };
+      var cw = 0, cl = 0;
+      list.forEach(function(x) {
+        var r = x.r, g = x.g;
+        [r.homePick, r.awayPick].filter(Boolean).forEach(function(p) { S.players[p] = (S.players[p] || 0) + 1; });
+        if (!g.scorer) { S.upcoming.push(x); return; }
+        if (g.notOffered) return;
+        var hit = playerKey(g.scorer) === playerKey(r.homePick) || playerKey(g.scorer) === playerKey(r.awayPick);
+        S.n++;
+        var W = S.weeks[g.week] || (S.weeks[g.week] = { w: 0, n: 0 });
+        W.n++;
+        if (hit) {
+          S.w++; W.w++; cw++; cl = 0;
+          S.playerHits[g.scorer] = true;
+          S.hits.push(x);
+          if (cw > S.heater.n) S.heater = { n: cw, at: g.week };
+          var k = playerKey(g.scorer);
+          var mdHad = ['Maria', 'Danielle'].some(function(n) { return (g.md[n] || []).some(function(p) { return playerKey(p) === k; }); });
+          var friendHad = others.some(function(o) { return o.friend !== name && (o.week + '_' + o.game) === g.key && (playerKey(o.homePick) === k || playerKey(o.awayPick) === k); });
+          if (!mdHad && !friendHad) S.lone.push(x);
+        } else { cl++; cw = 0; if (cl > S.drought.n) S.drought = { n: cl, at: g.week }; }
+      });
+      S.cur = cw ? { type: 'W', n: cw } : cl ? { type: 'L', n: cl } : { type: '', n: 0 };
+      S.pct = S.n ? S.w / S.n : 0;
+      return S;
+    }
+
+    function mdStats(who, G) {
+      var keys = Object.keys(G).map(function(k) { return G[k]; }).sort(function(a, b) { return a.week - b.week || a.game - b.game; });
+      var S = { name: who, w: 0, n: 0 }, cw = 0, cl = 0;
+      keys.forEach(function(g) {
+        var c = g.mdCorrect[who];
+        if (!g.scorer || g.notOffered || (c !== 'Yes' && c !== 'No')) return;
+        S.n++;
+        if (c === 'Yes') { S.w++; cw++; cl = 0; } else { cl++; cw = 0; }
+      });
+      S.cur = cw ? { type: 'W', n: cw } : cl ? { type: 'L', n: cl } : { type: '', n: 0 };
+      S.pct = S.n ? S.w / S.n : 0;
+      return S;
+    }
+
+    var CROWD_MIN = 5; // games picked to be ranked
+    function pctTxt(p) { return Math.round(p * 100) + '%'; }
+    function streakTxt(c) { return c.n ? (c.type === 'W' ? '🔥 W' : '🧊 L') + c.n : '—'; }
+
+    function rankFriends(crowd, G) {
+      var byFriend = {};
+      crowd.friends.forEach(function(n) { byFriend[n] = []; });
+      crowd.picks.forEach(function(p) { if (byFriend[p.friend]) byFriend[p.friend].push(p); });
+      var stats = crowd.friends.map(function(n) { return friendStats(n, byFriend[n], G, crowd.picks); });
+      var ranked = stats.filter(function(s) { return s.n >= CROWD_MIN; }).sort(function(a, b) { return b.pct - a.pct || b.n - a.n; });
+      var unranked = stats.filter(function(s) { return s.n < CROWD_MIN; }).sort(function(a, b) { return b.n - a.n; });
+      return { stats: stats, ranked: ranked, unranked: unranked };
+    }
+
+    // ── 🏅 Crowd tab ────────────────────────────────────────────────────────
+    function loadCrowdTab() {
+      var el = document.getElementById('crowd-content');
+      if (!el.innerHTML) el.innerHTML = '<div class="loading">Loading the crowd…</div>';
+      Promise.all([getCrowd(), fetchSheet('Winnings', 'A1:Q400')]).then(function(res) {
+        var crowd = res[0], G = crowdGames(res[1]);
+        var h = '<div style="text-align:center;margin-bottom:18px"><div style="font-size:22px;font-weight:800">🏅 The Crowd</div>' +
+          '<div style="font-size:12px;color:#A1A9B6;margin-top:4px">Friends make their own picks each game. Ranked by win % (' + CROWD_MIN + '+ games to qualify). Picks show at kickoff.</div></div>';
+        if (!crowd.friends || !crowd.friends.length) { el.innerHTML = h + '<div class="loading">No friends have joined yet.</div>'; return; }
+        var R = rankFriends(crowd, G);
+        var ref = ['Maria', 'Danielle'].map(function(n) { var s = mdStats(n, G); s.ref = true; return s; });
+
+        // Leaderboard, with Maria and Danielle slotted in as reference rows
+        var board = R.ranked.concat(ref).sort(function(a, b) { return b.pct - a.pct || b.n - a.n; });
+        var rank = 0;
+        h += '<table class="cr-table"><tr><th>#</th><th>Name</th><th>Record</th><th>Win %</th><th>Streak</th></tr>';
+        board.forEach(function(s) {
+          var c = s.ref ? (s.name === 'Maria' ? SB_M : SB_D) : FRIEND_COLOR;
+          if (!s.ref) rank++;
+          h += '<tr class="' + (s.ref ? 'ref' : '') + '"><td>' + (s.ref ? '' : (rank === 1 ? '👑' : rank)) + '</td>' +
+            '<td style="font-weight:700;color:' + c + '">' + escHtml(s.name) + (s.ref ? ' <span style="font-size:10px;color:#A1A9B6">(for reference)</span>' : '') + '</td>' +
+            '<td>' + s.w + '–' + (s.n - s.w) + '</td><td style="font-weight:800">' + pctTxt(s.pct) + '</td><td>' + streakTxt(s.cur) + '</td></tr>';
+        });
+        h += '</table>';
+        if (R.unranked.length) {
+          h += '<div style="font-size:11px;font-weight:800;letter-spacing:0.12em;color:#A1A9B6;margin:16px 0 6px">UNRANKED (UNDER ' + CROWD_MIN + ' GAMES)</div>' +
+            R.unranked.map(function(s) {
+              return '<div class="adm-row"><span style="font-weight:700;color:' + FRIEND_COLOR + '">' + escHtml(s.name) + '</span><span style="color:#A1A9B6">' + s.w + '–' + (s.n - s.w) + ' · ' + s.n + ' game' + (s.n === 1 ? '' : 's') + '</span></div>';
+            }).join('');
+        }
+
+        // Weekly best
+        var weeks = {};
+        R.stats.forEach(function(s) {
+          Object.keys(s.weeks).forEach(function(w) {
+            var W = weeks[w] || (weeks[w] = { best: 0, who: [] });
+            if (s.weeks[w].w > W.best) { W.best = s.weeks[w].w; W.who = [s.name]; }
+            else if (s.weeks[w].w === W.best && W.best > 0) W.who.push(s.name);
+          });
+        });
+        var wkKeys = Object.keys(weeks).filter(function(w) { return weeks[w].best > 0; }).sort(function(a, b) { return b - a; });
+        if (wkKeys.length) {
+          h += '<div class="pf-h" style="margin-top:22px">🗓️ Weekly Best</div>' + wkKeys.map(function(w) {
+            return '<div class="adm-row"><span style="color:#A1A9B6">Week ' + w + '</span><span><b style="color:' + FRIEND_COLOR + '">' + weeks[w].who.map(escHtml).join(' & ') + '</b> · ' + weeks[w].best + ' hit' + (weeks[w].best > 1 ? 's' : '') + '</span></div>';
+          }).join('');
+        }
+
+        // Game by game (only games that have kicked off)
+        var byGame = {};
+        crowd.picks.forEach(function(p) { (byGame[p.week + '_' + p.game] = byGame[p.week + '_' + p.game] || []).push(p); });
+        var gKeys = Object.keys(byGame).filter(function(k) { return G[k]; }).sort(function(a, b) { return G[b].week - G[a].week || G[b].game - G[a].game; });
+        if (gKeys.length) {
+          h += '<div class="pf-h" style="margin-top:22px">🏈 Game by Game</div>';
+          gKeys.forEach(function(k, i) {
+            var g = G[k], sk = playerKey(g.scorer);
+            function pk(p, team) {
+              var hit = g.scorer && playerKey(p) === sk;
+              return '<span style="' + (hit ? 'color:#34D399;font-weight:800' : '') + '">' + escHtml(p) + (hit ? ' ✅' : '') + '</span>';
+            }
+            h += '<div class="sch-game" style="' + (i >= 6 ? 'display:none' : '') + '" data-cg="1"><div class="sch-top"><span class="sch-slot">Week ' + g.week + ' · ' + escHtml(g.slot) + '</span>' +
+              '<span class="sch-ko">' + (g.scorer ? '🏈 ' + escHtml(g.scorer) : '⏳ In progress') + '</span></div>' +
+              '<div class="sch-teams">' + teamPill(g.home, g.home) + ' <span style="color:rgba(255,255,255,0.45)">vs</span> ' + teamPill(g.away, g.away) + '</div>' +
+              byGame[k].map(function(p) {
+                return '<div style="font-size:12px;padding:3px 0"><b style="color:' + FRIEND_COLOR + '">' + escHtml(p.friend) + '</b> · ' + pk(p.homePick) + ' / ' + pk(p.awayPick) + '</div>';
+              }).join('') + '</div>';
+          });
+          if (gKeys.length > 6) h += '<div style="text-align:center"><button class="link-btn" id="cr-more">Show all ' + gKeys.length + ' games</button></div>';
+        }
+        el.innerHTML = h;
+        var more = document.getElementById('cr-more');
+        if (more) more.addEventListener('click', function() { el.querySelectorAll('[data-cg]').forEach(function(d) { d.style.display = ''; }); more.remove(); });
+      }).catch(function() { el.innerHTML = '<div class="loading">Couldn\'t load the crowd right now.</div>'; });
+    }
+
+    // Live Picks: "👥 N friends have picked"
+    function addCrowdLines(root) {
+      getCrowd().then(function(crowd) {
+        root.querySelectorAll('.live-game[data-wg]').forEach(function(g) {
+          var n = (crowd.counts || {})[g.getAttribute('data-wg')] || 0;
+          var old = g.querySelector('.cr-line'); if (old) old.remove();
+          if (!n) return;
+          var title = g.querySelector('.live-game-title');
+          title.insertAdjacentHTML('afterend', '<div class="cr-line">👥 ' + n + ' friend' + (n > 1 ? 's have' : ' has') + ' picked this game</div>');
+        });
+      }).catch(function() {});
+    }
+
+    // ── Friend profiles (only that friend, or admin) ────────────────────────
+    function renderFriendProfile(name) {
+      var el = document.getElementById('profiles-content');
+      el.innerHTML = profileSwitchHtml(name) + '<div class="loading">Loading profile…</div>';
+      bindProfileSwitch(el);
+      var mine = SUB.role === 'admin' ? picksApi({ pin: SUB.pin, action: 'fall' }) : picksApi({ pin: SUB.pin, action: 'fmine' });
+      Promise.all([mine, getCrowd(), fetchSheet('Winnings', 'A1:Q400')]).then(function(res) {
+        if (res[0].error) { el.innerHTML = profileSwitchHtml('Maria') + '<div class="loading">' + res[0].error + '</div>'; bindProfileSwitch(el); return; }
+        if (SUB.role === 'admin' && res[0].friends && !(ADMIN.friends && ADMIN.friends.length)) ADMIN.friends = res[0].friends.map(function(n) { return { name: n }; });
+        var rows = (res[0].rows || []).filter(function(r) { return r.friend === name && String(r.season) === String(CURRENT_YEAR); });
+        var crowd = res[1], G = crowdGames(res[2]);
+        var S = friendStats(name, rows, G, crowd.picks);
+        var R = rankFriends(crowd, G);
+        var rank = R.ranked.map(function(s) { return s.name; }).indexOf(name) + 1;
+        var favs = Object.keys(S.players).sort(function(a, b) { return S.players[b] - S.players[a]; });
+        var fav = favs[0];
+        var cursed = favs.filter(function(p) { return !S.playerHits[p] && S.players[p] >= 5; })[0];
+        var sweep = Object.keys(S.weeks).filter(function(w) { return S.weeks[w].n >= 2 && S.weeks[w].w === S.weeks[w].n; })[0];
+        var holiday = S.hits.filter(function(x) { return /thanksgiving|black friday|christmas/i.test(x.g.slot); })[0];
+        var intl = S.hits.filter(function(x) { return /international/i.test(x.g.slot); })[0];
+        var playerPicks = Object.keys(S.players).reduce(function(a, p) { return a + S.players[p]; }, 0);
+        function hitW(x) { return x ? 'Wk ' + x.g.week + ' · ' + x.g.scorer : ''; }
+
+        var h = profileSwitchHtml(name);
+        h += '<div class="pf-hero" style="--pc:' + FRIEND_COLOR + ';background:linear-gradient(140deg,#0F0F12 0%,#0B2E2B 55%,#0F766E 100%)">' +
+          '<div style="width:96px;height:96px;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:800;background:rgba(255,255,255,0.08);border:3px solid ' + FRIEND_COLOR + ';box-shadow:0 0 30px -4px ' + FRIEND_COLOR + '">' + escHtml(name.charAt(0).toUpperCase()) + '</div>' +
+          '<div class="pf-name">' + escHtml(name) + '</div>' +
+          '<div class="pf-sub">' + CURRENT_YEAR + ' Crowd · ' + (rank ? 'Ranked #' + rank + ' of ' + R.ranked.length : 'Unranked (' + S.n + '/' + CROWD_MIN + ' games)') + (SUB.role === 'admin' ? ' · 🔒 Admin view' : ' · 🔒 Only you can see this') + '</div>' +
+          '<div class="pf-big"><div><b>' + S.w + '–' + (S.n - S.w) + '</b><span>Record</span></div>' +
+          '<div><b style="color:#34D399">' + pctTxt(S.pct) + '</b><span>Win %</span></div>' +
+          '<div><b>' + streakTxt(S.cur) + '</b><span>Streak</span></div></div></div>';
+
+        function tile(l, v, sub) { return '<div class="pf-tile"><div class="l">' + l + '</div><div class="v">' + v + '</div>' + (sub ? '<div class="s">' + sub + '</div>' : '') + '</div>'; }
+        var last = S.hits[S.hits.length - 1];
+        h += '<div class="pf-tiles">' +
+          tile('Latest Hit', last ? escHtml(last.g.scorer) : '—', last ? 'Week ' + last.g.week : '') +
+          tile('Lone Wolves', S.lone.length, 'Hits nobody else had') +
+          tile('Longest Heater', S.heater.n + ' straight', S.heater.n ? 'through Wk ' + S.heater.at : '') +
+          tile('Ride or Die', fav ? escHtml(fav) : '—', fav ? 'picked ' + S.players[fav] + 'x' : '') +
+          tile('Games Picked', S.picks, S.upcoming.length + ' still to play') +
+          tile('vs Maria & Danielle', (function() { var m = mdStats('Maria', G), d = mdStats('Danielle', G); return 'M ' + pctTxt(m.pct) + ' · D ' + pctTxt(d.pct); })(), 'their win % this season') +
+          '</div>';
+
+        if (S.upcoming.length) {
+          h += '<div class="pf-h">⏳ Upcoming Picks <small>hidden from others until kickoff</small></div>' + S.upcoming.map(function(x) {
+            return '<div class="adm-row"><span style="color:#A1A9B6">Wk ' + x.g.week + ' · ' + escHtml(x.g.slot) + '</span><span>' + coloredText(x.r.homePick, x.g.home) + ' / ' + coloredText(x.r.awayPick, x.g.away) + '</span></div>';
+          }).join('') + '<div style="height:18px"></div>';
+        }
+
+        var A = [
+          { ic: '🐺', n: 'Lone Wolf', d: 'Hit a scorer nobody else had', got: S.lone.length > 0, w: hitW(S.lone[0]) },
+          { ic: '🔥', n: 'Heater', d: '3 hits in a row', got: S.heater.n >= 3, w: 'Best run: ' + S.heater.n, p: [Math.min(S.heater.n, 3), 3] },
+          { ic: '🌋', n: 'On Fire', d: '5 hits in a row', got: S.heater.n >= 5, w: 'Best run: ' + S.heater.n, p: [Math.min(S.heater.n, 5), 5] },
+          { ic: '🧹', n: 'Clean Sweep', d: 'Hit every game in a week (2+)', got: !!sweep, w: sweep ? 'Week ' + sweep : '' },
+          { ic: '❤️', n: 'Ride or Die', d: 'Pick the same player 10 times', got: !!(fav && S.players[fav] >= 10), w: fav ? escHtml(fav) + ' · ' + S.players[fav] + 'x' : '', p: [fav ? Math.min(S.players[fav], 10) : 0, 10] },
+          { ic: '🦃', n: 'Holiday Hero', d: 'Hit on Thanksgiving, Black Friday or Christmas', got: !!holiday, w: hitW(holiday) },
+          { ic: '🌍', n: 'Globetrotter', d: 'Hit in an International game', got: !!intl, w: hitW(intl) },
+          { ic: '💯', n: 'Century', d: 'Pick 100 players', got: playerPicks >= 100, w: playerPicks + ' players', p: [Math.min(playerPicks, 100), 100] },
+          { shame: true, ic: '🧊', n: 'Ice Cold', d: '5 misses in a row', got: S.drought.n >= 5, w: 'Worst run: ' + S.drought.n, p: [Math.min(S.drought.n, 5), 5] },
+          { shame: true, ic: '💀', n: 'Cursed', d: 'Pick a player 5 times who never hits for you', got: !!cursed, w: cursed ? escHtml(cursed) + ' · 0 for ' + S.players[cursed] : '' },
+        ];
+        function badges(list) {
+          list.sort(function(a, b) { return (b.got ? 1 : 0) - (a.got ? 1 : 0); });
+          return '<div class="pf-badges">' + list.map(function(a) {
+            var prog = (!a.got && a.p) ? '<div class="pf-bar"><i style="width:' + Math.round(a.p[0] / a.p[1] * 100) + '%"></i></div><div class="pg">' + a.p[0] + ' / ' + a.p[1] + '</div>' : '';
+            return '<div class="pf-badge ' + (a.got ? 'got' : 'locked') + (a.shame ? ' shame' : '') + '"><div class="ic">' + a.ic + '</div><div class="n">' + a.n + '</div><div class="d">' + a.d + '</div>' +
+              (a.got && a.w ? '<div class="w">' + a.w + '</div>' : '') + prog + '</div>';
+          }).join('') + '</div>';
+        }
+        var glory = A.filter(function(a) { return !a.shame; }), shame = A.filter(function(a) { return a.shame; });
+        h += '<div class="pf-h">🏆 Trophy Case <small>' + glory.filter(function(a) { return a.got; }).length + ' / ' + glory.length + ' unlocked</small></div>' + badges(glory);
+        h += '<div class="pf-h">🤡 Hall of Shame <small>' + shame.filter(function(a) { return a.got; }).length + ' / ' + shame.length + '</small></div>' + badges(shame);
+        el.innerHTML = h;
+        bindProfileSwitch(el);
+      }).catch(function() { el.innerHTML = profileSwitchHtml('Maria') + '<div class="loading">Couldn\'t load this profile.</div>'; bindProfileSwitch(el); });
+    }
+
+
     function playerHeader(name, active) {
       var pc = personColor(name);
+      var sections = SUB.role === 'friend' ? FRIEND_SECTIONS : PLAYER_SECTIONS;
+      if (SUB.role === 'friend') pc = '#2DD4BF';
       return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
         '<div style="font-size:16px;font-weight:700">Hi <span style="color:' + pc + '">' + name + '</span></div>' +
         '<button class="link-btn" id="sub-switch">Log out</button></div>' +
-        '<div class="adm-nav">' + PLAYER_SECTIONS.map(function(t) {
+        '<div class="adm-nav">' + sections.map(function(t) {
           return '<button data-pl="' + t[0] + '" class="' + (t[0] === active ? 'on' : '') + '">' + t[1] + '</button>';
         }).join('') + '</div>';
     }
@@ -3206,6 +3630,12 @@
         switchTab('chat');
       }
       if (section === 'profile') openProfile(SUB.name);
+      if (section === 'fpick') {
+        playerScreen('fpick', '<div class="loading">Loading…</div>');
+        picksApi({ pin: SUB.pin }).then(function(res) { if (!res.error) renderFriendHome(res); else renderPinScreen(res.error); });
+      }
+      if (section === 'fprofile') openProfile(SUB.name);
+      if (section === 'crowd') switchTab('crowd');
     }
 
     // ✏️ Change Pick: games where the other person hasn't picked yet
@@ -3294,7 +3724,7 @@
     var ADMIN = { oddsRes: null };
 
     function adminHeader(active) {
-      var tabs = [['odds', '💲 Odds'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['check', '🔍 Data Check']];
+      var tabs = [['odds', '💲 Odds'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['check', '🔍 Data Check']];
       return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
         '<div style="font-size:16px;font-weight:700">Hi John</div>' +
         '<button class="link-btn" id="sub-switch">Log out</button></div>' +
@@ -3319,6 +3749,7 @@
     }
 
     function showAdmin(section) {
+      if (section === 'friends') adminFriends();
       if (section === 'odds') {
         adminScreen('odds', '<div class="loading">Loading…</div>');
         picksApi({ pin: SUB.pin }).then(function(res) { if (res.admin) renderOdds(res); });

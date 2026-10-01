@@ -1,4 +1,4 @@
-<!-- v53 -->
+<!-- v54 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,6 +14,23 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="MvD">
+  <script>
+    // Holiday themes: picked by date. Preview any with ?theme=halloween|thanksgiving|christmas|playoffs|off
+    (function() {
+      var d = new Date(), m = d.getMonth(), day = d.getDate(), t = '';
+      var q = (location.search.match(/[?&]theme=(\w+)/) || [])[1];
+      // Thanksgiving = 4th Thursday of November; theme runs Mon–Sun of that week
+      var nov1 = new Date(d.getFullYear(), 10, 1).getDay();
+      var tg = 1 + ((4 - nov1 + 7) % 7) + 21;
+      if (m === 9 && day >= 24) t = 'halloween';
+      else if (m === 10 && day >= tg - 3 && day <= tg + 3) t = 'thanksgiving';
+      else if (m === 11 && day >= 18 && day <= 26) t = 'christmas';
+      else if ((m === 0 && day >= 10) || (m === 1 && day <= 14)) t = 'playoffs';
+      if (q) t = q === 'off' ? '' : q;
+      if (t) document.documentElement.className += ' theme-' + t;
+      window.HOLIDAY_THEME = t;
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -32,9 +49,9 @@
       font-family: 'Inter', sans-serif;
       font-size: 13px;
       font-weight: 500;
-      padding: 10px 12px;
+      padding: 10px 8px;
       white-space: nowrap;
-      flex-shrink: 0;
+      flex: 1 0 auto;
       border: none;
       background: none;
       cursor: pointer;
@@ -682,6 +699,74 @@
     .sb .live-pick-card.danielle .picker-label { color: var(--d); }
     .sb .live-pick-card .pick-player { color: #FFFFFF; line-height: 1.8; }
     .sb .live-pick-card .pick-odds { color: rgba(255,255,255,0.6); }
+
+    /* ── Holiday themes ── */
+    .holiday-pill {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      margin: -8px auto 18px; width: fit-content; max-width: 100%;
+      font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 7px 16px; border-radius: 999px; color: #FFFFFF;
+      background: linear-gradient(90deg, var(--h1), var(--h2));
+      box-shadow: 0 6px 24px -6px var(--h1);
+    }
+    html[class*="theme-"] .wrap { border-top: 2px solid var(--h1); }
+    html[class*="theme-"] .sb#sb-main { position: relative; overflow: hidden; box-shadow: 0 0 0 1px var(--h1), 0 20px 60px -20px var(--h1); }
+
+    html.theme-halloween { --h1: #F97316; --h2: #7C3AED; }
+    html.theme-halloween body {
+      background: radial-gradient(900px 600px at -10% -10%, rgba(249,115,22,0.28), transparent 60%),
+                  radial-gradient(900px 600px at 110% 0%, rgba(124,58,237,0.30), transparent 60%),
+                  radial-gradient(1200px 800px at 50% 120%, rgba(249,115,22,0.08), transparent 60%), #07060A;
+      background-attachment: fixed;
+    }
+    html.theme-thanksgiving { --h1: #D97706; --h2: #9A3412; }
+    html.theme-thanksgiving body {
+      background: radial-gradient(900px 600px at -10% -10%, rgba(217,119,6,0.28), transparent 60%),
+                  radial-gradient(900px 600px at 110% 0%, rgba(154,52,18,0.32), transparent 60%),
+                  radial-gradient(1200px 800px at 50% 120%, rgba(251,191,36,0.07), transparent 60%), #0A0806;
+      background-attachment: fixed;
+    }
+    html.theme-christmas { --h1: #DC2626; --h2: #15803D; }
+    html.theme-christmas body {
+      background: radial-gradient(900px 600px at -10% -10%, rgba(220,38,38,0.28), transparent 60%),
+                  radial-gradient(900px 600px at 110% 0%, rgba(21,128,61,0.32), transparent 60%),
+                  radial-gradient(1200px 800px at 50% 120%, rgba(255,255,255,0.07), transparent 60%), #06090A;
+      background-attachment: fixed;
+    }
+    html.theme-playoffs { --h1: #EAB308; --h2: #A16207; }
+    html.theme-playoffs body {
+      background: radial-gradient(900px 600px at -10% -10%, rgba(234,179,8,0.24), transparent 60%),
+                  radial-gradient(900px 600px at 110% 0%, rgba(161,98,7,0.28), transparent 60%),
+                  radial-gradient(1200px 800px at 50% 120%, rgba(255,255,255,0.06), transparent 60%), #09080A;
+      background-attachment: fixed;
+    }
+    html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
+
+    /* A few drifting decorations inside the scoreboard card (GPU transforms only, ~16 elements) */
+    .holiday-fx { position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .sb#sb-main > *:not(.holiday-fx) { position: relative; z-index: 1; }
+    .holiday-fx span {
+      position: absolute; top: -24px; opacity: 0.55; will-change: transform;
+      animation: hfxFall linear infinite;
+    }
+    @keyframes hfxFall { to { transform: translate3d(var(--drift, 20px), 1400px, 0) rotate(var(--spin, 180deg)); } }
+    @media (prefers-reduced-motion: reduce) { .holiday-fx { display: none; } }
+
+    /* Trash Talk */
+    .chat-compose { background: linear-gradient(160deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03)); border: 1px solid rgba(255,255,255,0.09); border-radius: 16px; padding: 16px; margin-bottom: 20px; }
+    .chat-input { width: 100%; resize: none; font-family: 'Inter', sans-serif; font-size: 15px; line-height: 1.45; color: #F3F4F6; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 12px 14px; outline: none; min-height: 72px; }
+    .chat-input:focus { border-color: rgba(255,255,255,0.4); }
+    .chat-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+    .chat-pin { font-family: 'Inter', sans-serif; width: 92px; font-size: 15px; letter-spacing: 0.35em; text-align: center; color: #F3F4F6; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 9px 6px; outline: none; }
+    .chat-feed { display: flex; flex-direction: column; gap: 10px; }
+    .chat-msg { max-width: 82%; padding: 10px 14px 9px; border-radius: 16px; font-size: 14px; line-height: 1.45; word-wrap: break-word; overflow-wrap: anywhere; }
+    .chat-msg.maria { align-self: flex-start; background: linear-gradient(150deg, rgba(220,38,38,0.32), rgba(220,38,38,0.14)); border: 1px solid rgba(248,113,113,0.3); border-bottom-left-radius: 5px; }
+    .chat-msg.danielle { align-self: flex-end; background: linear-gradient(150deg, rgba(37,99,235,0.34), rgba(37,99,235,0.14)); border: 1px solid rgba(96,165,250,0.3); border-bottom-right-radius: 5px; }
+    .chat-meta { font-size: 11px; font-weight: 700; margin-bottom: 3px; display: flex; gap: 8px; align-items: baseline; }
+    .chat-meta .chat-time { font-weight: 500; color: rgba(255,255,255,0.45); }
+    .chat-day { align-self: center; font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin: 8px 0 2px; }
+    .chat-pinned { border: 1px solid rgba(251,191,36,0.4); background: linear-gradient(150deg, rgba(251,191,36,0.14), rgba(251,191,36,0.05)); border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; font-size: 14px; }
+
     /* Injured players */
     .out-badge { display: inline-block; font-size: 9px; font-weight: 800; letter-spacing: 0.08em; color: #FCA5A5; background: rgba(248,113,113,0.16); border: 1px solid rgba(248,113,113,0.35); border-radius: 4px; padding: 0 5px; margin-left: 6px; vertical-align: 1px; text-decoration: none !important; }
     .player-row.is-out > span:last-child > span:first-child { text-decoration: line-through; text-decoration-color: rgba(248,113,113,0.6); opacity: 0.6; }
@@ -835,6 +920,7 @@
     <nav class="tabs-nav">
       <button class="tab-btn active" onclick="switchTab('stats')">Stats</button>
       <button class="tab-btn" onclick="switchTab('submit')">Submit Picks</button>
+      <button class="tab-btn" onclick="switchTab('chat')">Trash Talk</button>
       <button class="tab-btn" onclick="switchTab('analytics')">Analytics</button>
       <button class="tab-btn" onclick="switchTab('money')">Money</button>
       <button class="tab-btn" onclick="switchTab('legacy')">Legacy</button>
@@ -871,6 +957,10 @@
     </div>
 
     </div><!-- end tab-stats -->
+
+    <div id="tab-chat" class="tab-panel">
+      <div id="chat-content"></div>
+    </div>
 
     <div id="tab-submit" class="tab-panel">
       <div id="submit-content"></div>
@@ -1931,6 +2021,7 @@
       if (name === 'analytics') loadAnalyticsTab();
       if (name === 'bethistory') loadBetHistoryTab();
       if (name === 'submit') loadSubmitTab();
+      if (name === 'chat') loadChatTab(); else stopChatRefresh();
     }
 
     // ── Submit Picks tab ─────────────────────────────────────────────────────
@@ -2146,6 +2237,183 @@
         '. You\'ve been logged out.</div>';
       renderPinScreen('', done);
       load(); // refresh Stats / Live Picks
+    }
+
+
+
+    // ── Holiday theme extras ────────────────────────────────────────────────
+    (function() {
+      var THEMES = {
+        halloween:    { label: '🎃 Spooky Season', fx: ['🦇', '🍂', '🦇'], n: 10 },
+        thanksgiving: { label: '🦃 Happy Thanksgiving', fx: ['🍂', '🍁', '🍂'], n: 12 },
+        christmas:    { label: '🎄 Merry Christmas', fx: ['❄', '❄', '❅'], n: 16, snow: true },
+        playoffs:     { label: '🏆 Playoff Time', fx: ['✦', '✧'], n: 12 },
+      };
+      var th = THEMES[window.HOLIDAY_THEME];
+      if (!th) return;
+      var nav = document.querySelector('.tabs-nav');
+      nav.insertAdjacentHTML('afterend', '<div class="holiday-pill">' + th.label + '</div>');
+      var card = document.getElementById('sb-main');
+      var fx = document.createElement('div');
+      fx.className = 'holiday-fx';
+      for (var i = 0; i < th.n; i++) {
+        var sp = document.createElement('span');
+        sp.textContent = th.fx[i % th.fx.length];
+        sp.style.left = (Math.random() * 100) + '%';
+        sp.style.fontSize = (th.snow ? 8 + Math.random() * 10 : 12 + Math.random() * 10) + 'px';
+        sp.style.animationDuration = (14 + Math.random() * 16) + 's';
+        sp.style.animationDelay = (-Math.random() * 30) + 's';
+        sp.style.setProperty('--drift', (Math.random() * 80 - 40) + 'px');
+        sp.style.setProperty('--spin', th.snow ? '0deg' : (Math.random() * 360 - 180) + 'deg');
+        if (th.snow) sp.style.color = '#FFFFFF';
+        if (window.HOLIDAY_THEME === 'playoffs') sp.style.color = '#FCD34D';
+        fx.appendChild(sp);
+      }
+      card.insertBefore(fx, card.firstChild);
+    })();
+
+    // ── Trash Talk wall ─────────────────────────────────────────────────────
+    // Everyone can read; only Maria and Danielle can post (with their PIN).
+    var CHAT = { timer: null, pin: '', name: '', lastKey: '' };
+
+    function escHtml(t) {
+      return (t || '').toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function loadChatTab() {
+      try { CHAT.pin = localStorage.getItem('mvd-chat-pin') || ''; CHAT.name = localStorage.getItem('mvd-chat-name') || ''; } catch (e) {}
+      renderChatShell();
+      refreshChat();
+      stopChatRefresh();
+      CHAT.timer = setInterval(refreshChat, 20000);
+    }
+    function stopChatRefresh() { if (CHAT.timer) { clearInterval(CHAT.timer); CHAT.timer = null; } }
+
+    function renderChatShell() {
+      var el = document.getElementById('chat-content');
+      if (el.querySelector('#chat-feed')) { renderComposer(); return; }
+      el.innerHTML =
+        '<div style="text-align:center;margin-bottom:18px">' +
+          '<div style="font-size:22px;font-weight:800;letter-spacing:-0.3px">Trash Talk 🗣️</div>' +
+          '<div style="font-size:12px;color:#A1A9B6;margin-top:4px">Everyone can read. Only <span style="color:' + SB_M + ';font-weight:700">Maria</span> and <span style="color:' + SB_D + ';font-weight:700">Danielle</span> can post.</div>' +
+        '</div>' +
+        '<div id="chat-compose"></div>' +
+        '<div id="chat-pinned"></div>' +
+        '<div class="chat-feed" id="chat-feed"><div class="loading">Loading…</div></div>';
+      renderComposer();
+    }
+
+    function renderComposer() {
+      var box = document.getElementById('chat-compose');
+      if (!PICKS_URL) { box.innerHTML = ''; return; }
+      var c = CHAT.name === 'Maria' ? SB_M : CHAT.name === 'Danielle' ? SB_D : '#F3F4F6';
+      box.innerHTML = '<div class="chat-compose">' +
+        '<textarea class="chat-input" id="chat-text" maxlength="280" placeholder="' + (CHAT.name ? 'Talk your trash, ' + CHAT.name + '…' : 'Say something…') + '"></textarea>' +
+        '<div class="chat-row">' +
+          (CHAT.pin
+            ? '<div style="font-size:12px;color:#A1A9B6">Posting as <b style="color:' + c + '">' + CHAT.name + '</b> · <button class="link-btn" id="chat-forget">Not you?</button></div>'
+            : '<div style="display:flex;align-items:center;gap:8px"><input class="chat-pin" id="chat-pin" type="password" inputmode="numeric" maxlength="4" placeholder="PIN" autocomplete="off">' +
+              '<label style="font-size:11px;color:#A1A9B6;display:flex;align-items:center;gap:5px"><input type="checkbox" id="chat-remember" checked> Remember me</label></div>') +
+          '<div style="display:flex;align-items:center;gap:10px"><span id="chat-count" style="font-size:11px;color:rgba(255,255,255,0.4)">280</span>' +
+          '<button class="primary-btn" id="chat-send" style="padding:10px 22px">Post</button></div>' +
+        '</div>' +
+        '<div class="submit-msg" id="chat-msg"></div></div>';
+      var ta = document.getElementById('chat-text');
+      ta.addEventListener('input', function() { document.getElementById('chat-count').textContent = 280 - ta.value.length; });
+      ta.addEventListener('keydown', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); } });
+      document.getElementById('chat-send').addEventListener('click', sendChat);
+      var f = document.getElementById('chat-forget');
+      if (f) f.addEventListener('click', function() {
+        CHAT.pin = ''; CHAT.name = '';
+        try { localStorage.removeItem('mvd-chat-pin'); localStorage.removeItem('mvd-chat-name'); } catch (e) {}
+        renderComposer();
+      });
+    }
+
+    function sendChat() {
+      var ta = document.getElementById('chat-text');
+      var msg = document.getElementById('chat-msg');
+      var btn = document.getElementById('chat-send');
+      var text = ta.value.trim();
+      var pin = CHAT.pin || ((document.getElementById('chat-pin') || {}).value || '').trim();
+      if (!text) return;
+      if (!pin) { msg.style.color = '#F87171'; msg.textContent = 'Enter your PIN to post.'; return; }
+      btn.disabled = true; btn.textContent = 'Posting…'; msg.textContent = '';
+      picksApi({ pin: pin, action: 'chat', text: text }).then(function(res) {
+        btn.disabled = false; btn.textContent = 'Post';
+        if (res.error) { msg.style.color = '#F87171'; msg.textContent = res.error; return; }
+        if (!CHAT.pin) {
+          var remember = document.getElementById('chat-remember');
+          CHAT.name = res.name;
+          if (remember && remember.checked) {
+            CHAT.pin = pin;
+            try { localStorage.setItem('mvd-chat-pin', pin); localStorage.setItem('mvd-chat-name', res.name); } catch (e) {}
+          }
+        }
+        // Show it right away, then sync with the sheet
+        addLocalMessage(res.name, text);
+        if (CHAT.pin) renderComposer(); else { ta.value = ''; document.getElementById('chat-count').textContent = '280'; }
+        setTimeout(refreshChat, 1500);
+      }).catch(function() {
+        btn.disabled = false; btn.textContent = 'Post';
+        msg.style.color = '#F87171'; msg.textContent = 'Couldn\'t reach the sheet. Try again.';
+      });
+    }
+
+    function chatBubble(who, text, when) {
+      var cls = who === 'Maria' ? 'maria' : 'danielle';
+      var c = who === 'Maria' ? SB_M : SB_D;
+      var t = when ? when.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : 'now';
+      return '<div class="chat-msg ' + cls + '"><div class="chat-meta"><span style="color:' + c + '">' + who + '</span><span class="chat-time">' + t + '</span></div>' + escHtml(text) + '</div>';
+    }
+
+    function addLocalMessage(who, text) {
+      var feed = document.getElementById('chat-feed');
+      if (!feed) return;
+      if (feed.querySelector('.loading') || feed.querySelector('.chat-empty')) feed.innerHTML = '';
+      feed.insertAdjacentHTML('afterbegin', chatBubble(who, text, new Date()));
+    }
+
+    function parseSheetTime(v) {
+      // Sheets returns the formatted date text, e.g. "10/1/2026 14:05:33"
+      var m = (v || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+      if (m) return new Date(+m[3], +m[1] - 1, +m[2], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0));
+      var d = new Date(v);
+      return isNaN(d) ? null : d;
+    }
+
+    function refreshChat() {
+      fetchSheet("'Trash Talk'", 'A1:D1000').then(function(rows) {
+        var msgs = rows.slice(1).filter(function(r) { return (r[1] === 'Maria' || r[1] === 'Danielle') && (r[2] || '').trim(); })
+          .map(function(r) { return { when: parseSheetTime(r[0]), who: r[1], text: r[2], pinned: /pin/i.test(r[3] || '') }; });
+        var key = msgs.length + '|' + (msgs.length ? msgs[msgs.length - 1].text : '') + '|' + msgs.filter(function(m) { return m.pinned; }).length;
+        if (key === CHAT.lastKey) return;
+        CHAT.lastKey = key;
+        drawChat(msgs);
+      }).catch(function() {
+        if (CHAT.lastKey === '') drawChat([]); // tab doesn't exist yet
+      });
+    }
+
+    function drawChat(msgs) {
+      var feed = document.getElementById('chat-feed');
+      var pinBox = document.getElementById('chat-pinned');
+      if (!feed) return;
+      var pinned = msgs.filter(function(m) { return m.pinned; });
+      pinBox.innerHTML = pinned.map(function(m) {
+        return '<div class="chat-pinned">📌 <b style="color:' + (m.who === 'Maria' ? SB_M : SB_D) + '">' + m.who + ':</b> ' + escHtml(m.text) + '</div>';
+      }).join('');
+      if (!msgs.length) {
+        feed.innerHTML = '<div class="chat-empty" style="text-align:center;color:#A1A9B6;padding:28px 0">No trash talk yet. Somebody start it. 👀</div>';
+        return;
+      }
+      var html = '', lastDay = '';
+      msgs.slice().reverse().forEach(function(m) {
+        var day = m.when ? m.when.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) : '';
+        if (day && day !== lastDay) { html += '<div class="chat-day">' + day + '</div>'; lastDay = day; }
+        html += chatBubble(m.who, m.text, m.when);
+      });
+      feed.innerHTML = html;
     }
 
     // ── Admin odds entry (PIN 0328) ─────────────────────────────────────────

@@ -1,4 +1,4 @@
-<!-- v54 -->
+<!-- v56 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2383,7 +2383,7 @@
     }
 
     function refreshChat() {
-      fetchSheet("'Trash Talk'", 'A1:D1000').then(function(rows) {
+      fetchSheet("'Trash Talk'", 'A1:D20000').then(function(rows) {
         var msgs = rows.slice(1).filter(function(r) { return (r[1] === 'Maria' || r[1] === 'Danielle') && (r[2] || '').trim(); })
           .map(function(r) { return { when: parseSheetTime(r[0]), who: r[1], text: r[2], pinned: /pin/i.test(r[3] || '') }; });
         var key = msgs.length + '|' + (msgs.length ? msgs[msgs.length - 1].text : '') + '|' + msgs.filter(function(m) { return m.pinned; }).length;
@@ -3429,7 +3429,7 @@
 
         // ── Fun Stats from Legacy ─────────────────────────────────────────────
         function legFun(label, val, cls) {
-          var color = cls === 'maria' ? '#F87171' : cls === 'danielle' ? '#60A5FA' : cls === 'red' ? '#F87171' : '#1C1C1E';
+          var color = cls === 'maria' ? '#F87171' : cls === 'danielle' ? '#60A5FA' : cls === 'red' ? '#F87171' : '#F3F4F6';
           return '<div style="display:flex;justify-content:space-between;padding:11px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:13px;gap:16px"><span style="color:#A1A9B6">' + label + '</span><span style="font-weight:600;text-align:right;color:' + color + '">' + val + '</span></div>';
         }
 

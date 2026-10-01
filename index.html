@@ -1,4 +1,4 @@
-<!-- v43 -->
+<!-- v45 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1765,7 +1765,29 @@
       "Raiders": "Las Vegas Raiders",
     };
 
-    function resolveTeam(name) { return TEAM_ALIASES[name] || name; }
+    // Turns any reasonable spelling into the full team name:
+    // "Bills", "Buffalo Bills", "buffalo bills ", "Bucs", "Bucaneers", "Tampa Bay Bucanners" ...
+    var TEAM_NAME_CACHE = {};
+    function resolveTeam(name) {
+      var n = (name || '').toString().trim();
+      if (!n) return n;
+      if (TEAM_COLORS[n]) return n;
+      if (TEAM_ALIASES[n]) return TEAM_ALIASES[n];
+      if (n in TEAM_NAME_CACHE) return TEAM_NAME_CACHE[n];
+      var key = n.toLowerCase().replace(/[^a-z0-9]/g, '');
+      var hit = null;
+      if (/buc|tampa/.test(key)) hit = 'Tampa Bay Buccaneers';
+      else if (/niner/.test(key)) hit = 'San Francisco 49ers';
+      else {
+        Object.keys(TEAM_COLORS).forEach(function(full) {
+          var nick = full.split(' ').pop().toLowerCase().replace(/[^a-z0-9]/g, '');
+          var whole = full.toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (key === whole || key === nick || key.slice(-nick.length) === nick) hit = full;
+        });
+      }
+      TEAM_NAME_CACHE[n] = hit || n;
+      return TEAM_NAME_CACHE[n];
+    }
 
     function legacyColoredText(text, team) {
       var r = resolveTeam(team);
@@ -2198,8 +2220,8 @@
               year: s.year,
               week: parseInt(r[1]) || 0,
               picker: (r[3] || "").trim(),
-              homeTeam: r[4] || "",
-              awayTeam: r[5] || "",
+              homeTeam: resolveTeam(r[4]),
+              awayTeam: resolveTeam(r[5]),
               homePick: (r[6] || "").trim(),
               awayPick: (r[7] || "").trim(),
               homeOdds: parseFloat(r[8]) || 0,

@@ -1,4 +1,4 @@
-<!-- v66 -->
+<!-- v67 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5144,6 +5144,7 @@
               slot: (r[2] || "").trim(),
               firstScorer: (r[11] || "").trim(),
               correct: (r[12] || "").trim(),
+              side: (r[13] || "").trim(),
               wasOffered: (r[14] || "").trim(),
               netUnits: parseFloat(r[15]) || 0,
               netDollars: parseFloat(r[16]) || 0,
@@ -5408,6 +5409,51 @@
           personCard("Danielle", homeAwayStats(scored.filter(function(r){return r.picker==="Danielle";})))
         );
 
+        // ── Who Scores First: home or away team ──────────────────────────────
+        html += section("Who Scores First");
+        html += '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">Which team scored the first touchdown in every game they bet on, from the Which Side Scored column.</div>';
+        html += '<div class="af-bars">' + afBar('wsf', 'season', 'Season', SEASON_OPTS, CUR_SEASON) + '</div>';
+        SEASON_OPTS.forEach(function(so) {
+          var season = so[0], seen = {}, all = { Home: 0, Away: 0 }, bySlot = {};
+          rows.forEach(function(r) {
+            if (!inSeason(r, season) || !r.firstScorer) return;
+            var side = /^home$/i.test(r.side) ? 'Home' : /^away$/i.test(r.side) ? 'Away' : '';
+            var k = r.year + '_' + r.week + '_' + r.game;
+            if (!side || seen[k]) return;
+            seen[k] = 1;
+            all[side]++;
+            var sl = r.slot || 'Other';
+            (bySlot[sl] = bySlot[sl] || { Home: 0, Away: 0 })[side]++;
+          });
+          var tot = all.Home + all.Away;
+          if (!tot) { html += afVariant('wsf', [season], EMPTY('No scored games yet.')); return; }
+          function split(h, a, big) {
+            var t = h + a, hp = Math.round(h / t * 100);
+            return '<div style="display:flex;justify-content:space-between;gap:8px;white-space:nowrap;font-size:' + (big ? 14 : 12) + 'px;margin-bottom:5px">' +
+              '<span>🏠 Home <b>' + hp + '%</b></span><span><b>' + (100 - hp) + '%</b> Away ✈️</span></div>' +
+              '<div style="display:flex;height:' + (big ? 12 : 7) + 'px;border-radius:999px;overflow:hidden;gap:2px">' +
+              '<div style="width:' + hp + '%;background:#FBBF24"></div><div style="flex:1;background:#A78BFA"></div></div>';
+          }
+          var hp = all.Home / tot;
+          var lean = Math.abs(hp - 0.5) < 0.04 ? 'Basically a coin flip.' :
+            (hp > 0.5 ? 'Home teams' : 'Road teams') + ' have scored first in ' + Math.round(Math.max(hp, 1 - hp) * 100) + '% of games.';
+          lean += ' (' + all.Home + ' home, ' + all.Away + ' away)';
+          var inner = '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:14px 16px">' + split(all.Home, all.Away, true) +
+            '<div style="font-size:12px;color:#D1D5DB;margin:10px 0 4px">' + lean + '</div>';
+          var slots = Object.keys(bySlot).sort(function(a, b) {
+            var ORD = ['TNF','FNF','SNF','MNF','International','Thanksgiving','Black Friday','Saturday','Christmas','WNF'];
+            var ai = ORD.indexOf(a), bi = ORD.indexOf(b);
+            return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi) || a.localeCompare(b);
+          });
+          if (slots.length > 1) {
+            inner += '<div style="margin-top:12px;border-top:1px solid rgba(255,255,255,0.08);padding-top:6px">' + slots.map(function(sl) {
+              var x = bySlot[sl];
+              return '<div style="padding:7px 0"><div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#A1A9B6;margin-bottom:4px">' + escHtml(sl) + ' · ' + x.Home + ' home, ' + x.Away + ' away</div>' + split(x.Home, x.Away) + '</div>';
+            }).join('') + '</div>';
+          }
+          html += afVariant('wsf', [season], inner + '</div>');
+        });
+
         // ── Best Stretch & Biggest Wins (from all-time data) ───────────────────
         html += section("Best Stretches & Biggest Wins");
         html += '<div style="margin-bottom:16px">';
@@ -5546,6 +5592,53 @@
           html += afVariant('pos', [season], twoCol(card('Maria'), card('Danielle')));
         });
 
+        // ── Picking vs Reality: what they pick vs who actually scores first ──
+        html += section("Picking vs Reality");
+        html += '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">How often each of them picks each position, next to how often that position actually scores the first touchdown. Defense, special teams and players not on the Rosters tab count as Other.</div>';
+        html += '<div class="af-bars">' + afBar('pvr', 'season', 'Season', SEASON_OPTS, CUR_SEASON) + '</div>';
+        SEASON_OPTS.forEach(function(so) {
+          var season = so[0], P = { Maria: {}, Danielle: {} }, PN = { Maria: 0, Danielle: 0 }, R = {}, RN = 0, seen = {};
+          rows.forEach(function(r) {
+            if (!inSeason(r, season)) return;
+            if (r.picker === 'Maria' || r.picker === 'Danielle') {
+              [r.homePick, r.awayPick].filter(Boolean).forEach(function(pk) { var q = posOf(pk); P[r.picker][q] = (P[r.picker][q] || 0) + 1; PN[r.picker]++; });
+            }
+            var k = r.year + '_' + r.week + '_' + r.game;
+            if (r.firstScorer && !seen[k]) { seen[k] = 1; var q = posOf(r.firstScorer); R[q] = (R[q] || 0) + 1; RN++; }
+          });
+          if (!RN || !(PN.Maria + PN.Danielle)) { html += afVariant('pvr', [season], EMPTY('Not enough games yet.')); return; }
+          function share(map, n, q) { return n ? (map[q] || 0) / n : 0; }
+          function bar(label, v, c) {
+            return '<div style="display:grid;grid-template-columns:62px 1fr 38px;gap:8px;align-items:center;font-size:11px;padding:2px 0">' +
+              '<span style="color:' + c + ';font-weight:700">' + label + '</span>' +
+              '<div style="height:7px;border-radius:4px;background:rgba(255,255,255,0.06)"><div style="width:' + Math.round(v * 100) + '%;height:7px;border-radius:4px;background:' + c + '"></div></div>' +
+              '<span style="text-align:right;font-weight:700">' + Math.round(v * 100) + '%</span></div>';
+          }
+          var inner = '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:8px 14px">';
+          POS_ORDER.forEach(function(q, i) {
+            var real = share(R, RN, q), m = share(P.Maria, PN.Maria, q), d = share(P.Danielle, PN.Danielle, q);
+            if (!real && !m && !d) return;
+            inner += '<div style="padding:9px 0;' + (i ? 'border-top:0.5px solid rgba(255,255,255,0.06)' : '') + '">' +
+              '<div style="font-size:13px;font-weight:800;margin-bottom:5px">' + q + '</div>' +
+              bar('Scores', real, '#E5E7EB') + bar('Maria', m, '#F87171') + bar('Danielle', d, '#60A5FA') + '</div>';
+          });
+          inner += '</div>';
+          // Biggest mismatch for each of them
+          var notes = ['Maria', 'Danielle'].map(function(who) {
+            if (!PN[who]) return '';
+            var worst = null;
+            POS_ORDER.forEach(function(q) {
+              if (q === 'Other') return; // defense / special teams TDs aren't pickable
+              var gap = share(P[who], PN[who], q) - share(R, RN, q);
+              if (!worst || Math.abs(gap) > Math.abs(worst.gap)) worst = { q: q, gap: gap };
+            });
+            if (!worst || Math.abs(worst.gap) < 0.05) return '<div style="font-size:12px;padding:3px 0"><b style="color:' + (who === 'Maria' ? '#F87171' : '#60A5FA') + '">' + who + '</b> picks pretty much in line with reality.</div>';
+            return '<div style="font-size:12px;padding:3px 0"><b style="color:' + (who === 'Maria' ? '#F87171' : '#60A5FA') + '">' + who + '</b> ' +
+              (worst.gap > 0 ? 'over-picks' : 'under-picks') + ' ' + worst.q + 's: ' + Math.round(share(P[who], PN[who], worst.q) * 100) + '% of her picks, but they score first ' + Math.round(share(R, RN, worst.q) * 100) + '% of the time.</div>';
+          }).join('');
+          html += afVariant('pvr', [season], inner + '<div style="margin-top:10px">' + notes + '</div>');
+        });
+
 // ── Week-by-Week Results Timeline ────────────────────────────────────
         html += section("Week-by-Week Results");
         html += '<div class="af-bars">' + afBar('wbw', 'season', 'Season', SEASON_OPTS, CUR_SEASON) + '</div>';
@@ -5636,6 +5729,58 @@
             inner += statRow("Worst week", wkLabel(worst.year, worst.week) + " — " + pct(worst.wins, worst.total));
             html += afVariant('wrw', [season, picker], inner);
           });
+        });
+
+        // ── Month by Month ────────────────────────────────────────────────────
+        // Dates come from the week number: Week 1 starts the Thursday after Labor Day.
+        function gameDate(year, week, slot) {
+          var y = parseInt(year, 10), sep1 = new Date(y, 8, 1);
+          var labor = new Date(y, 8, 1 + ((8 - sep1.getDay()) % 7));
+          if (/christmas/i.test(slot)) return new Date(y, 11, 25);
+          var off = /wnf|wed/i.test(slot) ? -1 : /black friday|fri|fnf/i.test(slot) ? 1 : /sat/i.test(slot) ? 2 : /mnf|mon/i.test(slot) ? 4 : /tnf|thanksgiving|thu/i.test(slot) ? 0 : 3;
+          return new Date(y, 8, labor.getDate() + 3 + (week - 1) * 7 + off);
+        }
+        var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        var MONTHS_LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        html += section("Month by Month");
+        html += '<div class="af-bars">' + afBar('mbm', 'season', 'Season', SEASON_OPTS, CUR_SEASON) + '</div>';
+        SEASON_OPTS.forEach(function(so) {
+          var season = so[0], M = {};
+          scored.forEach(function(r) {
+            if (!inSeason(r, season) || (r.picker !== 'Maria' && r.picker !== 'Danielle')) return;
+            var dt = gameDate(r.year, r.week, r.slot), mi = dt.getMonth();
+            var order = mi >= 6 ? mi - 8 : mi + 4; // Sep=0 … Feb=5
+            var x = M[mi] || (M[mi] = { order: order, Maria: { w: 0, n: 0, u: 0 }, Danielle: { w: 0, n: 0, u: 0 } });
+            var p = x[r.picker];
+            p.u += r.netUnits;
+            if (r.wasOffered === 'No' && r.netUnits === 0) return; // not offered: no win or loss
+            p.n++; if (r.correct === 'Yes') p.w++;
+          });
+          var keys = Object.keys(M).sort(function(a, b) { return M[a].order - M[b].order; });
+          if (!keys.length) { html += afVariant('mbm', [season], EMPTY('No scored games yet.')); return; }
+          function cell(p, c) {
+            if (!p.n) return '<span style="text-align:center;color:#6B7280">—</span>';
+            var u = Math.round(p.u * 10) / 10;
+            return '<span style="text-align:center"><b style="color:' + c + ';font-size:14px">' + p.w + '/' + p.n + '</b> <span style="color:#9CA3AF;font-size:11px">' + Math.round(p.w / p.n * 100) + '%</span>' +
+              '<div style="font-size:11px;font-weight:700;color:' + (u > 0 ? '#34D399' : u < 0 ? '#F87171' : '#9CA3AF') + '">' + (u > 0 ? '+' : '') + u + 'u</div></span>';
+          }
+          var inner = '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:8px 12px">' +
+            '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:8px 0 4px;border-bottom:1px solid rgba(255,255,255,0.10)">' +
+            '<span style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Month</span>' +
+            '<span style="font-size:11px;color:#F87171;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Maria</span>' +
+            '<span style="font-size:11px;color:#60A5FA;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Danielle</span></div>';
+          keys.forEach(function(k, i) {
+            inner += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 0;align-items:center;' + (i < keys.length - 1 ? 'border-bottom:0.5px solid rgba(255,255,255,0.06)' : '') + '">' +
+              '<span style="font-size:13px;font-weight:600;color:#D1D5DB">' + MONTHS_LONG[k] + '</span>' + cell(M[k].Maria, '#F87171') + cell(M[k].Danielle, '#60A5FA') + '</div>';
+          });
+          inner += '</div>';
+          // Best month for each
+          var notes = ['Maria', 'Danielle'].map(function(who) {
+            var best = keys.filter(function(k) { return M[k][who].n >= 5; }).sort(function(a, b) { return M[b][who].w / M[b][who].n - M[a][who].w / M[a][who].n; })[0];
+            if (!best) return '';
+            return '<span><b style="color:' + (who === 'Maria' ? '#F87171' : '#60A5FA') + '">' + who + '</b> is best in ' + MONTHS_LONG[best] + ' (' + Math.round(M[best][who].w / M[best][who].n * 100) + '%)</span>';
+          }).filter(Boolean).join(' · ');
+          html += afVariant('mbm', [season], inner + (notes ? '<div style="font-size:12px;color:#A1A9B6;margin-top:10px">' + notes + '. Months are worked out from the week number.</div>' : ''));
         });
 
         // ── Performance: Win rate by odds range ───────────────────────────────

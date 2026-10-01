@@ -1,4 +1,4 @@
-<!-- v60 -->
+<!-- v61 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -810,6 +810,33 @@
     .pf-bar > i { display: block; height: 100%; background: rgba(255,255,255,0.4); border-radius: 3px; }
     .pf-badge .pg { font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 4px; }
 
+
+    /* Admin tools */
+    .adm-nav { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 18px; }
+    .adm-nav button { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; padding: 7px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04); color: #A1A9B6; cursor: pointer; }
+    .adm-nav button.on { background: #F3F4F6; color: #0B0C10; border-color: #F3F4F6; }
+    .adm-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 13px; }
+    .adm-btn { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.06); color: #F3F4F6; cursor: pointer; white-space: nowrap; }
+    .adm-btn.red { border-color: rgba(248,113,113,0.5); color: #FCA5A5; }
+    .adm-btn.green { border-color: rgba(52,211,153,0.5); color: #6EE7B7; }
+    .adm-input { font-family: 'Inter', sans-serif; font-size: 14px; color: #F3F4F6; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.14); border-radius: 10px; padding: 9px 12px; outline: none; }
+    .adm-issue { border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; font-size: 13px; line-height: 1.5; background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.3); }
+    .adm-issue.bad { background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.35); }
+    .adm-issue .t { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
+    .adm-issue .fix { color: #6EE7B7; font-weight: 600; }
+
+
+    /* Schedule */
+    .sch-week { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 800; margin: 22px 0 10px; padding-bottom: 8px; border-bottom: 1.5px solid rgba(255,255,255,0.16); }
+    .sch-now { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; color: #0B0C10; background: #FCD34D; border-radius: 999px; padding: 2px 8px; }
+    .sch-game { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
+    .sch-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .sch-slot { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #A1A9B6; }
+    .sch-ko { font-size: 12px; font-weight: 600; color: #D1D5DB; }
+    .sch-teams { margin: 6px 0 8px; font-size: 14px; }
+    .sch-status { font-size: 12px; color: #D1D5DB; }
+    .sch-chip { display: inline-block; font-size: 11px; font-weight: 700; border-radius: 999px; padding: 2px 9px; margin-right: 4px; }
+
     /* Trash Talk */
     .chat-compose { background: linear-gradient(160deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03)); border: 1px solid rgba(255,255,255,0.09); border-radius: 16px; padding: 16px; margin-bottom: 20px; }
     .chat-input { width: 100%; resize: none; font-family: 'Inter', sans-serif; font-size: 15px; line-height: 1.45; color: #F3F4F6; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 12px 14px; outline: none; min-height: 72px; }
@@ -999,6 +1026,7 @@
       <button class="tab-btn" onclick="switchTab('chat')">Trash Talk</button>
       <button class="tab-btn" onclick="switchTab('profiles')">Profiles</button>
       <button class="tab-btn" onclick="switchTab('analytics')">Analytics</button>
+      <button class="tab-btn tab-extra" onclick="switchTab('schedule')">Schedule</button>
       <button class="tab-btn tab-extra" onclick="switchTab('money')">Money</button>
       <button class="tab-btn tab-extra" onclick="switchTab('legacy')">Legacy</button>
       <button class="tab-btn tab-extra" onclick="switchTab('bethistory')">Bet History</button>
@@ -1007,6 +1035,7 @@
       <div class="tab-more-wrap">
         <button class="tab-btn tab-more" id="tab-more" onclick="toggleTabMenu(event)">More <span class="tab-caret">▾</span></button>
         <div class="tab-menu" id="tab-menu">
+          <button class="tab-btn" onclick="switchTab('schedule')">🗓️ Schedule</button>
           <button class="tab-btn" onclick="switchTab('money')">💵 Money</button>
           <button class="tab-btn" onclick="switchTab('legacy')">📜 Legacy</button>
           <button class="tab-btn" onclick="switchTab('bethistory')">🧾 Bet History</button>
@@ -1044,6 +1073,10 @@
     </div>
 
     </div><!-- end tab-stats -->
+
+    <div id="tab-schedule" class="tab-panel">
+      <div id="schedule-content"></div>
+    </div>
 
     <div id="tab-profiles" class="tab-panel">
       <div id="profiles-content"></div>
@@ -2174,7 +2207,7 @@
     }
 
     load();
-    loadRosters();
+    var ROSTERS_READY = loadRosters();
 
     function toggleTabMenu(e) {
       e.stopPropagation();
@@ -2193,7 +2226,7 @@
       });
       document.getElementById('tab-' + name).classList.add('active');
       // "More" shows which hidden tab you're on
-      var extra = { money: 'Money', legacy: 'Legacy', bethistory: 'Bet History', rosters: 'Roster' }[name];
+      var extra = { schedule: 'Schedule', money: 'Money', legacy: 'Legacy', bethistory: 'Bet History', rosters: 'Roster' }[name];
       var more = document.getElementById('tab-more');
       if (more) {
         more.innerHTML = (extra || 'More') + ' <span class="tab-caret">▾</span>';
@@ -2208,6 +2241,7 @@
       if (name === 'submit') loadSubmitTab();
       if (name === 'chat') loadChatTab(); else stopChatRefresh();
       if (name === 'profiles') loadProfilesTab();
+      if (name === 'schedule') loadScheduleTab();
     }
 
     // ── Submit Picks tab ─────────────────────────────────────────────────────
@@ -2460,6 +2494,97 @@
     })();
 
 
+
+    // ── Schedule ────────────────────────────────────────────────────────────
+    var SCHED = { showAll: false, kickoffs: {}, loadingWeeks: {} };
+
+    function loadScheduleTab() {
+      var el = document.getElementById('schedule-content');
+      if (!el.innerHTML) el.innerHTML = '<div class="loading">Loading schedule…</div>';
+      fetchSheet('Winnings', 'A1:Q400').then(function(values) { drawSchedule(values); });
+    }
+
+    function drawSchedule(values) {
+      var el = document.getElementById('schedule-content');
+      var games = [], idx = {};
+      values.slice(1).forEach(function(r) {
+        var picker = (r[3] || '').trim();
+        if (!r[0] || !r[4] || (picker !== 'Maria' && picker !== 'Danielle')) return;
+        var k = (r[1] || '') + '_' + r[0];
+        if (!(k in idx)) {
+          idx[k] = games.length;
+          games.push({ week: parseInt(r[1]) || 0, slot: (r[2] || '').trim(), home: resolveTeam(r[4]), away: resolveTeam(r[5]), scorer: '', picked: {}, hit: {} });
+        }
+        var g = games[idx[k]];
+        if ((r[11] || '').trim()) g.scorer = r[11].trim();
+        g.picked[picker] = !!((r[6] || '').trim() && (r[7] || '').trim());
+        g.hit[picker] = (r[12] || '').trim() === 'Yes';
+      });
+      if (!games.length) { el.innerHTML = '<div class="loading">No games entered yet.</div>'; return; }
+
+      var openWeeks = games.filter(function(g) { return !g.scorer; }).map(function(g) { return g.week; });
+      var thisWeek = openWeeks.length ? Math.min.apply(null, openWeeks) : null;
+      var shown = games.filter(function(g) { return SCHED.showAll || !g.scorer || g.week === thisWeek; });
+
+      var h = '<div class="af-bar" style="justify-content:center;margin-bottom:6px"><span class="af-bar-label">Show</span>' +
+        '<button class="filter-btn' + (!SCHED.showAll ? ' active' : '') + '" data-sch="0">Upcoming</button>' +
+        '<button class="filter-btn' + (SCHED.showAll ? ' active' : '') + '" data-sch="1">Whole season</button></div>';
+      if (!shown.length) h += '<div class="loading">All games are finished. 🎉</div>';
+
+      var lastWeek = null;
+      shown.forEach(function(g) {
+        if (g.week !== lastWeek) {
+          lastWeek = g.week;
+          h += '<div class="sch-week">Week ' + g.week + (g.week === thisWeek ? ' <span class="sch-now">THIS WEEK</span>' : '') + '</div>';
+        }
+        var ko = SCHED.kickoffs[CURRENT_YEAR + '_' + g.week + '_' + espnTeamKey(g.home) + '_' + espnTeamKey(g.away)];
+        var koText = ko ? new Date(ko).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
+        var status;
+        if (g.scorer) {
+          var hits = ['Maria', 'Danielle'].filter(function(n) { return g.hit[n]; });
+          status = '🏈 First TD: <b>' + escHtml(g.scorer) + '</b> · ' + (hits.length
+            ? hits.map(function(n) { var c = n === 'Maria' ? SB_M : SB_D; return '<span class="sch-chip" style="color:' + c + ';background:' + hexA(c, 0.15) + '">✅ ' + n + '</span>'; }).join('')
+            : '<span style="color:#A1A9B6">nobody had him</span>');
+        } else {
+          var m = g.picked.Maria, d = g.picked.Danielle;
+          if (m && d) status = '<span class="sch-chip" style="color:#6EE7B7;background:rgba(52,211,153,0.14)">✅ Both picks in</span>';
+          else if (m || d) {
+            var waiting = m ? 'Danielle' : 'Maria', c = waiting === 'Maria' ? SB_M : SB_D;
+            status = '<span class="sch-chip" style="color:#FCD34D;background:rgba(251,191,36,0.14)">⏳ Waiting on <span style="color:' + c + '">' + waiting + '</span></span>';
+          } else status = '<span class="sch-chip" style="color:#A1A9B6;background:rgba(255,255,255,0.06)">No picks yet</span>';
+        }
+        h += '<div class="sch-game"' + (g.scorer ? ' style="opacity:0.75"' : '') + '><div class="sch-top"><span class="sch-slot">' + escHtml(g.slot) + '</span><span class="sch-ko">' + koText + '</span></div>' +
+          '<div class="sch-teams">' + teamPill(g.home, g.home) + ' <span style="color:rgba(255,255,255,0.45)">vs</span> ' + teamPill(g.away, g.away) + '</div>' +
+          '<div class="sch-status">' + status + '</div></div>';
+      });
+      el.innerHTML = h;
+      el.querySelectorAll('[data-sch]').forEach(function(b) {
+        b.addEventListener('click', function() { SCHED.showAll = b.getAttribute('data-sch') === '1'; drawSchedule(values); });
+      });
+
+      // Fill in kickoff times from ESPN, a week at a time
+      var weeks = shown.map(function(g) { return g.week; }).filter(function(w, i, a) { return a.indexOf(w) === i; });
+      weeks.forEach(function(w) {
+        var wk = CURRENT_YEAR + '_' + w;
+        if (SCHED.loadingWeeks[wk]) return;
+        SCHED.loadingWeeks[wk] = true;
+        var path = w > 18 ? 'scoreboard?dates=' + CURRENT_YEAR + '&seasontype=3&week=' + (w - 18) : 'scoreboard?dates=' + CURRENT_YEAR + '&seasontype=2&week=' + w;
+        espnGet(path).then(function(d) {
+          (d.events || []).forEach(function(e) {
+            var c = e.competitions && e.competitions[0];
+            if (!c) return;
+            var keys = c.competitors.map(function(x) { return espnTeamKey(x.team.displayName); });
+            var H = c.competitors.filter(function(x) { return x.homeAway === 'home'; })[0];
+            var A = c.competitors.filter(function(x) { return x.homeAway === 'away'; })[0];
+            // Store both orders since the sheet's home/away may differ from ESPN's
+            SCHED.kickoffs[CURRENT_YEAR + '_' + w + '_' + keys[0] + '_' + keys[1]] = e.date;
+            SCHED.kickoffs[CURRENT_YEAR + '_' + w + '_' + keys[1] + '_' + keys[0]] = e.date;
+          });
+          if (document.getElementById('tab-schedule').classList.contains('active')) drawSchedule(values);
+        }).catch(function() {});
+      });
+    }
+
     // ── Profiles: career stats + trophy case ────────────────────────────────
     var ALL_BETS_PROMISE = null;
     function loadAllBets() {
@@ -2467,10 +2592,11 @@
       ALL_BETS_PROMISE = Promise.all(SEASONS.map(function(s) {
         var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + s.sheetId + '/values/' + encodeURIComponent(s.tab + '!A1:Q400') + '?key=' + API_KEY;
         return fetch(url).then(function(r) { return r.json(); }).then(function(d) {
-          return (d.values || []).slice(1).filter(function(r) { return r[0] && r[3] && r[3].trim() && r[3].trim() !== 'John'; })
-            .map(function(r, i) {
+          return (d.values || []).slice(1).map(function(r, i) { r.__row = i + 2; return r; })
+            .filter(function(r) { return r[0] && r[3] && r[3].trim() && r[3].trim() !== 'John'; })
+            .map(function(r) {
               return {
-                idx: i, game: (r[0] || '').toString().trim(), year: s.year, week: parseInt(r[1]) || 0, slot: (r[2] || '').trim(),
+                idx: r.__row, row: r.__row, side: (r[13] || '').trim(), game: (r[0] || '').toString().trim(), year: s.year, week: parseInt(r[1]) || 0, slot: (r[2] || '').trim(),
                 picker: (r[3] || '').trim(), homeTeam: resolveTeam(r[4]), awayTeam: resolveTeam(r[5]),
                 homePick: (r[6] || '').trim(), awayPick: (r[7] || '').trim(),
                 homeOdds: parseFloat(r[8]) || 0, awayOdds: parseFloat(r[9]) || 0,
@@ -2940,16 +3066,15 @@
 
     // ── Admin odds entry (PIN 0328) ─────────────────────────────────────────
     function renderOdds(res) {
+      ADMIN.oddsRes = res;
       var el = document.getElementById('submit-content');
-      var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
-        '<div style="font-size:16px;font-weight:700">Hi John</div>' +
-        '<button class="link-btn" id="sub-switch">Log out</button></div>' +
+      var html = adminHeader('odds') +
         '<div style="font-size:12px;color:#A1A9B6;margin-bottom:18px">Enter odds for picks that don\'t have them yet. Type them the way you do in the sheet (15, 4.7) or as American odds (+1500, +470). Leave a box blank to skip it.</div>';
 
       if (!res.rows.length) {
         html += '<div style="text-align:center;padding:32px 0;color:#A1A9B6;font-size:14px">🎉 All odds are filled in.</div>';
         el.innerHTML = html;
-        bindSwitch();
+        bindSwitch(); bindAdminNav();
         return;
       }
 
@@ -2985,7 +3110,7 @@
         '<div class="submit-msg" id="odds-msg"></div></div>';
 
       el.innerHTML = html;
-      bindSwitch();
+      bindSwitch(); bindAdminNav();
       document.getElementById('odds-go').addEventListener('click', saveOdds);
     }
 
@@ -3030,6 +3155,224 @@
           msg.style.color = '#F87171';
           msg.textContent = 'Couldn\'t reach the sheet. Check the sheet, then try again.';
         });
+    }
+
+
+    // ── Admin tools (0328): Odds · Injuries · Trash Talk · Data Check ───────
+    var ADMIN = { oddsRes: null };
+
+    function adminHeader(active) {
+      var tabs = [['odds', '💲 Odds'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['check', '🔍 Data Check']];
+      return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
+        '<div style="font-size:16px;font-weight:700">Hi John</div>' +
+        '<button class="link-btn" id="sub-switch">Log out</button></div>' +
+        '<div class="adm-nav">' + tabs.map(function(t) {
+          return '<button data-adm="' + t[0] + '" class="' + (t[0] === active ? 'on' : '') + '">' + t[1] + '</button>';
+        }).join('') + '</div>';
+    }
+    function bindAdminNav() {
+      document.querySelectorAll('[data-adm]').forEach(function(b) {
+        b.addEventListener('click', function() { showAdmin(b.getAttribute('data-adm')); });
+      });
+    }
+    function adminScreen(active, bodyHtml) {
+      var el = document.getElementById('submit-content');
+      el.innerHTML = adminHeader(active) + '<div id="adm-body">' + bodyHtml + '</div>';
+      bindSwitch(); bindAdminNav();
+      return document.getElementById('adm-body');
+    }
+    function adminMsg(text, ok) {
+      var m = document.getElementById('adm-msg');
+      if (m) { m.style.color = ok ? '#6EE7B7' : '#F87171'; m.textContent = text; }
+    }
+
+    function showAdmin(section) {
+      if (section === 'odds') {
+        adminScreen('odds', '<div class="loading">Loading…</div>');
+        picksApi({ pin: SUB.pin }).then(function(res) { if (res.admin) renderOdds(res); });
+      }
+      if (section === 'injuries') adminInjuries();
+      if (section === 'chat') adminChat();
+      if (section === 'check') adminCheck();
+    }
+
+    // Injuries
+    function adminInjuries() {
+      var body = adminScreen('injuries', '<div class="loading">Loading…</div>');
+      clearSheetCache();
+      Promise.all([fetchSheet('Injured', 'A1:B100').catch(function() { return []; }), ROSTERS_READY]).then(function(res) {
+        var list = res[0].slice(1).filter(function(r) { return (r[0] || '').trim(); });
+        var names = Object.keys(ROSTER_INFO).map(function(k) { return ROSTER_INFO[k].name; }).filter(Boolean).sort();
+        var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">Injured players show as OUT on the site and can\'t be picked. Marking someone healthy puts them right back.</div>' +
+          '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">' +
+            '<input class="adm-input" id="inj-name" list="inj-players" placeholder="Player name" style="flex:2;min-width:160px">' +
+            '<input class="adm-input" id="inj-note" placeholder="Note (optional), e.g. Out Wk 5" style="flex:1.4;min-width:140px">' +
+            '<button class="primary-btn" id="inj-add" style="padding:9px 18px">Mark OUT</button>' +
+          '</div><datalist id="inj-players">' + names.map(function(n) { return '<option value="' + escHtml(n) + '">'; }).join('') + '</datalist>' +
+          '<div class="submit-msg" id="adm-msg" style="text-align:left"></div>' +
+          '<div style="font-size:11px;font-weight:800;letter-spacing:0.12em;color:#A1A9B6;margin:14px 0 4px">CURRENTLY OUT (' + list.length + ')</div>';
+        h += list.length ? list.map(function(r) {
+          var info = ROSTER_INFO[playerKey(r[0])];
+          return '<div class="adm-row"><div><b>' + escHtml(r[0]) + '</b>' + (info ? ' <span style="color:#A1A9B6">· ' + info.team.split(' ').pop() + '</span>' : ' <span style="color:#FBBF24">· not on the roster, check spelling</span>') +
+            (r[1] ? '<div style="font-size:11px;color:#A1A9B6">' + escHtml(r[1]) + '</div>' : '') + '</div>' +
+            '<button class="adm-btn green" data-heal="' + escHtml(r[0]) + '">Healthy ✓</button></div>';
+        }).join('') : '<div style="color:#A1A9B6;font-size:13px;padding:10px 0">Nobody is marked injured.</div>';
+        body.innerHTML = h;
+        document.getElementById('inj-add').addEventListener('click', function() {
+          var name = document.getElementById('inj-name').value.trim();
+          if (!name) return adminMsg('Type a player name.');
+          if (!ROSTER_INFO[playerKey(name)] && !confirm(name + ' isn\'t on the Rosters tab. Add anyway?')) return;
+          adminMsg('Saving…', true);
+          picksApi({ pin: SUB.pin, action: 'injure', name: name, note: document.getElementById('inj-note').value.trim() }).then(function(r) {
+            if (r.error) return adminMsg(r.error);
+            refreshAfterInjury(); adminInjuries();
+          }).catch(function() { adminMsg('Couldn\'t reach the sheet.'); });
+        });
+        body.querySelectorAll('[data-heal]').forEach(function(b) {
+          b.addEventListener('click', function() {
+            b.disabled = true; b.textContent = 'Saving…';
+            picksApi({ pin: SUB.pin, action: 'heal', name: b.getAttribute('data-heal') }).then(function(r) {
+              if (r.error) return adminMsg(r.error);
+              refreshAfterInjury(); adminInjuries();
+            }).catch(function() { adminMsg('Couldn\'t reach the sheet.'); });
+          });
+        });
+      });
+    }
+    function refreshAfterInjury() { clearSheetCache(); ROSTERS_READY = loadRosters(); }
+
+    // Trash Talk moderation
+    function adminChat() {
+      var body = adminScreen('chat', '<div class="loading">Loading…</div>');
+      fetchChatRows(SEASONS[0]).then(function(rows) {
+        var msgs = [];
+        rows.forEach(function(r, i) { if (i && (r[2] || '').trim()) msgs.push({ row: i + 1, who: r[1], text: r[2], pinned: /pin/i.test(r[3] || '') }); });
+        msgs.reverse();
+        body.innerHTML = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">Pin the best ones to the top of the wall, or delete anything that should go.</div>' +
+          '<div class="submit-msg" id="adm-msg" style="text-align:left"></div>' +
+          (msgs.length ? msgs.slice(0, 60).map(function(m) {
+            var c = m.who === 'Maria' ? SB_M : SB_D;
+            return '<div class="adm-row"><div style="flex:1;min-width:0"><b style="color:' + c + '">' + escHtml(m.who) + '</b> ' + (m.pinned ? '📌 ' : '') +
+              '<span style="color:#D1D5DB">' + escHtml(m.text) + '</span></div>' +
+              '<div style="display:flex;gap:6px"><button class="adm-btn" data-pin="' + m.row + '">' + (m.pinned ? 'Unpin' : 'Pin') + '</button>' +
+              '<button class="adm-btn red" data-del="' + m.row + '" data-text="' + escHtml(m.text) + '">Delete</button></div></div>';
+          }).join('') : '<div style="color:#A1A9B6;font-size:13px">No messages yet.</div>');
+        body.querySelectorAll('[data-pin]').forEach(function(b) {
+          b.addEventListener('click', function() {
+            b.disabled = true;
+            picksApi({ pin: SUB.pin, action: 'chatpin', row: b.getAttribute('data-pin') }).then(function(r) {
+              if (r.error) return adminMsg(r.error);
+              CHAT.lastKey = ''; adminChat();
+            });
+          });
+        });
+        body.querySelectorAll('[data-del]').forEach(function(b) {
+          b.addEventListener('click', function() {
+            if (!confirm('Delete this message for good?\n\n"' + b.getAttribute('data-text') + '"')) return;
+            b.disabled = true;
+            picksApi({ pin: SUB.pin, action: 'chatdel', row: b.getAttribute('data-del'), text: b.getAttribute('data-text') }).then(function(r) {
+              if (r.error) return adminMsg(r.error);
+              CHAT.lastKey = ''; adminChat();
+            });
+          });
+        });
+      }).catch(function() {
+        body.innerHTML = '<div style="color:#A1A9B6;font-size:13px">No Trash Talk tab yet. It appears after the first post.</div>';
+      });
+    }
+
+    // Data check: finds the sheet mistakes that quietly break the numbers
+    function levenshtein(a, b) {
+      if (Math.abs(a.length - b.length) > 2) return 9;
+      var prev = [], cur, i, j;
+      for (j = 0; j <= b.length; j++) prev[j] = j;
+      for (i = 1; i <= a.length; i++) {
+        cur = [i];
+        for (j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+        prev = cur;
+      }
+      return prev[b.length];
+    }
+
+    function adminCheck() {
+      var body = adminScreen('check', '<div class="loading">Checking every row in every season…</div>');
+      clearSheetCache(); ALL_BETS_PROMISE = null;
+      loadAllBets().then(function(rows) {
+        var issues = [];
+        function add(level, title, r, text, fix) {
+          issues.push({ level: level, title: title, where: r ? r.year + ' sheet · row ' + r.row + ' · Wk ' + r.week + ' · ' + r.picker : '', text: text, fix: fix });
+        }
+        var names = {}; // spelling -> { n, first: row }
+        rows.forEach(function(r) {
+          if (r.picker !== 'Maria' && r.picker !== 'Danielle') return;
+          var picks = [r.homePick, r.awayPick];
+          var scored = r.correct === 'Yes' || r.correct === 'No';
+          picks.concat([r.firstScorer]).forEach(function(n) {
+            if (!n) return;
+            if (!names[n]) names[n] = { n: 0, first: r };
+            names[n].n++;
+          });
+          picks.forEach(function(pk) {
+            if (pk && pk.indexOf('/') >= 0) add('bad', 'Two names in one cell', r, '"' + pk + '" counts as one oddly named player, so neither gets credit.', 'Keep just the player who counted for that game.');
+          });
+          if (r.homePick && playerKey(r.homePick) === playerKey(r.awayPick)) add('bad', 'Same player twice', r, r.homePick + ' is both the home and away pick.', 'One side should be a different player.');
+          if (!scored || !r.firstScorer) return;
+          var hitHome = playerKey(r.firstScorer) === playerKey(r.homePick);
+          var hitAway = playerKey(r.firstScorer) === playerKey(r.awayPick);
+          if (r.correct === 'No' && (hitHome || hitAway)) {
+            var pk = hitHome ? r.homePick : r.awayPick;
+            add('bad', 'Win counted as a loss', r, 'First scorer "' + r.firstScorer + '" and pick "' + pk + '" are spelled differently, so Correct? says No.', 'Make both spellings match exactly.');
+          }
+          if (r.correct === 'Yes') {
+            var side = (r.side || '').toLowerCase();
+            if (r.firstScorer === r.homePick && side && side !== 'home') add('bad', 'Wrong side scored', r, r.firstScorer + ' was the home pick, but Which Side Scored says "' + r.side + '". Units use the wrong odds.', 'Change it to Home.');
+            if (r.firstScorer === r.awayPick && side && side !== 'away') add('bad', 'Wrong side scored', r, r.firstScorer + ' was the away pick, but Which Side Scored says "' + r.side + '". Units use the wrong odds.', 'Change it to Away.');
+            var odds = r.firstScorer === r.homePick ? r.homeOdds : r.firstScorer === r.awayPick ? r.awayOdds : 1;
+            if (!odds) add('warn', 'Missing odds on a win', r, 'The winning pick (' + r.firstScorer + ') has no odds, so this win is worth 0 units.', 'Enter the odds.');
+          }
+        });
+        // Spellings that are almost the same (e.g. "Thorton" vs "Thornton")
+        var list = Object.keys(names).filter(function(n) { return playerKey(n).length >= 7; });
+        var seen = {};
+        for (var i = 0; i < list.length; i++) {
+          for (var j = i + 1; j < list.length; j++) {
+            var a = playerKey(list[i]), b = playerKey(list[j]);
+            if (a === b) {
+              if (list[i].replace(/\s+/g, ' ') !== list[j].replace(/\s+/g, ' ') && !seen[a + '|=']) {
+                seen[a + '|='] = 1;
+                // Same letters, different punctuation (AJ vs A.J.) breaks the sheet's exact match
+                add('warn', 'Two spellings of one player', null, '"' + list[i] + '" (' + names[list[i]].n + 'x) and "' + list[j] + '" (' + names[list[j]].n + 'x). Your sheet formulas treat these as different people.',
+                  'Use one spelling everywhere, probably "' + (names[list[i]].n >= names[list[j]].n ? list[i] : list[j]) + '".');
+              }
+              continue;
+            }
+            if (levenshtein(a, b) <= 2) {
+              var common = names[list[i]].n >= names[list[j]].n ? list[i] : list[j];
+              var rare = common === list[i] ? list[j] : list[i];
+              var onRoster = ROSTER_INFO[playerKey(rare)] && !ROSTER_INFO[playerKey(common)] ? rare : common;
+              add('warn', 'Possible typo', names[rare].first, '"' + rare + '" (' + names[rare].n + 'x) looks like "' + common + '" (' + names[common].n + 'x).',
+                'If they\'re the same player, change it to "' + onRoster + '".');
+            }
+          }
+        }
+
+        var bad = issues.filter(function(x) { return x.level === 'bad'; }).length;
+        var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:14px">Checks every season for spelling mismatches, wrong "Which Side Scored", missing odds, and other things that quietly throw off the numbers. Fix them in the sheet, then run this again.</div>';
+        if (!issues.length) {
+          h += '<div style="text-align:center;padding:30px 0;font-size:15px">✅ Everything checks out.</div>';
+        } else {
+          h += '<div style="font-size:13px;font-weight:700;margin-bottom:12px">' + issues.length + ' thing' + (issues.length > 1 ? 's' : '') + ' to look at' + (bad ? ' · ' + bad + ' affect the totals' : '') + '</div>';
+          issues.sort(function(a, b) { return (a.level === 'bad' ? 0 : 1) - (b.level === 'bad' ? 0 : 1); });
+          h += issues.map(function(x) {
+            return '<div class="adm-issue ' + (x.level === 'bad' ? 'bad' : '') + '"><div class="t" style="color:' + (x.level === 'bad' ? '#FCA5A5' : '#FCD34D') + '">' + x.title + '</div>' +
+              (x.where ? '<div style="font-size:11px;color:#A1A9B6;margin-bottom:3px">' + x.where + '</div>' : '') +
+              '<div>' + escHtml(x.text) + '</div><div class="fix">→ ' + escHtml(x.fix) + '</div></div>';
+          }).join('');
+        }
+        h += '<div style="text-align:center;margin-top:10px"><button class="adm-btn" id="chk-again">Run again</button></div>';
+        body.innerHTML = h;
+        document.getElementById('chk-again').addEventListener('click', adminCheck);
+      });
     }
 
     function bindSwitch() {
@@ -3654,11 +3997,11 @@
           teamData[team] = { players: [], extras: [] };
           for (let pi = 0; pi < POSITIONS.length; pi++) {
             const player = (posRows[pi] && posRows[pi][col] || '').trim();
-            if (player) { teamData[team].players.push({ pos: POSITIONS[pi], name: player }); ROSTER_INFO[playerKey(player)] = { team: team, pos: POSITIONS[pi] }; }
+            if (player) { teamData[team].players.push({ pos: POSITIONS[pi], name: player }); ROSTER_INFO[playerKey(player)] = { team: team, pos: POSITIONS[pi], name: player }; }
           }
           for (const er of extraRows) {
             const extra = (er[col] || '').trim();
-            if (extra) { teamData[team].extras.push(extra); if (!ROSTER_INFO[playerKey(extra)]) ROSTER_INFO[playerKey(extra)] = { team: team, pos: '' }; }
+            if (extra) { teamData[team].extras.push(extra); if (!ROSTER_INFO[playerKey(extra)]) ROSTER_INFO[playerKey(extra)] = { team: team, pos: '', name: extra }; }
           }
         }
 
@@ -4326,6 +4669,45 @@
               cell(ms, '#F87171') + cell(ds, '#60A5FA') + '</div>';
           });
           html += afVariant('gt', [season], inner + '</div>');
+        });
+
+        // ── Hit Rate by Position (positions from the current Rosters tab) ────
+        try { await ROSTERS_READY; } catch (e) {}
+        html += section("Hit Rate by Position");
+        html += '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">How often each kind of pick scored first. Positions come from the current Rosters tab; players who aren\'t on it anymore count as Other.</div>';
+        html += '<div class="af-bars">' + afBar('pos', 'season', 'Season', SEASON_OPTS, CUR_SEASON) + '</div>';
+        var POS_ORDER = ['WR', 'RB', 'TE', 'QB', 'Other'];
+        function posOf(name) {
+          var info = ROSTER_INFO[playerKey(name)];
+          var p = info && info.pos ? info.pos.replace(/\d+/g, '') : '';
+          return POS_ORDER.indexOf(p) >= 0 ? p : 'Other';
+        }
+        SEASON_OPTS.forEach(function(so) {
+          var season = so[0];
+          var T = { Maria: {}, Danielle: {} };
+          rows.forEach(function(r) {
+            if (!inSeason(r, season) || (r.picker !== 'Maria' && r.picker !== 'Danielle')) return;
+            if ((r.correct !== 'Yes' && r.correct !== 'No') || !r.firstScorer) return;
+            if (r.wasOffered === 'No' && r.netUnits === 0) return; // not-offered games don't count
+            [r.homePick, r.awayPick].filter(Boolean).forEach(function(pk) {
+              var p = posOf(pk);
+              var t = T[r.picker][p] || (T[r.picker][p] = { h: 0, n: 0 });
+              t.n++;
+              if (playerKey(pk) === playerKey(r.firstScorer)) t.h++;
+            });
+          });
+          function card(who) {
+            var c = who === 'Maria' ? '#F87171' : '#60A5FA';
+            var rowsHtml = POS_ORDER.filter(function(p) { return T[who][p]; }).map(function(p) {
+              var t = T[who][p], rate = t.n ? t.h / t.n : 0;
+              return '<div style="padding:7px 0">' +
+                '<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span style="font-weight:700">' + p + '</span>' +
+                '<span><b>' + Math.round(rate * 100) + '%</b> <span style="color:#A1A9B6">(' + t.h + '/' + t.n + ')</span></span></div>' +
+                '<div style="height:6px;border-radius:3px;background:rgba(255,255,255,0.08)"><div style="width:' + Math.round(rate * 100) + '%;height:6px;border-radius:3px;background:' + c + '"></div></div></div>';
+            }).join('');
+            return personCard(who, rowsHtml || '<div style="color:#A1A9B6;font-size:13px">No scored picks.</div>');
+          }
+          html += afVariant('pos', [season], twoCol(card('Maria'), card('Danielle')));
         });
 
 // ── Week-by-Week Results Timeline ────────────────────────────────────

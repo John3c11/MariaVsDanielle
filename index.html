@@ -1,4 +1,4 @@
-<!-- v50 -->
+<!-- v51 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1631,7 +1631,7 @@
               picker: (r[3] || '').trim(), home: resolveTeam(r[4]), away: resolveTeam(r[5]),
               homePick: (r[6] || '').trim(), awayPick: (r[7] || '').trim(),
               homeOdds: (r[8] || '').trim(), awayOdds: (r[9] || '').trim(),
-              scorer: (r[11] || '').trim(), netUnits: parseFloat(r[15]) || 0,
+              scorer: (r[11] || '').trim(), side: (r[13] || '').trim().toLowerCase(), netUnits: parseFloat(r[15]) || 0,
             };
           }).filter(function(r) { return r.picker === 'Maria' || r.picker === 'Danielle'; });
         }).catch(function() { return []; });
@@ -1668,8 +1668,15 @@
           if (r.scorer) {
             var p = P(r.scorer);
             p.tds[r.year + '_' + r.week + '_' + r.game] = r.year;
-            G(p, r);
+            var g = G(p, r);
+            // "Which Side Scored" tells us the scorer's team even if nobody picked him
+            var sideTeam = r.side === 'home' ? r.home : r.side === 'away' ? r.away : '';
+            if (sideTeam) { p.team = sideTeam; if (!g.team) g.team = sideTeam; }
           }
+        });
+        Object.keys(db).forEach(function(k) {
+          var p = db[k], last = p.games[p.gameOrder[p.gameOrder.length - 1]];
+          p.last = last ? { year: last.year, week: last.week } : null;
         });
         PLAYER_DB = db;
         schedulePlayerTagging();
@@ -1770,6 +1777,49 @@
         bd.addEventListener('click', function(e) { if (e.target === bd) closePlayerCard(); });
         document.getElementById('pc-close').addEventListener('click', closePlayerCard);
       });
+    }
+
+
+    // ── Rosters: "Not Currently Offered" division ───────────────────────────
+    function renderFormerDivision(db) {
+      var el = document.getElementById('former-division');
+      if (!el) return;
+      var list = Object.keys(db).filter(function(k) {
+        var ri = ROSTER_INFO[k];
+        return !ri || ri.hidden;
+      }).map(function(k) { return db[k]; }).filter(function(p) {
+        return p.picks.Maria + p.picks.Danielle > 0 || Object.keys(p.tds).length > 0;
+      }).sort(function(a, b) {
+        var ay = a.last ? parseInt(a.last.year) * 100 + a.last.week : 0;
+        var by = b.last ? parseInt(b.last.year) * 100 + b.last.week : 0;
+        return by - ay || a.name.localeCompare(b.name);
+      });
+      if (!list.length) { el.innerHTML = ''; return; }
+
+      var rows = list.map(function(p) {
+        var team = resolveTeam(p.team);
+        var tc = TEAM_COLORS[team];
+        var nick = team ? team.split(' ').pop() : '—';
+        var tds = Object.keys(p.tds).length;
+        var bits = [];
+        if (p.picks.Maria) bits.push('<span style="color:' + SB_M + '">Maria x' + p.picks.Maria + '</span>');
+        if (p.picks.Danielle) bits.push('<span style="color:' + SB_D + '">Danielle x' + p.picks.Danielle + '</span>');
+        if (tds) bits.push('<span style="color:#34D399">🏈 ' + tds + ' first TD' + (tds > 1 ? 's' : '') + '</span>');
+        return '<div class="player-row" style="padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05);align-items:center">' +
+          '<span class="pos-label" style="min-width:74px;color:' + (tc ? tc.dark : '#A1A9B6') + '">' + nick + '</span>' +
+          '<span class="player-name-text" style="flex:1"><span>' + p.name + '</span></span>' +
+          '<span style="font-size:10px;text-align:right">' + bits.join(' <span style="color:rgba(255,255,255,0.25)">·</span> ') +
+          (p.last ? ' <span style="color:rgba(255,255,255,0.4)">· last ' + p.last.year + ' Wk ' + p.last.week + '</span>' : '') + '</span>' +
+        '</div>';
+      }).join('');
+
+      el.innerHTML = '<div class="division-block">' +
+        '<div class="division-header" onclick="toggleDivision(this)">Not Currently Offered (' + list.length + ') <span class="division-chevron">▼</span></div>' +
+        '<div class="division-teams">' +
+          '<div style="font-size:12px;color:#A1A9B6;margin:4px 0 10px">Players from past games who aren\'t on the current roster: anyone who was picked, plus anyone who scored a first TD. Team shown is their last team in your sheets. Tap a name for their card.</div>' +
+          '<div class="team-block" style="border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03)"><div class="team-players-inner" style="background:transparent">' + rows + '</div></div>' +
+        '</div></div>';
+      schedulePlayerTagging();
     }
 
     function closePlayerCard() {
@@ -2778,7 +2828,7 @@
             for (const { pos, name } of td.players) {
               const isQB = pos === 'QB';
               // Skip QBs not in the offered list entirely
-              if (isQB && !validQBs.has(name)) continue;
+              if (isQB && !validQBs.has(name)) { ROSTER_INFO[playerKey(name)].hidden = true; continue; }
               const nameClass = isQB ? 'qb-valid' : 'player-name-text';
               const counts = pickCounts[name] || {};
               const pickNotes = [];
@@ -2802,7 +2852,9 @@
           html += `</div></div>`;
         }
 
+        html += '<div id="former-division"></div>';
         document.getElementById('rosters-content').innerHTML = html;
+        loadPlayerDB().then(renderFormerDivision);
         schedulePlayerTagging();
       } catch(e) {
         console.error(e);

@@ -127,6 +127,18 @@ details.an-more[open] > summary::before { content: '▾ '; }
 .psearch-txt small { font-size: 11.5px; color: #A1A9B6; margin-top: 1px; }
 .psearch-none { font-size: 13px; color: #9CA3AF; padding: 8px 2px; }
 
+/* NFL Players: offered tags, "more not offered" lists */
+.pc-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 2px; }
+.pc-tag { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; background: rgba(0,0,0,0.3); color: rgba(255,255,255,0.75); }
+.pc-tag.on { background: rgba(52,211,153,0.2); color: #6EE7B7; }
+.pc-tag.inj { background: rgba(248,113,113,0.2); color: #FCA5A5; }
+details.more-players { margin-top: 6px; border-top: 1px dashed rgba(255,255,255,0.12); padding-top: 6px; }
+details.more-players > summary { cursor: pointer; font-size: 12px; font-weight: 600; color: #A1A9B6; list-style: none; padding: 2px 0; }
+details.more-players > summary::-webkit-details-marker { display: none; }
+.player-row.not-offered { opacity: 0.55; }
+.player-row.not-offered .pos-label { color: #9CA3AF; }
+.inj-tag { font-size: 9.5px; font-weight: 800; color: #FCA5A5; margin-left: 6px; text-transform: uppercase; }
+
 /* 🩺 Status */
 .st-row { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
 .st-ic { flex: none; width: 22px; text-align: center; }

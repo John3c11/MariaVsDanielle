@@ -657,6 +657,10 @@
           h += row(trig.indexOf('fillFirstTDs') >= 0 ? 'ok' : 'bad', 'First TD auto-fill', (trig.indexOf('fillFirstTDs') >= 0 ? 'On (every 30 min)' : 'OFF: run setupFirstTDAutoFill in Apps Script') +
             '<br>Last ran: ' + ago(s.ftdLast && s.ftdLast.at) + (s.ftdLast && s.ftdLast.log && s.ftdLast.log.length ? '<div class="st-log">' + s.ftdLast.log.map(escHtml).join('<br>') + '</div>' : '') +
             'Last wrote something: ' + ago(s.ftdLastWrite && s.ftdLastWrite.at) + (s.ftdLastWrite ? '<div class="st-log">' + s.ftdLastWrite.log.map(escHtml).join('<br>') + '</div>' : ''));
+          var nl = s.nflLast;
+          h += row(trig.indexOf('updateNFLPlayers') >= 0 && nl && !nl.kept ? 'ok' : nl ? 'warn' : 'bad', 'NFL Players list (daily, from ESPN)',
+            (trig.indexOf('updateNFLPlayers') >= 0 ? 'On (daily around 5 AM)' : 'OFF: run setupNFLPlayersDaily in Apps Script') +
+            '<br>Last updated: ' + ago(nl && nl.at) + (nl ? ' · ' + nl.count + ' players' + (nl.failed && nl.failed.length ? ' · missed ' + nl.failed.join(', ') : '') + (nl.kept ? ' · <b>kept the old list</b> (ESPN gave too little)' : '') : ''));
           h += row(trig.indexOf('sendWeeklyRecap') >= 0 ? 'ok' : 'info', 'Tuesday recap email', (trig.indexOf('sendWeeklyRecap') >= 0 ? 'On (Tuesdays 9 AM)' : 'Off') + '<br>Last sent: ' + ago(s.recapLast && s.recapLast.at) + (s.recapLast ? ' · "' + escHtml(s.recapLast.subject) + '"' : ''));
           var gp = s.gaps || { noScorer: [], noSide: [], noOdds: [] };
           h += '<div class="pf-h">📋 Sheet check</div>';
@@ -671,7 +675,7 @@
           h += '<div class="pf-h">🏷️ Versions</div>';
           var v = s.versions || {};
           h += row('info', 'Website', siteV + ' · ' + (navigator.serviceWorker && navigator.serviceWorker.controller ? 'offline mode on' : 'offline mode not active yet'));
-          ['PicksAPI', 'FirstTD', 'WeeklyRecap'].forEach(function(k) {
+          ['PicksAPI', 'FirstTD', 'WeeklyRecap', 'NFLPlayers'].forEach(function(k) {
             var old = !/^\d{4}-/.test(v[k] || '');
             h += row(old ? 'warn' : 'info', k + '.gs', old ? (v[k] || 'unknown') + ': paste the latest copy into Apps Script' : 'Updated ' + v[k]);
           });

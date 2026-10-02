@@ -94,7 +94,7 @@
 
     function isKnownPlayer(text) {
       var k = playerKey(text);
-      return !!k && ((PLAYER_DB && PLAYER_DB[k]) || ROSTER_INFO[k]);
+      return !!k && ((PLAYER_DB && PLAYER_DB[k]) || ROSTER_INFO[k] || (NFL[k] && SKILL_POS[NFL[k].pos]));
     }
 
     // Mark every on-screen player name as tappable
@@ -113,6 +113,31 @@
           if (isKnownPlayer(t)) { el.classList.add('pl-link'); el.setAttribute('data-pname', t); }
         });
       });
+    }
+
+    // ── NFL Players tab: every player's real current team (ESPN, refreshed daily) ──
+    // The Rosters tab says who's OFFERED. This says who plays where.
+    var NFL = {}, NFL_READY = null;
+    var SKILL_POS = { QB: 1, RB: 1, WR: 1, TE: 1, FB: 1 };
+    function loadNFL() {
+      if (NFL_READY) return NFL_READY;
+      NFL_READY = fetchSheet('NFL Players', 'A1:F4000').then(function(rows) {
+        rows.slice(1).forEach(function(r) {
+          var n = (r[0] || '').trim(); if (!n) return;
+          var k = playerKey(n), p = { name: n, team: resolveTeam(r[1]), pos: (r[2] || '').trim(), id: (r[4] || '').trim(), inj: (r[5] || '').trim() };
+          // Same name on two teams (e.g. two Josh Allens): keep the offensive player
+          if (NFL[k] && SKILL_POS[NFL[k].pos] && !SKILL_POS[p.pos]) return;
+          NFL[k] = p;
+        });
+        return NFL;
+      }).catch(function() { return NFL; });
+      return NFL_READY;
+    }
+    function nflOf(name) { return NFL[playerKey(name)] || null; }
+    function isOffered(name) { var r = ROSTER_INFO[playerKey(name)]; return !!(r && r.team && !r.hidden); }
+    function nowTeam(name) {
+      var n = nflOf(name); if (n && n.team) return n.team;
+      var r = ROSTER_INFO[playerKey(name)]; return r && r.team ? resolveTeam(r.team) : '';
     }
 
     // ── Player headshots from ESPN team rosters (saved on the phone for a week) ──
@@ -152,8 +177,17 @@
         el.setAttribute('data-hs-done', '1');
         var name = el.getAttribute('data-hs-name'), team = el.getAttribute('data-hs-team');
         if (!team) { el.remove(); return; }
+        // Fastest: the ESPN id from the NFL Players tab
+        var nf = nflOf(name);
+        if (nf && nf.id) {
+          var im = new Image();
+          im.alt = ''; im.onload = function() { el.innerHTML = ''; el.appendChild(im); el.classList.add('hs-on'); };
+          im.onerror = function() { el.innerHTML = teamLogo(nf.team || team, 'hs-logo'); };
+          im.src = 'https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/' + nf.id + '.png&w=150&h=109&scale=crop';
+          return;
+        }
         // Players change teams: look on his current roster first, then the team from that game
-        var now = resolveTeam((ROSTER_INFO[playerKey(name)] || {}).team || '');
+        var now = nowTeam(name);
         var tries = [now, team].filter(function(t, i, a) { return t && a.indexOf(t) === i; });
         Promise.all(tries.map(hsTeamMap)).then(function(maps) {
           var url = null;
@@ -176,8 +210,10 @@
       var results = [];
       function everyone() {
         var out = {};
-        Object.keys(ROSTER_INFO).forEach(function(k) { var r = ROSTER_INFO[k]; if (r && r.name) out[k] = { name: r.name, team: r.team, pos: r.pos || '' }; });
+        Object.keys(NFL).forEach(function(k) { var n = NFL[k]; if (SKILL_POS[n.pos]) out[k] = { name: n.name, team: n.team, pos: n.pos }; });
+        Object.keys(ROSTER_INFO).forEach(function(k) { var r = ROSTER_INFO[k]; if (r && r.name && !out[k]) out[k] = { name: r.name, team: resolveTeam(r.team), pos: r.pos || '' }; });
         Object.keys(PLAYER_DB || {}).forEach(function(k) { var p = PLAYER_DB[k]; if (!out[k] && p && p.name) out[k] = { name: p.name, team: resolveTeam(p.team), pos: '', former: true }; });
+        Object.keys(out).forEach(function(k) { out[k].offered = isOffered(out[k].name); });
         return out;
       }
       function run() {
@@ -193,7 +229,7 @@
         if (!results.length) { box.innerHTML = '<div class="psearch-none">No player called "' + escHtml(input.value) + '"</div>'; return; }
         box.innerHTML = results.map(function(r, i) {
           var p = r.p, db = (PLAYER_DB || {})[r.k], tds = db ? Object.keys(db.tds).length : 0, picks = db ? db.picks.Maria + db.picks.Danielle : 0;
-          var sub = [p.pos ? p.pos.replace(/\d+/g, '') : '', p.team ? p.team.split(' ').pop() : '', p.former ? 'not on current rosters' : ''].filter(Boolean).join(' · ');
+          var sub = [p.pos ? p.pos.replace(/\d+/g, '') : '', p.team ? p.team.split(' ').pop() + (p.former ? ' (last seen)' : '') : '', p.offered ? '<span style="color:#34D399">offered</span>' : 'not offered'].filter(Boolean).join(' · ');
           var stat = [tds ? '🏈 ' + tds + ' first TD' + (tds > 1 ? 's' : '') : '', picks ? 'picked ' + picks + 'x' : ''].filter(Boolean).join(' · ');
           return '<button class="psearch-item" data-ps="' + i + '">' + (p.team ? headshot(p.name, p.team, 34) : '') +
             '<span class="psearch-txt"><b>' + escHtml(p.name) + '</b><small>' + sub + (stat ? ' · ' + stat : '') + '</small></span></button>';
@@ -201,7 +237,7 @@
         fillHeadshots(box);
       }
       input.addEventListener('input', run);
-      input.addEventListener('focus', function() { loadPlayerDB().then(run); });
+      input.addEventListener('focus', function() { Promise.all([loadPlayerDB(), loadNFL()]).then(run); });
       input.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && results[0]) { e.preventDefault(); openPlayerCard(results[0].p.name); input.blur(); }
         if (e.key === 'Escape') { input.value = ''; run(); }
@@ -214,14 +250,18 @@
 
     // ctx (optional): { year, week } of the game the name was tapped in
     function openPlayerCard(name, ctx) {
-      loadPlayerDB().then(function(db) {
+      Promise.all([loadPlayerDB(), loadNFL()]).then(function(res) {
+        var db = res[0];
         var k = playerKey(name);
         var p = db[k] || { name: name, picks: { Maria: 0, Danielle: 0 }, hits: { Maria: 0, Danielle: 0 }, units: { Maria: 0, Danielle: 0 }, tds: {}, games: {}, gameOrder: [], team: '', lastOdds: null, stints: [] };
         var ri = ROSTER_INFO[k] || {};
-        var onRoster = !!(ri.team && resolveTeam(ri.team));
+        var onRoster = isOffered(name);
+        var nf = nflOf(name);
         var stints = p.stints || [];
         var lastStint = stints[stints.length - 1];
-        var team = onRoster ? resolveTeam(ri.team) : resolveTeam(p.team);
+        var team = (nf && nf.team) || (ri.team ? resolveTeam(ri.team) : '') || resolveTeam(p.team);
+        var inNFL = !!(nf && nf.team) || onRoster;
+        var posTxt = onRoster && ri.pos ? ri.pos : (nf ? nf.pos : '');
         function abbr(t) { return (TEAM_ABBR[resolveTeam(t)] || t.split(' ').pop()).toUpperCase(); }
         function nick(t) { return resolveTeam(t).split(' ').pop(); }
         // Team history, newest first: "2026 Patriots · 2025 Packers"
@@ -230,6 +270,7 @@
           return '<span style="color:' + ((TEAM_COLORS[s.team] || {}).dark || '#F3F4F6') + '">' + s.year + ' ' + nick(s.team) + (same ? ' Wk ' + s.from + '–' + s.to : '') + '</span>';
         });
         var moved = stints.some(function(s) { return s.team !== team; });
+        if (team && lastStint && lastStint.team !== team) hist.unshift('<span style="color:' + ((TEAM_COLORS[team] || {}).dark || '#F3F4F6') + '">Now ' + nick(team) + '</span>');
         // The game it was opened from, if he was on a different team then
         var ctxLine = '';
         if (ctx && ctx.year && ctx.week) {
@@ -282,9 +323,11 @@
           '<div class="pc-head" style="background:linear-gradient(150deg,' + hexA(headBg, 0.95) + ' 0%,' + hexA(headBg, 0.35) + ' 70%, rgba(17,19,24,1) 100%)">' +
             '<button class="pc-close" id="pc-close" aria-label="Close">×</button>' +
             (team ? '<div class="pc-hs">' + headshot(p.name, team, 76) + '</div>' : '') +
-            (team ? '<span class="pc-now">' + (onRoster ? 'Now' : 'Last seen') + '</span>' + teamPill((ri.pos ? ri.pos + ' · ' : '') + team + (onRoster || !lastStint ? '' : ' (' + lastStint.year + ')'), team) : '') +
+            (team ? '<span class="pc-now">' + (inNFL ? 'Now' : 'Last seen') + '</span>' + teamPill((posTxt ? posTxt + ' · ' : '') + team + (inNFL || !lastStint ? '' : ' (' + lastStint.year + ')'), team) : '') +
+            '<div class="pc-tags">' + (onRoster ? '<span class="pc-tag on">✓ Offered</span>' : '<span class="pc-tag">Not offered</span>') +
+              (nf && nf.inj ? '<span class="pc-tag inj">ESPN: ' + escHtml(nf.inj) + '</span>' : '') + (!inNFL && nf === null && Object.keys(NFL).length ? '<span class="pc-tag">Not on an NFL roster</span>' : '') + '</div>' +
             '<div class="pc-name">' + p.name + outBadge(p.name) + '</div>' +
- (moved || (hist.length && !onRoster) ? '<div class="pc-teams">' + hist.join(' · ') + '</div>' : '') + ctxLine +
+ (moved || (hist.length && !inNFL) ? '<div class="pc-teams">' + hist.join(' · ') + '</div>' : '') + ctxLine +
             (p.lastOdds ? '<div class="pc-sub">Last odds ' + formatOdds(p.lastOdds.odds) + ' (' + p.lastOdds.year + ' Wk ' + p.lastOdds.week + ')</div>' : '') +
           '</div>' +
           '<div class="pc-body">' +
@@ -324,9 +367,10 @@
       if (!list.length) { el.innerHTML = ''; return; }
 
       var rows = list.map(function(p) {
-        var team = resolveTeam(p.team);
+        var nf = nflOf(p.name);
+        var team = nf && nf.team ? nf.team : resolveTeam(p.team);
         var tc = TEAM_COLORS[team];
-        var nick = team ? team.split(' ').pop() : '—';
+        var nick = nf && nf.team ? team.split(' ').pop() : Object.keys(NFL).length ? 'No team' : (team ? team.split(' ').pop() : '—');
         var tds = Object.keys(p.tds).length;
         var bits = [];
         if (p.picks.Maria) bits.push('<span style="color:' + SB_M + '">Maria x' + p.picks.Maria + '</span>');
@@ -341,9 +385,9 @@
       }).join('');
 
       el.innerHTML = '<div class="division-block">' +
-        '<div class="division-header" onclick="toggleDivision(this)">Not Currently Offered (' + list.length + ') <span class="division-chevron">▼</span></div>' +
+        '<div class="division-header" onclick="toggleDivision(this)">Picked Before, Not Offered Now (' + list.length + ') <span class="division-chevron">▼</span></div>' +
         '<div class="division-teams">' +
-          '<div style="font-size:12px;color:#A1A9B6;margin:4px 0 10px">Players from past games who aren\'t on the current roster: anyone who was picked, plus anyone who scored a first TD. Team shown is their last team in your sheets. Tap a name for their card.</div>' +
+          '<div style="font-size:12px;color:#A1A9B6;margin:4px 0 10px">Players from past games who aren\'t offered right now: anyone who was picked, plus anyone who scored a first TD. The team shown is where they play today (from ESPN). Tap a name for their card.</div>' +
           '<div class="team-block" style="border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03)"><div class="team-players-inner" style="background:transparent">' + rows + '</div></div>' +
         '</div></div>';
       schedulePlayerTagging();
@@ -392,6 +436,7 @@
 
     async function loadRosters() {
       try {
+        await loadNFL();
         const [rosterRows, qbRows, injuredRows] = await Promise.all([
           fetchSheet('Rosters', 'A1:AG10'),
           fetchSheet('QBs', 'A1:A50'),
@@ -484,6 +529,15 @@
               if (counts['Danielle']) pickNotes.push(`Danielle x${counts['Danielle']}`);
               const pickNote = pickNotes.length ? `<span style="font-size:10px;color:#9CA3AF;margin-left:6px">${pickNotes.join(', ')}</span>` : '';
               html += `<div class="player-row${outRow(extra)}"><span class="pos-label" style="color:${tc.dark || tc.primary}">+</span><span class="player-name-text extra"><span>${extra}</span>${outBadge(extra)}${pickNote}</span></div>`;
+            }
+            // Everyone else on the team (from ESPN), grayed out
+            const offeredKeys = new Set(td.players.concat(td.extras.map(n => ({ name: n }))).map(x => playerKey(x.name)));
+            const others = Object.keys(NFL).map(k => NFL[k]).filter(n => n.team === teamName && SKILL_POS[n.pos] && !offeredKeys.has(playerKey(n.name)))
+              .sort((a, b) => ['QB', 'RB', 'FB', 'WR', 'TE'].indexOf(a.pos) - ['QB', 'RB', 'FB', 'WR', 'TE'].indexOf(b.pos) || a.name.localeCompare(b.name));
+            if (others.length) {
+              html += `<details class="more-players"><summary>+ ${others.length} more not offered</summary>` +
+                others.map(n => `<div class="player-row not-offered"><span class="pos-label">${n.pos}</span><span class="player-name-text"><span>${escHtml(n.name)}</span>${n.inj ? '<span class="inj-tag">' + escHtml(n.inj) + '</span>' : ''}</span></div>`).join('') +
+                `</details>`;
             }
             html += `</div></div></div>`;
           }

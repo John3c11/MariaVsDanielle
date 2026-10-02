@@ -297,6 +297,7 @@
         } else {
           banner.innerHTML = `It's <span>tied</span>`;
         }
+        renderPace(rows, mariaUnits, danielleUnits);
 
         // Stats
         const statsEl = document.getElementById('stats-section');
@@ -433,6 +434,7 @@
 
 
         renderFirstTDs(rows);
+        renderVisitBanner(rows);
 
         if (navigator.onLine) {
           try { localStorage.setItem('mvd-last-online', String(Date.now())); } catch (e) {}
@@ -508,12 +510,20 @@
     // ── This Week's First TDs ─────────────────────────────────────────────────
     // Shows the latest week that has a first scorer. It flips to the next week once
     // that week's first game is scored, so last week stays up until Thursday night.
-    function renderFirstTDs(rows) {
+    var FTD = { rows: null, week: 0, picked: false };
+    function renderFirstTDs(rows, pickWeek) {
       var wrap = document.getElementById('ftd-wrap');
       if (!wrap) return;
       var weeks = rows.filter(function(r) { return (r[11] || '').trim(); }).map(function(r) { return parseInt(r[1], 10) || 0; });
       if (!weeks.length) { wrap.style.display = 'none'; return; }
-      var week = Math.max.apply(null, weeks);
+      var latest = Math.max.apply(null, weeks);
+      var allWeeks = rows.filter(function(r) { return (r[4] || '').trim(); }).map(function(r) { return parseInt(r[1], 10) || 0; })
+        .filter(function(w, i, a) { return w && a.indexOf(w) === i; }).sort(function(a, b) { return a - b; });
+      FTD.rows = rows;
+      if (pickWeek) { FTD.week = pickWeek; FTD.picked = pickWeek !== latest; }
+      // Auto-refreshes keep the week you're looking at; otherwise follow the latest week
+      var week = (FTD.picked && allWeeks.indexOf(FTD.week) >= 0) ? FTD.week : latest;
+      FTD.week = week;
       var G = {}, order = [];
       rows.forEach(function(r) {
         if ((parseInt(r[1], 10) || 0) !== week || !(r[4] || '').trim()) return;
@@ -526,7 +536,15 @@
         if (who === 'Maria' || who === 'Danielle') g.md[who] = (r[12] || '').trim();
       });
       var done = order.filter(function(k) { return G[k].scorer; }).length;
-      document.getElementById('ftd-title').textContent = '🏈 Week ' + week + ' First Touchdowns';
+      var wi = allWeeks.indexOf(week);
+      var prevW = wi > 0 ? allWeeks[wi - 1] : 0, nextW = wi >= 0 && wi < allWeeks.length - 1 ? allWeeks[wi + 1] : 0;
+      var title = document.getElementById('ftd-title');
+      title.innerHTML = '<div class="ftd-nav"><button data-ftd-w="' + prevW + '"' + (prevW ? '' : ' disabled') + ' aria-label="Previous week">‹</button>' +
+        '<span>🏈 Week ' + week + ' First Touchdowns' + (week !== latest ? '<button class="ftd-latest" data-ftd-w="' + latest + '">Latest</button>' : '') + '</span>' +
+        '<button data-ftd-w="' + nextW + '"' + (nextW ? '' : ' disabled') + ' aria-label="Next week">›</button></div>';
+      title.querySelectorAll('[data-ftd-w]').forEach(function(b) {
+        b.addEventListener('click', function() { var w = +b.getAttribute('data-ftd-w'); if (w) renderFirstTDs(FTD.rows, w); });
+      });
       var h = '<div class="ftd-sub">' + done + ' of ' + order.length + ' game' + (order.length === 1 ? '' : 's') + ' scored</div>';
       order.forEach(function(k) {
         var g = G[k];
@@ -578,6 +596,66 @@
           else el.textContent = '⏳ ' + new Date(ev.date).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' });
         });
       }).catch(function() {});
+    }
+
+    // ── Season pace: units per week so far, stretched to 18 weeks ─────────────
+    function renderPace(rows, mU, dU) {
+      var el = document.getElementById('pace-line');
+      if (!el) return;
+      var weeks = {};
+      rows.forEach(function(r) { var c = (r[12] || '').trim(); if (c === 'Yes' || c === 'No') weeks[parseInt(r[1], 10) || 0] = 1; });
+      var done = Object.keys(weeks).filter(function(w) { return +w > 0 && +w <= 18; }).length;
+      if (done < 2 || done >= 18) { el.style.display = 'none'; return; }
+      function p(u) { var x = Math.round(u / done * 18); return (x >= 0 ? '+' : '') + x + 'u'; }
+      el.innerHTML = '📈 On pace for <b style="color:' + SB_M + '">Maria ' + p(mU) + '</b> · <b style="color:' + SB_D + '">Danielle ' + p(dU) + '</b> by Week 18';
+      el.style.display = '';
+    }
+
+    // ── "Since your last visit" ──────────────────────────────────────────────
+    // Each phone remembers which games were already scored the last time it opened the site.
+    var VISIT = { shown: false, parts: [], chat: 0 };
+    function renderVisitBanner(rows) {
+      var G = {}, order = [];
+      rows.forEach(function(r) {
+        var sc = (r[11] || '').trim(); if (!sc) return;
+        var k = CURRENT_YEAR + '_' + (r[1] || '').trim() + '_' + String(r[0]).trim();
+        var g = G[k] || (G[k] = (order.push(k), { week: parseInt(r[1], 10) || 0, scorer: sc, hits: [] }));
+        var who = (r[3] || '').trim(), notOffered = (r[14] || '').trim() === 'No' && (parseFloat(r[15]) || 0) === 0;
+        if ((who === 'Maria' || who === 'Danielle') && (r[12] || '').trim() === 'Yes' && !notOffered) {
+          var odds = sc === (r[6] || '').trim() ? r[8] : r[9];
+          g.hits.push({ who: who, odds: formatOdds(odds) });
+        }
+      });
+      var saved = null;
+      try { saved = JSON.parse(localStorage.getItem('mvd-visit') || 'null'); } catch (e) {}
+      try { localStorage.setItem('mvd-visit', JSON.stringify({ scored: order, at: Date.now() })); } catch (e) {}
+      if (VISIT.shown) return;          // only once per page view
+      VISIT.shown = true;
+      if (!saved || !saved.scored) return; // first visit on this phone: nothing to compare yet
+      var fresh = order.filter(function(k) { return saved.scored.indexOf(k) < 0; });
+      var hits = [];
+      fresh.forEach(function(k) { G[k].hits.forEach(function(h) { hits.push('<b style="color:' + (h.who === 'Maria' ? SB_M : SB_D) + '">' + h.who + '</b> hit <b>' + escHtml(G[k].scorer) + '</b> (' + h.odds + ')'); }); });
+      var parts = hits.slice(0, 3);
+      if (hits.length > 3) parts.push('+' + (hits.length - 3) + ' more hits');
+      if (fresh.length) parts.push(fresh.length + ' game' + (fresh.length > 1 ? 's' : '') + ' scored' + (hits.length ? '' : ', nobody hit'));
+      VISIT.parts = parts;
+      VISIT.since = saved.at;
+      drawVisitBanner();
+    }
+    function drawVisitBanner() {
+      var el = document.getElementById('visit-banner');
+      if (!el || VISIT.closed) return;
+      var parts = VISIT.parts.slice();
+      if (VISIT.chat) parts.push('<span class="vb-chat" data-vb-chat="1">' + VISIT.chat + ' new Trash Talk message' + (VISIT.chat > 1 ? 's' : '') + '</span>');
+      if (!parts.length) { el.style.display = 'none'; return; }
+      var since = VISIT.since ? new Date(VISIT.since).toLocaleDateString([], { weekday: 'long' }) : '';
+      var today = new Date().toLocaleDateString([], { weekday: 'long' });
+      el.innerHTML = '<div class="vb-k">👋 Since your last visit' + (since && since !== today ? ' (' + since + ')' : '') + '</div>' + parts.join(' · ') +
+        '<button class="vb-x" aria-label="Dismiss">✕</button>';
+      el.style.display = '';
+      el.querySelector('.vb-x').addEventListener('click', function() { VISIT.closed = true; el.style.display = 'none'; });
+      var c = el.querySelector('[data-vb-chat]');
+      if (c) c.addEventListener('click', function() { switchTab('chat'); });
     }
 
     function playPickReveals(root) {

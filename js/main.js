@@ -26,6 +26,8 @@
     }
 
     load();
+    checkChatUnread();
+    setInterval(function() { if (document.visibilityState === 'visible') checkChatUnread(); }, 120000);
     var ROSTERS_READY = loadRosters();
 
     function toggleTabMenu(e) {

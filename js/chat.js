@@ -211,6 +211,38 @@
       }).catch(function() { CHAT.lastKey = ''; refreshChat(); });
     }
 
+    // ── Unread dot on the Trash Talk tab ──────────────────────────────────────
+    // Each phone remembers how many messages it has seen.
+    function chatCount(rows) {
+      return rows.filter(function(r, i) { return i > 0 && (r[1] === 'Maria' || r[1] === 'Danielle') && (r[2] || '').trim(); }).length;
+    }
+    function chatSeen() { try { var n = parseInt(localStorage.getItem('mvd-chat-seen'), 10); return isNaN(n) ? null : n; } catch (e) { return null; } }
+    function markChatRead(total) {
+      try { localStorage.setItem('mvd-chat-seen', String(total)); } catch (e) {}
+      setChatDot(0);
+      if (typeof VISIT !== 'undefined' && VISIT.chat) { VISIT.chat = 0; drawVisitBanner(); }
+    }
+    function setChatDot(n) {
+      document.querySelectorAll('.tab-btn[onclick="switchTab(\'chat\')"]').forEach(function(b) {
+        var d = b.querySelector('.tab-dot');
+        if (!n) { if (d) d.remove(); return; }
+        if (!d) { d = document.createElement('span'); d.className = 'tab-dot'; b.appendChild(d); }
+        d.textContent = n > 99 ? '99+' : n;
+      });
+    }
+    function checkChatUnread() {
+      var season = SEASONS.filter(function(x) { return x.year === CURRENT_YEAR; })[0];
+      if (!season) return;
+      fetchChatRows(season).then(function(rows) {
+        var total = chatCount(rows), seen = chatSeen();
+        if (seen === null) { try { localStorage.setItem('mvd-chat-seen', String(total)); } catch (e) {} return; } // first visit
+        if (document.getElementById('tab-chat').classList.contains('active')) { markChatRead(total); return; }
+        var n = Math.max(0, total - seen);
+        setChatDot(n);
+        if (typeof VISIT !== 'undefined') { VISIT.chat = n; drawVisitBanner(); }
+      }).catch(function() {});
+    }
+
     function parseSheetTime(v) {
       // Sheets returns the formatted date text, e.g. "10/1/2026 14:05:33"
       var m = (v || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
@@ -237,6 +269,7 @@
           if (i === 0 || !(r[1] === 'Maria' || r[1] === 'Danielle') || !(r[2] || '').trim()) return;
           msgs.push({ row: i + 1, when: parseSheetTime(r[0]), who: r[1], text: r[2], pinned: /pin/i.test(r[3] || ''), reactions: parseReactions(r[4]) });
         });
+        if (season.year === CURRENT_YEAR && document.getElementById('tab-chat').classList.contains('active')) markChatRead(msgs.length);
         var key = season.year + '|' + JSON.stringify(msgs.map(function(m) { return [m.row, m.text, m.pinned, m.reactions]; }));
         if (key === CHAT.lastKey) return;
         CHAT.lastKey = key;

@@ -53,6 +53,22 @@
   #tab-login { max-width: 104px; overflow: hidden; text-overflow: ellipsis; }
 }
 
+/* "Since your last visit" banner (Stats tab) */
+.visit-banner { position: relative; background: linear-gradient(120deg, rgba(45,212,191,0.14), rgba(96,165,250,0.12)); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 12px 40px 12px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.55; color: #E5E7EB; }
+.visit-banner b { color: #FFFFFF; }
+.visit-banner .vb-k { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #5EEAD4; margin-bottom: 3px; }
+.visit-banner .vb-x { position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; border-radius: 50%; border: none; background: rgba(255,255,255,0.08); color: #D1D5DB; cursor: pointer; font-size: 14px; line-height: 1; }
+.visit-banner .vb-chat { color: #93C5FD; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+/* Season pace line (Stats tab) */
+.pace-line { text-align: center; font-size: 13px; color: rgba(255,255,255,0.7); margin: -12px 0 20px; }
+/* Unread Trash Talk dot */
+.tab-dot { display: inline-block; min-width: 16px; height: 16px; padding: 0 4px; margin-left: 4px; border-radius: 999px; background: #EF4444; color: #FFFFFF; font-size: 10px; font-weight: 800; line-height: 16px; text-align: center; vertical-align: 1px; box-sizing: border-box; }
+/* First TDs week arrows */
+.ftd-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ftd-nav button { width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.06); color: #FFFFFF; font-size: 16px; cursor: pointer; flex: none; }
+.ftd-nav button:disabled { opacity: 0.25; cursor: default; }
+.ftd-nav .ftd-latest { width: auto; height: auto; border-radius: 999px; padding: 2px 9px; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; margin-left: 6px; }
+
 /* This Week's First TDs (Stats tab) */
 .ftd-sub { font-size: 12px; color: rgba(255,255,255,0.55); margin: -6px 0 12px; }
 .ftd-row { background: rgba(255,255,255,0.06); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }

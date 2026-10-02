@@ -659,8 +659,14 @@
             'Last wrote something: ' + ago(s.ftdLastWrite && s.ftdLastWrite.at) + (s.ftdLastWrite ? '<div class="st-log">' + s.ftdLastWrite.log.map(escHtml).join('<br>') + '</div>' : ''));
           var nl = s.nflLast;
           h += row(trig.indexOf('updateNFLPlayers') >= 0 && nl && !nl.kept ? 'ok' : nl ? 'warn' : 'bad', 'NFL Players list (daily, from ESPN)',
-            (trig.indexOf('updateNFLPlayers') >= 0 ? 'On (daily around 5 AM)' : 'OFF: run setupNFLPlayersDaily in Apps Script') +
+            (trig.indexOf('updateNFLPlayers') >= 0 ? 'On (every 2 hours)' : 'OFF: run setupNFLPlayersDaily in Apps Script') +
             '<br>Last updated: ' + ago(nl && nl.at) + (nl ? ' · ' + nl.count + ' players' + (nl.failed && nl.failed.length ? ' · missed ' + nl.failed.join(', ') : '') + (nl.kept ? ' · <b>kept the old list</b> (ESPN gave too little)' : '') : ''));
+          var ij = s.injuries;
+          if (ij) h += row(!ij.auto ? 'info' : (ij.needFill && ij.needFill.length) ? 'warn' : 'ok', 'Auto injuries (ESPN)',
+            (ij.auto ? 'On' : 'Off') + ' · last check ' + ago(ij.last && ij.last.at) + (ij.shifted && ij.shifted.length ? ' · shifted: ' + ij.shifted.map(function(t) { return t.split(' ').pop(); }).join(', ') : '') +
+            (ij.needFill && ij.needFill.length ? '<br>⚠️ Needs a fill-in: ' + ij.needFill.map(escHtml).join(', ') : '') +
+            (ij.pending && ij.pending.length ? '<br>⏳ Waiting on games: ' + ij.pending.map(function(t) { return t.split(' ').pop(); }).join(', ') : '') +
+            (ij.log && ij.log.length ? '<div class="st-log">' + ij.log.map(function(l) { return escHtml(l.text); }).join('<br>') + '</div>' : ''));
           h += row(trig.indexOf('sendWeeklyRecap') >= 0 ? 'ok' : 'info', 'Tuesday recap email', (trig.indexOf('sendWeeklyRecap') >= 0 ? 'On (Tuesdays 9 AM)' : 'Off') + '<br>Last sent: ' + ago(s.recapLast && s.recapLast.at) + (s.recapLast ? ' · "' + escHtml(s.recapLast.subject) + '"' : ''));
           var gp = s.gaps || { noScorer: [], noSide: [], noOdds: [] };
           h += '<div class="pf-h">📋 Sheet check</div>';
@@ -675,7 +681,7 @@
           h += '<div class="pf-h">🏷️ Versions</div>';
           var v = s.versions || {};
           h += row('info', 'Website', siteV + ' · ' + (navigator.serviceWorker && navigator.serviceWorker.controller ? 'offline mode on' : 'offline mode not active yet'));
-          ['PicksAPI', 'FirstTD', 'WeeklyRecap', 'NFLPlayers'].forEach(function(k) {
+          ['PicksAPI', 'FirstTD', 'WeeklyRecap', 'NFLPlayers', 'Injuries'].forEach(function(k) {
             var old = !/^\d{4}-/.test(v[k] || '');
             h += row(old ? 'warn' : 'info', k + '.gs', old ? (v[k] || 'unknown') + ': paste the latest copy into Apps Script' : 'Updated ' + v[k]);
           });
@@ -857,45 +863,88 @@
     // Injuries
     function adminInjuries() {
       var body = adminScreen('injuries', '<div class="loading">Loading…</div>');
-      clearSheetCache();
-      Promise.all([fetchSheet('Injured', 'A1:B100').catch(function() { return []; }), ROSTERS_READY]).then(function(res) {
-        var list = res[0].slice(1).filter(function(r) { return (r[0] || '').trim(); });
-        var names = Object.keys(ROSTER_INFO).map(function(k) { return ROSTER_INFO[k].name; }).filter(Boolean).sort();
-        var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">Injured players show as OUT on the site and can\'t be picked. Marking someone healthy puts them right back.</div>' +
-          '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">' +
-            '<input class="adm-input" id="inj-name" list="inj-players" placeholder="Player name" style="flex:2;min-width:160px">' +
-            '<input class="adm-input" id="inj-note" placeholder="Note (optional), e.g. Out Wk 5" style="flex:1.4;min-width:140px">' +
-            '<button class="primary-btn" id="inj-add" style="padding:9px 18px">Mark OUT</button>' +
-          '</div><datalist id="inj-players">' + names.map(function(n) { return '<option value="' + escHtml(n) + '">'; }).join('') + '</datalist>' +
-          '<div class="submit-msg" id="adm-msg" style="text-align:left"></div>' +
-          '<div style="font-size:11px;font-weight:800;letter-spacing:0.12em;color:#A1A9B6;margin:14px 0 4px">CURRENTLY OUT (' + list.length + ')</div>';
-        h += list.length ? list.map(function(r) {
-          var info = ROSTER_INFO[playerKey(r[0])];
-          return '<div class="adm-row"><div><b>' + escHtml(r[0]) + '</b>' + (info ? ' <span style="color:#A1A9B6">· ' + info.team.split(' ').pop() + '</span>' : ' <span style="color:#FBBF24">· not on the roster, check spelling</span>') +
-            (r[1] ? '<div style="font-size:11px;color:#A1A9B6">' + escHtml(r[1]) + '</div>' : '') + '</div>' +
-            '<button class="adm-btn green" data-heal="' + escHtml(r[0]) + '">Healthy ✓</button></div>';
-        }).join('') : '<div style="color:#A1A9B6;font-size:13px;padding:10px 0">Nobody is marked injured.</div>';
-        body.innerHTML = h;
-        document.getElementById('inj-add').addEventListener('click', function() {
-          var name = document.getElementById('inj-name').value.trim();
-          if (!name) return adminMsg('Type a player name.');
-          if (!ROSTER_INFO[playerKey(name)] && !confirm(name + ' isn\'t on the Rosters tab. Add anyway?')) return;
-          adminMsg('Saving…', true);
-          picksApi({ pin: SUB.pin, action: 'injure', name: name, note: document.getElementById('inj-note').value.trim() }).then(function(r) {
-            if (r.error) return adminMsg(r.error);
-            refreshAfterInjury(); adminInjuries();
-          }).catch(function() { adminMsg('Couldn\'t reach the sheet.'); });
-        });
-        body.querySelectorAll('[data-heal]').forEach(function(b) {
-          b.addEventListener('click', function() {
-            b.disabled = true; b.textContent = 'Saving…';
-            picksApi({ pin: SUB.pin, action: 'heal', name: b.getAttribute('data-heal') }).then(function(r) {
-              if (r.error) return adminMsg(r.error);
-              refreshAfterInjury(); adminInjuries();
-            }).catch(function() { adminMsg('Couldn\'t reach the sheet.'); });
-          });
+      Promise.all([picksApi({ pin: SUB.pin, action: 'injuries' }), ROSTERS_READY, loadNFL()]).then(function(res) {
+        drawInjuries(body, res[0]);
+      }).catch(function() { body.innerHTML = '<div class="loading">Couldn\'t reach the script.</div>'; });
+    }
+    function drawInjuries(body, st) {
+      if (st.error) { body.innerHTML = '<div class="loading">' + escHtml(st.error) + '</div>'; return; }
+      function nick(t) { return t ? resolveTeam(t).split(' ').pop() : ''; }
+      function when(iso) { return iso ? new Date(iso).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : 'never'; }
+      var names = Object.keys(ROSTER_INFO).map(function(k) { return ROSTER_INFO[k].name; }).filter(Boolean).sort();
+      var h = '<div class="inj-auto"><div><b>🤖 Auto from ESPN</b><div class="st-d">Players ESPN lists as Out, IR, Suspended or PUP are marked out every 2 hours and come back when ESPN clears them. Last check: ' + when(st.last && st.last.at) + '</div></div>' +
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><button class="adm-btn ' + (st.auto ? 'green' : 'red') + '" id="inj-auto">' + (st.auto ? 'ON' : 'OFF') + '</button><button class="adm-btn" id="inj-sync">Check ESPN now</button></div></div>';
+      h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 6px">' +
+          '<input class="adm-input" id="inj-name" list="inj-players" placeholder="Mark someone out by hand" style="flex:2;min-width:160px">' +
+          '<input class="adm-input" id="inj-note" placeholder="Note (optional)" style="flex:1.4;min-width:120px">' +
+          '<button class="primary-btn" id="inj-add" style="padding:9px 18px">Mark OUT</button>' +
+        '</div><datalist id="inj-players">' + names.map(function(n) { return '<option value="' + escHtml(n) + '">'; }).join('') + '</datalist>' +
+        '<div class="submit-msg" id="adm-msg" style="text-align:left"></div>';
+      if (st.needFill && st.needFill.length) h += '<div class="inj-warn">⚠️ No fill-in found for: <b>' + st.needFill.map(escHtml).join(', ') + '</b>. Pick one below, or leave the slot empty.</div>';
+      if (st.pending && st.pending.length) h += '<div class="inj-warn" style="border-color:rgba(147,197,253,0.4);background:rgba(96,165,250,0.08)">⏳ Waiting for the game to finish before shifting: <b>' + st.pending.map(nick).join(', ') + '</b></div>';
+
+      h += '<div class="inj-h">CURRENTLY OUT (' + st.rows.length + ')</div>';
+      h += st.rows.length ? st.rows.map(function(r) {
+        var auto = r.source === 'auto';
+        var team = resolveTeam(r.team);
+        var pos = r.pos || (ROSTER_INFO[playerKey(r.name)] || {}).pos || '';
+        var P = pos.replace(/\d+/g, '');
+        // Fill-in choices: that team's players at the same position who aren't offered yet
+        var opts = Object.keys(NFL).map(function(k) { return NFL[k]; }).filter(function(n) {
+          return n.team === team && n.pos === P && !isOffered(n.name) && playerKey(n.name) !== playerKey(r.name);
+        }).sort(function(a, b) { return a.name.localeCompare(b.name); });
+        var cur = r.fill === '-' ? '-' : (r.fillBy === 'you' ? r.fill : '');
+        var sel = '<select class="adm-input inj-fill" data-fill="' + escHtml(r.name) + '">' +
+          '<option value=""' + (!cur ? ' selected' : '') + '>' + (P === 'QB' ? 'No fill-in (QB)' : 'Auto: ESPN depth chart' + (r.fill && r.fillBy === 'espn' ? ' (' + escHtml(r.fill) + ')' : '')) + '</option>' +
+          '<option value="-"' + (cur === '-' ? ' selected' : '') + '>No fill-in, leave it empty</option>' +
+          opts.map(function(n) { return '<option value="' + escHtml(n.name) + '"' + (cur === n.name ? ' selected' : '') + '>' + escHtml(n.name) + (n.inj ? ' (' + escHtml(n.inj) + ')' : '') + '</option>'; }).join('') +
+          (cur && cur !== '-' && !opts.some(function(n) { return n.name === cur; }) ? '<option selected value="' + escHtml(cur) + '">' + escHtml(cur) + '</option>' : '') + '</select>';
+        return '<div class="inj-row"><div class="inj-top"><div><b>' + escHtml(r.name) + '</b> <span style="color:#A1A9B6">· ' + nick(team) + (pos ? ' ' + escHtml(pos) : '') + '</span>' +
+            '<div class="inj-tags">' + (auto ? '<span class="pc-tag inj">🤖 ESPN: ' + escHtml(r.espn || 'Out') + '</span>' : '<span class="pc-tag">✋ Added by you</span>') +
+            (r.note && !/^ESPN:/.test(r.note) ? '<span class="st-d">' + escHtml(r.note) + '</span>' : '') + '</div></div>' +
+            (auto ? '<button class="adm-btn" data-keep="' + escHtml(r.name) + '" title="Ignore ESPN for him until his status changes">Keep him in</button>'
+                  : '<button class="adm-btn green" data-heal="' + escHtml(r.name) + '">Healthy ✓</button>') + '</div>' +
+          '<div class="inj-fillrow"><span>Fill-in:</span>' + sel + '</div></div>';
+      }).join('') : '<div style="color:#A1A9B6;font-size:13px;padding:10px 0">Nobody is out.</div>';
+
+      if (st.shifted && st.shifted.length) {
+        h += '<div class="inj-h">🔒 SHIFTED TEAMS <span style="font-weight:600;letter-spacing:0;text-transform:none;color:#6B7280">· don\'t hand-edit these columns until they\'re back to normal</span></div>';
+        h += st.shifted.map(function(s) {
+          var diffs = [];
+          for (var i = 0; i < 9; i++) if ((s.original[i] || '') !== (s.now[i] || '')) diffs.push('<span class="inj-slot">' + st.slots[i] + '</span> ' + (s.original[i] ? '<s>' + escHtml(s.original[i]) + '</s>' : '<i>empty</i>') + ' → ' + (s.now[i] ? '<b>' + escHtml(s.now[i]) + '</b>' : '<i>empty</i>'));
+          return '<div class="inj-shift">' + teamLogo(s.team) + '<b>' + nick(s.team) + '</b><div class="st-d">' + diffs.join('<br>') + '</div></div>';
+        }).join('');
+      }
+      if (st.tagged && st.tagged.length) h += '<div class="inj-h">🟡 QUESTIONABLE / DOUBTFUL <span style="font-weight:600;letter-spacing:0;text-transform:none;color:#6B7280">· tagged only, still pickable</span></div>' +
+        '<div class="st-d">' + st.tagged.map(function(t) { return escHtml(t.name) + ' (' + nick(t.team) + ', ' + escHtml(t.espn) + ')'; }).join(' · ') + '</div>';
+      if (st.unmatched && st.unmatched.length) h += '<div class="inj-h">✏️ NOT FOUND ON ESPN <span style="font-weight:600;letter-spacing:0;text-transform:none;color:#6B7280">· usually a spelling difference, so these can\'t be auto-tracked</span></div>' +
+        '<div class="st-d">' + st.unmatched.map(escHtml).join(' · ') + '</div>';
+      if (st.log && st.log.length) h += '<div class="inj-h">RECENT ACTIVITY</div><div class="st-log">' + st.log.map(function(l) { return '<span style="color:#6B7280">' + when(l.at) + '</span> ' + escHtml(l.text); }).join('<br>') + '</div>';
+      body.innerHTML = h;
+
+      function act(params, btn) {
+        if (btn) { btn.disabled = true; }
+        adminMsg('Saving…', true);
+        picksApi(Object.assign({ pin: SUB.pin }, params)).then(function(r) {
+          if (r && r.error) { adminMsg(r.error); if (btn) btn.disabled = false; return; }
+          refreshAfterInjury(); adminInjuries();
+        }).catch(function() { adminMsg('Couldn\'t reach the script.'); if (btn) btn.disabled = false; });
+      }
+      document.getElementById('inj-auto').addEventListener('click', function() { act({ action: 'injauto', on: st.auto ? 'off' : 'on' }, this); });
+      document.getElementById('inj-sync').addEventListener('click', function() { this.textContent = 'Checking…'; act({ action: 'injsync' }, this); });
+      document.getElementById('inj-add').addEventListener('click', function() {
+        var name = document.getElementById('inj-name').value.trim();
+        if (!name) return adminMsg('Type a player name.');
+        if (!ROSTER_INFO[playerKey(name)] && !confirm(name + ' isn\'t on the Rosters tab. Add anyway?')) return;
+        act({ action: 'injure', name: name, note: document.getElementById('inj-note').value.trim() }, this);
+      });
+      body.querySelectorAll('[data-heal]').forEach(function(b) { b.addEventListener('click', function() { act({ action: 'heal', name: b.getAttribute('data-heal') }, b); }); });
+      body.querySelectorAll('[data-keep]').forEach(function(b) {
+        b.addEventListener('click', function() {
+          if (confirm('Keep ' + b.getAttribute('data-keep') + ' in? ESPN will be ignored for him until his status changes.')) act({ action: 'injkeep', name: b.getAttribute('data-keep') }, b);
         });
       });
+      body.querySelectorAll('[data-fill]').forEach(function(sel) { sel.addEventListener('change', function() { act({ action: 'setfill', name: sel.getAttribute('data-fill'), fill: sel.value }); }); });
     }
     function refreshAfterInjury() { clearSheetCache(); ROSTERS_READY = loadRosters(); }
 

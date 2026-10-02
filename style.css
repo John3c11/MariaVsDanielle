@@ -30,7 +30,7 @@
   border-bottom: 2px solid #FFFFFF;
 }
 
-/* Laptop: 5 main tabs + a "More" menu. Phones keep the single scrolling row. */
+/* Laptop: 5 main tabs + a "More" menu. Phones: 4 main tabs + "More" (Analytics moves into the menu). */
 .tab-more-wrap { position: relative; flex: 1 0 auto; display: flex; }
 .tab-more { width: 100%; }
 .tab-caret { font-size: 10px; opacity: 0.7; margin-left: 2px; }
@@ -43,13 +43,26 @@
 .tab-menu .tab-btn { text-align: left; border-bottom: none; margin: 0; border-radius: 8px; padding: 9px 12px; font-size: 14px; }
 .tab-menu .tab-btn:hover { background: rgba(255,255,255,0.06); color: #FFFFFF; }
 .tab-menu .tab-btn.active { background: rgba(255,255,255,0.1); border-bottom: none; }
-@media (min-width: 701px) {
-  .tabs-nav { overflow: visible; }
-  .tabs-nav > .tab-extra { display: none; }
-}
+.tabs-nav { overflow: visible; }
+.tab-menu .menu-phone { display: none; }
 @media (max-width: 700px) {
-  .tab-more-wrap { display: none; }
+  .tabs-nav > .tab-wide { display: none; }
+  .tab-menu .menu-phone { display: block; }
+  .tabs-nav > .tab-btn, .tab-more { padding: 10px 6px !important; font-size: 13px; }
+  .tabs-nav > .tab-btn, .tab-more-wrap { flex: 1 1 auto; min-width: 0; }
+  #tab-login { max-width: 104px; overflow: hidden; text-overflow: ellipsis; }
 }
+
+/* This Week's First TDs (Stats tab) */
+.ftd-sub { font-size: 12px; color: rgba(255,255,255,0.55); margin: -6px 0 12px; }
+.ftd-row { background: rgba(255,255,255,0.06); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
+.ftd-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ftd-slot { font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+.ftd-teams { font-size: 12px; }
+.ftd-scorer { font-size: 16px; font-weight: 700; color: #FFFFFF; margin-top: 8px; }
+.ftd-wait { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 8px; }
+.ftd-who { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 5px; }
+.ftd-who .hit { font-weight: 700; }
 
 /* Submit Picks tab */
 .pin-input {
@@ -273,10 +286,8 @@
   .page-layout { padding: calc(24px + env(safe-area-inset-top)) 12px calc(60px + env(safe-area-inset-bottom)); }
   .wrap { padding: 20px 14px; border-radius: 12px; }
 
-  /* Tabs scroll sideways instead of overflowing */
-  .tabs-nav { overflow-x: auto; scrollbar-width: none; margin-bottom: 24px; }
-  .tabs-nav::-webkit-scrollbar { display: none; }
-  .tab-btn { padding: 10px 12px; white-space: nowrap; flex-shrink: 0; }
+  .tabs-nav { margin-bottom: 24px; }
+  .tab-btn { white-space: nowrap; }
 
   /* Bet History rows become 3-line cards */
   .bh-head { display: none !important; }
@@ -293,6 +304,7 @@
   .bh-row > span:nth-child(5) { grid-area: players; }
   .bh-row > span:nth-child(6) { grid-area: odds; }
   .bh-row > span:nth-child(7) { grid-area: result; justify-self: end; }
+  .bh-ftd { max-width: 130px; }
   .bh-row > span:nth-child(8) { grid-area: units; }
 
   /* Stack side-by-side cards */

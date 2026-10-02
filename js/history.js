@@ -34,28 +34,30 @@
       var countEl = document.getElementById('bh-hist-count');
       if (countEl) countEl.textContent = bets.length + ' bet' + (bets.length !== 1 ? 's' : '');
       if (!el) return;
-      var header = '<div class="bh-head" style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 60px 50px;gap:8px;padding-bottom:8px;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:10px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em">' +
-        '<span>Year</span><span>Wk</span><span>Game</span><span>Picker</span><span>Players</span><span>Odds</span><span>Result</span><span>Units</span></div>';
+      var header = '<div class="bh-head" style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 110px 50px;gap:8px;padding-bottom:8px;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:10px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em">' +
+        '<span>Year</span><span>Wk</span><span>Game</span><span>Picker</span><span>Players</span><span>Odds</span><span>First TD</span><span>Units</span></div>';
       var rows = bets.map(function(b) {
-        var resultBg = b.correct === 'Yes' ? 'rgba(52,211,153,0.15)' : b.correct === 'No' ? 'rgba(248,113,113,0.15)' : 'rgba(255,255,255,0.08)';
-        var resultColor = b.correct === 'Yes' ? '#34D399' : b.correct === 'No' ? '#F87171' : '#9CA3AF';
-        var resultText = b.correct === 'Yes' ? 'Win' : b.correct === 'No' ? 'Loss' : '—';
+        // First TD scorer: green = hit, red = miss, gray = not offered (didn't count)
+        var noOffer = b.wasOffered === 'No' && b.netUnits === 0 && b.firstScorer;
+        var resultBg = noOffer ? 'rgba(255,255,255,0.08)' : b.correct === 'Yes' ? 'rgba(52,211,153,0.15)' : b.correct === 'No' ? 'rgba(248,113,113,0.15)' : 'rgba(255,255,255,0.08)';
+        var resultColor = noOffer ? '#9CA3AF' : b.correct === 'Yes' ? '#34D399' : b.correct === 'No' ? '#F87171' : '#9CA3AF';
+        var resultText = b.firstScorer ? escHtml(b.firstScorer) : '⏳';
         var pickerColor = b.picker === 'Maria' ? '#F87171' : '#60A5FA';
         var unitColor = b.netUnits > 0 ? '#34D399' : b.netUnits < 0 ? '#F87171' : '#9CA3AF';
         var unitStr = b.netUnits !== 0 ? (b.netUnits > 0 ? '+' : '') + b.netUnits + 'u' : '0u';
-        var notOffered = b.wasOffered === 'No' ? '<div style="font-size:10px;color:#9CA3AF;font-style:italic">scorer not offered</div>' : '';
+        var notOffered = '';
         var homeColored = b.homePick ? legacyColoredText(b.homePick, b.homeTeam) : '';
         var awayColored = b.awayPick ? legacyColoredText(b.awayPick, b.awayTeam) : '';
         var players = [homeColored, awayColored].filter(Boolean).join('<span style="color:#9CA3AF"> / </span>') || '—';
         var gameDisplay = b.homeTeam && b.awayTeam ? legacyColoredGame(b.homeTeam, b.awayTeam) : (b.game || '—');
-        return '<div class="bh-row" style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 60px 50px;gap:8px;padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:12px;align-items:start">' +
+        return '<div class="bh-row" style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 110px 50px;gap:8px;padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:12px;align-items:start">' +
           '<span style="font-size:11px;font-weight:600;color:' + (b.year === CURRENT_YEAR ? '#60A5FA' : '#34D399') + '">' + b.year + '</span>' +
           '<span style="color:#9CA3AF;text-align:center">' + b.week + '</span>' +
           '<span style="font-weight:500">' + gameDisplay + '</span>' +
           '<span style="font-weight:500;color:' + pickerColor + '">' + b.picker + '</span>' +
           '<span>' + players + notOffered + '</span>' +
           '<span style="color:#A1A9B6">' + b.odds + '</span>' +
-          '<span style="font-size:11px;font-weight:500;padding:2px 6px;border-radius:4px;text-align:center;background:' + resultBg + ';color:' + resultColor + '">' + resultText + '</span>' +
+          '<span class="bh-ftd" title="' + (noOffer ? 'Not offered, bet did not count' : '') + '" style="font-size:11px;font-weight:600;padding:3px 7px;border-radius:5px;text-align:center;line-height:1.3;background:' + resultBg + ';color:' + resultColor + '">' + resultText + '</span>' +
           '<span style="text-align:right;font-weight:500;color:' + unitColor + '">' + unitStr + '</span>' +
           '</div>';
       }).join('');

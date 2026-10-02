@@ -35,6 +35,7 @@
 
     function renderPinScreen(msg, successHtml) {
       SUB.pin = ''; SUB.game = null; SUB.mode = 'pick'; SUB.role = '';
+      if (typeof setLoginTab === 'function') setLoginTab();
       if (PROFILE_WHO !== 'Maria' && PROFILE_WHO !== 'Danielle') PROFILE_WHO = 'Maria';
       // Logging out also ends a Trash Talk session that came from logging in (unless "Remember me" saved it)
       if (CHAT.session) {
@@ -76,6 +77,7 @@
         SUB.pin = pin;
         SUB.role = res.admin ? 'admin' : res.role === 'friend' ? 'friend' : 'player';
         SUB.name = res.admin ? '' : res.name;
+        setLoginTab();
         if (res.admin) { renderOdds(res); picksApi({ pin: SUB.pin, action: 'friends' }).then(function(r) { if (r.friends) ADMIN.friends = r.friends; }).catch(function() {}); }
         else if (SUB.role === 'friend') renderFriendHome(res);
         else renderGame(res, null);

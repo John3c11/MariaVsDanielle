@@ -432,6 +432,8 @@
 
 
 
+        renderFirstTDs(rows);
+
         if (navigator.onLine) {
           try { localStorage.setItem('mvd-last-online', String(Date.now())); } catch (e) {}
           document.getElementById('last-updated').textContent = `Last refreshed ${new Date().toLocaleString()}`;
@@ -503,6 +505,81 @@
     }
 
     // ── Pick reveal ─────────────────────────────────────────────────────────
+    // ── This Week's First TDs ─────────────────────────────────────────────────
+    // Shows the latest week that has a first scorer. It flips to the next week once
+    // that week's first game is scored, so last week stays up until Thursday night.
+    function renderFirstTDs(rows) {
+      var wrap = document.getElementById('ftd-wrap');
+      if (!wrap) return;
+      var weeks = rows.filter(function(r) { return (r[11] || '').trim(); }).map(function(r) { return parseInt(r[1], 10) || 0; });
+      if (!weeks.length) { wrap.style.display = 'none'; return; }
+      var week = Math.max.apply(null, weeks);
+      var G = {}, order = [];
+      rows.forEach(function(r) {
+        if ((parseInt(r[1], 10) || 0) !== week || !(r[4] || '').trim()) return;
+        var k = String(r[0]).trim();
+        var g = G[k] || (G[k] = (order.push(k), { game: k, slot: (r[2] || '').trim(), home: r[4].trim(), away: (r[5] || '').trim(), scorer: '', side: '', md: {}, notOffered: false }));
+        var sc = (r[11] || '').trim();
+        if (sc) { g.scorer = sc; g.side = (r[13] || '').trim(); }
+        if (sc && (r[14] || '').trim() === 'No' && (parseFloat(r[15]) || 0) === 0) g.notOffered = true;
+        var who = (r[3] || '').trim();
+        if (who === 'Maria' || who === 'Danielle') g.md[who] = (r[12] || '').trim();
+      });
+      var done = order.filter(function(k) { return G[k].scorer; }).length;
+      document.getElementById('ftd-title').textContent = '🏈 Week ' + week + ' First Touchdowns';
+      var h = '<div class="ftd-sub">' + done + ' of ' + order.length + ' game' + (order.length === 1 ? '' : 's') + ' scored</div>';
+      order.forEach(function(k) {
+        var g = G[k];
+        h += '<div class="ftd-row" data-ftd="' + escHtml(k) + '"><div class="ftd-top"><span class="ftd-slot">' + escHtml(g.slot) + '</span>' +
+          '<span class="ftd-teams">' + teamPill(g.home, g.home) + ' <span style="color:rgba(255,255,255,0.45)">vs</span> ' + teamPill(g.away, g.away) + '</span></div>';
+        if (g.scorer) {
+          var team = /^home$/i.test(g.side) ? g.home : /^away$/i.test(g.side) ? g.away : '';
+          var hits = ['Maria', 'Danielle'].filter(function(n) { return g.md[n] === 'Yes'; });
+          var who = g.notOffered ? 'Not offered, so no bet counted'
+            : hits.length ? hits.map(function(n) { return '<span class="hit" style="color:' + (n === 'Maria' ? SB_M : SB_D) + '">✅ ' + n + '</span>'; }).join(' & ') + ' had him'
+            : 'Nobody had him';
+          h += '<div class="ftd-scorer">🏈 ' + (team ? teamPill(escHtml(g.scorer), team) : escHtml(g.scorer)) + '</div>' +
+            '<div class="ftd-who">' + who + '<span class="ftd-friends"></span></div>';
+        } else {
+          h += '<div class="ftd-wait" data-home="' + escHtml(g.home) + '" data-away="' + escHtml(g.away) + '">⏳ Not played yet</div>';
+        }
+        h += '</div>';
+      });
+      document.getElementById('ftd-list').innerHTML = h;
+      wrap.style.display = '';
+
+      // Friends who had the scorer (only picks revealed at kickoff are public)
+      if (typeof getCrowd === 'function') getCrowd().then(function(crowd) {
+        order.forEach(function(k) {
+          var g = G[k]; if (!g.scorer) return;
+          var sk = playerKey(g.scorer);
+          var n = (crowd.picks || []).filter(function(p) { return String(p.week) === String(week) && String(p.game) === k && (playerKey(p.homePick) === sk || playerKey(p.awayPick) === sk); }).length;
+          var el = document.querySelector('[data-ftd="' + k + '"] .ftd-friends');
+          if (el && n) el.textContent = ' · 👥 ' + n + ' friend' + (n > 1 ? 's' : '') + ' had him';
+        });
+      }).catch(function() {});
+
+      // Kickoff times for games not played yet
+      var waits = document.querySelectorAll('#ftd-list .ftd-wait');
+      if (!waits.length) return;
+      var path = week > 18 ? 'scoreboard?dates=' + CURRENT_YEAR + '&seasontype=3&week=' + (week - 18) : 'scoreboard?dates=' + CURRENT_YEAR + '&seasontype=2&week=' + week;
+      espnGet(path).then(function(board) {
+        var events = board.events || [];
+        waits.forEach(function(el) {
+          var hk = espnTeamKey(el.getAttribute('data-home')), ak = espnTeamKey(el.getAttribute('data-away'));
+          var ev = events.filter(function(e) {
+            var ts = (((e.competitions || [])[0] || {}).competitors || []).map(function(c) { return espnTeamKey(c.team && c.team.displayName); });
+            return ts.indexOf(hk) >= 0 && ts.indexOf(ak) >= 0;
+          })[0];
+          if (!ev) return;
+          var state = ev.status && ev.status.type && ev.status.type.state;
+          if (state === 'in') el.textContent = '🔴 Live now, no touchdown yet';
+          else if (state === 'post') el.textContent = '⏳ Final, waiting on the sheet';
+          else el.textContent = '⏳ ' + new Date(ev.date).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' });
+        });
+      }).catch(function() {});
+    }
+
     function playPickReveals(root) {
       var seen = {};
       try { seen = JSON.parse(localStorage.getItem('mvd-revealed') || '{}'); } catch (e) {}

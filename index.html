@@ -1,4 +1,4 @@
-<!-- v68 -->
+<!-- v69 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -33,7 +33,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=68">
+  <link rel="stylesheet" href="style.css?v=69">
 </head>
 <body>
   <div class="page-layout">
@@ -50,26 +50,21 @@
   <div class="wrap">
     <nav class="tabs-nav">
       <button class="tab-btn active" onclick="switchTab('stats')">Stats</button>
-      <button class="tab-btn" onclick="switchTab('submit')">Log In</button>
+      <button class="tab-btn" id="tab-login" onclick="switchTab('submit')">Log In</button>
       <button class="tab-btn" onclick="switchTab('chat')">Trash Talk</button>
       <button class="tab-btn" onclick="switchTab('profiles')">Profiles</button>
-      <button class="tab-btn" onclick="switchTab('analytics')">Analytics</button>
-      <button class="tab-btn tab-extra" onclick="switchTab('crowd')">Crowd</button>
-      <button class="tab-btn tab-extra" onclick="switchTab('schedule')">Schedule</button>
-      <button class="tab-btn tab-extra" onclick="switchTab('money')">Money</button>
-      <button class="tab-btn tab-extra" onclick="switchTab('legacy')">Legacy</button>
-      <button class="tab-btn tab-extra" onclick="switchTab('bethistory')">Bet History</button>
-      <button class="tab-btn tab-extra" onclick="switchTab('rosters')">Roster</button>
-      <!-- Laptop: the four above move into this menu -->
+      <button class="tab-btn tab-wide" onclick="switchTab('analytics')">Analytics</button>
+      <!-- Everything else lives in the More menu (on phones Analytics does too) -->
       <div class="tab-more-wrap">
         <button class="tab-btn tab-more" id="tab-more" onclick="toggleTabMenu(event)">More <span class="tab-caret">▾</span></button>
         <div class="tab-menu" id="tab-menu">
+          <button class="tab-btn menu-phone" onclick="switchTab('analytics')">📊 Analytics</button>
           <button class="tab-btn" onclick="switchTab('crowd')">🏅 Crowd</button>
           <button class="tab-btn" onclick="switchTab('schedule')">🗓️ Schedule</button>
-          <button class="tab-btn" onclick="switchTab('money')">💵 Money</button>
-          <button class="tab-btn" onclick="switchTab('legacy')">📜 Legacy</button>
-          <button class="tab-btn" onclick="switchTab('bethistory')">🧾 Bet History</button>
-          <button class="tab-btn" onclick="switchTab('rosters')">📋 Roster</button>
+          <button class="tab-btn" onclick="switchTab('money')">💵 Earnings</button>
+          <button class="tab-btn" onclick="switchTab('legacy')">📜 All-Time</button>
+          <button class="tab-btn" onclick="switchTab('bethistory')">🧾 Bet Log</button>
+          <button class="tab-btn" onclick="switchTab('rosters')">📋 Rosters</button>
         </div>
       </div>
     </nav>
@@ -100,6 +95,11 @@
     <div class="sb sb-live">
       <div class="section-title">Live Picks</div>
       <div id="live-picks"><div class="loading">Loading...</div></div>
+    </div>
+
+    <div class="sb sb-live" id="ftd-wrap" style="display:none">
+      <div class="section-title" id="ftd-title">First Touchdowns</div>
+      <div id="ftd-list"></div>
     </div>
 
     </div><!-- end tab-stats -->
@@ -158,17 +158,17 @@
 
   <script src="config.js"></script>
   <!-- Site code, split by tab. Bump ?v= on every file when any file changes. -->
-  <script src="js/core.js?v=68"></script>
-  <script src="js/stats.js?v=68"></script>
-  <script src="js/players.js?v=68"></script>
-  <script src="js/picks.js?v=68"></script>
-  <script src="js/schedule.js?v=68"></script>
-  <script src="js/profiles.js?v=68"></script>
-  <script src="js/chat.js?v=68"></script>
-  <script src="js/crowd.js?v=68"></script>
-  <script src="js/history.js?v=68"></script>
-  <script src="js/analytics.js?v=68"></script>
-  <script src="js/main.js?v=68"></script>
+  <script src="js/core.js?v=69"></script>
+  <script src="js/stats.js?v=69"></script>
+  <script src="js/players.js?v=69"></script>
+  <script src="js/picks.js?v=69"></script>
+  <script src="js/schedule.js?v=69"></script>
+  <script src="js/profiles.js?v=69"></script>
+  <script src="js/chat.js?v=69"></script>
+  <script src="js/crowd.js?v=69"></script>
+  <script src="js/history.js?v=69"></script>
+  <script src="js/analytics.js?v=69"></script>
+  <script src="js/main.js?v=69"></script>
   
   </div><!-- end wrap -->
 

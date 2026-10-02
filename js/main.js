@@ -37,6 +37,13 @@
       if (m && m.classList.contains('open') && !e.target.closest('.tab-more-wrap')) m.classList.remove('open');
     });
 
+    // The Log In tab shows who's logged in
+    function setLoginTab() {
+      var b = document.getElementById('tab-login');
+      if (!b) return;
+      b.textContent = !SUB.pin ? 'Log In' : SUB.role === 'admin' ? '🔧 Admin' : '👤 ' + (SUB.name || 'Me');
+    }
+
     function switchTab(name) {
       document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
       document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
@@ -45,7 +52,8 @@
       });
       document.getElementById('tab-' + name).classList.add('active');
       // "More" shows which hidden tab you're on
-      var extra = { crowd: 'Crowd', schedule: 'Schedule', money: 'Money', legacy: 'Legacy', bethistory: 'Bet History', rosters: 'Roster' }[name];
+      var extra = { crowd: 'Crowd', schedule: 'Schedule', money: 'Earnings', legacy: 'All-Time', bethistory: 'Bet Log', rosters: 'Rosters' }[name];
+      if (name === 'analytics' && window.matchMedia('(max-width: 700px)').matches) extra = 'Analytics';
       var more = document.getElementById('tab-more');
       if (more) {
         more.innerHTML = (extra || 'More') + ' <span class="tab-caret">▾</span>';

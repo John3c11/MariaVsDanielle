@@ -141,6 +141,9 @@ details.more-players > summary::-webkit-details-marker { display: none; }
 
 /* 🚑 Injuries admin */
 .inj-auto { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px 14px; }
+.inj-state { font-size: 12px; font-weight: 800; white-space: nowrap; }
+.inj-state.on { color: #34D399; }
+.inj-state.off { color: #F87171; }
 .inj-warn { font-size: 12.5px; color: #FDE68A; background: rgba(250,204,21,0.08); border: 1px solid rgba(250,204,21,0.35); border-radius: 10px; padding: 9px 12px; margin: 8px 0; }
 .inj-h { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; color: #A1A9B6; margin: 18px 0 6px; }
 .inj-row { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }

@@ -873,7 +873,8 @@
       function when(iso) { return iso ? new Date(iso).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : 'never'; }
       var names = Object.keys(ROSTER_INFO).map(function(k) { return ROSTER_INFO[k].name; }).filter(Boolean).sort();
       var h = '<div class="inj-auto"><div><b>🤖 Auto from ESPN</b><div class="st-d">Players ESPN lists as Out, IR, Suspended or PUP are marked out every 2 hours and come back when ESPN clears them. Last check: ' + when(st.last && st.last.at) + '</div></div>' +
-        '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><button class="adm-btn ' + (st.auto ? 'green' : 'red') + '" id="inj-auto">' + (st.auto ? 'ON' : 'OFF') + '</button><button class="adm-btn" id="inj-sync">Check ESPN now</button></div></div>';
+        '<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end"><span class="inj-state ' + (st.auto ? 'on' : 'off') + '">' + (st.auto ? '● Currently ON' : '● Currently OFF') + '</span>' +
+          '<button class="adm-btn" id="inj-auto">' + (st.auto ? 'Turn off' : 'Turn on') + '</button><button class="adm-btn" id="inj-sync">Check ESPN now</button></div></div>';
       h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 6px">' +
           '<input class="adm-input" id="inj-name" list="inj-players" placeholder="Mark someone out by hand" style="flex:2;min-width:160px">' +
           '<input class="adm-input" id="inj-note" placeholder="Note (optional)" style="flex:1.4;min-width:120px">' +

@@ -44,10 +44,12 @@ self.addEventListener('fetch', (e) => {
   }
 
   // Page, images and sheet data: network first, saved copy if the network is slow or down
-  e.respondWith(networkFirst(req, isSheets(url)));
+  // Versioned site files (style.css?v=68, js/*.js?v=68) only ever fall back to the same version,
+  // so a slow connection can't mix old and new files.
+  e.respondWith(networkFirst(req, isSheets(url) || /[?&]v=/.test(url.search)));
 });
 
-async function networkFirst(req, isData) {
+async function networkFirst(req, exact) {
   const cache = await caches.open(CACHE);
   const network = fetch(req).then(async (res) => {
     if (res.ok) {
@@ -62,7 +64,7 @@ async function networkFirst(req, isData) {
       new Promise((_, reject) => setTimeout(() => reject(new Error('slow')), NET_TIMEOUT)),
     ]);
   } catch (err) {
-    const saved = await cache.match(req, { ignoreSearch: !isData });
+    const saved = await cache.match(req, { ignoreSearch: !exact });
     if (saved) return saved;
     return network; // nothing saved yet: keep waiting on the network
   }

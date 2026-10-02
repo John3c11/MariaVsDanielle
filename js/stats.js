@@ -435,6 +435,7 @@
 
 
         renderFirstTDs(rows);
+        renderHistory(rows);
         renderVisitBanner(rows);
         if (!VISIT.trophiesChecked) { VISIT.trophiesChecked = true; setTimeout(checkNewTrophies, 400); }
 
@@ -598,6 +599,65 @@
           else if (state === 'post') el.textContent = '⏳ Final, waiting on the sheet';
           else el.textContent = '⏳ ' + new Date(ev.date).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' });
         });
+      }).catch(function() {});
+    }
+
+    // ── 📅 This Week in History: the same week number in every past season ──
+    var HIST = { week: 0 };
+    function renderHistory(rows) {
+      var wrap = document.getElementById('hist-wrap');
+      if (!wrap || typeof loadAllBets !== 'function') return;
+      // "This week" = the earliest week that still has games to score, else the latest week
+      var open = rows.filter(function(r) { return (r[4] || '').trim() && !(r[11] || '').trim(); }).map(function(r) { return parseInt(r[1], 10) || 0; }).filter(Boolean);
+      var all = rows.map(function(r) { return parseInt(r[1], 10) || 0; }).filter(Boolean);
+      var week = open.length ? Math.min.apply(null, open) : all.length ? Math.max.apply(null, all) : 0;
+      if (!week || week === HIST.week) return;
+      HIST.week = week;
+      loadAllBets().then(function(bets) {
+        var years = {};
+        bets.forEach(function(b) {
+          if (b.year === CURRENT_YEAR || parseInt(b.year, 10) > parseInt(CURRENT_YEAR, 10) || b.week !== week) return;
+          if (b.picker !== 'Maria' && b.picker !== 'Danielle') return;
+          (years[b.year] = years[b.year] || []).push(b);
+        });
+        var ys = Object.keys(years).sort(function(a, b) { return b - a; });
+        if (!ys.length) { wrap.style.display = 'none'; return; }
+        function c(n) { return n === 'Maria' ? SB_M : SB_D; }
+        function u(v) { v = Math.round(v * 10) / 10; return (v > 0 ? '+' : '') + v + 'u'; }
+        var h = '';
+        ys.forEach(function(y) {
+          var list = years[y], ago = parseInt(CURRENT_YEAR, 10) - parseInt(y, 10);
+          var units = { Maria: 0, Danielle: 0 }, hits = [], scorers = {};
+          list.forEach(function(b) {
+            units[b.picker] += b.netUnits;
+            if (b.firstScorer) scorers[b.firstScorer] = b.slot;
+            var no = b.wasOffered === 'No' && b.netUnits === 0 && b.firstScorer;
+            if (b.correct === 'Yes' && !no) {
+              var odds = b.firstScorer === b.homePick ? b.homeOdds : b.firstScorer === b.awayPick ? b.awayOdds : Math.max(b.homeOdds, b.awayOdds);
+              var team = b.firstScorer === b.homePick ? b.homeTeam : b.firstScorer === b.awayPick ? b.awayTeam : '';
+              hits.push({ who: b.picker, name: b.firstScorer, odds: odds, team: team, slot: b.slot });
+            }
+          });
+          hits.sort(function(a, b) { return b.odds - a.odds; });
+          var winner = units.Maria > units.Danielle ? 'Maria' : units.Danielle > units.Maria ? 'Danielle' : '';
+          h += '<div class="hist-yr"><div class="hist-ago">' + (ago === 1 ? '1 year ago' : ago + ' years ago') + ' · ' + y + ' Week ' + week + '</div>';
+          if (hits.length) {
+            h += hits.slice(0, 3).map(function(x) {
+              return '<div class="hist-hit">' + (x.team ? headshot(x.name, x.team, 30) : '') + '<span><b style="color:' + c(x.who) + '">' + x.who + '</b> hit ' +
+                (x.team ? teamPill(escHtml(x.name), x.team) : '<b>' + escHtml(x.name) + '</b>') + ' <span class="hist-odds">+' + Math.round(x.odds * 100) + (x.slot ? ' · ' + escHtml(x.slot) : '') + '</span></span></div>';
+            }).join('');
+          } else {
+            var sc = Object.keys(scorers);
+            h += '<div class="hist-miss">Nobody hit.' + (sc.length ? ' First TDs: ' + sc.slice(0, 4).map(escHtml).join(', ') + '.' : '') + '</div>';
+          }
+          h += '<div class="hist-wk">' + (winner ? '<b style="color:' + c(winner) + '">' + winner + '</b> won the week · ' : 'Even week · ') +
+            '<span style="color:' + SB_M + '">Maria ' + u(units.Maria) + '</span> · <span style="color:' + SB_D + '">Danielle ' + u(units.Danielle) + '</span></div></div>';
+        });
+        document.getElementById('hist-title').textContent = '📅 Week ' + week + ' in History';
+        var list = document.getElementById('hist-list');
+        list.innerHTML = h;
+        fillHeadshots(list);
+        wrap.style.display = '';
       }).catch(function() {});
     }
 

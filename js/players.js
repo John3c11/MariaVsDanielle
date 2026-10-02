@@ -155,6 +155,50 @@
       });
     }
 
+    // ── 🔍 Player search (Rosters tab) ───────────────────────────────────────
+    function setupPlayerSearch() {
+      var input = document.getElementById('psearch'), box = document.getElementById('psearch-res');
+      if (!input || input.getAttribute('data-ready')) return;
+      input.setAttribute('data-ready', '1');
+      var results = [];
+      function everyone() {
+        var out = {};
+        Object.keys(ROSTER_INFO).forEach(function(k) { var r = ROSTER_INFO[k]; if (r && r.name) out[k] = { name: r.name, team: r.team, pos: r.pos || '' }; });
+        Object.keys(PLAYER_DB || {}).forEach(function(k) { var p = PLAYER_DB[k]; if (!out[k] && p && p.name) out[k] = { name: p.name, team: resolveTeam(p.team), pos: '', former: true }; });
+        return out;
+      }
+      function run() {
+        var q = input.value.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
+        if (q.length < 2) { box.innerHTML = ''; results = []; return; }
+        var all = everyone(), words = q.split(/\s+/);
+        results = Object.keys(all).map(function(k) {
+          var p = all[k], n = p.name.toLowerCase().replace(/[^a-z0-9 ]/g, ''), parts = n.split(' ');
+          if (!words.every(function(w) { return n.indexOf(w) >= 0; })) return null;
+          var score = n.indexOf(q) === 0 ? 0 : parts.some(function(pt) { return pt.indexOf(q) === 0; }) ? 1 : 2;
+          return { p: p, k: k, s: score };
+        }).filter(Boolean).sort(function(a, b) { return a.s - b.s || a.p.name.localeCompare(b.p.name); }).slice(0, 8);
+        if (!results.length) { box.innerHTML = '<div class="psearch-none">No player called "' + escHtml(input.value) + '"</div>'; return; }
+        box.innerHTML = results.map(function(r, i) {
+          var p = r.p, db = (PLAYER_DB || {})[r.k], tds = db ? Object.keys(db.tds).length : 0, picks = db ? db.picks.Maria + db.picks.Danielle : 0;
+          var sub = [p.pos ? p.pos.replace(/\d+/g, '') : '', p.team ? p.team.split(' ').pop() : '', p.former ? 'not on current rosters' : ''].filter(Boolean).join(' · ');
+          var stat = [tds ? '🏈 ' + tds + ' first TD' + (tds > 1 ? 's' : '') : '', picks ? 'picked ' + picks + 'x' : ''].filter(Boolean).join(' · ');
+          return '<button class="psearch-item" data-ps="' + i + '">' + (p.team ? headshot(p.name, p.team, 34) : '') +
+            '<span class="psearch-txt"><b>' + escHtml(p.name) + '</b><small>' + sub + (stat ? ' · ' + stat : '') + '</small></span></button>';
+        }).join('');
+        fillHeadshots(box);
+      }
+      input.addEventListener('input', run);
+      input.addEventListener('focus', function() { loadPlayerDB().then(run); });
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && results[0]) { e.preventDefault(); openPlayerCard(results[0].p.name); input.blur(); }
+        if (e.key === 'Escape') { input.value = ''; run(); }
+      });
+      box.addEventListener('click', function(e) {
+        var b = e.target.closest('[data-ps]');
+        if (b) openPlayerCard(results[+b.getAttribute('data-ps')].p.name);
+      });
+    }
+
     function openPlayerCard(name) {
       loadPlayerDB().then(function(db) {
         var k = playerKey(name);

@@ -73,6 +73,7 @@
       if (name === 'profiles') loadProfilesTab();
       if (name === 'schedule') loadScheduleTab();
       if (name === 'crowd') loadCrowdTab();
+      if (name === 'rosters') setupPlayerSearch();
     }
 
 

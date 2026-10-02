@@ -1,4 +1,4 @@
-<!-- v74 -->
+<!-- v75 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -32,8 +32,10 @@
       else if (m === 1 && day >= sb - 6 && day <= sb + 1) t = 'superbowl';
       else if ((m === 0 && day >= 10) || (m === 1 && day <= 14)) t = 'playoffs';
       window.HOLIDAY_AUTO = t;
-      var forced = null;
-      try { forced = localStorage.getItem('mvd-theme-force'); } catch (e) {}
+      // A theme admin gave the person who uses this phone (they can't change it)
+      var mine = null, forced = null;
+      try { mine = localStorage.getItem('mvd-theme-mine'); forced = localStorage.getItem('mvd-theme-force'); } catch (e) {}
+      if (mine) t = mine === 'off' ? '' : mine;
       if (forced) t = forced === 'off' ? '' : forced;
       if (q) t = q === 'off' ? '' : q;
       window.HOLIDAY_FORCED = !!forced && !q;
@@ -43,7 +45,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=74">
+  <link rel="stylesheet" href="style.css?v=75">
 </head>
 <body>
   <div class="page-layout">
@@ -171,18 +173,18 @@
 
   <script src="config.js"></script>
   <!-- Site code, split by tab. Bump ?v= on every file when any file changes. -->
-  <script src="js/core.js?v=74"></script>
-  <script src="js/stats.js?v=74"></script>
-  <script src="js/players.js?v=74"></script>
-  <script src="js/picks.js?v=74"></script>
-  <script src="js/schedule.js?v=74"></script>
-  <script src="js/profiles.js?v=74"></script>
-  <script src="js/chat.js?v=74"></script>
-  <script src="js/crowd.js?v=74"></script>
-  <script src="js/history.js?v=74"></script>
-  <script src="js/analytics.js?v=74"></script>
-  <script src="js/charts.js?v=74"></script>
-  <script src="js/main.js?v=74"></script>
+  <script src="js/core.js?v=75"></script>
+  <script src="js/stats.js?v=75"></script>
+  <script src="js/players.js?v=75"></script>
+  <script src="js/picks.js?v=75"></script>
+  <script src="js/schedule.js?v=75"></script>
+  <script src="js/profiles.js?v=75"></script>
+  <script src="js/chat.js?v=75"></script>
+  <script src="js/crowd.js?v=75"></script>
+  <script src="js/history.js?v=75"></script>
+  <script src="js/analytics.js?v=75"></script>
+  <script src="js/charts.js?v=75"></script>
+  <script src="js/main.js?v=75"></script>
   
   </div><!-- end wrap -->
 

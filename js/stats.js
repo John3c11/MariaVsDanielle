@@ -695,7 +695,29 @@
       picksApi({ action: 'site' }).then(function(r) {
         try { localStorage.setItem('mvd-announce', JSON.stringify(r.announce || null)); } catch (e) {}
         draw(r.announce);
+        applyMyTheme(r.themes || {});
       }).catch(function() {});
+    }
+
+    // ── Theme admin gave this phone's person ─────────────────────────────────
+    function rememberMe(name) {
+      var before = ''; try { before = localStorage.getItem('mvd-me') || ''; localStorage.setItem('mvd-me', name); } catch (e) {}
+      if (before !== name) { var r = SITE_CACHE.themes; if (r) applyMyTheme(r); }
+    }
+    var SITE_CACHE = { themes: null };
+    function applyMyTheme(themes) {
+      SITE_CACHE.themes = themes;
+      var me = '', had = '';
+      try { me = localStorage.getItem('mvd-me') || ''; had = localStorage.getItem('mvd-theme-mine') || ''; } catch (e) {}
+      var want = (me && themes[me]) || '';
+      if (want === had) return;
+      try { if (want) localStorage.setItem('mvd-theme-mine', want); else localStorage.removeItem('mvd-theme-mine'); } catch (e) {}
+      // Reload once so the new theme takes over (skipped while admin is previewing a theme)
+      if (window.HOLIDAY_FORCED || /[?&]theme=/.test(location.search)) return;
+      var guard = ''; try { guard = sessionStorage.getItem('mvd-theme-reload') || ''; } catch (e) {}
+      if (guard === want + '|' + me) return;
+      try { sessionStorage.setItem('mvd-theme-reload', want + '|' + me); } catch (e) {}
+      if (!SUB.pin) location.reload();
     }
 
     function drawVisitBanner() {

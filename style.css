@@ -129,6 +129,15 @@ html.theme-superbowl body {
   background-attachment: fixed;
 }
 html.theme-superbowl .sb#sb-main header h1 { color: #E2E8F0; }
+html.theme-jewish { --h1: #2563EB; --h2: #93C5FD; }
+html.theme-jewish body {
+  background: radial-gradient(900px 600px at -10% -10%, rgba(37,99,235,0.30), transparent 60%),
+              radial-gradient(900px 600px at 110% 0%, rgba(147,197,253,0.18), transparent 60%),
+              radial-gradient(1200px 800px at 50% 120%, rgba(255,255,255,0.08), transparent 60%), #060912;
+  background-attachment: fixed;
+}
+html.theme-jewish .sb#sb-main header h1 { color: #BFDBFE; }
+html.theme-jewish .holiday-pill { color: #FFFFFF; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
 
 /* "Since your last visit" banner (Stats tab) */
 .visit-banner { position: relative; background: linear-gradient(120deg, rgba(45,212,191,0.14), rgba(96,165,250,0.12)); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 12px 40px 12px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.55; color: #E5E7EB; }

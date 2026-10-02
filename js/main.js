@@ -85,6 +85,7 @@
         christmas:    { label: '🎄 Merry Christmas', fx: ['❄', '❄', '❅'], n: 16, snow: true },
         playoffs:     { label: '🏆 Playoff Time', fx: ['✦', '✧'], n: 12 },
         superbowl:    { label: '🏈 Super Bowl Week', fx: ['🏈', '✦', '✧'], n: 12 },
+        jewish:       { label: '✡️ Shalom', fx: ['✡', '🕎', '✡', '✦'], n: 14, tint: '#93C5FD' },
       };
       // Admin forced a theme on this device: show a small reminder with a reset button
       if (window.HOLIDAY_FORCED) {
@@ -112,6 +113,7 @@
         sp.style.setProperty('--spin', th.snow ? '0deg' : (Math.random() * 360 - 180) + 'deg');
         if (th.snow) sp.style.color = '#FFFFFF';
         if (window.HOLIDAY_THEME === 'playoffs') sp.style.color = '#FCD34D';
+        if (th.tint && sp.textContent === '✡') sp.style.color = th.tint;
         fx.appendChild(sp);
       }
       card.insertBefore(fx, card.firstChild);

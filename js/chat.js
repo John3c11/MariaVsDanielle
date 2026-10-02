@@ -115,6 +115,7 @@
 
     function rememberChatUser(pin, name) {
       CHAT.name = name;
+      if (typeof rememberMe === 'function') rememberMe(name);
       var remember = document.getElementById('chat-remember');
       if (!CHAT.pin && remember && remember.checked) {
         CHAT.pin = pin;

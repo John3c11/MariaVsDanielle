@@ -78,6 +78,7 @@
         SUB.role = res.admin ? 'admin' : res.role === 'friend' ? 'friend' : 'player';
         SUB.name = res.admin ? '' : res.name;
         setLoginTab();
+        if (!res.admin && res.name) rememberMe(res.name);
         if (res.admin) { renderOdds(res); picksApi({ pin: SUB.pin, action: 'friends' }).then(function(r) { if (r.friends) ADMIN.friends = r.friends; }).catch(function() {}); }
         else if (SUB.role === 'friend') renderFriendHome(res);
         else renderGame(res, null);
@@ -680,7 +681,7 @@
     }
 
     // ── 🎨 Theme preview (this device only) + 📣 announcement (everyone) ─────
-    var THEME_NAMES = { '': 'Auto (by date)', off: 'Off', halloween: '🎃 Halloween', thanksgiving: '🦃 Thanksgiving', christmas: '🎄 Christmas', playoffs: '🏆 Playoffs', superbowl: '🏈 Super Bowl' };
+    var THEME_NAMES = { '': 'Auto (by date)', off: 'Off', halloween: '🎃 Halloween', thanksgiving: '🦃 Thanksgiving', christmas: '🎄 Christmas', playoffs: '🏆 Playoffs', superbowl: '🏈 Super Bowl', jewish: '✡️ Jewish' };
     function adminTheme() {
       var forced = ''; try { forced = localStorage.getItem('mvd-theme-force') || ''; } catch (e) {}
       var auto = window.HOLIDAY_AUTO ? THEME_NAMES[window.HOLIDAY_AUTO] : 'no theme';
@@ -691,7 +692,10 @@
           return '<button class="theme-opt' + (on ? ' on' : '') + '" data-theme-opt="' + k + '">' + THEME_NAMES[k] + (on ? ' ✓' : '') + '</button>';
         }).join('') + '</div>' +
         '<div style="font-size:11px;color:#6B7280;margin:8px 0 22px">The page reloads to apply it. A small "Theme preview" button stays at the bottom of the screen until you go back to Auto.</div>' +
-        '<div class="pf-h">📣 Announcement <small>everyone sees it on Stats</small></div><div id="ann-box"><div class="loading">Loading…</div></div>';
+        '<div class="pf-h">👤 Themes for people <small>they can\'t change it</small></div>' +
+        '<div style="font-size:12px;color:#A1A9B6;margin-bottom:10px">Give someone their own theme. It shows on any phone where they\'ve logged in at least once, and it beats the date-based theme until you set them back to Auto.</div>' +
+        '<div id="pt-box"><div class="loading">Loading…</div></div>' +
+        '<div class="pf-h" style="margin-top:22px">📣 Announcement <small>everyone sees it on Stats</small></div><div id="ann-box"><div class="loading">Loading…</div></div>';
       var body = adminScreen('theme', h);
       body.querySelectorAll('[data-theme-opt]').forEach(function(b) {
         b.addEventListener('click', function() {
@@ -700,7 +704,28 @@
           location.reload();
         });
       });
-      picksApi({ action: 'site' }).then(function(r) { drawAnnounceAdmin(r.announce); }).catch(function() { drawAnnounceAdmin(null); });
+      Promise.all([picksApi({ action: 'site' }), picksApi({ pin: SUB.pin, action: 'friends' }).catch(function() { return {}; })]).then(function(res) {
+        drawAnnounceAdmin(res[0].announce);
+        drawPersonThemes(res[0].themes || {}, ['Maria', 'Danielle'].concat((res[1].friends || []).map(function(f) { return f.name; })));
+      }).catch(function() { drawAnnounceAdmin(null); });
+    }
+    function drawPersonThemes(themes, people) {
+      var box = document.getElementById('pt-box');
+      if (!box) return;
+      box.innerHTML = people.map(function(n) {
+        var c = n === 'Maria' ? SB_M : n === 'Danielle' ? SB_D : (typeof fStyle === 'function' ? fStyle(n).color : FRIEND_COLOR);
+        return '<div class="adm-row"><b style="color:' + c + '">' + escHtml(n) + '</b><select class="adm-input pt-sel" data-pt="' + escHtml(n) + '" style="padding:6px 10px;width:auto">' +
+          Object.keys(THEME_NAMES).map(function(k) { return '<option value="' + k + '"' + ((themes[n] || '') === k ? ' selected' : '') + '>' + THEME_NAMES[k] + '</option>'; }).join('') + '</select></div>';
+      }).join('') + '<div class="submit-msg" id="pt-msg" style="text-align:left"></div>';
+      box.querySelectorAll('[data-pt]').forEach(function(sel) {
+        sel.addEventListener('change', function() {
+          var m = document.getElementById('pt-msg'); m.style.color = '#9CA3AF'; m.textContent = 'Saving…';
+          picksApi({ pin: SUB.pin, action: 'settheme', name: sel.getAttribute('data-pt'), theme: sel.value }).then(function(r) {
+            if (r.error) { m.style.color = '#F87171'; m.textContent = r.error; return; }
+            m.style.color = '#6EE7B7'; m.textContent = '✅ ' + sel.getAttribute('data-pt') + ': ' + THEME_NAMES[sel.value] + '. It shows the next time they open the site.';
+          }).catch(function() { m.style.color = '#F87171'; m.textContent = 'Couldn\'t reach the script.'; });
+        });
+      });
     }
     function drawAnnounceAdmin(a) {
       var box = document.getElementById('ann-box');

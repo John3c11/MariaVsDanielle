@@ -11,7 +11,7 @@
       if (!AF[g]) AF[g] = { keys: [], state: {} };
       AF[g].keys.push(key);
       AF[g].state[key] = def;
-      var h = '<div class="af-bar"><span class="af-bar-label">' + label + '</span>';
+      var h = '<div class="af-bar' + (key === 'season' ? ' af-bar-season' : '') + '"><span class="af-bar-label">' + label + '</span>';
       opts.forEach(function(o) {
         h += '<button class="filter-btn ' + (o[2] || '') + (o[0] === def ? ' active' : '') + '"' +
           ' data-af-g="' + g + '" data-af-k="' + key + '" data-af-val="' + o[0] + '">' + o[1] + '</button>';
@@ -36,6 +36,109 @@
         out += '<div class="af-more"><button class="link-btn" data-af-more="1" data-label="' + label + '">' + label + '</button></div>';
       }
       return out + '</div>';
+    }
+
+    // ── Analytics layout: one season picker + five sub-tabs ──────────────────
+    var AN_TABS = [
+      ['highlights', '🔥 Highlights', ['Pick of the Season', 'Best Stretches & Biggest Wins', 'Streaks', 'Hit Grid', '*Season']],
+      ['trends', '📈 Trends', ['Weekly Units', 'Form', 'Month by Month']],
+      ['picking', '🎯 Picking', ['Odds vs Hits', 'Picking vs Reality', 'Who Scores First', 'Correct Picks by Game Type']],
+      ['players', '🏈 Players & Teams', ['Fun Stats', 'TD Scorer Leaderboard', 'NFL Team Heat Map']],
+      ['pain', '😬 Pain', ['Jinx Tracker', 'Bad Beats']],
+    ];
+    // Sections folded into another one: [target, 'sub' (shown) or 'list' (behind a button), subheading]
+    var AN_MERGE = {
+      'Week-by-Week Results': ['Weekly Units', 'list', 'Week by week'],
+      'Win Rate by Week': ['Weekly Units', 'list', 'Win rate by week'],
+      'Win Rate by Odds Range': ['Odds vs Hits', 'sub', 'Win rate by odds range'],
+      'Hit Rate by Position': ['Picking vs Reality', 'sub', 'Hit rate by position'],
+      'Home vs Away Pick Accuracy': ['Who Scores First', 'sub', 'Their pick accuracy: home vs away players'],
+    };
+    var AN_RENAME = { 'Who Scores First': 'Home vs Away', 'Fun Stats': 'Most Picked', 'Correct Picks by Game Type': 'By Game Type' };
+    function anStore(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+
+    function anOrganize(root, seasonOpts) {
+      var secs = {}, order = [];
+      root.querySelectorAll(':scope > .an-sec').forEach(function(s) { var t = s.getAttribute('data-sec'); secs[t] = s; order.push(t); });
+      function find(name) {
+        if (name.charAt(0) === '*') return order.filter(function(t) { return /^(\d{4} Season|Season Comparison)$/.test(t); }).map(function(t) { return secs[t]; })[0];
+        return secs[name];
+      }
+      // Sections that don't change with the season picker get an "all seasons" tag
+      order.forEach(function(t) {
+        var s = secs[t], h = s.querySelector('.an-h');
+        if (h && !s.querySelector('.af-bar-season')) h.insertAdjacentHTML('beforeend', '<span class="an-all">all seasons</span>');
+      });
+      // Merges
+      Object.keys(AN_MERGE).forEach(function(src) {
+        var from = secs[src], m = AN_MERGE[src], to = secs[m[0]];
+        if (!from || !to) return;
+        var box = document.createElement('div');
+        box.className = 'an-merged';
+        box.innerHTML = '<div class="an-sub">' + m[2] + '</div>';
+        Array.prototype.slice.call(from.childNodes).forEach(function(n) { if (!(n.classList && n.classList.contains('an-h'))) box.appendChild(n); });
+        if (m[1] === 'list') {
+          var det = to.querySelector(':scope > details.an-more');
+          if (!det) { det = document.createElement('details'); det.className = 'an-more'; det.innerHTML = '<summary>Show the week-by-week list</summary>'; to.appendChild(det); }
+          det.appendChild(box);
+        } else to.appendChild(box);
+        from.remove(); delete secs[src];
+      });
+      Object.keys(AN_RENAME).forEach(function(t) {
+        var h = secs[t] && secs[t].querySelector('.an-h');
+        if (h) h.firstChild.textContent = AN_RENAME[t];
+      });
+      // Controls + panes
+      var seasonNow = anStore('mvd-an-season') || 'all';
+      if (!seasonOpts.some(function(o) { return o[0] === seasonNow; })) seasonNow = 'all';
+      var tabNow = anStore('mvd-an-tab') || 'highlights';
+      if (!AN_TABS.some(function(t) { return t[0] === tabNow; })) tabNow = 'highlights';
+      var top = document.createElement('div');
+      top.className = 'an-controls';
+      top.innerHTML = '<div class="af-bar an-season"><span class="af-bar-label">Season</span>' + seasonOpts.map(function(o) {
+          return '<button class="filter-btn' + (o[0] === seasonNow ? ' active' : '') + '" data-an-season="' + o[0] + '">' + o[1] + '</button>';
+        }).join('') + '</div>' +
+        '<div class="an-tabs">' + AN_TABS.map(function(t) {
+          return '<button class="an-tab' + (t[0] === tabNow ? ' on' : '') + '" data-an-tab="' + t[0] + '">' + t[1] + '</button>';
+        }).join('') + '</div>';
+      var topSec = secs._top;
+      root.insertBefore(top, topSec ? topSec.nextSibling : root.firstChild);
+      var used = {};
+      var lastPane = top;
+      AN_TABS.forEach(function(t) {
+        var pane = document.createElement('div');
+        pane.className = 'an-pane';
+        pane.setAttribute('data-pane', t[0]);
+        pane.style.display = t[0] === tabNow ? '' : 'none';
+        t[2].forEach(function(name) { var s = find(name); if (s) { pane.appendChild(s); used[s.getAttribute('data-sec')] = 1; } });
+        root.insertBefore(pane, lastPane.nextSibling);
+        lastPane = pane;
+      });
+      // Anything not listed lands at the end of Highlights so nothing goes missing
+      Object.keys(secs).forEach(function(t) {
+        if (t !== '_top' && !used[t] && secs[t].parentNode === root) root.querySelector('.an-pane[data-pane="highlights"]').appendChild(secs[t]);
+      });
+      function setSeason(v) {
+        seasonNow = v; anStore('mvd-an-season', v);
+        root.classList.toggle('an-one-season', v !== 'all');
+        top.querySelectorAll('[data-an-season]').forEach(function(b) { b.classList.toggle('active', b.getAttribute('data-an-season') === v); });
+        Object.keys(AF).forEach(function(g) {
+          if (AF[g].keys.indexOf('season') < 0) return;
+          AF[g].state.season = v;
+          document.querySelectorAll('[data-af-g="' + g + '"][data-af-k="season"]').forEach(function(b) { b.classList.toggle('active', b.getAttribute('data-af-val') === v); });
+          afApply(g);
+        });
+      }
+      top.addEventListener('click', function(e) {
+        var s = e.target.closest('[data-an-season]');
+        if (s) { setSeason(s.getAttribute('data-an-season')); return; }
+        var t = e.target.closest('[data-an-tab]');
+        if (!t) return;
+        tabNow = t.getAttribute('data-an-tab'); anStore('mvd-an-tab', tabNow);
+        top.querySelectorAll('[data-an-tab]').forEach(function(b) { b.classList.toggle('on', b === t); });
+        root.querySelectorAll('.an-pane').forEach(function(p) { p.style.display = p.getAttribute('data-pane') === tabNow ? '' : 'none'; });
+      });
+      setSeason(seasonNow);
     }
 
     function afApply(g) {
@@ -265,8 +368,9 @@
           return html;
         }
 
+        // Each section becomes its own block so anOrganize() can sort it into a sub-tab
         function section(title) {
-          return '<div style="font-size:13px;font-weight:700;color:#F3F4F6;margin:24px 0 12px;padding-bottom:8px;border-bottom:1.5px solid rgba(255,255,255,0.16)">' + title + '</div>';
+          return '</div><div class="an-sec" data-sec="' + title + '"><div class="an-h">' + title + '</div>';
         }
 
         function statRow(label, val) {
@@ -286,7 +390,7 @@
             contentHtml + '</div>';
         }
 
-        var html = "";
+        var html = '<div class="an-sec" data-sec="_top">';
 
         // Filter options shared by sections
         var AN_YEARS = rows.map(function(r) { return r.year; })
@@ -1131,8 +1235,9 @@
         }
 
         var analyticsEl = document.getElementById("analytics-content");
-        analyticsEl.innerHTML = html;
+        analyticsEl.innerHTML = html + '</div>';
         afInit(analyticsEl);
+        anOrganize(analyticsEl, SEASON_OPTS);
         loadBadBeats();
       } catch(e) {
         console.error(e);

@@ -53,6 +53,25 @@
   #tab-login { max-width: 104px; overflow: hidden; text-overflow: ellipsis; }
 }
 
+/* Analytics layout: season picker, sub-tabs, sections */
+.an-controls { margin-bottom: 6px; }
+.an-season { margin-bottom: 12px; }
+.an-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.an-tab { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04); color: #A1A9B6; cursor: pointer; white-space: nowrap; }
+.an-tab.on { background: #F3F4F6; color: #0F0F12; border-color: #F3F4F6; }
+.an-h { font-size: 13px; font-weight: 700; color: #F3F4F6; margin: 24px 0 12px; padding-bottom: 8px; border-bottom: 1.5px solid rgba(255,255,255,0.16); display: flex; align-items: baseline; gap: 8px; }
+.an-all { display: none; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #6B7280; margin-left: auto; }
+.an-one-season .an-all { display: inline; }
+#analytics-content .an-pane .af-bar-season { display: none; }
+.an-merged { margin-top: 16px; }
+.an-sub { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #A1A9B6; margin: 4px 0 10px; }
+details.an-more { margin-top: 14px; }
+details.an-more > summary { cursor: pointer; font-size: 13px; font-weight: 600; color: #93C5FD; list-style: none; padding: 6px 0; }
+details.an-more > summary::-webkit-details-marker { display: none; }
+details.an-more > summary::before { content: '▸ '; }
+details.an-more[open] > summary::before { content: '▾ '; }
+@media (max-width: 700px) { .an-tab { font-size: 12px; padding: 7px 11px; } }
+
 /* Charts (js/charts.js) */
 .ch-box { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 12px 12px 10px; margin-bottom: 8px; }
 .ch-svg { width: 100%; height: auto; display: block; overflow: visible; }

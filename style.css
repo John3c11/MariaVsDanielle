@@ -1027,6 +1027,10 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
 }
 .pc-name { font-size: 24px; font-weight: 800; letter-spacing: -0.4px; margin: 8px 0 2px; }
 .pc-sub { font-size: 12px; font-weight: 600; opacity: 0.8; }
+.pc-now { display: inline-block; font-size: 9.5px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.7; margin-right: 6px; vertical-align: 1px; }
+.pc-teams { font-size: 12px; font-weight: 700; margin: 2px 0 4px; }
+.pc-ctx { display: inline-block; font-size: 12px; font-weight: 600; line-height: 1.5; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 3px 10px; margin: 2px 0 6px; }
+.pc-ctx .tlogo { vertical-align: -0.25em; margin: 0 3px; }
 .pc-body { padding: 16px 20px 20px; }
 .pc-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
 .pc-tile { background: rgba(255,255,255,0.06); border-radius: 12px; padding: 12px 14px; }

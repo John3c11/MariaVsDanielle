@@ -551,7 +551,7 @@
       var h = '<div class="ftd-sub">' + done + ' of ' + order.length + ' game' + (order.length === 1 ? '' : 's') + ' scored</div>';
       order.forEach(function(k) {
         var g = G[k];
-        h += '<div class="ftd-row" data-ftd="' + escHtml(k) + '"><div class="ftd-top"><span class="ftd-slot">' + escHtml(g.slot) + '</span>' +
+        h += '<div class="ftd-row" data-ftd="' + escHtml(k) + '" data-ctx-year="' + CURRENT_YEAR + '" data-ctx-week="' + week + '"><div class="ftd-top"><span class="ftd-slot">' + escHtml(g.slot) + '</span>' +
           '<span class="ftd-teams">' + teamPill(g.home, g.home) + ' <span style="color:rgba(255,255,255,0.45)">vs</span> ' + teamPill(g.away, g.away) + '</span></div>';
         if (g.scorer) {
           var team = /^home$/i.test(g.side) ? g.home : /^away$/i.test(g.side) ? g.away : '';
@@ -640,7 +640,7 @@
           });
           hits.sort(function(a, b) { return b.odds - a.odds; });
           var winner = units.Maria > units.Danielle ? 'Maria' : units.Danielle > units.Maria ? 'Danielle' : '';
-          h += '<div class="hist-yr"><div class="hist-ago">' + (ago === 1 ? '1 year ago' : ago + ' years ago') + ' · ' + y + ' Week ' + week + '</div>';
+          h += '<div class="hist-yr" data-ctx-year="' + y + '" data-ctx-week="' + week + '"><div class="hist-ago">' + (ago === 1 ? '1 year ago' : ago + ' years ago') + ' · ' + y + ' Week ' + week + '</div>';
           if (hits.length) {
             h += hits.slice(0, 3).map(function(x) {
               return '<div class="hist-hit">' + (x.team ? headshot(x.name, x.team, 30) : '') + '<span><b style="color:' + c(x.who) + '">' + x.who + '</b> hit ' +

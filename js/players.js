@@ -75,6 +75,15 @@
         Object.keys(db).forEach(function(k) {
           var p = db[k], last = p.games[p.gameOrder[p.gameOrder.length - 1]];
           p.last = last ? { year: last.year, week: last.week } : null;
+          // Team stints in order, e.g. Packers 2025 Wk 1–18, then Patriots 2026 Wk 1–
+          p.stints = [];
+          p.gameOrder.forEach(function(gk) {
+            var g = p.games[gk];
+            if (!g.team) return;
+            var s = p.stints[p.stints.length - 1];
+            if (s && s.team === g.team && s.year === g.year) s.to = g.week;
+            else p.stints.push({ team: g.team, year: g.year, from: g.week, to: g.week });
+          });
         });
         PLAYER_DB = db;
         schedulePlayerTagging();
@@ -143,8 +152,12 @@
         el.setAttribute('data-hs-done', '1');
         var name = el.getAttribute('data-hs-name'), team = el.getAttribute('data-hs-team');
         if (!team) { el.remove(); return; }
-        hsTeamMap(team).then(function(map) {
-          var url = map[playerKey(name)];
+        // Players change teams: look on his current roster first, then the team from that game
+        var now = resolveTeam((ROSTER_INFO[playerKey(name)] || {}).team || '');
+        var tries = [now, team].filter(function(t, i, a) { return t && a.indexOf(t) === i; });
+        Promise.all(tries.map(hsTeamMap)).then(function(maps) {
+          var url = null;
+          maps.forEach(function(m) { if (!url && m[playerKey(name)]) url = m[playerKey(name)]; });
           if (url) {
             var img = new Image();
             img.alt = ''; img.onload = function() { el.innerHTML = ''; el.appendChild(img); el.classList.add('hs-on'); };
@@ -199,12 +212,31 @@
       });
     }
 
-    function openPlayerCard(name) {
+    // ctx (optional): { year, week } of the game the name was tapped in
+    function openPlayerCard(name, ctx) {
       loadPlayerDB().then(function(db) {
         var k = playerKey(name);
-        var p = db[k] || { name: name, picks: { Maria: 0, Danielle: 0 }, hits: { Maria: 0, Danielle: 0 }, units: { Maria: 0, Danielle: 0 }, tds: {}, games: {}, gameOrder: [], team: '', lastOdds: null };
+        var p = db[k] || { name: name, picks: { Maria: 0, Danielle: 0 }, hits: { Maria: 0, Danielle: 0 }, units: { Maria: 0, Danielle: 0 }, tds: {}, games: {}, gameOrder: [], team: '', lastOdds: null, stints: [] };
         var ri = ROSTER_INFO[k] || {};
-        var team = resolveTeam(ri.team || p.team);
+        var onRoster = !!(ri.team && resolveTeam(ri.team));
+        var stints = p.stints || [];
+        var lastStint = stints[stints.length - 1];
+        var team = onRoster ? resolveTeam(ri.team) : resolveTeam(p.team);
+        function abbr(t) { return (TEAM_ABBR[resolveTeam(t)] || t.split(' ').pop()).toUpperCase(); }
+        function nick(t) { return resolveTeam(t).split(' ').pop(); }
+        // Team history, newest first: "2026 Patriots · 2025 Packers"
+        var hist = stints.slice().reverse().map(function(s) {
+          var same = stints.filter(function(x) { return x.year === s.year; }).length > 1;
+          return '<span style="color:' + ((TEAM_COLORS[s.team] || {}).dark || '#F3F4F6') + '">' + s.year + ' ' + nick(s.team) + (same ? ' Wk ' + s.from + '–' + s.to : '') + '</span>';
+        });
+        var moved = stints.some(function(s) { return s.team !== team; });
+        // The game it was opened from, if he was on a different team then
+        var ctxLine = '';
+        if (ctx && ctx.year && ctx.week) {
+          var cg = null;
+          p.gameOrder.forEach(function(gk) { var g = p.games[gk]; if (String(g.year) === String(ctx.year) && +g.week === +ctx.week && g.team) cg = g; });
+          if (cg && cg.team !== team) ctxLine = '<div class="pc-ctx">In that game: ' + teamLogo(cg.team) + '<b>' + nick(cg.team) + '</b> · ' + cg.year + ' Week ' + cg.week + '</div>';
+        }
         var tc = TEAM_COLORS[team] || { bg: '#1F2937', text: '#FFFFFF', primary: '#1F2937', dark: '#F3F4F6' };
         var headBg = tc.bg === '#FFFFFF' ? tc.primary : tc.bg;
 
@@ -232,8 +264,9 @@
           var myTeam = g.team || (team === g.home || team === g.away ? team : '');
           var opp = myTeam === g.home ? g.away : myTeam === g.away ? g.home : '';
           var oppTc = TEAM_COLORS[opp];
-          var vs = opp ? 'vs <span style="color:' + (oppTc ? oppTc.dark : '#F3F4F6') + ';font-weight:600">' + opp.split(' ').pop() + '</span>'
-                       : (g.home.split(' ').pop() + ' vs ' + g.away.split(' ').pop());
+          var myTc = TEAM_COLORS[myTeam];
+          var vs = opp ? '<span style="color:' + (myTc ? myTc.dark : '#F3F4F6') + ';font-weight:700">' + abbr(myTeam) + '</span> vs <span style="color:' + (oppTc ? oppTc.dark : '#F3F4F6') + ';font-weight:600">' + abbr(opp) + '</span>'
+                       : (abbr(g.home) + ' vs ' + abbr(g.away));
           var chips = g.by.map(function(n) {
             var c = n === 'Maria' ? SB_M : SB_D;
             return '<span class="pc-chip" style="color:' + c + ';background:' + hexA(c, 0.15) + '">' + n.charAt(0) + '</span>';
@@ -249,8 +282,9 @@
           '<div class="pc-head" style="background:linear-gradient(150deg,' + hexA(headBg, 0.95) + ' 0%,' + hexA(headBg, 0.35) + ' 70%, rgba(17,19,24,1) 100%)">' +
             '<button class="pc-close" id="pc-close" aria-label="Close">×</button>' +
             (team ? '<div class="pc-hs">' + headshot(p.name, team, 76) + '</div>' : '') +
-            (team ? teamPill((ri.pos ? ri.pos + ' · ' : '') + team, team) : '') +
+            (team ? '<span class="pc-now">' + (onRoster ? 'Now' : 'Last seen') + '</span>' + teamPill((ri.pos ? ri.pos + ' · ' : '') + team + (onRoster || !lastStint ? '' : ' (' + lastStint.year + ')'), team) : '') +
             '<div class="pc-name">' + p.name + outBadge(p.name) + '</div>' +
+ (moved || (hist.length && !onRoster) ? '<div class="pc-teams">' + hist.join(' · ') + '</div>' : '') + ctxLine +
             (p.lastOdds ? '<div class="pc-sub">Last odds ' + formatOdds(p.lastOdds.odds) + ' (' + p.lastOdds.year + ' Wk ' + p.lastOdds.week + ')</div>' : '') +
           '</div>' +
           '<div class="pc-body">' +
@@ -343,7 +377,8 @@
       var el = e.target.closest && e.target.closest('.pl-link');
       if (!el || el.closest('.pc-card')) return;
       e.preventDefault();
-      openPlayerCard(el.getAttribute('data-pname'));
+      var c = el.closest('[data-ctx-week]');
+      openPlayerCard(el.getAttribute('data-pname'), c ? { year: c.getAttribute('data-ctx-year'), week: c.getAttribute('data-ctx-week') } : null);
     });
     document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closePlayerCard(); });
     new MutationObserver(function(muts) {

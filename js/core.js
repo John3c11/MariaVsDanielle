@@ -51,10 +51,32 @@
     const SHEET_ID = SEASONS[0].sheetId;
     var SB_M = '#F87171', SB_D = '#60A5FA'; // Maria / Danielle on dark cards
     document.getElementById('season-title').textContent = CURRENT_YEAR + ' Touchdown Bets';
+    // ESPN team logos (small versions). Shown next to team names, never next to player names.
+    var TEAM_ABBR = {
+      'Arizona Cardinals': 'ari', 'Atlanta Falcons': 'atl', 'Baltimore Ravens': 'bal', 'Buffalo Bills': 'buf', 'Carolina Panthers': 'car',
+      'Chicago Bears': 'chi', 'Cincinnati Bengals': 'cin', 'Cleveland Browns': 'cle', 'Dallas Cowboys': 'dal', 'Denver Broncos': 'den',
+      'Detroit Lions': 'det', 'Green Bay Packers': 'gb', 'Houston Texans': 'hou', 'Indianapolis Colts': 'ind', 'Jacksonville Jaguars': 'jax',
+      'Kansas City Chiefs': 'kc', 'Las Vegas Raiders': 'lv', 'Los Angeles Chargers': 'lac', 'Los Angeles Rams': 'lar', 'Miami Dolphins': 'mia',
+      'Minnesota Vikings': 'min', 'New England Patriots': 'ne', 'New Orleans Saints': 'no', 'New York Giants': 'nyg', 'New York Jets': 'nyj',
+      'Philadelphia Eagles': 'phi', 'Pittsburgh Steelers': 'pit', 'San Francisco 49ers': 'sf', 'Seattle Seahawks': 'sea',
+      'Tampa Bay Buccaneers': 'tb', 'Tennessee Titans': 'ten', 'Washington Commanders': 'wsh',
+    };
+    function teamLogoUrl(team) {
+      var a = TEAM_ABBR[resolveTeam(team)];
+      return a ? 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/' + a + '.png&h=64&w=64' : '';
+    }
+    function teamLogo(team, cls) {
+      var u = teamLogoUrl(team);
+      return u ? '<img class="tlogo' + (cls ? ' ' + cls : '') + '" src="' + u + '" alt="" loading="lazy" onerror="this.remove()">' : '';
+    }
+    function isTeamLabel(text, team) {
+      var r = resolveTeam(team);
+      return !!(r && TEAM_COLORS[r] && /^[A-Za-z0-9 .]+$/.test(text || '') && resolveTeam(text) === r);
+    }
     function teamPill(text, team) {
       var tc = TEAM_COLORS[resolveTeam(team)];
       if (!tc) return '<b>' + text + '</b>';
-      return '<span class="tpill" style="background:' + (tc.bg || tc.primary) + ';color:' + tc.text + '">' + text + '</span>';
+      return '<span class="tpill" style="background:' + (tc.bg || tc.primary) + ';color:' + tc.text + '">' + (isTeamLabel(text, team) ? teamLogo(team) : '') + text + '</span>';
     }
 
 
@@ -75,7 +97,7 @@
     }
 
     function coloredGame(homeTeam, awayTeam) {
-      return coloredText(homeTeam, homeTeam) + '<span style="color:#9CA3AF"> vs </span>' + coloredText(awayTeam, awayTeam);
+      return teamLogo(homeTeam) + coloredText(homeTeam, homeTeam) + '<span style="color:#9CA3AF"> vs </span>' + teamLogo(awayTeam) + coloredText(awayTeam, awayTeam);
     }
 
     async function fetchSheet(tabName, range) {
@@ -166,7 +188,7 @@
       return '<span style="color:' + TEAM_COLORS[r].dark + ';font-weight:600">' + text + '</span>';
     }
     function legacyColoredGame(h, a) {
-      return legacyColoredText(h, h) + '<span style="color:#9CA3AF"> vs </span>' + legacyColoredText(a, a);
+      return teamLogo(h) + legacyColoredText(h, h) + '<span style="color:#9CA3AF"> vs </span>' + teamLogo(a) + legacyColoredText(a, a);
     }
 
     // bg/text match the Google Sheet (jersey style). primary = readable team color on white.

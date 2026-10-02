@@ -392,7 +392,7 @@
               if (!pickStr || pickStr === '—') return pickStr;
               var parts = pickStr.split(' / ');
               var colored = parts.map(function(p, i) {
-                return '<span class="lp-pick" data-player="' + p.replace(/"/g, '&quot;') + '">' + teamPill(p, i === 0 ? homeTeamName : awayTeamName) + '</span>';
+                return '<span class="lp-pick" data-player="' + p.replace(/"/g, '&quot;') + '">' + headshot(p, i === 0 ? homeTeamName : awayTeamName, 26) + teamPill(p, i === 0 ? homeTeamName : awayTeamName) + '</span>';
               });
               return colored.join('<br>');
             }
@@ -419,6 +419,7 @@
               </div></div>`;
           }
           liveEl.innerHTML = html;
+          fillHeadshots(liveEl);
           playPickReveals(liveEl);
           addCrowdLines(liveEl);
           startLiveTracker();
@@ -557,7 +558,7 @@
           var who = g.notOffered ? 'Not offered, so no bet counted'
             : hits.length ? hits.map(function(n) { return '<span class="hit" style="color:' + (n === 'Maria' ? SB_M : SB_D) + '">✅ ' + n + '</span>'; }).join(' & ') + ' had him'
             : 'Nobody had him';
-          h += '<div class="ftd-scorer">🏈 ' + (team ? teamPill(escHtml(g.scorer), team) : escHtml(g.scorer)) + '</div>' +
+          h += '<div class="ftd-scorer">' + (team ? headshot(g.scorer, team, 40) : '🏈 ') + (team ? teamPill(escHtml(g.scorer), team) : escHtml(g.scorer)) + '</div>' +
             '<div class="ftd-who">' + who + '<span class="ftd-friends"></span></div>';
         } else {
           h += '<div class="ftd-wait" data-home="' + escHtml(g.home) + '" data-away="' + escHtml(g.away) + '">⏳ Not played yet</div>';
@@ -565,6 +566,7 @@
         h += '</div>';
       });
       document.getElementById('ftd-list').innerHTML = h;
+      fillHeadshots(document.getElementById('ftd-list'));
       wrap.style.display = '';
 
       // Friends who had the scorer (only picks revealed at kickoff are public)

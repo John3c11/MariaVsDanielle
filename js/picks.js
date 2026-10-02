@@ -604,7 +604,7 @@
     var ADMIN = { oddsRes: null };
 
     function adminHeader(active) {
-      var tabs = [['odds', '💲 Odds'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['check', '🔍 Data Check'], ['season', '🆕 Season'], ['theme', '🎨 Theme']];
+      var tabs = [['odds', '💲 Odds'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['check', '🔍 Data Check'], ['season', '🆕 Season'], ['theme', '🎨 Theme'], ['status', '🩺 Status']];
       return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
         '<div style="font-size:16px;font-weight:700">Hi John</div>' +
         '<button class="link-btn" id="sub-switch">Log out</button></div>' +
@@ -623,6 +623,62 @@
       bindSwitch(); bindAdminNav();
       return document.getElementById('adm-body');
     }
+    // ── 🩺 Status: is everything working? ─────────────────────────────────────
+    function adminStatus() {
+      var body = adminScreen('status', '<div class="loading">Checking everything…</div>');
+      function ago(iso) {
+        if (!iso) return 'never';
+        var m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+        var when = m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' hr ago' : Math.round(m / 1440) + ' days ago';
+        return when + ' <span style="color:#6B7280">(' + new Date(iso).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + ')</span>';
+      }
+      function row(state, label, detail) {
+        var ic = state === 'ok' ? '✅' : state === 'warn' ? '⚠️' : state === 'bad' ? '❌' : 'ℹ️';
+        return '<div class="st-row"><span class="st-ic">' + ic + '</span><div><div class="st-l">' + label + '</div>' + (detail ? '<div class="st-d">' + detail + '</div>' : '') + '</div></div>';
+      }
+      var t0 = Date.now();
+      var browserEspn = espnGet('scoreboard').then(function() { return { ok: true, ms: Date.now() - t0 }; }).catch(function() { return { ok: false }; });
+      var t1 = Date.now();
+      var sheets = fetch('https://sheets.googleapis.com/v4/spreadsheets/' + SHEET_ID + '/values/' + encodeURIComponent('Winnings!A1:A2') + '?key=' + API_KEY + '&_=' + Date.now())
+        .then(function(r) { return { ok: r.ok, code: r.status, ms: Date.now() - t1 }; }).catch(function() { return { ok: false }; });
+      Promise.all([picksApi({ pin: SUB.pin, action: 'status' }).catch(function(e) { return { error: 'Couldn\'t reach the script.' }; }), browserEspn, sheets]).then(function(res) {
+        var s = res[0], be = res[1], sh = res[2];
+        var siteV = (document.firstChild && document.firstChild.nodeType === 8) ? document.firstChild.nodeValue.trim() : '?';
+        var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:10px">Everything the site depends on, checked right now. <button class="link-btn" id="st-again">Check again</button></div>';
+        h += '<div class="pf-h">🔌 Connections</div>';
+        h += row(sh.ok ? 'ok' : 'bad', 'Google Sheets (from this browser)', sh.ok ? 'Reachable · ' + sh.ms + ' ms' : 'Not reachable' + (sh.code ? ' (HTTP ' + sh.code + (sh.code === 429 ? ', too many requests: wait a minute' : sh.code === 403 ? ', check the API key limits' : '') + ')' : ''));
+        h += row(s.error ? 'bad' : 'ok', 'Picks script (PicksAPI)', s.error ? s.error : 'Reachable · season ' + s.season + ' · ' + s.friends + ' friend' + (s.friends === 1 ? '' : 's'));
+        h += row(be.ok ? 'ok' : 'warn', 'ESPN (from this browser)', be.ok ? 'Reachable · ' + be.ms + ' ms · used for Live Picks scores and kickoff times' : 'Not reachable right now. Live scores and kickoff times won\'t show; nothing else is affected.');
+        if (!s.error) {
+          h += row(s.espn && s.espn.ok ? 'ok' : 'bad', 'ESPN (from Google, for FirstTD)', s.espn && s.espn.ok ? 'Reachable · ESPN says it\'s ' + (s.espn.week ? (s.espn.week > 18 ? 'playoff round ' + (s.espn.week - 18) : 'Week ' + s.espn.week) : 'the offseason') : 'Not reachable: ' + (s.espn ? s.espn.error : '') + '. First TDs won\'t fill in until this works.');
+          var trig = s.triggers || [];
+          h += '<div class="pf-h">⏱️ Automatic jobs</div>';
+          h += row(trig.indexOf('fillFirstTDs') >= 0 ? 'ok' : 'bad', 'First TD auto-fill', (trig.indexOf('fillFirstTDs') >= 0 ? 'On (every 30 min)' : 'OFF: run setupFirstTDAutoFill in Apps Script') +
+            '<br>Last ran: ' + ago(s.ftdLast && s.ftdLast.at) + (s.ftdLast && s.ftdLast.log && s.ftdLast.log.length ? '<div class="st-log">' + s.ftdLast.log.map(escHtml).join('<br>') + '</div>' : '') +
+            'Last wrote something: ' + ago(s.ftdLastWrite && s.ftdLastWrite.at) + (s.ftdLastWrite ? '<div class="st-log">' + s.ftdLastWrite.log.map(escHtml).join('<br>') + '</div>' : ''));
+          h += row(trig.indexOf('sendWeeklyRecap') >= 0 ? 'ok' : 'info', 'Tuesday recap email', (trig.indexOf('sendWeeklyRecap') >= 0 ? 'On (Tuesdays 9 AM)' : 'Off') + '<br>Last sent: ' + ago(s.recapLast && s.recapLast.at) + (s.recapLast ? ' · "' + escHtml(s.recapLast.subject) + '"' : ''));
+          var gp = s.gaps || { noScorer: [], noSide: [], noOdds: [] };
+          h += '<div class="pf-h">📋 Sheet check</div>';
+          function gapRow(list, label, fix) {
+            return row(list.length ? 'warn' : 'ok', label + (list.length ? ': ' + list.length : ''), list.length ? list.slice(0, 8).join(' · ') + (list.length > 8 ? ' · +' + (list.length - 8) + ' more' : '') + '<br><span style="color:#6B7280">' + fix + '</span>' : 'None');
+          }
+          h += gapRow(gp.noScorer, 'Finished games with no first scorer', 'FirstTD fills these on its next run. If it\'s been hours, type it into column L.');
+          h += gapRow(gp.noSide, 'Scored games missing Home/Away', 'FirstTD fills column N on its next run, or type Home/Away yourself.');
+          h += gapRow(gp.noOdds, 'Scored games missing odds', 'Enter them on the 💲 Odds screen.');
+          h += '<div class="pf-h">🏷️ Versions</div>';
+          var v = s.versions || {};
+          h += row('info', 'Website', siteV + ' · ' + (navigator.serviceWorker && navigator.serviceWorker.controller ? 'offline mode on' : 'offline mode not active yet'));
+          ['PicksAPI', 'FirstTD', 'WeeklyRecap'].forEach(function(k) {
+            var old = !/^\d{4}-/.test(v[k] || '');
+            h += row(old ? 'warn' : 'info', k + '.gs', old ? (v[k] || 'unknown') + ': paste the latest copy into Apps Script' : 'Updated ' + v[k]);
+          });
+          if (window.HOLIDAY_FORCED) h += row('info', 'Theme preview is on for this device', window.HOLIDAY_THEME || 'off');
+        }
+        body.innerHTML = h;
+        document.getElementById('st-again').addEventListener('click', adminStatus);
+      });
+    }
+
     // ── 🎨 Theme preview (this device only) + 📣 announcement (everyone) ─────
     var THEME_NAMES = { '': 'Auto (by date)', off: 'Off', halloween: '🎃 Halloween', thanksgiving: '🦃 Thanksgiving', christmas: '🎄 Christmas', playoffs: '🏆 Playoffs', superbowl: '🏈 Super Bowl' };
     function adminTheme() {
@@ -764,6 +820,7 @@
       if (section === 'check') adminCheck();
       if (section === 'season') adminSeason();
       if (section === 'theme') adminTheme();
+      if (section === 'status') adminStatus();
     }
 
     // Injuries

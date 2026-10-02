@@ -106,6 +106,55 @@
       });
     }
 
+    // ── Player headshots from ESPN team rosters (saved on the phone for a week) ──
+    var HS = { mem: {} };
+    function hsTeamMap(team) {
+      var abbr = TEAM_ABBR[resolveTeam(team)];
+      if (!abbr) return Promise.resolve({});
+      if (HS.mem[abbr]) return HS.mem[abbr];
+      var key = 'mvd-hs-' + abbr, cached = null;
+      try { cached = JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) {}
+      if (cached && Date.now() - cached.at < 7 * 864e5) return (HS.mem[abbr] = Promise.resolve(cached.map));
+      HS.mem[abbr] = espnGet('teams/' + abbr + '/roster').then(function(d) {
+        var map = {};
+        (function walk(o) {
+          if (!o || typeof o !== 'object') return;
+          if (Array.isArray(o)) { o.forEach(walk); return; }
+          var nm = o.fullName || o.displayName;
+          if (nm && (o.headshot || o.position) && o.id) {
+            var url = o.headshot && o.headshot.href ? o.headshot.href : 'https://a.espncdn.com/i/headshots/nfl/players/full/' + o.id + '.png';
+            map[playerKey(nm)] = url.replace('https://a.espncdn.com/i/', 'https://a.espncdn.com/combiner/i?img=/i/') + (url.indexOf('a.espncdn.com/i/') >= 0 ? '&w=150&h=109&scale=crop' : '');
+          }
+          Object.keys(o).forEach(function(k) { if (k !== 'headshot' && k !== 'links' && k !== 'logos') walk(o[k]); });
+        })(d);
+        try { localStorage.setItem(key, JSON.stringify({ at: Date.now(), map: map })); } catch (e) {}
+        return map;
+      }).catch(function() { delete HS.mem[abbr]; return {}; });
+      return HS.mem[abbr];
+    }
+    // A round headshot slot; fillHeadshots() swaps in the photo (team logo if ESPN has none)
+    function headshot(name, team, size) {
+      var t = resolveTeam(team || (ROSTER_INFO[playerKey(name)] || {}).team || '');
+      var s = size || 28;
+      return '<span class="hs" data-hs-name="' + escHtml(name) + '" data-hs-team="' + escHtml(t) + '" style="width:' + s + 'px;height:' + s + 'px"></span>';
+    }
+    function fillHeadshots(root) {
+      (root || document).querySelectorAll('.hs[data-hs-name]:not([data-hs-done])').forEach(function(el) {
+        el.setAttribute('data-hs-done', '1');
+        var name = el.getAttribute('data-hs-name'), team = el.getAttribute('data-hs-team');
+        if (!team) { el.remove(); return; }
+        hsTeamMap(team).then(function(map) {
+          var url = map[playerKey(name)];
+          if (url) {
+            var img = new Image();
+            img.alt = ''; img.onload = function() { el.innerHTML = ''; el.appendChild(img); el.classList.add('hs-on'); };
+            img.onerror = function() { el.innerHTML = teamLogo(team, 'hs-logo'); };
+            img.src = url;
+          } else el.innerHTML = teamLogo(team, 'hs-logo');
+        });
+      });
+    }
+
     function openPlayerCard(name) {
       loadPlayerDB().then(function(db) {
         var k = playerKey(name);
@@ -155,6 +204,7 @@
         var html = '<div class="pc-backdrop" id="pc-backdrop"><div class="pc-card" role="dialog" aria-label="' + p.name + '">' +
           '<div class="pc-head" style="background:linear-gradient(150deg,' + hexA(headBg, 0.95) + ' 0%,' + hexA(headBg, 0.35) + ' 70%, rgba(17,19,24,1) 100%)">' +
             '<button class="pc-close" id="pc-close" aria-label="Close">×</button>' +
+            (team ? '<div class="pc-hs">' + headshot(p.name, team, 76) + '</div>' : '') +
             (team ? teamPill((ri.pos ? ri.pos + ' · ' : '') + team, team) : '') +
             '<div class="pc-name">' + p.name + outBadge(p.name) + '</div>' +
             (p.lastOdds ? '<div class="pc-sub">Last odds ' + formatOdds(p.lastOdds.odds) + ' (' + p.lastOdds.year + ' Wk ' + p.lastOdds.week + ')</div>' : '') +
@@ -174,6 +224,7 @@
         var bd = document.getElementById('pc-backdrop');
         bd.addEventListener('click', function(e) { if (e.target === bd) closePlayerCard(); });
         document.getElementById('pc-close').addEventListener('click', closePlayerCard);
+        fillHeadshots(bd);
       });
     }
 

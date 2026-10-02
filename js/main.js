@@ -26,6 +26,7 @@
     }
 
     load();
+    loadAnnouncement();
     checkChatUnread();
     setInterval(function() { if (document.visibilityState === 'visible') checkChatUnread(); }, 120000);
     var ROSTERS_READY = loadRosters();
@@ -83,7 +84,16 @@
         thanksgiving: { label: '🦃 Happy Thanksgiving', fx: ['🍂', '🍁', '🍂'], n: 12 },
         christmas:    { label: '🎄 Merry Christmas', fx: ['❄', '❄', '❅'], n: 16, snow: true },
         playoffs:     { label: '🏆 Playoff Time', fx: ['✦', '✧'], n: 12 },
+        superbowl:    { label: '🏈 Super Bowl Week', fx: ['🏈', '✦', '✧'], n: 12 },
       };
+      // Admin forced a theme on this device: show a small reminder with a reset button
+      if (window.HOLIDAY_FORCED) {
+        var chip = document.createElement('button');
+        chip.className = 'theme-chip';
+        chip.textContent = '🎨 Theme preview: ' + (window.HOLIDAY_THEME || 'off') + ' · tap to reset';
+        chip.addEventListener('click', function() { try { localStorage.removeItem('mvd-theme-force'); } catch (e) {} location.reload(); });
+        document.body.appendChild(chip);
+      }
       var th = THEMES[window.HOLIDAY_THEME];
       if (!th) return;
       var nav = document.querySelector('.tabs-nav');

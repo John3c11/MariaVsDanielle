@@ -604,7 +604,7 @@
     var ADMIN = { oddsRes: null };
 
     function adminHeader(active) {
-      var tabs = [['odds', '💲 Odds'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['check', '🔍 Data Check'], ['season', '🆕 Season']];
+      var tabs = [['odds', '💲 Odds'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['check', '🔍 Data Check'], ['season', '🆕 Season'], ['theme', '🎨 Theme']];
       return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
         '<div style="font-size:16px;font-weight:700">Hi John</div>' +
         '<button class="link-btn" id="sub-switch">Log out</button></div>' +
@@ -623,6 +623,59 @@
       bindSwitch(); bindAdminNav();
       return document.getElementById('adm-body');
     }
+    // ── 🎨 Theme preview (this device only) + 📣 announcement (everyone) ─────
+    var THEME_NAMES = { '': 'Auto (by date)', off: 'Off', halloween: '🎃 Halloween', thanksgiving: '🦃 Thanksgiving', christmas: '🎄 Christmas', playoffs: '🏆 Playoffs', superbowl: '🏈 Super Bowl' };
+    function adminTheme() {
+      var forced = ''; try { forced = localStorage.getItem('mvd-theme-force') || ''; } catch (e) {}
+      var auto = window.HOLIDAY_AUTO ? THEME_NAMES[window.HOLIDAY_AUTO] : 'no theme';
+      var h = '<div class="pf-h" style="margin-top:4px">🎨 Theme preview <small>only on this device</small></div>' +
+        '<div style="font-size:12px;color:#A1A9B6;margin-bottom:10px">Force any theme here to check how it looks, whatever the date. Nobody else sees it. Everyone else gets the date-based theme, which today is <b style="color:#F3F4F6">' + auto + '</b>.</div>' +
+        '<div class="theme-grid">' + Object.keys(THEME_NAMES).map(function(k) {
+          var on = forced === k;
+          return '<button class="theme-opt' + (on ? ' on' : '') + '" data-theme-opt="' + k + '">' + THEME_NAMES[k] + (on ? ' ✓' : '') + '</button>';
+        }).join('') + '</div>' +
+        '<div style="font-size:11px;color:#6B7280;margin:8px 0 22px">The page reloads to apply it. A small "Theme preview" button stays at the bottom of the screen until you go back to Auto.</div>' +
+        '<div class="pf-h">📣 Announcement <small>everyone sees it on Stats</small></div><div id="ann-box"><div class="loading">Loading…</div></div>';
+      var body = adminScreen('theme', h);
+      body.querySelectorAll('[data-theme-opt]').forEach(function(b) {
+        b.addEventListener('click', function() {
+          var k = b.getAttribute('data-theme-opt');
+          try { if (k) localStorage.setItem('mvd-theme-force', k); else localStorage.removeItem('mvd-theme-force'); } catch (e) {}
+          location.reload();
+        });
+      });
+      picksApi({ action: 'site' }).then(function(r) { drawAnnounceAdmin(r.announce); }).catch(function() { drawAnnounceAdmin(null); });
+    }
+    function drawAnnounceAdmin(a) {
+      var box = document.getElementById('ann-box');
+      if (!box) return;
+      var cur = a ? '<div class="announce-banner" style="display:block;margin-bottom:12px">📣 ' + escHtml(a.text) + '<div style="font-size:11px;color:#A1A9B6;margin-top:4px">' + (a.until ? 'Showing through ' + new Date(a.until + 'T12:00').toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) : 'Showing until you remove it') + '</div></div>' +
+        '<button class="adm-btn red" id="ann-rm" style="margin-bottom:16px">Remove it</button>' : '<div style="font-size:12px;color:#A1A9B6;margin-bottom:10px">Nothing posted right now.</div>';
+      box.innerHTML = cur +
+        '<textarea class="adm-input" id="ann-text" maxlength="160" rows="2" placeholder="e.g. Happy birthday Danielle 🎂" style="width:100%;box-sizing:border-box;resize:vertical"></textarea>' +
+        '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px"><label style="font-size:12px;color:#A1A9B6">Show through <input type="date" class="adm-input" id="ann-until" style="padding:6px 8px"></label>' +
+        '<span style="font-size:11px;color:#6B7280">(leave blank to keep it up)</span><button class="primary-btn" id="ann-post" style="padding:9px 18px;margin-left:auto">' + (a ? 'Replace' : 'Post') + '</button></div>' +
+        '<div class="submit-msg" id="adm-msg" style="text-align:left"></div>';
+      document.getElementById('ann-post').addEventListener('click', function() {
+        var text = document.getElementById('ann-text').value.trim(), until = document.getElementById('ann-until').value;
+        if (!text) return adminMsg('Type a message.');
+        adminMsg('Posting…', true);
+        picksApi({ pin: SUB.pin, action: 'announce', text: text, until: until }).then(function(r) {
+          if (r.error) return adminMsg(r.error);
+          try { localStorage.removeItem('mvd-announce'); } catch (e) {}
+          drawAnnounceAdmin(r.announce); adminMsg('Posted. Everyone sees it on Stats now.', true);
+          if (typeof loadAnnouncement === 'function') loadAnnouncement();
+        }).catch(function() { adminMsg('Couldn\'t reach the script.'); });
+      });
+      var rm = document.getElementById('ann-rm');
+      if (rm) rm.addEventListener('click', function() {
+        picksApi({ pin: SUB.pin, action: 'unannounce' }).then(function() {
+          try { localStorage.removeItem('mvd-announce'); } catch (e) {}
+          drawAnnounceAdmin(null); if (typeof loadAnnouncement === 'function') loadAnnouncement();
+        });
+      });
+    }
+
     // ── 🆕 Season: start next year's sheet ──────────────────────────────────
     function seasonConfigText(add) {
       var list = SEASONS.filter(function(x) { return x.year !== add.year; }).concat([{ year: add.year, sheetId: add.id }])
@@ -710,6 +763,7 @@
       if (section === 'chat') adminChat();
       if (section === 'check') adminCheck();
       if (section === 'season') adminSeason();
+      if (section === 'theme') adminTheme();
     }
 
     // Injuries

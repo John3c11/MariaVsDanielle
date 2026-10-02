@@ -435,6 +435,7 @@
 
         renderFirstTDs(rows);
         renderVisitBanner(rows);
+        if (!VISIT.trophiesChecked) { VISIT.trophiesChecked = true; setTimeout(checkNewTrophies, 400); }
 
         if (navigator.onLine) {
           try { localStorage.setItem('mvd-last-online', String(Date.now())); } catch (e) {}
@@ -642,6 +643,59 @@
       VISIT.since = saved.at;
       drawVisitBanner();
     }
+    // ── 🏆 New trophy alert: badges Maria or Danielle unlocked since this phone last looked ──
+    // (The two bad-beat badges need ESPN lookups, so they're left out here.)
+    function checkNewTrophies() {
+      if (typeof loadAllBets !== 'function') return;
+      loadAllBets().then(function(all) {
+        var jx = computeJinxes(all), now = {};
+        ['Maria', 'Danielle'].forEach(function(who) {
+          now[who] = achievementsFor(profileStats(who, all, jx, null))
+            .filter(function(a) { return a.got && a.n !== 'Heartbreaker' && a.n !== 'Snakebitten'; })
+            .map(function(a) { return { k: a.n, ic: a.ic, shame: !!a.shame }; });
+        });
+        var saved = null;
+        try { saved = JSON.parse(localStorage.getItem('mvd-trophies') || 'null'); } catch (e) {}
+        try { localStorage.setItem('mvd-trophies', JSON.stringify({ Maria: now.Maria.map(function(a) { return a.k; }), Danielle: now.Danielle.map(function(a) { return a.k; }) })); } catch (e) {}
+        if (!saved) return; // first look on this phone
+        var news = [];
+        ['Maria', 'Danielle'].forEach(function(who) {
+          now[who].forEach(function(a) {
+            if ((saved[who] || []).indexOf(a.k) >= 0) return;
+            news.push('<b style="color:' + (who === 'Maria' ? SB_M : SB_D) + '">' + who + '</b> ' + (a.shame ? 'earned' : 'unlocked') + ' ' + a.ic + ' <b>' + a.k + '</b>' + (a.shame ? ' 🤡' : ''));
+          });
+        });
+        if (!news.length) return;
+        if (news.length > 3) news = news.slice(0, 3).concat(['+' + (news.length - 3) + ' more trophies (see Profiles)']);
+        VISIT.parts = VISIT.parts.concat(news);
+        if (!VISIT.since) VISIT.since = Date.now();
+        drawVisitBanner();
+      }).catch(function() {});
+    }
+
+    // ── 📣 Announcement (posted by admin) ───────────────────────────────────
+    function loadAnnouncement() {
+      var el = document.getElementById('announce-banner');
+      if (!el) return;
+      function draw(a) {
+        var closed = ''; try { closed = localStorage.getItem('mvd-announce-closed') || ''; } catch (e) {}
+        if (!a || !a.text || closed === a.id) { el.style.display = 'none'; return; }
+        el.innerHTML = '📣 ' + escHtml(a.text) + '<button class="vb-x" aria-label="Dismiss">✕</button>';
+        el.style.display = '';
+        el.querySelector('.vb-x').addEventListener('click', function() {
+          try { localStorage.setItem('mvd-announce-closed', a.id); } catch (e) {}
+          el.style.display = 'none';
+        });
+      }
+      var cached = null; try { cached = JSON.parse(localStorage.getItem('mvd-announce') || 'null'); } catch (e) {}
+      if (cached) draw(cached);
+      if (!PICKS_URL) return;
+      picksApi({ action: 'site' }).then(function(r) {
+        try { localStorage.setItem('mvd-announce', JSON.stringify(r.announce || null)); } catch (e) {}
+        draw(r.announce);
+      }).catch(function() {});
+    }
+
     function drawVisitBanner() {
       var el = document.getElementById('visit-banner');
       if (!el || VISIT.closed) return;

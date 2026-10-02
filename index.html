@@ -1,4 +1,4 @@
-<!-- v72 -->
+<!-- v73 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,25 +15,35 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="MvD">
   <script>
-    // Holiday themes: picked by date. Preview any with ?theme=halloween|thanksgiving|christmas|playoffs|off
+    // Holiday themes: picked by date for everyone. The admin 🎨 Theme screen can force one
+    // on this device only (saved as mvd-theme-force), ignoring the date. ?theme=name|off also works.
     (function() {
       var d = new Date(), m = d.getMonth(), day = d.getDate(), t = '';
       var q = (location.search.match(/[?&]theme=(\w+)/) || [])[1];
       // Thanksgiving = 4th Thursday of November; theme runs Mon–Sun of that week
       var nov1 = new Date(d.getFullYear(), 10, 1).getDay();
       var tg = 1 + ((4 - nov1 + 7) % 7) + 21;
+      // Super Bowl = 2nd Sunday of February; theme runs the Monday before through the Monday after
+      var feb1 = new Date(d.getFullYear(), 1, 1).getDay();
+      var sb = 1 + ((7 - feb1) % 7) + 7;
       if (m === 9 && day >= 24) t = 'halloween';
       else if (m === 10 && day >= tg - 3 && day <= tg + 3) t = 'thanksgiving';
       else if (m === 11 && day >= 18 && day <= 26) t = 'christmas';
+      else if (m === 1 && day >= sb - 6 && day <= sb + 1) t = 'superbowl';
       else if ((m === 0 && day >= 10) || (m === 1 && day <= 14)) t = 'playoffs';
+      window.HOLIDAY_AUTO = t;
+      var forced = null;
+      try { forced = localStorage.getItem('mvd-theme-force'); } catch (e) {}
+      if (forced) t = forced === 'off' ? '' : forced;
       if (q) t = q === 'off' ? '' : q;
+      window.HOLIDAY_FORCED = !!forced && !q;
       if (t) document.documentElement.className += ' theme-' + t;
       window.HOLIDAY_THEME = t;
     })();
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=72">
+  <link rel="stylesheet" href="style.css?v=73">
 </head>
 <body>
   <div class="page-layout">
@@ -70,6 +80,7 @@
     </nav>
 
     <div id="tab-stats" class="tab-panel active">
+    <div id="announce-banner" class="announce-banner" style="display:none"></div>
     <div id="visit-banner" class="visit-banner" style="display:none"></div>
     <div class="sb" id="sb-main">
     <header>
@@ -160,18 +171,18 @@
 
   <script src="config.js"></script>
   <!-- Site code, split by tab. Bump ?v= on every file when any file changes. -->
-  <script src="js/core.js?v=72"></script>
-  <script src="js/stats.js?v=72"></script>
-  <script src="js/players.js?v=72"></script>
-  <script src="js/picks.js?v=72"></script>
-  <script src="js/schedule.js?v=72"></script>
-  <script src="js/profiles.js?v=72"></script>
-  <script src="js/chat.js?v=72"></script>
-  <script src="js/crowd.js?v=72"></script>
-  <script src="js/history.js?v=72"></script>
-  <script src="js/analytics.js?v=72"></script>
-  <script src="js/charts.js?v=72"></script>
-  <script src="js/main.js?v=72"></script>
+  <script src="js/core.js?v=73"></script>
+  <script src="js/stats.js?v=73"></script>
+  <script src="js/players.js?v=73"></script>
+  <script src="js/picks.js?v=73"></script>
+  <script src="js/schedule.js?v=73"></script>
+  <script src="js/profiles.js?v=73"></script>
+  <script src="js/chat.js?v=73"></script>
+  <script src="js/crowd.js?v=73"></script>
+  <script src="js/history.js?v=73"></script>
+  <script src="js/analytics.js?v=73"></script>
+  <script src="js/charts.js?v=73"></script>
+  <script src="js/main.js?v=73"></script>
   
   </div><!-- end wrap -->
 

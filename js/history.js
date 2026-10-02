@@ -469,6 +469,10 @@
         html += legacyStatCard('Accuracy', (s.mTotal?Math.round(s.mCorrect/s.mTotal*100):0)+'%', (s.dTotal?Math.round(s.dCorrect/s.dTotal*100):0)+'%');
         html += '</div>';
 
+        // All-time race: running units across every season
+        var race = allTimeRaceChart(byYear.slice().reverse().reduce(function(a, ys) { return a.concat(ys.bets); }, []));
+        if (race) html += '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">🏁 The All-Time Race</div><div class="ch-box" style="margin-bottom:28px">' + race + '</div>';
+
         // Previous seasons: one Season Wrapped card each, newest first
         if (legacyYears.length > 0) {
           html += '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">Season Wrapped</div>';

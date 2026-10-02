@@ -435,6 +435,12 @@
           personCard("Danielle", streaks(scored.filter(function(r){return r.picker==="Danielle" && !isNotOffered(r);})))
         );
 
+        // ── Hit Grid (chart) ──
+        html += section("Hit Grid");
+        html += '<div class="ch-intro">Every bet as a square, so hot and cold stretches stand out.</div>';
+        html += '<div class="af-bars">' + afBar('hgrid', 'season', 'Season', SEASON_OPTS, CUR_SEASON) + '</div>';
+        SEASON_OPTS.forEach(function(so) { html += afVariant('hgrid', [so[0]], '<div class="ch-box">' + hitGridChart(rows, so[0]) + '</div>'); });
+
         // ── Pick of the Season ───────────────────────────────────────────────
         html += section("Pick of the Season");
 
@@ -727,6 +733,18 @@
           html += afVariant('pvr', [season], inner + '<div style="margin-top:10px">' + notes + '</div>');
         });
 
+        // ── Weekly Units (chart) ──
+        html += section("Weekly Units");
+        html += '<div class="ch-intro">Units won or lost each week. Bars above the line are winning weeks.</div>';
+        html += '<div class="af-bars">' + afBar('wkunits', 'season', 'Season', SEASON_OPTS, CUR_SEASON) + '</div>';
+        SEASON_OPTS.forEach(function(so) { html += afVariant('wkunits', [so[0]], '<div class="ch-box">' + weeklyUnitsChart(rows, so[0]) + '</div>'); });
+
+        // ── Form (chart) ──
+        html += section("Form");
+        html += '<div class="ch-intro">Who\'s hot: hit rate over each person\'s last 8 bets.</div>';
+        html += '<div class="af-bars">' + afBar('form', 'season', 'Season', SEASON_OPTS, CUR_SEASON) + '</div>';
+        SEASON_OPTS.forEach(function(so) { html += afVariant('form', [so[0]], '<div class="ch-box">' + formChart(rows, so[0]) + '</div>'); });
+
 // ── Week-by-Week Results Timeline ────────────────────────────────────
         html += section("Week-by-Week Results");
         html += '<div class="af-bars">' + afBar('wbw', 'season', 'Season', SEASON_OPTS, CUR_SEASON) + '</div>';
@@ -889,6 +907,12 @@
           html += statRow(range.label, pct(wins, rangeRows.length) + " (" + wins + "/" + rangeRows.length + ")");
         });
         html += '</div>';
+
+        // ── Odds vs Hits (chart) ──
+        html += section("Odds vs Hits");
+        html += '<div class="ch-intro">Where the hits actually come from.</div>';
+        html += '<div class="af-bars">' + afBar('oddsx', 'season', 'Season', SEASON_OPTS, CUR_SEASON) + '</div>';
+        SEASON_OPTS.forEach(function(so) { html += afVariant('oddsx', [so[0]], '<div class="ch-box">' + oddsStripChart(rows, so[0]) + '</div>'); });
 
         // ── Season Comparison (every season, oldest → newest) ────────────────
         var compYears = SEASONS.map(function(x) { return x.year; }).slice().reverse();

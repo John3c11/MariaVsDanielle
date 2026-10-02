@@ -53,6 +53,29 @@
   #tab-login { max-width: 104px; overflow: hidden; text-overflow: ellipsis; }
 }
 
+/* Charts (js/charts.js) */
+.ch-box { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 12px 12px 10px; margin-bottom: 8px; }
+.ch-svg { width: 100%; height: auto; display: block; overflow: visible; }
+.ch-intro { font-size: 12px; color: #A1A9B6; margin-bottom: 12px; }
+.ch-note { font-size: 11.5px; color: #A1A9B6; margin-top: 8px; line-height: 1.5; }
+.ch-empty { font-size: 13px; color: #9CA3AF; text-align: center; padding: 18px 0; }
+.ch-legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: #D1D5DB; margin-bottom: 8px; }
+.ch-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.ch-key { width: 10px; height: 10px; border-radius: 3px; display: inline-block; box-sizing: border-box; }
+.ch-key-pair { margin-right: 6px; }
+.ch-hit { cursor: pointer; }
+.ch-col:hover { fill: rgba(255,255,255,0.04); }
+.ch-tip { position: fixed; z-index: 2000; display: none; max-width: 280px; padding: 7px 10px; border-radius: 8px; background: rgba(12,13,17,0.96); border: 1px solid rgba(255,255,255,0.16); color: #F3F4F6; font: 600 12px/1.4 Inter, sans-serif; pointer-events: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.hg-row { margin-bottom: 12px; }
+.hg-name { font-size: 12px; font-weight: 800; margin-bottom: 6px; }
+.hg-name span { color: #A1A9B6; font-weight: 600; margin-left: 4px; }
+.hg-cells { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; }
+.hg-cell { width: 13px; height: 13px; border-radius: 3px; display: inline-block; cursor: pointer; box-sizing: border-box; }
+.hg-cell.no { border: 1.5px dashed rgba(255,255,255,0.35); }
+.hg-cell:hover { outline: 2px solid #FFFFFF; outline-offset: 1px; }
+.hg-gap { width: 5px; display: inline-block; }
+.hg-yr { font-size: 10px; font-weight: 800; color: #A1A9B6; margin: 0 6px 0 4px; }
+
 /* "Since your last visit" banner (Stats tab) */
 .visit-banner { position: relative; background: linear-gradient(120deg, rgba(45,212,191,0.14), rgba(96,165,250,0.12)); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 12px 40px 12px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.55; color: #E5E7EB; }
 .visit-banner b { color: #FFFFFF; }

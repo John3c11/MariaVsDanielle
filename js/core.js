@@ -76,7 +76,9 @@
     function teamPill(text, team) {
       var tc = TEAM_COLORS[resolveTeam(team)];
       if (!tc) return '<b>' + text + '</b>';
-      return '<span class="tpill" style="background:' + (tc.bg || tc.primary) + ';color:' + tc.text + '">' + (isTeamLabel(text, team) ? teamLogo(team) : '') + text + '</span>';
+      var isTeam = isTeamLabel(text, team);
+      var label = isTeam ? '<span class="tn-full">' + text + '</span><span class="tn-short">' + resolveTeam(team).split(' ').pop() + '</span>' : text;
+      return '<span class="tpill" style="background:' + (tc.bg || tc.primary) + ';color:' + tc.text + '">' + (isTeam ? teamLogo(team) : '') + label + '</span>';
     }
 
 
@@ -96,8 +98,10 @@
       return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
     }
 
+    // Full team name on desktop, nickname on phones ("Browns")
+    function teamName2(t) { var r = resolveTeam(t); return TEAM_COLORS[r] ? '<span class="tn-full">' + t + '</span><span class="tn-short">' + r.split(' ').pop() + '</span>' : t; }
     function coloredGame(homeTeam, awayTeam) {
-      return teamLogo(homeTeam) + coloredText(homeTeam, homeTeam) + '<span style="color:#9CA3AF"> vs </span>' + teamLogo(awayTeam) + coloredText(awayTeam, awayTeam);
+      return teamLogo(homeTeam) + coloredText(teamName2(homeTeam), homeTeam) + '<span style="color:#9CA3AF"> vs </span>' + teamLogo(awayTeam) + coloredText(teamName2(awayTeam), awayTeam);
     }
 
     async function fetchSheet(tabName, range) {
@@ -108,6 +112,9 @@
       return data.values || [];
     }
 
+    // Short numbers for small tiles: +206.5u -> +207u, +$1032.50 -> +$1.0k, +$147.50 -> +$148
+    function shortU(v) { var a = Math.abs(v); return (v >= 0 ? '+' : '-') + (a >= 100 ? Math.round(a) : a.toFixed(1)) + 'u'; }
+    function shortD(v) { var a = Math.abs(v); return (v >= 0 ? '+' : '-') + '$' + (a >= 1000 ? (a / 1000).toFixed(1) + 'k' : Math.round(a)); }
     function pct(n, d) { if (!d) return '0%'; return Math.round(n / d * 100) + '%'; }
 
     function barWidth(a, b) {
@@ -188,7 +195,7 @@
       return '<span style="color:' + TEAM_COLORS[r].dark + ';font-weight:600">' + text + '</span>';
     }
     function legacyColoredGame(h, a) {
-      return teamLogo(h) + legacyColoredText(h, h) + '<span style="color:#9CA3AF"> vs </span>' + teamLogo(a) + legacyColoredText(a, a);
+      return teamLogo(h) + legacyColoredText(teamName2(h), h) + '<span style="color:#9CA3AF"> vs </span>' + teamLogo(a) + legacyColoredText(teamName2(a), a);
     }
 
     // bg/text match the Google Sheet (jersey style). primary = readable team color on white.

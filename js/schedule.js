@@ -30,7 +30,10 @@
 
       var openWeeks = games.filter(function(g) { return !g.scorer; }).map(function(g) { return g.week; });
       var thisWeek = openWeeks.length ? Math.min.apply(null, openWeeks) : null;
-      var shown = games.filter(function(g) { return SCHED.showAll || !g.scorer || g.week === thisWeek; });
+      var upcoming = games.filter(function(g) { return !g.scorer || g.week === thisWeek; });
+      var upWeeks = upcoming.map(function(g) { return g.week; }).filter(function(w, i, a) { return a.indexOf(w) === i; }).sort(function(a, b) { return a - b; });
+      var shown = SCHED.showAll ? games : upcoming.filter(function(g) { return SCHED.later || upWeeks.indexOf(g.week) < 2; });
+      var hiddenWeeks = SCHED.showAll || SCHED.later ? 0 : Math.max(0, upWeeks.length - 2);
 
       var h = '<div class="af-bar" style="justify-content:center;margin-bottom:6px"><span class="af-bar-label">Show</span>' +
         '<button class="filter-btn' + (!SCHED.showAll ? ' active' : '') + '" data-sch="0">Upcoming</button>' +
@@ -63,7 +66,10 @@
           '<div class="sch-teams">' + teamPill(g.home, g.home) + ' <span style="color:rgba(255,255,255,0.45)">vs</span> ' + teamPill(g.away, g.away) + '</div>' +
           '<div class="sch-status">' + status + '</div></div>';
       });
+      if (hiddenWeeks) h += '<div style="text-align:center;margin-top:8px"><button class="adm-btn" id="sch-later">Show ' + hiddenWeeks + ' later week' + (hiddenWeeks > 1 ? 's' : '') + '</button></div>';
       el.innerHTML = h;
+      var later = document.getElementById('sch-later');
+      if (later) later.addEventListener('click', function() { SCHED.later = true; drawSchedule(values); });
       el.querySelectorAll('[data-sch]').forEach(function(b) {
         b.addEventListener('click', function() { SCHED.showAll = b.getAttribute('data-sch') === '1'; drawSchedule(values); });
       });

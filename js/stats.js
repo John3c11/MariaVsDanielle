@@ -328,24 +328,23 @@
 
         statsEl.innerHTML = `
           ${weeklyRecap(rows)}
-          <div style="display:flex;justify-content:center;gap:32px;margin-bottom:12px;flex-wrap:wrap">
-            <div style="font-size:13px;color:${SB_M};font-weight:600">Maria ${mariaStreak.count > 0 ? (mariaStreak.type === 'win' ? '🔥' : '❄️') + ' ' + mariaStreak.count + ' ' + mariaStreak.type + ' streak' : ''}</div>
-            <div style="font-size:13px;color:${SB_D};font-weight:600">Danielle ${danielleStreak.count > 0 ? (danielleStreak.type === 'win' ? '🔥' : '❄️') + ' ' + danielleStreak.count + ' ' + danielleStreak.type + ' streak' : ''}</div>
-          </div>
-          ${combinedStreak.count > 0 ? '<div style="text-align:center;font-size:12px;color:rgba(255,255,255,0.65);margin-bottom:16px">' + (combinedStreak.type === 'win' ? '🔥' : '❄️') + ' Combined <strong>' + combinedStreak.count + '-game ' + combinedStreak.type + ' streak</strong> (at least one right)</div>' : ''}
+          <div class="streak-line">${[
+            mariaStreak.count > 0 ? '<span style="color:' + SB_M + '">Maria ' + (mariaStreak.type === 'win' ? '🔥' : '❄️') + ' ' + mariaStreak.count + (mariaStreak.type === 'win' ? 'W' : 'L') + '</span>' : '',
+            danielleStreak.count > 0 ? '<span style="color:' + SB_D + '">Danielle ' + (danielleStreak.type === 'win' ? '🔥' : '❄️') + ' ' + danielleStreak.count + (danielleStreak.type === 'win' ? 'W' : 'L') + '</span>' : '',
+            combinedStreak.count > 0 ? '<span title="At least one of them right">Combined ' + (combinedStreak.type === 'win' ? '🔥' : '❄️') + ' ' + combinedStreak.count + (combinedStreak.type === 'win' ? 'W' : 'L') + '</span>' : ''
+          ].filter(Boolean).join('<i>·</i>')}</div>
 
           <div class="sb-weeks" style="display:flex;justify-content:center;gap:24px;margin-bottom:20px;background:rgba(255,255,255,0.07);border-radius:12px;padding:12px;flex-wrap:wrap">
             <div style="text-align:center"><div style="font-size:24px;font-weight:800;color:${SB_M}">${mariaWeeksWon}</div><div style="font-size:11px;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.08em">Maria weeks won</div></div>
             <div style="text-align:center"><div style="font-size:24px;font-weight:800;color:rgba(255,255,255,0.75)">${tiedWeeks}</div><div style="font-size:11px;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.08em">Tied</div></div>
             <div style="text-align:center"><div style="font-size:24px;font-weight:800;color:${SB_D}">${danielleWeeksWon}</div><div style="font-size:11px;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.08em">Danielle weeks won</div></div>
           </div>
-          ${statBlock('Correct Guesses', mCorrect, dCorrect, `${mCorrect} / ${mTotal}`, `${dCorrect} / ${dTotal}`)}
-          <hr class="divider">
+          <div class="sb-grid">
+          ${statBlock('Correct', mCorrect, dCorrect, `${mCorrect}/${mTotal}`, `${dCorrect}/${dTotal}`)}
           ${statBlock('Accuracy', mCorrect / (mTotal || 1), dCorrect / (dTotal || 1), pct(mCorrect, mTotal), pct(dCorrect, dTotal))}
-          <hr class="divider">
-          ${statBlock('Units Won / Lost', mariaUnits, danielleUnits, mUnitStr, dUnitStr)}
-          <hr class="divider">
-          ${statBlock('Dollars Won / Lost', mariaDollars, danielleDollars, mDolStr, dDolStr)}
+          ${statBlock('Units', mariaUnits, danielleUnits, shortU(mariaUnits).replace('u', ''), shortU(danielleUnits).replace('u', ''))}
+          ${statBlock('Dollars', mariaDollars, danielleDollars, shortD(mariaDollars), shortD(danielleDollars))}
+          </div>
           ${unitsChart(rows)}`;
 
         // Live picks — show all pending games
@@ -551,16 +550,17 @@
       var h = '<div class="ftd-sub">' + done + ' of ' + order.length + ' game' + (order.length === 1 ? '' : 's') + ' scored</div>';
       order.forEach(function(k) {
         var g = G[k];
+        var ab = function(t) { return (TEAM_ABBR[resolveTeam(t)] || resolveTeam(t).split(' ').pop()).toUpperCase(); };
         h += '<div class="ftd-row" data-ftd="' + escHtml(k) + '" data-ctx-year="' + CURRENT_YEAR + '" data-ctx-week="' + week + '"><div class="ftd-top"><span class="ftd-slot">' + escHtml(g.slot) + '</span>' +
-          '<span class="ftd-teams">' + teamPill(g.home, g.home) + ' <span style="color:rgba(255,255,255,0.45)">vs</span> ' + teamPill(g.away, g.away) + '</span></div>';
+          '<span class="ftd-teams">' + teamLogo(g.home) + ab(g.home) + ' <span style="color:rgba(255,255,255,0.4)">vs</span> ' + teamLogo(g.away) + ab(g.away) + '</span></div>';
         if (g.scorer) {
           var team = /^home$/i.test(g.side) ? g.home : /^away$/i.test(g.side) ? g.away : '';
           var hits = ['Maria', 'Danielle'].filter(function(n) { return g.md[n] === 'Yes'; });
           var who = g.notOffered ? 'Not offered, so no bet counted'
             : hits.length ? hits.map(function(n) { return '<span class="hit" style="color:' + (n === 'Maria' ? SB_M : SB_D) + '">✅ ' + n + '</span>'; }).join(' & ') + ' had him'
             : 'Nobody had him';
-          h += '<div class="ftd-scorer">' + (team ? headshot(g.scorer, team, 40) : '🏈 ') + (team ? teamPill(escHtml(g.scorer), team) : escHtml(g.scorer)) + '</div>' +
-            '<div class="ftd-who">' + who + '<span class="ftd-friends"></span></div>';
+          h += '<div class="ftd-scorer">' + (team ? headshot(g.scorer, team, 34) : '🏈 ') + '<div class="ftd-sc-txt">' + (team ? teamPill(escHtml(g.scorer), team) : '<b>' + escHtml(g.scorer) + '</b>') +
+            '<div class="ftd-who">' + who + '<span class="ftd-friends"></span></div></div></div>';
         } else {
           h += '<div class="ftd-wait" data-home="' + escHtml(g.home) + '" data-away="' + escHtml(g.away) + '">⏳ Not played yet</div>';
         }

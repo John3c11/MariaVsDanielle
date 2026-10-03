@@ -60,6 +60,14 @@
       if (sel) sel.addEventListener('change', function() { if (sel.value) { PROFILE_WHO = sel.value; loadProfilesTab(); } });
     }
 
+    // Earned badges show; locked ones sit behind a "Show N locked" toggle
+    function lockedBadges(list, draw) {
+      var got = list.filter(function(a) { return a.got; }), locked = list.filter(function(a) { return !a.got; });
+      var h = got.length ? '<div class="pf-badges">' + got.map(draw).join('') + '</div>' : '<div class="st-d" style="margin-bottom:8px">None yet.</div>';
+      if (locked.length) h += '<details class="pf-locked"><summary>Show ' + locked.length + ' locked</summary><div class="pf-badges">' + locked.map(draw).join('') + '</div></details>';
+      return h;
+    }
+
     function profileStats(who, rows, jx, bb) {
       var other = who === 'Maria' ? 'Danielle' : 'Maria';
       function notOffered(r) { return r.wasOffered === 'No' && r.netUnits === 0 && r.firstScorer !== ''; }
@@ -197,8 +205,8 @@
           '<div class="pf-sub">' + seasons + ' season' + (seasons === 1 ? '' : 's') + ' · ' + S.picks + ' picks' + (S.titles.length ? ' · 🏆 ' + S.titles.join(', ') + ' champ' : '') + '</div>' +
           '<div class="pf-big">' +
             '<div><b>' + S.w + '/' + S.n + '</b><span>Record · ' + (S.n ? Math.round(S.w / S.n * 100) : 0) + '%</span></div>' +
-            '<div><b style="color:' + (S.units >= 0 ? '#34D399' : '#F87171') + '">' + u(S.units) + '</b><span>Units</span></div>' +
-            '<div><b style="color:' + (S.dollars >= 0 ? '#34D399' : '#F87171') + '">' + money(S.dollars) + '</b><span>Money</span></div>' +
+            '<div title="' + u(S.units) + '"><b style="color:' + (S.units >= 0 ? '#34D399' : '#F87171') + '">' + shortU(S.units) + '</b><span>Units</span></div>' +
+            '<div title="' + money(S.dollars) + '"><b style="color:' + (S.dollars >= 0 ? '#34D399' : '#F87171') + '">' + shortD(S.dollars) + '</b><span>Money</span></div>' +
           '</div></div>';
 
         function tile(l, v, sub) { return '<div class="pf-tile"><div class="l">' + l + '</div><div class="v">' + v + '</div>' + (sub ? '<div class="s">' + sub + '</div>' : '') + '</div>'; }
@@ -213,12 +221,12 @@
 
         var A = achievementsFor(S);
         function badges(list) {
-          return '<div class="pf-badges">' + list.map(function(a) {
+          return lockedBadges(list, function(a) {
             var prog = (!a.got && a.p) ? '<div class="pf-bar"><i style="width:' + Math.round(a.p[0] / a.p[1] * 100) + '%"></i></div><div class="pg">' + (a.pl || (a.p[0] + ' / ' + a.p[1])) + '</div>' : '';
             return '<div class="pf-badge ' + (a.got ? 'got' : 'locked') + (a.shame ? ' shame' : '') + '" title="' + a.d + '">' +
               '<div class="ic">' + a.ic + '</div><div class="n">' + a.n + '</div><div class="d">' + a.d + '</div>' +
               (a.got && a.w ? '<div class="w">' + a.w + '</div>' : '') + prog + '</div>';
-          }).join('') + '</div>';
+          });
         }
         var glory = A.filter(function(a) { return !a.shame; }), shame = A.filter(function(a) { return a.shame; });
         // Unlocked first
@@ -335,11 +343,11 @@
         ];
         function badges(list) {
           list.sort(function(a, b) { return (b.got ? 1 : 0) - (a.got ? 1 : 0); });
-          return '<div class="pf-badges">' + list.map(function(a) {
+          return lockedBadges(list, function(a) {
             var prog = (!a.got && a.p) ? '<div class="pf-bar"><i style="width:' + Math.round(a.p[0] / a.p[1] * 100) + '%"></i></div><div class="pg">' + a.p[0] + ' / ' + a.p[1] + '</div>' : '';
             return '<div class="pf-badge ' + (a.got ? 'got' : 'locked') + (a.shame ? ' shame' : '') + '"><div class="ic">' + a.ic + '</div><div class="n">' + a.n + '</div><div class="d">' + a.d + '</div>' +
               (a.got && a.w ? '<div class="w">' + a.w + '</div>' : '') + prog + '</div>';
-          }).join('') + '</div>';
+          });
         }
         var glory = A.filter(function(a) { return !a.shame; }), shame = A.filter(function(a) { return a.shame; });
         h += '<div class="pf-h">🏆 Trophy Case <small>' + glory.filter(function(a) { return a.got; }).length + ' / ' + glory.length + ' unlocked</small></div>' + badges(glory);

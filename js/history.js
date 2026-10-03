@@ -26,8 +26,11 @@
           return b.idx - a.idx;
         }
       });
+      BH_SHOW = 25;
+      BH_LAST = filtered;
       renderBHHistory(filtered);
     }
+    var BH_SHOW = 25, BH_LAST = [];
 
     function renderBHHistory(bets) {
       var el = document.getElementById('bh-history-table');
@@ -36,7 +39,7 @@
       if (!el) return;
       var header = '<div class="bh-head" style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 110px 50px;gap:8px;padding-bottom:8px;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:10px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em">' +
         '<span>Year</span><span>Wk</span><span>Game</span><span>Picker</span><span>Players</span><span>Odds</span><span>First TD</span><span>Units</span></div>';
-      var rows = bets.map(function(b) {
+      var rows = bets.slice(0, BH_SHOW).map(function(b) {
         // First TD scorer: green = hit, red = miss, gray = not offered (didn't count)
         var noOffer = b.wasOffered === 'No' && b.netUnits === 0 && b.firstScorer;
         var resultBg = noOffer ? 'rgba(255,255,255,0.08)' : b.correct === 'Yes' ? 'rgba(52,211,153,0.15)' : b.correct === 'No' ? 'rgba(248,113,113,0.15)' : 'rgba(255,255,255,0.08)';
@@ -61,7 +64,10 @@
           '<span style="text-align:right;font-weight:500;color:' + unitColor + '">' + unitStr + '</span>' +
           '</div>';
       }).join('');
-      el.innerHTML = bets.length === 0 ? '<div style="color:#9CA3AF;text-align:center;padding:32px">No results.</div>' : header + rows;
+      var more = bets.length > BH_SHOW ? '<div style="text-align:center;margin:14px 0 4px"><button class="adm-btn" id="bh-more">Show ' + Math.min(25, bets.length - BH_SHOW) + ' more · ' + (bets.length - BH_SHOW) + ' left</button></div>' : '';
+      el.innerHTML = bets.length === 0 ? '<div style="color:#9CA3AF;text-align:center;padding:32px">No results.</div>' : header + rows + more;
+      var mb = document.getElementById('bh-more');
+      if (mb) mb.addEventListener('click', function() { BH_SHOW += 25; renderBHHistory(bets); });
     }
 
     function loadBetHistoryTab() {

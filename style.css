@@ -59,7 +59,7 @@
 .an-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); }
 .an-tab { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04); color: #A1A9B6; cursor: pointer; white-space: nowrap; }
 .an-tab.on { background: #F3F4F6; color: #0F0F12; border-color: #F3F4F6; }
-.an-h { font-size: 13px; font-weight: 700; color: #F3F4F6; margin: 24px 0 12px; padding-bottom: 8px; border-bottom: 1.5px solid rgba(255,255,255,0.16); display: flex; align-items: baseline; gap: 8px; }
+.an-h { font-size: 13px; font-weight: 800; color: #F3F4F6; margin: 24px 0 12px; padding-bottom: 8px; border-bottom: 1.5px solid rgba(255,255,255,0.16); display: flex; align-items: baseline; gap: 8px; }
 .an-all { display: none; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #6B7280; margin-left: auto; }
 .an-one-season .an-all { display: inline; }
 #analytics-content .an-pane .af-bar-season { display: none; }
@@ -145,7 +145,8 @@ details.more-players > summary::-webkit-details-marker { display: none; }
 .inj-state.on { color: #34D399; }
 .inj-state.off { color: #F87171; }
 .inj-warn { font-size: 12.5px; color: #FDE68A; background: rgba(250,204,21,0.08); border: 1px solid rgba(250,204,21,0.35); border-radius: 10px; padding: 9px 12px; margin: 8px 0; }
-.inj-h { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; color: #A1A9B6; margin: 18px 0 6px; }
+.inj-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; font-size: 13px; font-weight: 800; color: #F3F4F6; margin: 22px 0 10px; padding-bottom: 8px; border-bottom: 1.5px solid rgba(255,255,255,0.16); }
+.inj-h small { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); }
 .inj-row { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
 .inj-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
 .inj-tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 4px; }
@@ -387,15 +388,15 @@ html.theme-jewish .holiday-pill { color: #FFFFFF; text-shadow: 0 1px 2px rgba(0,
 
 
 .campbell-bottom {
-  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 32px 0 48px;
-  margin-top: 48px;
-  border-top: 0.5px solid rgba(255,255,255,0.10);
+  padding: 4px 0 18px;
 }
+.campbell-bottom img { width: 180px; height: auto; border-radius: 10px; }
+.cb-cap { font-size: 12px; color: #9CA3AF; font-style: italic; margin-top: 8px; }
+.foot-line { padding-bottom: 8px; }
 
     .campbell-ad {
   position: fixed;
@@ -985,7 +986,7 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
 .pf-tile .l { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 5px; }
 .pf-tile .v { font-size: 16px; font-weight: 700; line-height: 1.25; }
 .pf-tile .s { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 3px; }
-.pf-h { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; font-weight: 800; margin: 6px 0 10px; padding-bottom: 8px; border-bottom: 1.5px solid rgba(255,255,255,0.16); }
+.pf-h { color: #F3F4F6; display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; font-weight: 800; margin: 6px 0 10px; padding-bottom: 8px; border-bottom: 1.5px solid rgba(255,255,255,0.16); }
 .pf-h small { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); }
 .pf-badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(150px, 45%), 1fr)); gap: 10px; margin-bottom: 24px; }
 .pf-badge { border-radius: 14px; padding: 14px 12px 12px; text-align: center; position: relative; }
@@ -1205,3 +1206,44 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
 /* Live Picks: headshot + player on one line each */
 .live-pick-card .lp-pick { display: flex; align-items: center; margin: 2px 0; }
 .live-pick-card .pick-player br { display: none; }
+
+/* ── v84 cleanup ─────────────────────────────────────────────────────────── */
+/* One heading style: Analytics, Profiles, All-Time, admin all use this */
+.pf-h { gap: 8px; flex-wrap: wrap; }
+#legacy-content .pf-h { margin-top: 4px; }
+
+/* All-Time totals tiles: always fit, even on small phones */
+.lg-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 10px; margin-bottom: 28px; }
+.lg-tile { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 12px 12px; min-width: 0; }
+.lg-label { font-size: 11px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+.lg-row { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; margin-bottom: 4px; min-width: 0; }
+.lg-val { font-size: clamp(14px, 4.1vw, 20px); font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.lg-who { font-size: 11px; color: #9CA3AF; flex-shrink: 0; }
+@media (max-width: 380px) { .lg-who { font-size: 10px; } .lg-tile { padding: 11px 9px; } }
+
+/* Earnings by season table (inside All-Time) */
+.er-table { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 4px 12px; margin-bottom: 8px; }
+.er-row { display: grid; grid-template-columns: 0.9fr 1.1fr 1.1fr 1.2fr; gap: 8px; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.07); font-size: clamp(13px, 3.9vw, 15px); font-variant-numeric: tabular-nums; }
+.er-row:first-child { border-top: 0; }
+.er-head { font-size: 10px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.05em; padding: 8px 0 6px; }
+.er-c { text-align: right; min-width: 0; white-space: nowrap; }
+.er-y { text-align: left; font-weight: 700; color: #F3F4F6; }
+.er-head .er-y { font-weight: 400; color: #9CA3AF; }
+.er-w { font-size: 11px; color: #9CA3AF; white-space: normal; line-height: 1.25; font-weight: 500; margin-top: 2px; }
+.er-total { border-top: 1.5px solid rgba(255,255,255,0.2); }
+.er-total .er-y { color: #FBBF24; }
+.er-note { font-size: 12px; color: #9CA3AF; line-height: 1.5; margin: 0 2px 28px; }
+
+/* Trash Talk: folded post box */
+.chat-fold { text-align: center; margin-bottom: 18px; }
+.chat-fold-btn { font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; color: #F3F4F6; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14); border-radius: 999px; padding: 10px 20px; cursor: pointer; }
+.chat-fold-btn:hover { background: rgba(255,255,255,0.12); }
+
+/* Footer: Campbell + last refreshed, compact on phones */
+@media (max-width: 700px) {
+  footer { margin-top: 32px; padding-top: 14px; font-size: 11px; }
+  .campbell-bottom { flex-direction: row; justify-content: center; gap: 10px; padding: 0 0 10px; }
+  .campbell-bottom img { width: 40px; height: 40px; object-fit: cover; border-radius: 50%; }
+  .cb-cap { margin-top: 0; font-size: 11px; }
+  .foot-line { padding-bottom: 0; }
+}

@@ -885,7 +885,7 @@
       if (st.needFill && st.needFill.length) h += '<div class="inj-warn">⚠️ No fill-in found for: <b>' + st.needFill.map(escHtml).join(', ') + '</b>. Pick one below, or leave the slot empty.</div>';
       if (st.pending && st.pending.length) h += '<div class="inj-warn" style="border-color:rgba(147,197,253,0.4);background:rgba(96,165,250,0.08)">⏳ Waiting for the game to finish before shifting: <b>' + st.pending.map(nick).join(', ') + '</b></div>';
 
-      h += '<div class="inj-h">CURRENTLY OUT (' + st.rows.length + ')</div>';
+      h += '<div class="inj-h">🚑 Currently out (' + st.rows.length + ')</div>';
       h += st.rows.length ? st.rows.map(function(r) {
         var auto = r.source === 'auto';
         var team = resolveTeam(r.team);
@@ -910,18 +910,18 @@
       }).join('') : '<div style="color:#A1A9B6;font-size:13px;padding:10px 0">Nobody is out.</div>';
 
       if (st.shifted && st.shifted.length) {
-        h += '<div class="inj-h">🔒 SHIFTED TEAMS <span style="font-weight:600;letter-spacing:0;text-transform:none;color:#6B7280">· don\'t hand-edit these columns until they\'re back to normal</span></div>';
+        h += '<div class="inj-h">🔒 Shifted teams <small>don\'t hand-edit these columns until they\'re back to normal</small></div>';
         h += st.shifted.map(function(s) {
           var diffs = [];
           for (var i = 0; i < 9; i++) if ((s.original[i] || '') !== (s.now[i] || '')) diffs.push('<span class="inj-slot">' + st.slots[i] + '</span> ' + (s.original[i] ? '<s>' + escHtml(s.original[i]) + '</s>' : '<i>empty</i>') + ' → ' + (s.now[i] ? '<b>' + escHtml(s.now[i]) + '</b>' : '<i>empty</i>'));
           return '<div class="inj-shift">' + teamLogo(s.team) + '<b>' + nick(s.team) + '</b><div class="st-d">' + diffs.join('<br>') + '</div></div>';
         }).join('');
       }
-      if (st.tagged && st.tagged.length) h += '<div class="inj-h">🟡 QUESTIONABLE / DOUBTFUL <span style="font-weight:600;letter-spacing:0;text-transform:none;color:#6B7280">· tagged only, still pickable</span></div>' +
+      if (st.tagged && st.tagged.length) h += '<div class="inj-h">🟡 Questionable / doubtful <small>tagged only, still pickable</small></div>' +
         '<div class="st-d">' + st.tagged.map(function(t) { return escHtml(t.name) + ' (' + nick(t.team) + ', ' + escHtml(t.espn) + ')'; }).join(' · ') + '</div>';
-      if (st.unmatched && st.unmatched.length) h += '<div class="inj-h">✏️ NOT FOUND ON ESPN <span style="font-weight:600;letter-spacing:0;text-transform:none;color:#6B7280">· usually a spelling difference, so these can\'t be auto-tracked</span></div>' +
+      if (st.unmatched && st.unmatched.length) h += '<div class="inj-h">✏️ Not found on ESPN <small>usually a spelling difference, so these can\'t be auto-tracked</small></div>' +
         '<div class="st-d">' + st.unmatched.map(escHtml).join(' · ') + '</div>';
-      if (st.log && st.log.length) h += '<div class="inj-h">RECENT ACTIVITY</div><div class="st-log">' + st.log.map(function(l) { return '<span style="color:#6B7280">' + when(l.at) + '</span> ' + escHtml(l.text); }).join('<br>') + '</div>';
+      if (st.log && st.log.length) h += '<div class="inj-h">🕘 Recent activity</div><div class="st-log">' + st.log.map(function(l) { return '<span style="color:#6B7280">' + when(l.at) + '</span> ' + escHtml(l.text); }).join('<br>') + '</div>';
       body.innerHTML = h;
 
       function act(params, btn) {

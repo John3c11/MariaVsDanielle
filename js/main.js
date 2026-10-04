@@ -48,6 +48,7 @@
     }
 
     function switchTab(name) {
+      if (name === 'money') name = 'legacy'; // Earnings now lives inside All-Time
       document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
       document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
       document.querySelectorAll('.tab-btn').forEach(function(b) {
@@ -55,7 +56,7 @@
       });
       document.getElementById('tab-' + name).classList.add('active');
       // "More" shows which hidden tab you're on
-      var extra = { crowd: 'Crowd', schedule: 'Schedule', money: 'Earnings', legacy: 'All-Time', bethistory: 'Bet Log', rosters: 'Rosters' }[name];
+      var extra = { crowd: 'Crowd', schedule: 'Schedule', legacy: 'All-Time', bethistory: 'Bet Log', rosters: 'Rosters' }[name];
       if (name === 'analytics' && window.matchMedia('(max-width: 700px)').matches) extra = 'Analytics';
       var more = document.getElementById('tab-more');
       if (more) {
@@ -65,7 +66,6 @@
       var menu = document.getElementById('tab-menu');
       if (menu) menu.classList.remove('open');
       if (name === 'legacy') loadLegacyTab();
-      if (name === 'money') loadMoneyTab();
       if (name === 'analytics') loadAnalyticsTab();
       if (name === 'bethistory') loadBetHistoryTab();
       if (name === 'submit') loadSubmitTab();

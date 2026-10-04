@@ -241,13 +241,19 @@
       return n;
     }
 
+    // Money on phones: whole dollars with commas so the tiles fit
+    function fmtLD(n) {
+      var full = fmtL(n, '$');
+      var short = (n >= 0 ? '+$' : '-$') + Math.round(Math.abs(n)).toLocaleString('en-US');
+      return '<span class="tn-full">' + full + '</span><span class="tn-short">' + short + '</span>';
+    }
     function legacyStatCard(label, mVal, dVal) {
-      return '<div style="background:rgba(255,255,255,0.05);border-radius:8px;padding:14px 16px">' +
-        '<div style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">' + label + '</div>' +
-        '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px"><span style="font-size:20px;font-weight:700;color:#F87171">' + mVal + '</span><span style="font-size:11px;color:#9CA3AF">Maria</span></div>' +
-        '<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:20px;font-weight:700;color:#60A5FA">' + dVal + '</span><span style="font-size:11px;color:#9CA3AF">Danielle</span></div>' +
+      return '<div class="lg-tile"><div class="lg-label">' + label + '</div>' +
+        '<div class="lg-row"><span class="lg-val" style="color:#F87171">' + mVal + '</span><span class="lg-who">Maria</span></div>' +
+        '<div class="lg-row"><span class="lg-val" style="color:#60A5FA">' + dVal + '</span><span class="lg-who">Danielle</span></div>' +
         '</div>';
     }
+    function secH(title, note) { return '<div class="pf-h">' + title + (note ? ' <small>' + note + '</small>' : '') + '</div>'; }
 
 
     // ── Season Wrapped (Legacy tab) ─────────────────────────────────────────
@@ -467,21 +473,24 @@
         var html = '<div style="font-size:13px;color:#A1A9B6;margin-bottom:24px">' + winner + ' · ' + SEASONS.length + ' seasons of data</div>';
 
         // All-time stats
-        html += '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">All-Time Totals</div>';
-        html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:28px">';
+        html += secH('📊 All-Time Totals');
+        html += '<div class="lg-grid">';
         html += legacyStatCard('Units', fmtL(s.mUnits,'u'), fmtL(s.dUnits,'u'));
-        html += legacyStatCard('Dollars', fmtL(s.mDollars,'$'), fmtL(s.dDollars,'$'));
+        html += legacyStatCard('Dollars', fmtLD(s.mDollars), fmtLD(s.dDollars));
         html += legacyStatCard('Correct', s.mCorrect+'/'+s.mTotal, s.dCorrect+'/'+s.dTotal);
         html += legacyStatCard('Accuracy', (s.mTotal?Math.round(s.mCorrect/s.mTotal*100):0)+'%', (s.dTotal?Math.round(s.dCorrect/s.dTotal*100):0)+'%');
         html += '</div>';
 
+        // Earnings by season (both of them together). This used to be its own tab.
+        html += secH('💵 Earnings by Season', 'Maria + Danielle combined') + '<div id="legacy-earn"><div class="loading">Loading…</div></div>';
+
         // All-time race: running units across every season
         var race = allTimeRaceChart(byYear.slice().reverse().reduce(function(a, ys) { return a.concat(ys.bets); }, []));
-        if (race) html += '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">🏁 The All-Time Race</div><div class="ch-box" style="margin-bottom:28px">' + race + '</div>';
+        if (race) html += secH('🏁 The All-Time Race') + '<div class="ch-box" style="margin-bottom:28px">' + race + '</div>';
 
         // Previous seasons: one Season Wrapped card each, newest first
         if (legacyYears.length > 0) {
-          html += '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px">Season Wrapped</div>';
+          html += secH('🎁 Season Wrapped');
           legacyYears.forEach(function(ys) {
             html += wrappedCard(ys.year, ys.bets);
             if (parseInt(ys.year, 10) >= 2026) html += '<div class="crowd-wr-slot" data-year="' + ys.year + '"></div>'; // the Crowd started in 2026
@@ -489,13 +498,9 @@
         }
         html += '<div style="font-size:12px;color:#9CA3AF;text-align:center;margin:-8px 0 20px">' + CURRENT_YEAR + ' Wrapped unlocks when the season is over.</div>';
 
-        html += '<div>';
-
-
-                html += '</div>';
-
         document.getElementById('legacy-content').innerHTML = html;
         fillCrowdWrapped();
+        loadEarnings();
       }).catch(function(e) {
         console.error(e);
         document.getElementById('legacy-content').innerHTML = '<div style="color:#9CA3AF;text-align:center;padding:32px">Error loading legacy data: ' + e.message + '</div>';
@@ -562,10 +567,10 @@
       return h;
     }
 
-    var MONEY_LOADED = false;
-    async function loadMoneyTab() {
-      if (MONEY_LOADED) return;
-      MONEY_LOADED = true;
+    // ── Earnings by season (inside All-Time) ─────────────────────────────────
+    async function loadEarnings() {
+      var box = document.getElementById('legacy-earn');
+      if (!box) return;
       try {
         const SEASONS_MONEY = SEASONS;
 
@@ -619,42 +624,31 @@
         function fmtD(n) { return (n >= 0 ? "+$" : "-$") + Math.abs(n).toFixed(2); }
         function uColor(n) { return n > 0 ? "#34D399" : n < 0 ? "#F87171" : "#9CA3AF"; }
 
-        function yearCard(r, isTotal) {
-          var label = isTotal ? "All-Time Total" : r.year + " Season";
-          var bg = isTotal ? "linear-gradient(140deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04))" : "rgba(255,255,255,0.05)";
-          var border = isTotal ? "border-top:2px solid rgba(255,255,255,0.16);" : "";
-
-          function statCol(labelText, actualN, worstN, fmtFn) {
-            var aColor = uColor(actualN);
-            var wColor = uColor(worstN);
-            return '<div>' +
-              '<div style="font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">' + labelText + '</div>' +
-              '<div class="money-num" style="font-size:20px;font-weight:700;color:' + aColor + '">' + fmtFn(actualN) + '</div>' +
-              '<div style="font-size:12px;color:' + wColor + ';margin-top:2px">' + fmtFn(worstN) + ' worst case</div>' +
-            '</div>';
+        function row(label, r, isTotal) {
+          function cell(n, w, fmt) {
+            return '<div class="er-c"><div style="color:' + uColor(n) + ';font-weight:700">' + fmt(n) + '</div>' +
+              (w !== n ? '<div class="er-w" style="color:' + uColor(w) + '">' + fmt(w) + '</div>' : '') + '</div>';
           }
-
-          return '<div style="background:' + bg + ';border-radius:10px;padding:18px 20px;margin-bottom:12px;' + border + '">' +
-            '<div style="font-size:15px;font-weight:700;color:#F3F4F6;margin-bottom:14px">' + label + '</div>' +
-            '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">' +
-              '<div><div style="font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Bets Made</div>' +
-                '<div class="money-num" style="font-size:20px;font-weight:700;color:#F3F4F6">' + r.bets + '</div>' +
-                '<div style="font-size:12px;color:#9CA3AF;margin-top:2px">' + r.notOffered + ' not offered</div></div>' +
-              statCol("Units", r.units, r.unitsWorst, fmtU) +
-              statCol("Money", r.dollars, r.dollarsWorst, fmtD) +
-            '</div></div>';
+          return '<div class="er-row' + (isTotal ? ' er-total' : '') + '">' +
+            '<div class="er-c er-y">' + label + '</div>' +
+            '<div class="er-c"><div style="font-weight:700">' + r.bets + '</div>' + (r.notOffered ? '<div class="er-w">' + r.notOffered + ' not<br class="tn-short"> offered</div>' : '') + '</div>' +
+            cell(r.units, r.unitsWorst, fmtUS) + cell(r.dollars, r.dollarsWorst, fmtM) + '</div>';
         }
+        function fmtUS(n) { return '<span class="tn-full">' + fmtU(n) + '</span><span class="tn-short">' + shortU(n) + '</span>'; }
+        function fmtM(n) { return '<span class="tn-full">' + fmtD(n) + '</span><span class="tn-short">' + (n >= 0 ? '+$' : '-$') + Math.round(Math.abs(n)).toLocaleString('en-US') + '</span>'; }
 
-        var html = yearCard({
+        var html = '<div class="er-table"><div class="er-row er-head"><div class="er-c er-y">Season</div><div class="er-c">Bets</div><div class="er-c">Units</div><div class="er-c">Money</div></div>';
+        results.slice().sort(function(a, b) { return b.year - a.year; }).forEach(function(r) { html += row(r.year, r, false); });
+        html += row('Total', {
           bets: totalBets, units: totalUnits, dollars: totalDollars,
           unitsWorst: results.reduce(function(a,r){return a+r.unitsWorst;},0),
           dollarsWorst: results.reduce(function(a,r){return a+r.dollarsWorst;},0),
           notOffered: results.reduce(function(a,r){return a+r.notOffered;},0)
         }, true);
-        results.forEach(function(r) { html += yearCard(r, false); });
-        document.getElementById("money-content").innerHTML = html;
+        html += '</div><div class="er-note">Big numbers skip games where the first TD scorer wasn\'t offered. The smaller numbers under them count those games as losses (worst case).</div>';
+        box.innerHTML = html;
       } catch(e) {
         console.error(e);
-        document.getElementById("money-content").innerHTML = '<div class="loading">Error loading data.</div>';
+        box.innerHTML = '<div class="loading">Couldn\'t load earnings.</div>';
       }
     }

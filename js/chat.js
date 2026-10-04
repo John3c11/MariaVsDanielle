@@ -86,6 +86,15 @@
         box.innerHTML = '<div style="text-align:center;font-size:12px;color:#A1A9B6;margin-bottom:16px">📜 ' + CHAT.season + ' archive. Read only.</div>';
         return;
       }
+      // Everyone else just reads, so the box stays folded behind a button
+      if (!CHAT.pin && !CHAT.open) {
+        box.innerHTML = '<div class="chat-fold"><button class="chat-fold-btn" id="chat-open">✏️ Post a message</button></div>';
+        document.getElementById('chat-open').addEventListener('click', function() {
+          CHAT.open = true; renderComposer();
+          var t = document.getElementById('chat-text'); if (t) t.focus();
+        });
+        return;
+      }
       var c = CHAT.name === 'Maria' ? SB_M : CHAT.name === 'Danielle' ? SB_D : '#F3F4F6';
       box.innerHTML = '<div class="chat-compose">' +
         '<textarea class="chat-input" id="chat-text" maxlength="280" placeholder="' + (CHAT.name ? 'Talk your trash, ' + CHAT.name + '…' : 'Say something…') + '"></textarea>' +
@@ -104,7 +113,7 @@
       document.getElementById('chat-send').addEventListener('click', sendChat);
       var f = document.getElementById('chat-forget');
       if (f) f.addEventListener('click', function() {
-        CHAT.pin = ''; CHAT.name = '';
+        CHAT.pin = ''; CHAT.name = ''; CHAT.open = true;
         try { localStorage.removeItem('mvd-chat-pin'); localStorage.removeItem('mvd-chat-name'); } catch (e) {}
         renderComposer();
       });
@@ -195,6 +204,8 @@
       var pin = chatPin();
       var msg = document.getElementById('chat-msg');
       if (!pin) {
+        if (!CHAT.open) { CHAT.open = true; renderComposer(); msg = document.getElementById('chat-msg'); }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         if (msg) { msg.style.color = '#F87171'; msg.textContent = 'Enter your PIN above to react.'; }
         var pinBox = document.getElementById('chat-pin'); if (pinBox) pinBox.focus();
         return;

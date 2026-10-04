@@ -23,13 +23,13 @@
         var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + season.sheetId +
           '/values/' + encodeURIComponent(season.tab + '!A1:Q400') + '?key=' + API_KEY;
         return fetch(url).then(function(r) { return r.json(); }).then(function(d) {
-          return (d.values || []).slice(1).map(function(r, i) {
+          return readBets(d.values).map(function(b, i) {
             return {
-              idx: i, year: season.year, game: (r[0] || '').toString().trim(), week: parseInt(r[1]) || 0,
-              picker: (r[3] || '').trim(), home: resolveTeam(r[4]), away: resolveTeam(r[5]),
-              homePick: (r[6] || '').trim(), awayPick: (r[7] || '').trim(),
-              homeOdds: (r[8] || '').trim(), awayOdds: (r[9] || '').trim(),
-              scorer: (r[11] || '').trim(), side: (r[13] || '').trim().toLowerCase(), netUnits: parseFloat(r[15]) || 0,
+              idx: i, year: season.year, game: b.game, week: b.weekN,
+              picker: b.picker, home: resolveTeam(b.home), away: resolveTeam(b.away),
+              homePick: b.homePick, awayPick: b.awayPick,
+              homeOdds: b.homeOdds, awayOdds: b.awayOdds,
+              scorer: b.scorer, side: b.side.toLowerCase(), netUnits: b.units,
             };
           }).filter(function(r) { return r.picker === 'Maria' || r.picker === 'Danielle'; });
         }).catch(function() { return []; });
@@ -292,7 +292,7 @@
         var hitGames = pickedGames.filter(function(g) { return playerKey(g.scorer) === k; }).length;
 
         function person(n) {
-          var c = n === 'Maria' ? SB_M : SB_D;
+          var c = personColor(n);
           var u = p.units[n];
           return '<div class="pc-person"><span style="color:' + c + ';font-weight:700">' + n + '</span>' +
             '<span style="color:rgba(255,255,255,0.85)">' + (p.picks[n] ? 'picked ' + p.picks[n] + 'x · hit ' + p.hits[n] + 'x' +
@@ -309,7 +309,7 @@
           var vs = opp ? '<span style="color:' + (myTc ? myTc.dark : '#F3F4F6') + ';font-weight:700">' + abbr(myTeam) + '</span> vs <span style="color:' + (oppTc ? oppTc.dark : '#F3F4F6') + ';font-weight:600">' + abbr(opp) + '</span>'
                        : (abbr(g.home) + ' vs ' + abbr(g.away));
           var chips = g.by.map(function(n) {
-            var c = n === 'Maria' ? SB_M : SB_D;
+            var c = personColor(n);
             return '<span class="pc-chip" style="color:' + c + ';background:' + hexA(c, 0.15) + '">' + n.charAt(0) + '</span>';
           }).join('');
           var res = !g.scorer ? '<span style="color:rgba(255,255,255,0.45)">Pending</span>'
@@ -480,12 +480,10 @@
         const pickCounts = {}; // { playerName: { Maria: N, Danielle: N } }
         try {
           const betRows = await fetchSheet('Winnings', 'A1:Q400');
-          for (const r of betRows.slice(1)) {
-            const picker = (r[3] || '').trim();
-            const homePick = (r[6] || '').trim();
-            const awayPick = (r[7] || '').trim();
+          for (const b of readBets(betRows)) {
+            const picker = b.picker;
             if (!picker) continue;
-            for (const player of [homePick, awayPick].filter(Boolean)) {
+            for (const player of [b.homePick, b.awayPick].filter(Boolean)) {
               if (!pickCounts[player]) pickCounts[player] = {};
               pickCounts[player][picker] = (pickCounts[player][picker] || 0) + 1;
             }

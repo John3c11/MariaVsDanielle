@@ -27,7 +27,6 @@
       });
     }
 
-    function personColor(name) { return name === 'Maria' ? '#F87171' : '#60A5FA'; }
 
     function loadSubmitTab() {
       if (!SUB.pin) renderPinScreen('');
@@ -551,46 +550,46 @@
       var me = SUB.name, other = me === 'Maria' ? 'Danielle' : 'Maria';
       clearSheetCache();
       fetchSheet('Winnings', 'A1:Q400').then(function(values) {
-        var rows = values.slice(1).filter(function(r) { return (r[3] || '').trim() === me && r[4]; });
+        var all = readBets(values);
+        var rows = all.filter(function(b) { return b.picker === me && b.home; });
         var byGame = {};
-        values.slice(1).forEach(function(r) { if ((r[3] || '').trim() === other) byGame[(r[1] || '') + '_' + r[0]] = r; });
-        function picksOf(r) { return coloredText((r[6] || '').trim(), r[4]) + ' / ' + coloredText((r[7] || '').trim(), r[5]); }
-        function oddsOf(r) {
-          var o = [r[8], r[9]].map(function(v) { return isNaN(parseFloat(v)) ? null : formatOdds(v); });
+        all.forEach(function(b) { if (b.picker === other) byGame[b.week + '_' + b.game] = b; });
+        function picksOf(b) { return coloredText(b.homePick, b.home) + ' / ' + coloredText(b.awayPick, b.away); }
+        function oddsOf(b) {
+          var o = [b.homeOdds, b.awayOdds].map(function(v) { return isNaN(parseFloat(v)) ? null : formatOdds(v); });
           return o[0] || o[1] ? (o[0] || '—') + ' / ' + (o[1] || '—') : 'odds coming';
         }
-        var open = rows.filter(function(r) { return !(r[6] || '').trim() && !(r[11] || '').trim(); });
-        var waiting = rows.filter(function(r) { return (r[6] || '').trim() && !(r[11] || '').trim(); });
-        var done = rows.filter(function(r) { return (r[12] || '').trim() === 'Yes' || (r[12] || '').trim() === 'No'; });
-        var units = done.reduce(function(a, r) { return a + (parseFloat(r[15]) || 0); }, 0);
-        function notOffered(r) { return (r[14] || '').trim() === 'No' && (parseFloat(r[15]) || 0) === 0 && (r[11] || '').trim(); }
-        var counted = done.filter(function(r) { return !notOffered(r); });
-        var wins = counted.filter(function(r) { return r[12].trim() === 'Yes'; }).length;
+        var open = rows.filter(function(b) { return !b.homePick && !b.scorer; });
+        var waiting = rows.filter(function(b) { return b.homePick && !b.scorer; });
+        var done = rows.filter(function(b) { return b.scored; });
+        var units = done.reduce(function(a, b) { return a + b.units; }, 0);
+        var counted = done.filter(function(b) { return !b.notOffered; });
+        var wins = counted.filter(function(b) { return b.correct === 'Yes'; }).length;
         var pc = personColor(me);
 
         var h = '<div class="pf-big" style="margin-bottom:18px">' +
           '<div><b>' + wins + '/' + counted.length + '</b><span>' + CURRENT_YEAR + ' record</span></div>' +
-          '<div><b style="color:' + (units >= 0 ? '#34D399' : '#F87171') + '">' + (units >= 0 ? '+' : '') + units.toFixed(1) + 'u</b><span>Units</span></div>' +
+          '<div><b style="color:' + (units >= 0 ? '#34D399' : '#F87171') + '">' + fmtU(units) + '</b><span>Units</span></div>' +
           '<div><b>' + open.length + '</b><span>Games left to pick</span></div></div>';
 
         if (open.length) {
-          h += '<div class="adm-row"><div>🏈 Next up: <b>Week ' + open[0][1] + ' ' + escHtml(open[0][2]) + '</b> · ' + coloredGame(open[0][4], open[0][5]) + '</div>' +
+          h += '<div class="adm-row"><div>🏈 Next up: <b>Week ' + open[0].week + ' ' + escHtml(open[0].slot) + '</b> · ' + coloredGame(open[0].home, open[0].away) + '</div>' +
             '<button class="adm-btn green" id="go-pick">Make Pick</button></div>';
         }
         h += '<div style="font-size:11px;font-weight:800;letter-spacing:0.12em;color:#A1A9B6;margin:18px 0 4px">WAITING ON RESULTS (' + waiting.length + ')</div>';
         h += waiting.length ? waiting.map(function(r) {
-          var o = byGame[(r[1] || '') + '_' + r[0]];
-          var otherIn = o && (o[6] || '').trim();
-          return '<div class="adm-row"><div><div style="font-size:11px;font-weight:700;color:#A1A9B6">WEEK ' + r[1] + ' · ' + escHtml(r[2]).toUpperCase() + '</div>' +
+          var o = byGame[r.week + '_' + r.game];
+          var otherIn = o && o.homePick;
+          return '<div class="adm-row"><div><div style="font-size:11px;font-weight:700;color:#A1A9B6">WEEK ' + r.week + ' · ' + escHtml(r.slot).toUpperCase() + '</div>' +
             '<div style="margin-top:3px">' + picksOf(r) + '</div><div style="font-size:11px;color:#A1A9B6;margin-top:2px">' + oddsOf(r) + '</div></div>' +
             '<span class="sch-chip" style="' + (otherIn ? 'color:#6EE7B7;background:rgba(52,211,153,0.14)">🔒 Locked' : 'color:#FCD34D;background:rgba(251,191,36,0.14)">✏️ Can change') + '</span></div>';
         }).join('') : '<div style="color:#A1A9B6;font-size:13px;padding:8px 0">Nothing pending.</div>';
 
         h += '<div style="font-size:11px;font-weight:800;letter-spacing:0.12em;color:#A1A9B6;margin:18px 0 4px">RECENT RESULTS</div>';
         h += done.length ? done.slice(-6).reverse().map(function(r) {
-          var win = r[12].trim() === 'Yes', u = parseFloat(r[15]) || 0, no = notOffered(r);
-          return '<div class="adm-row"><div><div style="font-size:11px;font-weight:700;color:#A1A9B6">WEEK ' + r[1] + ' · ' + escHtml(r[2]).toUpperCase() + '</div>' +
-            '<div style="margin-top:3px">' + picksOf(r) + '</div><div style="font-size:11px;color:#A1A9B6;margin-top:2px">First TD: ' + escHtml(r[11]) + '</div></div>' +
+          var win = r.correct === 'Yes', u = r.units, no = r.notOffered;
+          return '<div class="adm-row"><div><div style="font-size:11px;font-weight:700;color:#A1A9B6">WEEK ' + r.week + ' · ' + escHtml(r.slot).toUpperCase() + '</div>' +
+            '<div style="margin-top:3px">' + picksOf(r) + '</div><div style="font-size:11px;color:#A1A9B6;margin-top:2px">First TD: ' + escHtml(r.scorer) + '</div></div>' +
             '<div style="text-align:right"><div style="font-weight:800;color:' + (no ? '#A1A9B6' : win ? '#34D399' : '#F87171') + '">' + (no ? 'NOT OFFERED' : win ? 'WIN' : 'LOSS') + '</div>' +
             '<div style="font-size:12px;color:' + (u > 0 ? '#34D399' : u < 0 ? '#F87171' : '#A1A9B6') + '">' + (u > 0 ? '+' : '') + u + 'u</div></div></div>';
         }).join('') : '<div style="color:#A1A9B6;font-size:13px;padding:8px 0">No results yet.</div>';
@@ -960,7 +959,7 @@
         body.innerHTML = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">Pin the best ones to the top of the wall, or delete anything that should go.</div>' +
           '<div class="submit-msg" id="adm-msg" style="text-align:left"></div>' +
           (msgs.length ? msgs.slice(0, 60).map(function(m) {
-            var c = m.who === 'Maria' ? SB_M : SB_D;
+            var c = personColor(m.who);
             return '<div class="adm-row"><div style="flex:1;min-width:0"><b style="color:' + c + '">' + escHtml(m.who) + '</b> ' + (m.pinned ? '📌 ' : '') +
               '<span style="color:#D1D5DB">' + escHtml(m.text) + '</span></div>' +
               '<div style="display:flex;gap:6px"><button class="adm-btn" data-pin="' + m.row + '">' + (m.pinned ? 'Unpin' : 'Pin') + '</button>' +

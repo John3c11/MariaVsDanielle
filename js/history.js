@@ -41,24 +41,23 @@
         '<span>Year</span><span>Wk</span><span>Game</span><span>Picker</span><span>Players</span><span>Odds</span><span>First TD</span><span>Units</span></div>';
       var rows = bets.slice(0, BH_SHOW).map(function(b) {
         // First TD scorer: green = hit, red = miss, gray = not offered (didn't count)
-        var noOffer = b.wasOffered === 'No' && b.netUnits === 0 && b.firstScorer;
+        var noOffer = b.notOffered;
         var resultBg = noOffer ? 'rgba(255,255,255,0.08)' : b.correct === 'Yes' ? 'rgba(52,211,153,0.15)' : b.correct === 'No' ? 'rgba(248,113,113,0.15)' : 'rgba(255,255,255,0.08)';
         var resultColor = noOffer ? '#9CA3AF' : b.correct === 'Yes' ? '#34D399' : b.correct === 'No' ? '#F87171' : '#9CA3AF';
         var resultText = b.firstScorer ? escHtml(b.firstScorer) : '⏳';
-        var pickerColor = b.picker === 'Maria' ? '#F87171' : '#60A5FA';
+        var pickerColor = personColor(b.picker);
         var unitColor = b.netUnits > 0 ? '#34D399' : b.netUnits < 0 ? '#F87171' : '#9CA3AF';
         var unitStr = b.netUnits !== 0 ? (b.netUnits > 0 ? '+' : '') + b.netUnits + 'u' : '0u';
-        var notOffered = '';
-        var homeColored = b.homePick ? legacyColoredText(b.homePick, b.homeTeam) : '';
-        var awayColored = b.awayPick ? legacyColoredText(b.awayPick, b.awayTeam) : '';
+        var homeColored = b.homePick ? coloredText(b.homePick, b.homeTeam) : '';
+        var awayColored = b.awayPick ? coloredText(b.awayPick, b.awayTeam) : '';
         var players = [homeColored, awayColored].filter(Boolean).join('<span style="color:#9CA3AF"> / </span>') || '—';
-        var gameDisplay = b.homeTeam && b.awayTeam ? legacyColoredGame(b.homeTeam, b.awayTeam) : (b.game || '—');
+        var gameDisplay = b.homeTeam && b.awayTeam ? coloredGame(b.homeTeam, b.awayTeam) : (b.game || '—');
         return '<div class="bh-row" data-ctx-year="' + b.year + '" data-ctx-week="' + b.week + '" style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 110px 50px;gap:8px;padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:12px;align-items:start">' +
           '<span style="font-size:11px;font-weight:600;color:' + (b.year === CURRENT_YEAR ? '#60A5FA' : '#34D399') + '">' + b.year + '</span>' +
           '<span style="color:#9CA3AF;text-align:center">' + b.week + '</span>' +
           '<span style="font-weight:500">' + gameDisplay + '</span>' +
           '<span style="font-weight:500;color:' + pickerColor + '">' + b.picker + '</span>' +
-          '<span>' + players + notOffered + '</span>' +
+          '<span>' + players + '</span>' +
           '<span style="color:#A1A9B6">' + b.odds + '</span>' +
           '<span class="bh-ftd" title="' + (noOffer ? 'Not offered, bet did not count' : '') + '" style="font-size:11px;font-weight:600;padding:3px 7px;border-radius:5px;text-align:center;line-height:1.3;background:' + resultBg + ';color:' + resultColor + '">' + resultText + '</span>' +
           '<span style="text-align:right;font-weight:500;color:' + unitColor + '">' + unitStr + '</span>' +
@@ -128,140 +127,52 @@
         if (!res.ok) throw new Error('HTTP ' + res.status);
         return res.json();
       }).then(function(data) {
-        var rows = (data.values || []).slice(1).filter(function(r) {
-          return r[0] && r[3] && r[3].trim() && r[3].trim() !== 'John';
-        });
-        // Filter out rows where both picks are empty
-        rows = rows.filter(function(r) {
-          return (r[6] || '').trim() || (r[7] || '').trim();
-        });
-        return rows.map(function(r) {
-          var picker = (r[3] || '').trim();
-          var homeTeam = r[4] || '';
-          var awayTeam = r[5] || '';
-          var homePick = (r[6] || '').trim();
-          var awayPick = (r[7] || '').trim();
-          var homeOdds = r[8] || '';
-          var awayOdds = r[9] || '';
-          var firstScorer = (r[11] || '').trim();
-          var correct = (r[12] || '').trim();
-          var wasOffered = (r[14] || '').trim();
-          var netUnits = parseFloat(r[15]) || 0;
-          var netDollars = parseFloat(r[16]) || 0;
-          var week = r[1] || '';
-          var game = homeTeam && awayTeam ? homeTeam + ' vs ' + awayTeam : '';
+        // Real bets with at least one pick
+        return readBets(data.values).filter(function(b) { return isMDRow(b) && (b.homePick || b.awayPick); }).map(function(b) {
+          var game = b.home && b.away ? b.home + ' vs ' + b.away : '';
           var oddsArr = [];
-          if (homePick && !isNaN(parseFloat(homeOdds))) oddsArr.push('+' + Math.round(parseFloat(homeOdds) * 100));
-          if (awayPick && !isNaN(parseFloat(awayOdds))) oddsArr.push('+' + Math.round(parseFloat(awayOdds) * 100));
+          if (b.homePick && !isNaN(parseFloat(b.homeOdds))) oddsArr.push(formatOdds(b.homeOdds));
+          if (b.awayPick && !isNaN(parseFloat(b.awayOdds))) oddsArr.push(formatOdds(b.awayOdds));
           return {
-            homeOddsN: parseFloat(homeOdds) || 0, awayOddsN: parseFloat(awayOdds) || 0,
-            year: season.year, week: week, game: game,
-            homeTeam: homeTeam, awayTeam: awayTeam,
-            picker: picker, homePick: homePick, awayPick: awayPick,
-            firstScorer: firstScorer, correct: correct, wasOffered: wasOffered,
-            netUnits: netUnits, netDollars: netDollars,
+            homeOddsN: parseFloat(b.homeOdds) || 0, awayOddsN: parseFloat(b.awayOdds) || 0,
+            year: season.year, week: b.week, game: game,
+            homeTeam: b.home, awayTeam: b.away,
+            picker: b.picker, homePick: b.homePick, awayPick: b.awayPick,
+            firstScorer: b.scorer, correct: b.correct, wasOffered: b.wasOffered,
+            netUnits: b.units, netDollars: b.dollars, amount: b.amount, notOffered: b.notOffered,
             odds: oddsArr.join(' / ') || '—',
-            searchText: (season.year + ' ' + week + ' ' + game + ' ' + (resolveTeam(homeTeam) || '') + ' ' + (resolveTeam(awayTeam) || '') + ' ' + picker + ' ' + homePick + ' ' + awayPick).toLowerCase()
+            searchText: (season.year + ' ' + b.week + ' ' + game + ' ' + (resolveTeam(b.home) || '') + ' ' + (resolveTeam(b.away) || '') + ' ' + b.picker + ' ' + b.homePick + ' ' + b.awayPick).toLowerCase()
           };
         });
       });
     }
 
+    // All-Time totals for Maria and Danielle (not-offered games don't count)
     function calcLegacyStats(bets) {
-      var mCorrect = 0, mTotal = 0, dCorrect = 0, dTotal = 0;
-      var mUnits = 0, dUnits = 0, mDollars = 0, dDollars = 0;
-      var mBigWin = null, dBigWin = null;
-      var pickCounts = {}, scorerCounts = {}, seenGames = {};
-
+      var t = { mCorrect: 0, mTotal: 0, dCorrect: 0, dTotal: 0, mUnits: 0, dUnits: 0, mDollars: 0, dDollars: 0 };
       bets.forEach(function(b) {
-        var gameKey = b.year + '_' + b.week + '_' + b.game;
-        if (b.firstScorer && !seenGames[gameKey]) {
-          seenGames[gameKey] = true;
-          scorerCounts[b.firstScorer] = (scorerCounts[b.firstScorer] || 0) + 1;
-        }
-        [b.homePick, b.awayPick].filter(Boolean).forEach(function(p) {
-          if (!pickCounts[p]) pickCounts[p] = { Maria: 0, Danielle: 0 };
-          if (b.picker === 'Maria' || b.picker === 'Danielle') pickCounts[p][b.picker]++;
-        });
-        var notOffered = b.wasOffered === 'No' && b.netUnits === 0 && b.firstScorer !== '';
-        var gameScored = (b.correct === 'Yes' || b.correct === 'No') && !notOffered;
-        if (b.picker === 'Maria' && gameScored) {
-          mTotal++; if (b.correct === 'Yes') mCorrect++;
-          mUnits += b.netUnits; mDollars += b.netDollars;
-          if (b.netUnits > 0 && (mBigWin === null || b.netUnits > mBigWin.units))
-            mBigWin = { units: b.netUnits, dollars: b.netDollars, game: b.game, year: b.year, week: b.week };
-        } else if (b.picker === 'Danielle' && gameScored) {
-          dTotal++; if (b.correct === 'Yes') dCorrect++;
-          dUnits += b.netUnits; dDollars += b.netDollars;
-          if (b.netUnits > 0 && (dBigWin === null || b.netUnits > dBigWin.units))
-            dBigWin = { units: b.netUnits, dollars: b.netDollars, game: b.game, year: b.year, week: b.week };
-        }
+        if (!(b.correct === 'Yes' || b.correct === 'No') || b.notOffered) return;
+        var k = b.picker === 'Maria' ? 'm' : b.picker === 'Danielle' ? 'd' : null;
+        if (!k) return;
+        t[k + 'Total']++; if (b.correct === 'Yes') t[k + 'Correct']++;
+        t[k + 'Units'] += b.netUnits; t[k + 'Dollars'] += b.netDollars;
       });
-
-      var allPlayers = Object.keys(pickCounts).map(function(name) {
-        return { name: name, total: pickCounts[name].Maria + pickCounts[name].Danielle, maria: pickCounts[name].Maria, danielle: pickCounts[name].Danielle };
-      }).filter(function(p) { return p.total > 0; }).sort(function(a, b) { return b.total - a.total; });
-
-      function bestStreak(pickerBets) {
-        var best = { wins: 0, total: 0, units: 0, dollars: -Infinity, label: '' };
-        for (var i = 0; i < pickerBets.length; i++) {
-          for (var j = i + 1; j <= Math.min(i + 10, pickerBets.length); j++) {
-            var window = pickerBets.slice(i, j);
-            var w = window.filter(function(b) { return b.correct === 'Yes'; }).length;
-            var t = window.length;
-            var u = window.reduce(function(acc, b) { return acc + b.netUnits; }, 0);
-            var d = window.reduce(function(acc, b) { return acc + b.netDollars; }, 0);
-            if (d > best.dollars) {
-              best = { wins: w, total: t, units: u, dollars: d, label: '$' + d.toFixed(2) + ' (+' + u.toFixed(1) + 'u) — ' + w + '/' + t + ' correct' };
-            }
-          }
-        }
-        if (best.dollars <= 0) best.label = 'No profitable stretch yet';
-        return best;
-      }
-
-      var mariaBets = bets.filter(function(b) { return b.picker === 'Maria' && (b.correct === 'Yes' || b.correct === 'No'); });
-      var danielleBets = bets.filter(function(b) { return b.picker === 'Danielle' && (b.correct === 'Yes' || b.correct === 'No'); });
-
-      return {
-        mCorrect: mCorrect, mTotal: mTotal, dCorrect: dCorrect, dTotal: dTotal,
-        mUnits: mUnits, dUnits: dUnits, mDollars: mDollars, dDollars: dDollars,
-        mBigWin: mBigWin, dBigWin: dBigWin,
-        mStreak: bestStreak(mariaBets), dStreak: bestStreak(danielleBets),
-        mostOverall: allPlayers[0],
-        mariaMost: allPlayers.filter(function(p) { return p.maria > 0; }).sort(function(a, b) { return b.maria - a.maria; })[0],
-        danielleMost: allPlayers.filter(function(p) { return p.danielle > 0; }).sort(function(a, b) { return b.danielle - a.danielle; })[0],
-        scorerCounts: scorerCounts,
-      };
+      return t;
     }
 
-    function fmtL(n, prefix) {
-      if (prefix === 'u') return (n >= 0 ? '+' : '') + n.toFixed(1) + 'u';
-      if (prefix === '$') return (n >= 0 ? '+$' : '-$') + Math.abs(n).toFixed(2);
-      return n;
-    }
-
-    // Money on phones: whole dollars with commas so the tiles fit
-    function fmtLD(n) {
-      var full = fmtL(n, '$');
-      var short = (n >= 0 ? '+$' : '-$') + Math.round(Math.abs(n)).toLocaleString('en-US');
-      return '<span class="tn-full">' + full + '</span><span class="tn-short">' + short + '</span>';
-    }
     function legacyStatCard(label, mVal, dVal) {
       return '<div class="lg-tile"><div class="lg-label">' + label + '</div>' +
-        '<div class="lg-row"><span class="lg-val" style="color:#F87171">' + mVal + '</span><span class="lg-who">Maria</span></div>' +
-        '<div class="lg-row"><span class="lg-val" style="color:#60A5FA">' + dVal + '</span><span class="lg-who">Danielle</span></div>' +
+        '<div class="lg-row"><span class="lg-val" style="color:' + SB_M + '">' + mVal + '</span><span class="lg-who">Maria</span></div>' +
+        '<div class="lg-row"><span class="lg-val" style="color:' + SB_D + '">' + dVal + '</span><span class="lg-who">Danielle</span></div>' +
         '</div>';
     }
     function secH(title, note) { return '<div class="pf-h">' + title + (note ? ' <small>' + note + '</small>' : '') + '</div>'; }
 
 
     // ── Season Wrapped (Legacy tab) ─────────────────────────────────────────
-    var WR_M = '#F87171', WR_D = '#60A5FA'; // Maria / Danielle on dark backgrounds
 
     function wrappedCard(year, bets) {
-      function notOffered(b) { return b.wasOffered === 'No' && b.netUnits === 0 && b.firstScorer !== ''; }
-      function scoredBet(b) { return (b.correct === 'Yes' || b.correct === 'No') && !notOffered(b); }
+      function scoredBet(b) { return (b.correct === 'Yes' || b.correct === 'No') && !b.notOffered; }
       var P = { Maria: { u: 0, d: 0, w: 0, t: 0 }, Danielle: { u: 0, d: 0, w: 0, t: 0 } };
       var who = ['Maria', 'Danielle'];
 
@@ -278,11 +189,8 @@
       var bg = champ === 'Maria' ? 'linear-gradient(140deg,#0F0F12 0%,#3B0D0D 55%,#991B1B 100%)'
              : champ === 'Danielle' ? 'linear-gradient(140deg,#0F0F12 0%,#0C1A3D 55%,#1E40AF 100%)'
              : 'linear-gradient(140deg,#0F0F12 0%,#1F2937 100%)';
-      function pc(n) { return n === 'Maria' ? WR_M : n === 'Danielle' ? WR_D : '#E5E7EB'; }
+      function pc(n) { return n === 'Maria' ? SB_M : n === 'Danielle' ? SB_D : '#E5E7EB'; }
       function nm(n) { return '<span style="color:' + pc(n) + '">' + n + '</span>'; }
-      function u(n) { return (n >= 0 ? '+' : '') + n.toFixed(1) + 'u'; }
-      function money(n) { return (n >= 0 ? '+$' : '-$') + Math.abs(n).toFixed(2); }
-      function odds(n) { return '+' + Math.round(n < 100 ? n * 100 : n); }
 
       // Pick of the season: longest odds that hit
       var pos = null;
@@ -381,23 +289,23 @@
         var p = P[n];
         h += '<div class="wr-side">' +
           '<div class="wr-side-name" style="color:' + pc(n) + '">' + n + (champ === n ? ' 👑' : '') + '</div>' +
-          '<div class="wr-units" style="color:' + pc(n) + '">' + u(p.u) + '</div>' +
-          '<div class="wr-sub">' + money(p.d) + '</div>' +
+          '<div class="wr-units" style="color:' + pc(n) + '">' + fmtU(p.u) + '</div>' +
+          '<div class="wr-sub">' + fmtD(p.d) + '</div>' +
           '<div class="wr-sub">' + p.w + '/' + p.t + ' correct (' + (p.t ? Math.round(p.w / p.t * 100) : 0) + '%)</div>' +
         '</div>';
       });
       h += '</div>';
 
-      h += '<div class="wr-chart">' + wrappedChart(bets, notOffered) + '</div>';
+      h += '<div class="wr-chart">' + wrappedChart(bets) + '</div>';
 
       function tile(label, main, sub) {
         return '<div class="wr-tile"><div class="wr-tile-label">' + label + '</div>' +
           '<div class="wr-tile-main">' + main + '</div>' + (sub ? '<div class="wr-tile-sub">' + sub + '</div>' : '') + '</div>';
       }
       h += '<div class="wr-tiles">';
-      if (pos) h += tile('🎯 Pick of the Season', pos.b.firstScorer + ' ' + odds(pos.o),
+      if (pos) h += tile('🎯 Pick of the Season', pos.b.firstScorer + ' ' + fmtOdds(pos.o),
         nm(pos.b.picker) + ' · Wk ' + pos.b.week + (pos.b.game ? ' · ' + pos.b.game : ''));
-      if (bestWk && bestWk.u > 0) h += tile('📈 Best Week', nm(bestWk.who) + ' ' + u(bestWk.u), 'Week ' + bestWk.week);
+      if (bestWk && bestWk.u > 0) h += tile('📈 Best Week', nm(bestWk.who) + ' ' + fmtU(bestWk.u), 'Week ' + bestWk.week);
       if (heater.n) h += tile('🔥 Longest Heater', heater.n + ' straight', nm(heater.who));
       if (drought.n) h += tile('🧊 Longest Drought', drought.n + ' straight misses', nm(drought.who));
       h += tile('🗓️ Weeks Won', nm('Maria') + ' ' + ww.Maria + ' · ' + nm('Danielle') + ' ' + ww.Danielle, ww.tie ? ww.tie + ' tied' : '');
@@ -415,7 +323,7 @@
     }
 
     // Season race: running units for both, drawn for the dark card
-    function wrappedChart(bets, notOffered) {
+    function wrappedChart(bets) {
       var games = [], idx = {};
       bets.forEach(function(b) {
         if ((b.picker !== 'Maria' && b.picker !== 'Danielle') || (b.correct !== 'Yes' && b.correct !== 'No')) return;
@@ -445,12 +353,12 @@
         var pts = vals.map(function(v, i) { return x(i).toFixed(1) + ',' + y(v).toFixed(1); }).join(' ');
         return '<polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>';
       }
-      svg += line(d, WR_D) + line(m, WR_M);
+      svg += line(d, SB_D) + line(m, SB_M);
       var N = games.length, ym = y(m[N]), yd = y(d[N]);
       if (Math.abs(ym - yd) < 14) { var mid = (ym + yd) / 2, up = m[N] >= d[N]; ym = mid + (up ? -7 : 7); yd = mid + (up ? 7 : -7); }
       function f(v) { return (v >= 0 ? '+' : '') + v.toFixed(1); }
-      svg += '<text x="' + (x(N) + 8) + '" y="' + (ym + 4) + '" font-size="13" font-weight="700" fill="' + WR_M + '">' + f(m[N]) + '</text>';
-      svg += '<text x="' + (x(N) + 8) + '" y="' + (yd + 4) + '" font-size="13" font-weight="700" fill="' + WR_D + '">' + f(d[N]) + '</text>';
+      svg += '<text x="' + (x(N) + 8) + '" y="' + (ym + 4) + '" font-size="13" font-weight="700" fill="' + SB_M + '">' + f(m[N]) + '</text>';
+      svg += '<text x="' + (x(N) + 8) + '" y="' + (yd + 4) + '" font-size="13" font-weight="700" fill="' + SB_D + '">' + f(d[N]) + '</text>';
       return svg + '</svg>';
     }
 
@@ -461,7 +369,7 @@
         var byYear = [];
         results.forEach(function(bets, i) {
           allBets = allBets.concat(bets);
-          byYear.push({ year: SEASONS[i].year, stats: calcLegacyStats(bets), bets: bets });
+          byYear.push({ year: SEASONS[i].year, bets: bets });
         });
         ALL_LEGACY_BETS = allBets.slice().reverse();
 
@@ -475,8 +383,8 @@
         // All-time stats
         html += secH('📊 All-Time Totals');
         html += '<div class="lg-grid">';
-        html += legacyStatCard('Units', fmtL(s.mUnits,'u'), fmtL(s.dUnits,'u'));
-        html += legacyStatCard('Dollars', fmtLD(s.mDollars), fmtLD(s.dDollars));
+        html += legacyStatCard('Units', fmtU(s.mUnits), fmtU(s.dUnits));
+        html += legacyStatCard('Dollars', fmtDResp(s.mDollars), fmtDResp(s.dDollars));
         html += legacyStatCard('Correct', s.mCorrect+'/'+s.mTotal, s.dCorrect+'/'+s.dTotal);
         html += legacyStatCard('Accuracy', (s.mTotal?Math.round(s.mCorrect/s.mTotal*100):0)+'%', (s.dTotal?Math.round(s.dCorrect/s.dTotal*100):0)+'%');
         html += '</div>';
@@ -500,7 +408,7 @@
 
         document.getElementById('legacy-content').innerHTML = html;
         fillCrowdWrapped();
-        loadEarnings();
+        loadEarnings(byYear);
       }).catch(function(e) {
         console.error(e);
         document.getElementById('legacy-content').innerHTML = '<div style="color:#9CA3AF;text-align:center;padding:32px">Error loading legacy data: ' + e.message + '</div>';
@@ -568,60 +476,25 @@
     }
 
     // ── Earnings by season (inside All-Time) ─────────────────────────────────
-    async function loadEarnings() {
+    function loadEarnings(byYear) {
       var box = document.getElementById('legacy-earn');
       if (!box) return;
-      try {
-        const SEASONS_MONEY = SEASONS;
-
-        const results = await Promise.all(SEASONS_MONEY.map(async function(s) {
-          const url = "https://sheets.googleapis.com/v4/spreadsheets/" + s.sheetId +
-            "/values/" + encodeURIComponent("Winnings!A1:Q400") + "?key=" + API_KEY;
-          const res = await fetch(url);
-          const data = await res.json();
-          const rows = (data.values || []).slice(1).filter(function(r) {
-            return r[0] && r[3] && r[3].trim() && r[3].trim() !== "John";
-          });
-          // All rows with at least one pick
-          const withPicks = rows.filter(function(r) {
-            const homePick = (r[6] || "").trim();
-            const awayPick = (r[7] || "").trim();
-            return homePick || awayPick;
-          });
-          // Scored games only (correct = Yes or No)
-          const scored = withPicks.filter(function(r) {
-            const correct = (r[12] || "").trim();
-            return correct === "Yes" || correct === "No";
-          });
-          // Not offered games: wasOffered = No AND net units = 0 (losses have -2)
-          const notOfferedRows = withPicks.filter(function(r) {
-            const wasOffered = (r[14] || "").trim();
-            const netU = parseFloat(r[15]) || 0;
-            const firstScorer = (r[11] || "").trim();
-            return wasOffered === "No" && firstScorer !== "" && netU === 0;
-          });
-
-          const bets = scored.length + notOfferedRows.length;
-          const notOffered = notOfferedRows.length;
-          const units = scored.reduce(function(acc, r) { return acc + (parseFloat(r[15]) || 0); }, 0);
-          const dollars = scored.reduce(function(acc, r) { return acc + (parseFloat(r[16]) || 0); }, 0);
-
-          // Worst case: not offered games count as -2u and -2 * amount bet
-          const unitsWorst = units + notOfferedRows.reduce(function(acc, r) { return acc - 2; }, 0);
-          const dollarsWorst = dollars + notOfferedRows.reduce(function(acc, r) {
-            const amountBet = parseFloat(r[10]) || 5;
-            return acc - (2 * amountBet);
-          }, 0);
-
-          return { year: s.year, bets, notOffered, units, dollars, unitsWorst, dollarsWorst };
-        }));
-
+      var results = byYear.map(function(ys) {
+        var scored = ys.bets.filter(function(b) { return b.correct === 'Yes' || b.correct === 'No'; });
+        var noRows = ys.bets.filter(function(b) { return b.notOffered; });
+        var units = scored.reduce(function(a, b) { return a + b.netUnits; }, 0);
+        var dollars = scored.reduce(function(a, b) { return a + b.netDollars; }, 0);
+        return {
+          year: ys.year, bets: scored.length + noRows.length, notOffered: noRows.length, units: units, dollars: dollars,
+          // Worst case: not offered games count as -2u and -2 x the amount bet
+          unitsWorst: units - 2 * noRows.length,
+          dollarsWorst: dollars - noRows.reduce(function(a, b) { return a + 2 * (b.amount || 5); }, 0),
+        };
+      });
         const totalBets = results.reduce(function(a, r) { return a + r.bets; }, 0);
         const totalUnits = results.reduce(function(a, r) { return a + r.units; }, 0);
         const totalDollars = results.reduce(function(a, r) { return a + r.dollars; }, 0);
 
-        function fmtU(n) { return (n >= 0 ? "+" : "") + n.toFixed(1) + "u"; }
-        function fmtD(n) { return (n >= 0 ? "+$" : "-$") + Math.abs(n).toFixed(2); }
         function uColor(n) { return n > 0 ? "#34D399" : n < 0 ? "#F87171" : "#9CA3AF"; }
 
         function row(label, r, isTotal) {
@@ -632,10 +505,8 @@
           return '<div class="er-row' + (isTotal ? ' er-total' : '') + '">' +
             '<div class="er-c er-y">' + label + '</div>' +
             '<div class="er-c"><div style="font-weight:700">' + r.bets + '</div>' + (r.notOffered ? '<div class="er-w">' + r.notOffered + ' not<br class="tn-short"> offered</div>' : '') + '</div>' +
-            cell(r.units, r.unitsWorst, fmtUS) + cell(r.dollars, r.dollarsWorst, fmtM) + '</div>';
+            cell(r.units, r.unitsWorst, fmtUResp) + cell(r.dollars, r.dollarsWorst, fmtDResp) + '</div>';
         }
-        function fmtUS(n) { return '<span class="tn-full">' + fmtU(n) + '</span><span class="tn-short">' + shortU(n) + '</span>'; }
-        function fmtM(n) { return '<span class="tn-full">' + fmtD(n) + '</span><span class="tn-short">' + (n >= 0 ? '+$' : '-$') + Math.round(Math.abs(n)).toLocaleString('en-US') + '</span>'; }
 
         var html = '<div class="er-table"><div class="er-row er-head"><div class="er-c er-y">Season</div><div class="er-c">Bets</div><div class="er-c">Units</div><div class="er-c">Money</div></div>';
         results.slice().sort(function(a, b) { return b.year - a.year; }).forEach(function(r) { html += row(r.year, r, false); });
@@ -647,8 +518,4 @@
         }, true);
         html += '</div><div class="er-note">Big numbers skip games where the first TD scorer wasn\'t offered. The smaller numbers under them count those games as losses (worst case).</div>';
         box.innerHTML = html;
-      } catch(e) {
-        console.error(e);
-        box.innerHTML = '<div class="loading">Couldn\'t load earnings.</div>';
-      }
     }

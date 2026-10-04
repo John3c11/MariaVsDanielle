@@ -312,42 +312,9 @@
       if (ANALYTICS_LOADED) return;
       ANALYTICS_LOADED = true;
       try {
-        const allBets = await Promise.all(SEASONS.map(async function(s) {
-          const url = "https://sheets.googleapis.com/v4/spreadsheets/" + s.sheetId +
-            "/values/" + encodeURIComponent("Winnings!A1:Q400") + "?key=" + API_KEY;
-          const res = await fetch(url);
-          const data = await res.json();
-          return (data.values || []).slice(1).filter(function(r) {
-            return r[0] && r[3] && r[3].trim() && r[3].trim() !== "John";
-          }).map(function(r, i) {
-            return {
-              idx: i,
-              game: (r[0] || '').toString().trim(),
-              year: s.year,
-              week: parseInt(r[1]) || 0,
-              picker: (r[3] || "").trim(),
-              homeTeam: resolveTeam(r[4]),
-              awayTeam: resolveTeam(r[5]),
-              homePick: (r[6] || "").trim(),
-              awayPick: (r[7] || "").trim(),
-              homeOdds: parseFloat(r[8]) || 0,
-              awayOdds: parseFloat(r[9]) || 0,
-              slot: (r[2] || "").trim(),
-              firstScorer: (r[11] || "").trim(),
-              correct: (r[12] || "").trim(),
-              side: (r[13] || "").trim(),
-              wasOffered: (r[14] || "").trim(),
-              netUnits: parseFloat(r[15]) || 0,
-              netDollars: parseFloat(r[16]) || 0,
-            };
-          });
-        }));
-
         // Chronological: oldest season first, sheet order within a season.
         // (Streaks and 10-game stretches depend on this order.)
-        const rows = allBets.flat().sort(function(a, b) {
-          return a.year !== b.year ? parseInt(a.year) - parseInt(b.year) : a.idx - b.idx;
-        });
+        const rows = await loadAllBets();
         const scored = rows.filter(function(r) {
           return (r.homePick || r.awayPick) && (r.correct === "Yes" || r.correct === "No");
         });
@@ -384,7 +351,7 @@
         }
 
         function personCard(name, contentHtml) {
-          var color = name === "Maria" ? "#F87171" : "#60A5FA";
+          var color = personColor(name);
           return '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:16px">' +
             '<div style="font-size:14px;font-weight:700;color:' + color + ';margin-bottom:12px">' + name + '</div>' +
             contentHtml + '</div>';
@@ -443,7 +410,7 @@
             .filter(function(e){ return !scored2.has(e[0]) && e[1] > 1; })
             .sort(function(a,b){return b[1]-a[1];});
           if (cursed.length > 0) {
-            var color = name === "Maria" ? "#F87171" : "#60A5FA";
+            var color = personColor(name);
           html += '<div style="margin-bottom:16px"><div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">' + name + "'s Cursed Pick</div>" +
               '<div style="background:rgba(255,255,255,0.05);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between">' +
               '<span style="font-weight:600;color:' + color + '">' + cursed[0][0] + '</span>' +
@@ -454,7 +421,7 @@
 
         // ── Fun Stats from Legacy ─────────────────────────────────────────────
         function legFun(label, val, cls) {
-          var color = cls === 'maria' ? '#F87171' : cls === 'danielle' ? '#60A5FA' : cls === 'red' ? '#F87171' : '#F3F4F6';
+          var color = cls === 'maria' ? SB_M : cls === 'danielle' ? SB_D : cls === 'red' ? '#F87171' : '#F3F4F6';
           return '<div style="display:flex;justify-content:space-between;padding:11px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:13px;gap:16px"><span style="color:#A1A9B6">' + label + '</span><span style="font-weight:600;text-align:right;color:' + color + '">' + val + '</span></div>';
         }
 
@@ -475,13 +442,13 @@
         );
 
         function jinxSentence(j) {
-          var pColor = j.picker === 'Maria' ? '#F87171' : '#60A5FA';
-          var oColor = j.other === 'Maria' ? '#F87171' : '#60A5FA';
+          var pColor = personColor(j.picker);
+          var oColor = personColor(j.other);
           // Year on the scoring week always; on the drop week only if it was a different season
           var from = j.fromYear !== j.year ? wkLabel(j.fromYear, j.fromWeek) : 'Wk ' + j.fromWeek;
           var to = wkLabel(j.year, j.week);
           var txt = '<span style="color:' + pColor + ';font-weight:600">' + j.picker + '</span> dropped ' +
-            legacyColoredText(j.player, j.team) + ' after ' + from + '. He scored first in ' + to + '.';
+            coloredText(j.player, j.team) + ' after ' + from + '. He scored first in ' + to + '.';
           if (j.cashed) {
             txt += ' And <span style="color:' + oColor + ';font-weight:600">' + j.other + '</span> cashed him' +
               (j.cashed.odds ? ' at ' + formatOdds(j.cashed.odds) : '') +
@@ -522,7 +489,6 @@
         html += '<div id="bad-beats"><div class="loading">Checking every game with ESPN…</div></div>';
 
         html += section("Streaks");
-        function isNotOffered(r) { return r.wasOffered === "No" && r.netUnits === 0 && r.firstScorer !== ""; }
         function streaks(personRows) {
           var maxWin = 0, maxLoss = 0, curWin = 0, curLoss = 0;
           personRows.forEach(function(r) {
@@ -565,7 +531,7 @@
 
         function pickCard(pick, yearLabel) {
           if (!pick) return '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:16px;margin-bottom:10px;color:#9CA3AF;font-size:13px">' + yearLabel + ' — No winning picks yet.</div>';
-          var pColor = pick.picker === "Maria" ? "#F87171" : "#60A5FA";
+          var pColor = personColor(pick.picker);
           var gameDisplay = pick.homeTeam && pick.awayTeam ? pick.homeTeam + ' vs ' + pick.awayTeam : 'Game';
           var oddsDisplay = pick.odds >= 100 ? '+' + Math.round(pick.odds) : '+' + Math.round(pick.odds * 100);
           return '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:16px;margin-bottom:10px">' +
@@ -733,8 +699,8 @@
           var inner = '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:8px 12px">' +
             '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:8px 0 4px;border-bottom:1px solid rgba(255,255,255,0.10)">' +
             '<span style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Slot</span>' +
-            '<span style="font-size:11px;color:#F87171;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Maria</span>' +
-            '<span style="font-size:11px;color:#60A5FA;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Danielle</span>' +
+            '<span style="font-size:11px;color:' + SB_M + ';text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Maria</span>' +
+            '<span style="font-size:11px;color:' + SB_D + ';text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Danielle</span>' +
             '</div>';
           slotKeys.forEach(function(slot, i) {
             var ms = gameTypeStats[slot].Maria, ds = gameTypeStats[slot].Danielle;
@@ -746,7 +712,7 @@
             var border = i < slotKeys.length - 1 ? 'border-bottom:0.5px solid rgba(255,255,255,0.06)' : '';
             inner += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 0;' + border + ';align-items:center">' +
               '<span style="font-size:13px;font-weight:600;color:#D1D5DB">' + slot + '</span>' +
-              cell(ms, '#F87171') + cell(ds, '#60A5FA') + '</div>';
+              cell(ms, SB_M) + cell(ds, SB_D) + '</div>';
           });
           html += afVariant('gt', [season], inner + '</div>');
         });
@@ -768,7 +734,7 @@
           rows.forEach(function(r) {
             if (!inSeason(r, season) || (r.picker !== 'Maria' && r.picker !== 'Danielle')) return;
             if ((r.correct !== 'Yes' && r.correct !== 'No') || !r.firstScorer) return;
-            if (r.wasOffered === 'No' && r.netUnits === 0) return; // not-offered games don't count
+            if (isNotOffered(r)) return; // not-offered games don't count
             [r.homePick, r.awayPick].filter(Boolean).forEach(function(pk) {
               var p = posOf(pk);
               var t = T[r.picker][p] || (T[r.picker][p] = { h: 0, n: 0 });
@@ -777,7 +743,7 @@
             });
           });
           function card(who) {
-            var c = who === 'Maria' ? '#F87171' : '#60A5FA';
+            var c = personColor(who);
             var rowsHtml = POS_ORDER.filter(function(p) { return T[who][p]; }).map(function(p) {
               var t = T[who][p], rate = t.n ? t.h / t.n : 0;
               return '<div style="padding:7px 0">' +
@@ -818,7 +784,7 @@
             if (!real && !m && !d) return;
             inner += '<div style="padding:9px 0;' + (i ? 'border-top:0.5px solid rgba(255,255,255,0.06)' : '') + '">' +
               '<div style="font-size:13px;font-weight:800;margin-bottom:5px">' + q + '</div>' +
-              bar('Scores', real, '#E5E7EB') + bar('Maria', m, '#F87171') + bar('Danielle', d, '#60A5FA') + '</div>';
+              bar('Scores', real, '#E5E7EB') + bar('Maria', m, SB_M) + bar('Danielle', d, SB_D) + '</div>';
           });
           inner += '</div>';
           // Biggest mismatch for each of them
@@ -830,8 +796,8 @@
               var gap = share(P[who], PN[who], q) - share(R, RN, q);
               if (!worst || Math.abs(gap) > Math.abs(worst.gap)) worst = { q: q, gap: gap };
             });
-            if (!worst || Math.abs(worst.gap) < 0.05) return '<div style="font-size:12px;padding:3px 0"><b style="color:' + (who === 'Maria' ? '#F87171' : '#60A5FA') + '">' + who + '</b> picks pretty much in line with reality.</div>';
-            return '<div style="font-size:12px;padding:3px 0"><b style="color:' + (who === 'Maria' ? '#F87171' : '#60A5FA') + '">' + who + '</b> ' +
+            if (!worst || Math.abs(worst.gap) < 0.05) return '<div style="font-size:12px;padding:3px 0"><b style="color:' + (personColor(who)) + '">' + who + '</b> picks pretty much in line with reality.</div>';
+            return '<div style="font-size:12px;padding:3px 0"><b style="color:' + (personColor(who)) + '">' + who + '</b> ' +
               (worst.gap > 0 ? 'over-picks' : 'under-picks') + ' ' + worst.q + 's: ' + Math.round(share(P[who], PN[who], worst.q) * 100) + '% of her picks, but they score first ' + Math.round(share(R, RN, worst.q) * 100) + '% of the time.</div>';
           }).join('');
           html += afVariant('pvr', [season], inner + '<div style="margin-top:10px">' + notes + '</div>');
@@ -873,14 +839,14 @@
           var rowsHtml = wkKeys.map(function(key) {
             var wk = wkResults[key];
             var mW = wk.Maria.w, mL = wk.Maria.l, dW = wk.Danielle.w, dL = wk.Danielle.l;
-            var winnerColor = mW > dW ? '#F87171' : dW > mW ? '#60A5FA' : '#6B7280';
+            var winnerColor = mW > dW ? SB_M : dW > mW ? SB_D : '#6B7280';
             var winnerLabel = mW > dW ? 'Maria' : dW > mW ? 'Danielle' : 'Tied';
             return '<div style="display:grid;grid-template-columns:80px 1fr 80px;gap:8px;align-items:center;padding:8px 0;border-bottom:0.5px solid rgba(255,255,255,0.06)">' +
               '<span style="font-size:11px;color:#9CA3AF">' + wkLabel(wk.year, wk.week) + '</span>' +
               '<div style="display:flex;align-items:center;gap:6px">' +
-                '<span style="font-size:12px;color:#F87171;font-weight:600">M: ' + mW + '/' + (mW + mL) + '</span>' +
+                '<span style="font-size:12px;color:' + SB_M + ';font-weight:600">M: ' + mW + '/' + (mW + mL) + '</span>' +
                 '<span style="color:#4B5563;font-size:10px">·</span>' +
-                '<span style="font-size:12px;color:#60A5FA;font-weight:600">D: ' + dW + '/' + (dW + dL) + '</span>' +
+                '<span style="font-size:12px;color:' + SB_D + ';font-weight:600">D: ' + dW + '/' + (dW + dL) + '</span>' +
               '</div>' +
               '<span style="font-size:12px;font-weight:700;color:' + winnerColor + ';text-align:right">' + winnerLabel + '</span>' +
             '</div>';
@@ -963,7 +929,7 @@
             var x = M[mi] || (M[mi] = { order: order, Maria: { w: 0, n: 0, u: 0 }, Danielle: { w: 0, n: 0, u: 0 } });
             var p = x[r.picker];
             p.u += r.netUnits;
-            if (r.wasOffered === 'No' && r.netUnits === 0) return; // not offered: no win or loss
+            if (isNotOffered(r)) return; // not offered: no win or loss
             p.n++; if (r.correct === 'Yes') p.w++;
           });
           var keys = Object.keys(M).sort(function(a, b) { return M[a].order - M[b].order; });
@@ -977,18 +943,18 @@
           var inner = '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:8px 12px">' +
             '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:8px 0 4px;border-bottom:1px solid rgba(255,255,255,0.10)">' +
             '<span style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Month</span>' +
-            '<span style="font-size:11px;color:#F87171;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Maria</span>' +
-            '<span style="font-size:11px;color:#60A5FA;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Danielle</span></div>';
+            '<span style="font-size:11px;color:' + SB_M + ';text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Maria</span>' +
+            '<span style="font-size:11px;color:' + SB_D + ';text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Danielle</span></div>';
           keys.forEach(function(k, i) {
             inner += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 0;align-items:center;' + (i < keys.length - 1 ? 'border-bottom:0.5px solid rgba(255,255,255,0.06)' : '') + '">' +
-              '<span style="font-size:13px;font-weight:600;color:#D1D5DB">' + MONTHS_LONG[k] + '</span>' + cell(M[k].Maria, '#F87171') + cell(M[k].Danielle, '#60A5FA') + '</div>';
+              '<span style="font-size:13px;font-weight:600;color:#D1D5DB">' + MONTHS_LONG[k] + '</span>' + cell(M[k].Maria, SB_M) + cell(M[k].Danielle, SB_D) + '</div>';
           });
           inner += '</div>';
           // Best month for each
           var notes = ['Maria', 'Danielle'].map(function(who) {
             var best = keys.filter(function(k) { return M[k][who].n >= 5; }).sort(function(a, b) { return M[b][who].w / M[b][who].n - M[a][who].w / M[a][who].n; })[0];
             if (!best) return '';
-            return '<span><b style="color:' + (who === 'Maria' ? '#F87171' : '#60A5FA') + '">' + who + '</b> is best in ' + MONTHS_LONG[best] + ' (' + Math.round(M[best][who].w / M[best][who].n * 100) + '%)</span>';
+            return '<span><b style="color:' + (personColor(who)) + '">' + who + '</b> is best in ' + MONTHS_LONG[best] + ' (' + Math.round(M[best][who].w / M[best][who].n * 100) + '%)</span>';
           }).filter(Boolean).join(' · ');
           html += afVariant('mbm', [season], inner + (notes ? '<div style="font-size:12px;color:#A1A9B6;margin-top:10px">' + notes + '. Months are worked out from the week number.</div>' : ''));
         });
@@ -1123,8 +1089,8 @@
 
         function tdTag(pickedBy) {
           if (pickedBy.has('Maria') && pickedBy.has('Danielle')) return '<span style="font-size:10px;font-weight:600;color:#C4B5FD;background:rgba(167,139,250,0.18);border-radius:4px;padding:2px 6px">Both</span>';
-          if (pickedBy.has('Maria')) return '<span style="font-size:10px;font-weight:600;color:#F87171;background:rgba(248,113,113,0.15);border-radius:4px;padding:2px 6px">Maria</span>';
-          if (pickedBy.has('Danielle')) return '<span style="font-size:10px;font-weight:600;color:#60A5FA;background:rgba(96,165,250,0.16);border-radius:4px;padding:2px 6px">Danielle</span>';
+          if (pickedBy.has('Maria')) return '<span style="font-size:10px;font-weight:600;color:' + SB_M + ';background:' + hexA(SB_M, 0.15) + ';border-radius:4px;padding:2px 6px">Maria</span>';
+          if (pickedBy.has('Danielle')) return '<span style="font-size:10px;font-weight:600;color:' + SB_D + ';background:' + hexA(SB_D, 0.16) + ';border-radius:4px;padding:2px 6px">Danielle</span>';
           return '<span style="font-size:10px;color:#9CA3AF">—</span>';
         }
 
@@ -1198,8 +1164,8 @@
 
           function gapText(b) { return b.gap <= 0 ? 'right after' : b.gap === 1 ? '1 min after' : b.gap + ' min after'; }
           function line(b) {
-            var c = b.who === 'Maria' ? '#F87171' : '#60A5FA';
-            return '<span style="color:' + c + ';font-weight:600">' + b.who + '</span> had ' + legacyColoredText(b.player, b.team) +
+            var c = personColor(b.who);
+            return '<span style="color:' + c + ';font-weight:600">' + b.who + '</span> had ' + coloredText(b.player, b.team) +
               '. He scored in ' + b.q + (b.clock ? ' (' + b.clock + ')' : '') + ', ' + gapText(b) + ' <b>' + b.first + '</b> scored first · ' + wkLabel(b.year, b.week) + '.';
           }
           var count = { Maria: 0, Danielle: 0 }, closest = { Maria: null, Danielle: null };

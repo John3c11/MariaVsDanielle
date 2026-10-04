@@ -49,7 +49,10 @@
       .sort(function(a, b) { return parseInt(b.year) - parseInt(a.year); });
     var CURRENT_YEAR = SEASONS[0].year;
     const SHEET_ID = SEASONS[0].sheetId;
-    var SB_M = '#F87171', SB_D = '#60A5FA'; // Maria / Danielle on dark cards
+    // Maria's and Danielle's colors. Change them here and the whole site follows
+    // (style.css has the same two colors as --maria and --danielle).
+    var SB_M = '#F87171', SB_D = '#60A5FA';
+    function personColor(name) { return name === 'Maria' ? SB_M : SB_D; }
     document.getElementById('season-title').textContent = CURRENT_YEAR + ' Touchdown Bets';
     // ESPN team logos (small versions). Shown next to team names, never next to player names.
     var TEAM_ABBR = {
@@ -112,6 +115,77 @@
       return data.values || [];
     }
 
+    // ── Winnings tab: the ONE place that knows which column is which ────────
+    // If a column ever moves in the sheet, change its number here (A = 0, B = 1, ...).
+    var COL = {
+      game: 0, week: 1, slot: 2, picker: 3, home: 4, away: 5, homePick: 6, awayPick: 7,
+      homeOdds: 8, awayOdds: 9, amount: 10, scorer: 11, correct: 12, side: 13, offered: 14, units: 15, dollars: 16,
+    };
+    function cellStr(r, c) { var v = r[COL[c]]; return v == null ? '' : String(v).trim(); }
+    function cellNum(r, c) { return parseFloat(cellStr(r, c).replace(/[$,]/g, '')) || 0; }
+
+    // One sheet row -> one bet. Everything on the site reads rows through this.
+    function readBet(r) {
+      var b = {
+        game: cellStr(r, 'game'), week: cellStr(r, 'week'), slot: cellStr(r, 'slot'), picker: cellStr(r, 'picker'),
+        home: cellStr(r, 'home'), away: cellStr(r, 'away'),
+        homePick: cellStr(r, 'homePick'), awayPick: cellStr(r, 'awayPick'),
+        homeOdds: cellStr(r, 'homeOdds'), awayOdds: cellStr(r, 'awayOdds'),
+        scorer: cellStr(r, 'scorer'), correct: cellStr(r, 'correct'), side: cellStr(r, 'side'), wasOffered: cellStr(r, 'offered'),
+        amount: cellNum(r, 'amount'), units: cellNum(r, 'units'), dollars: cellNum(r, 'dollars'),
+      };
+      b.weekN = parseInt(b.week, 10) || 0;
+      b.scored = b.correct === 'Yes' || b.correct === 'No';
+      b.notOffered = isNotOffered(b);
+      return b;
+    }
+    function readBets(values) { return (values || []).slice(1).map(readBet); }
+    // Real bets: a game number and Maria or Danielle (not John's helper rows)
+    function isMDRow(b) { return !!(b.game && b.picker && b.picker !== 'John'); }
+
+    // THE not-offered rule: the first TD scorer wasn't on the board, so the bet didn't count.
+    // Works on any bet object (field names firstScorer/scorer and netUnits/units both accepted).
+    function isNotOffered(b) {
+      var scorer = b.scorer != null ? b.scorer : b.firstScorer;
+      var units = b.units != null ? b.units : b.netUnits;
+      return b.wasOffered === 'No' && units === 0 && !!scorer;
+    }
+
+    // Every season's bets in the shape Analytics and Profiles use, oldest first
+    function statBet(b, year, row) {
+      return {
+        idx: row, row: row, year: year, game: b.game, week: b.weekN, slot: b.slot, side: b.side,
+        picker: b.picker, homeTeam: resolveTeam(b.home), awayTeam: resolveTeam(b.away),
+        homePick: b.homePick, awayPick: b.awayPick,
+        homeOdds: parseFloat(b.homeOdds) || 0, awayOdds: parseFloat(b.awayOdds) || 0,
+        firstScorer: b.scorer, correct: b.correct, wasOffered: b.wasOffered,
+        netUnits: b.units, netDollars: b.dollars, notOffered: b.notOffered,
+      };
+    }
+    var ALL_BETS_PROMISE = null;
+    function loadAllBets() {
+      if (ALL_BETS_PROMISE) return ALL_BETS_PROMISE;
+      ALL_BETS_PROMISE = Promise.all(SEASONS.map(function(s) {
+        var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + s.sheetId + '/values/' + encodeURIComponent(s.tab + '!A1:Q400') + '?key=' + API_KEY;
+        return fetch(url).then(function(r) { return r.json(); }).then(function(d) {
+          return readBets(d.values).map(function(b, i) { return statBet(b, s.year, i + 2); }).filter(isMDRow);
+        }).catch(function() { return []; });
+      })).then(function(lists) {
+        return [].concat.apply([], lists).sort(function(a, b) {
+          return a.year !== b.year ? parseInt(a.year) - parseInt(b.year) : a.idx - b.idx;
+        });
+      });
+      return ALL_BETS_PROMISE;
+    }
+
+    // ── Number formats used everywhere ───────────────────────────────────────
+    function fmtU(n) { return (n >= 0 ? '+' : '') + n.toFixed(1) + 'u'; }                    // +12.5u
+    function fmtD(n) { return (n >= 0 ? '+$' : '-$') + Math.abs(n).toFixed(2); }              // +$45.00
+    function fmtOdds(n) { return '+' + Math.round(n < 100 ? n * 100 : n); }                  // 25 or 2500 -> +2500
+    function fmtDWhole(n) { return (n >= 0 ? '+$' : '-$') + Math.round(Math.abs(n)).toLocaleString('en-US'); } // +$1,033
+    // Full on desktop, shorter on phones
+    function fmtDResp(n) { return '<span class="tn-full">' + fmtD(n) + '</span><span class="tn-short">' + fmtDWhole(n) + '</span>'; }
+    function fmtUResp(n) { return '<span class="tn-full">' + fmtU(n) + '</span><span class="tn-short">' + shortU(n) + '</span>'; }
     // Short numbers for small tiles: +206.5u -> +207u, +$1032.50 -> +$1.0k, +$147.50 -> +$148
     function shortU(v) { var a = Math.abs(v); return (v >= 0 ? '+' : '-') + (a >= 100 ? Math.round(a) : a.toFixed(1)) + 'u'; }
     function shortD(v) { var a = Math.abs(v); return (v >= 0 ? '+' : '-') + '$' + (a >= 1000 ? (a / 1000).toFixed(1) + 'k' : Math.round(a)); }
@@ -143,7 +217,7 @@
       return (t || '').toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    // ── Legacy tab ────────────────────────────────────────────────────────────
+    // ── Team names ─────────────────────────────────────────────────────────────
 
     var TEAM_ALIASES = {
       "Eagles": "Philadelphia Eagles", "Giants": "New York Giants",
@@ -187,15 +261,6 @@
       }
       TEAM_NAME_CACHE[n] = hit || n;
       return TEAM_NAME_CACHE[n];
-    }
-
-    function legacyColoredText(text, team) {
-      var r = resolveTeam(team);
-      if (!r || !TEAM_COLORS[r]) return text;
-      return '<span style="color:' + TEAM_COLORS[r].dark + ';font-weight:600">' + text + '</span>';
-    }
-    function legacyColoredGame(h, a) {
-      return teamLogo(h) + legacyColoredText(teamName2(h), h) + '<span style="color:#9CA3AF"> vs </span>' + teamLogo(a) + legacyColoredText(teamName2(a), a);
     }
 
     // bg/text match the Google Sheet (jersey style). primary = readable team color on white.

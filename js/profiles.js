@@ -2,32 +2,7 @@
 // Part of the MariaVsDanielle site. All js/ files share one global scope and load in the order listed in index.html.
 
     // ── Profiles: career stats + trophy case ────────────────────────────────
-    var ALL_BETS_PROMISE = null;
-    function loadAllBets() {
-      if (ALL_BETS_PROMISE) return ALL_BETS_PROMISE;
-      ALL_BETS_PROMISE = Promise.all(SEASONS.map(function(s) {
-        var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + s.sheetId + '/values/' + encodeURIComponent(s.tab + '!A1:Q400') + '?key=' + API_KEY;
-        return fetch(url).then(function(r) { return r.json(); }).then(function(d) {
-          return (d.values || []).slice(1).map(function(r, i) { r.__row = i + 2; return r; })
-            .filter(function(r) { return r[0] && r[3] && r[3].trim() && r[3].trim() !== 'John'; })
-            .map(function(r) {
-              return {
-                idx: r.__row, row: r.__row, side: (r[13] || '').trim(), game: (r[0] || '').toString().trim(), year: s.year, week: parseInt(r[1]) || 0, slot: (r[2] || '').trim(),
-                picker: (r[3] || '').trim(), homeTeam: resolveTeam(r[4]), awayTeam: resolveTeam(r[5]),
-                homePick: (r[6] || '').trim(), awayPick: (r[7] || '').trim(),
-                homeOdds: parseFloat(r[8]) || 0, awayOdds: parseFloat(r[9]) || 0,
-                firstScorer: (r[11] || '').trim(), correct: (r[12] || '').trim(), wasOffered: (r[14] || '').trim(),
-                netUnits: parseFloat(r[15]) || 0, netDollars: parseFloat(String(r[16] || '').replace(/[$,]/g, '')) || 0,
-              };
-            });
-        }).catch(function() { return []; });
-      })).then(function(lists) {
-        return [].concat.apply([], lists).sort(function(a, b) {
-          return a.year !== b.year ? parseInt(a.year) - parseInt(b.year) : a.idx - b.idx;
-        });
-      });
-      return ALL_BETS_PROMISE;
-    }
+    // loadAllBets() lives in core.js (Analytics uses it too)
 
     var PROFILE_WHO = 'Maria';
     function openProfile(name) { PROFILE_WHO = name; switchTab('profiles'); }
@@ -70,14 +45,13 @@
 
     function profileStats(who, rows, jx, bb) {
       var other = who === 'Maria' ? 'Danielle' : 'Maria';
-      function notOffered(r) { return r.wasOffered === 'No' && r.netUnits === 0 && r.firstScorer !== ''; }
       function wk(r) { return r.year + ' Wk ' + r.week; }
       function hitOdds(r) {
         var o = r.firstScorer === r.homePick ? r.homeOdds : r.firstScorer === r.awayPick ? r.awayOdds : Math.max(r.homeOdds, r.awayOdds);
         return Math.abs(o);
       }
       var mine = rows.filter(function(r) { return r.picker === who && (r.homePick || r.awayPick); });
-      var scored = mine.filter(function(r) { return (r.correct === 'Yes' || r.correct === 'No') && !notOffered(r); });
+      var scored = mine.filter(function(r) { return (r.correct === 'Yes' || r.correct === 'No') && !isNotOffered(r); });
       var allScored = mine.filter(function(r) { return r.correct === 'Yes' || r.correct === 'No'; });
       var S = { who: who, picks: mine.length, w: 0, n: scored.length, units: 0, dollars: 0 };
       allScored.forEach(function(r) { S.units += r.netUnits; S.dollars += r.netDollars; });
@@ -102,7 +76,7 @@
         var k = r.year + '_' + r.week;
         var W = weeks[k] || (weeks[k] = { year: r.year, week: r.week, done: true, c: { Maria: 0, Danielle: 0 }, g: { Maria: 0, Danielle: 0 } });
         if (r.correct !== 'Yes' && r.correct !== 'No') { W.done = false; return; }
-        if (notOffered(r)) return;
+        if (isNotOffered(r)) return;
         W.g[r.picker]++;
         if (r.correct === 'Yes') W.c[r.picker]++;
       });
@@ -147,15 +121,14 @@
     }
 
     function achievementsFor(S) {
-      function odds(n) { return '+' + Math.round(n < 100 ? n * 100 : n); }
       function hitAt(min) { return S.hits.filter(function(h) { return h.odds >= min; })[0]; }
-      function hitLabel(h) { return h ? h.r.year + ' Wk ' + h.r.week + ' · ' + h.r.firstScorer + ' ' + odds(h.odds) : ''; }
+      function hitLabel(h) { return h ? h.r.year + ' Wk ' + h.r.week + ' · ' + h.r.firstScorer + ' ' + fmtOdds(h.odds) : ''; }
       var sniper = hitAt(20), moon = hitAt(30);
       var beats = S.beats;
       var heart = beats ? beats.filter(function(b) { return b.gap <= 2; })[0] : null;
       var A = [
-        { ic: '🎯', n: 'Sniper', d: 'Hit a pick at +2000 or longer', got: !!sniper, w: hitLabel(sniper), p: [S.best ? Math.min(S.best.odds, 20) : 0, 20], pl: S.best ? 'Best so far ' + odds(S.best.odds) : '' },
-        { ic: '🚀', n: 'Moonshot', d: 'Hit a pick at +3000 or longer', got: !!moon, w: hitLabel(moon), p: [S.best ? Math.min(S.best.odds, 30) : 0, 30], pl: S.best ? 'Best so far ' + odds(S.best.odds) : '' },
+        { ic: '🎯', n: 'Sniper', d: 'Hit a pick at +2000 or longer', got: !!sniper, w: hitLabel(sniper), p: [S.best ? Math.min(S.best.odds, 20) : 0, 20], pl: S.best ? 'Best so far ' + fmtOdds(S.best.odds) : '' },
+        { ic: '🚀', n: 'Moonshot', d: 'Hit a pick at +3000 or longer', got: !!moon, w: hitLabel(moon), p: [S.best ? Math.min(S.best.odds, 30) : 0, 30], pl: S.best ? 'Best so far ' + fmtOdds(S.best.odds) : '' },
         { ic: '🔥', n: 'Heater', d: '3 correct picks in a row', got: S.heater.n >= 3, w: S.heater.n >= 3 ? 'Best run: ' + S.heater.n + ' · ' + S.heater.at : '', p: [Math.min(S.heater.n, 3), 3] },
         { ic: '🌋', n: 'On Fire', d: '5 correct picks in a row', got: S.heater.n >= 5, w: S.heater.n >= 5 ? 'Best run: ' + S.heater.n + ' · ' + S.heater.at : '', p: [Math.min(S.heater.n, 5), 5] },
         { ic: '🧹', n: 'Clean Sweep', d: 'Go perfect in a week (2+ games)', got: !!S.sweep, w: S.sweep || '' },
@@ -190,11 +163,8 @@
 
       function draw(bb) {
         var S = profileStats(who, rows, jx, bb);
-        var pc = who === 'Maria' ? SB_M : SB_D;
+        var pc = personColor(who);
         var grad = who === 'Maria' ? 'linear-gradient(140deg,#0F0F12 0%,#3B0D0D 55%,#991B1B 100%)' : 'linear-gradient(140deg,#0F0F12 0%,#0C1A3D 55%,#1E40AF 100%)';
-        function u(n) { return (n >= 0 ? '+' : '') + n.toFixed(1) + 'u'; }
-        function money(n) { return (n >= 0 ? '+$' : '-$') + Math.abs(n).toFixed(2); }
-        function odds(n) { return '+' + Math.round(n < 100 ? n * 100 : n); }
         var seasons = Object.keys(S.seasons).length;
 
         var h = profileSwitchHtml(who);
@@ -205,13 +175,13 @@
           '<div class="pf-sub">' + seasons + ' season' + (seasons === 1 ? '' : 's') + ' · ' + S.picks + ' picks' + (S.titles.length ? ' · 🏆 ' + S.titles.join(', ') + ' champ' : '') + '</div>' +
           '<div class="pf-big">' +
             '<div><b>' + S.w + '/' + S.n + '</b><span>Record · ' + (S.n ? Math.round(S.w / S.n * 100) : 0) + '%</span></div>' +
-            '<div title="' + u(S.units) + '"><b style="color:' + (S.units >= 0 ? '#34D399' : '#F87171') + '">' + shortU(S.units) + '</b><span>Units</span></div>' +
-            '<div title="' + money(S.dollars) + '"><b style="color:' + (S.dollars >= 0 ? '#34D399' : '#F87171') + '">' + shortD(S.dollars) + '</b><span>Money</span></div>' +
+            '<div title="' + fmtU(S.units) + '"><b style="color:' + (S.units >= 0 ? '#34D399' : '#F87171') + '">' + shortU(S.units) + '</b><span>Units</span></div>' +
+            '<div title="' + fmtD(S.dollars) + '"><b style="color:' + (S.dollars >= 0 ? '#34D399' : '#F87171') + '">' + shortD(S.dollars) + '</b><span>Money</span></div>' +
           '</div></div>';
 
         function tile(l, v, sub) { return '<div class="pf-tile"><div class="l">' + l + '</div><div class="v">' + v + '</div>' + (sub ? '<div class="s">' + sub + '</div>' : '') + '</div>'; }
         h += '<div class="pf-tiles">' +
-          tile('Best Hit', S.best ? S.best.r.firstScorer + ' ' + odds(S.best.odds) : '—', S.best ? S.best.r.year + ' Wk ' + S.best.r.week : '') +
+          tile('Best Hit', S.best ? S.best.r.firstScorer + ' ' + fmtOdds(S.best.odds) : '—', S.best ? S.best.r.year + ' Wk ' + S.best.r.week : '') +
           tile('Weeks Won', S.weeksWon, 'Most correct that week') +
           tile('Longest Heater', S.heater.n + ' straight', S.heater.at || '') +
           tile('Ride or Die', S.fav ? S.fav.name : '—', S.fav ? 'picked ' + S.fav.n + 'x' : '') +
@@ -297,7 +267,7 @@
         // ⚔️ Head to head vs Maria and Danielle: games where only one of them hit
         h += '<div class="pf-h">⚔️ Head to Head <small>games where only one side hit</small></div>';
         ['Maria', 'Danielle'].forEach(function(who) {
-          var x = S.h2h[who], c2 = who === 'Maria' ? SB_M : SB_D, tot = x.me + x.them;
+          var x = S.h2h[who], c2 = personColor(who), tot = x.me + x.them;
           var verdict = !tot ? 'No decided games yet' : x.me > x.them ? escHtml(name) + ' leads' : x.them > x.me ? who + ' leads' : 'All square';
           h += '<div class="h2h"><div class="h2h-top"><span><b style="color:' + col + '">' + escHtml(name) + ' ' + x.me + '</b></span>' +
             '<span class="h2h-mid">vs ' + who + ' · ' + verdict + '</span><span><b style="color:' + c2 + '">' + x.them + ' ' + who + '</b></span></div>' +

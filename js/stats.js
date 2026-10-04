@@ -4,16 +4,15 @@
     // ── Running units chart (Stats tab) ──────────────────────────────────────
     function unitsChart(rows) {
       var games = [], idx = {};
-      rows.forEach(function(r) {
-        var c = (r[12] || '').trim();
-        var p = (r[3] || '').trim();
-        if ((c !== 'Yes' && c !== 'No') || (p !== 'Maria' && p !== 'Danielle')) return;
-        var k = (r[1] || '') + '_' + (r[0] || '');
+      rows.forEach(function(b) {
+        var p = b.picker;
+        if (!b.scored || (p !== 'Maria' && p !== 'Danielle')) return;
+        var k = b.week + '_' + b.game;
         if (!(k in idx)) {
           idx[k] = games.length;
-          games.push({ week: (r[1] || '').trim(), home: r[4] || '', away: r[5] || '', Maria: 0, Danielle: 0 });
+          games.push({ week: b.week, home: b.home, away: b.away, Maria: 0, Danielle: 0 });
         }
-        games[idx[k]][p] += parseFloat(r[15]) || 0;
+        games[idx[k]][p] += b.units;
       });
       if (games.length < 2) return '';
 
@@ -77,9 +76,8 @@
         var mid = (ym + yd) / 2, up = m[n] >= d[n];
         ym = mid + (up ? -7 : 7); yd = mid + (up ? 7 : -7);
       }
-      function fmt(v) { return (v >= 0 ? '+' : '') + v.toFixed(1); }
-      svg += '<text x="' + (x(n) + 8) + '" y="' + (ym + 4) + '" font-size="12" font-weight="700" fill="' + SB_M + '">' + fmt(m[n]) + '</text>';
-      svg += '<text x="' + (x(n) + 8) + '" y="' + (yd + 4) + '" font-size="12" font-weight="700" fill="' + SB_D + '">' + fmt(d[n]) + '</text>';
+      svg += '<text x="' + (x(n) + 8) + '" y="' + (ym + 4) + '" font-size="12" font-weight="700" fill="' + SB_M + '">' + fmtU(m[n]).replace('u', '') + '</text>';
+      svg += '<text x="' + (x(n) + 8) + '" y="' + (yd + 4) + '" font-size="12" font-weight="700" fill="' + SB_D + '">' + fmtU(d[n]).replace('u', '') + '</text>';
       svg += '</svg>';
 
       return '<hr class="divider">' +
@@ -94,26 +92,21 @@
     // ── Weekly recap (Stats tab) ─────────────────────────────────────────────
     function weeklyRecap(rows) {
       var weeks = {};
-      rows.forEach(function(r) {
-        var wk = (r[1] || '').trim();
-        var p = (r[3] || '').trim();
-        var hp = (r[6] || '').trim(), ap = (r[7] || '').trim();
+      rows.forEach(function(b) {
+        var wk = b.week, p = b.picker, hp = b.homePick, ap = b.awayPick;
         if (!wk || (p !== 'Maria' && p !== 'Danielle') || (!hp && !ap)) return;
         if (!weeks[wk]) weeks[wk] = { Maria: { w: 0, t: 0, u: 0 }, Danielle: { w: 0, t: 0, u: 0 }, pending: 0, best: null };
         var W = weeks[wk];
-        var c = (r[12] || '').trim();
-        var nu = parseFloat(r[15]) || 0;
-        var scorer = (r[11] || '').trim();
-        if (c !== 'Yes' && c !== 'No') { W.pending++; return; }
+        var c = b.correct, nu = b.units, scorer = b.scorer;
+        if (!b.scored) { W.pending++; return; }
         W[p].u += nu;
-        var notOffered = (r[14] || '').trim() === 'No' && nu === 0 && scorer !== '';
-        if (notOffered) return;
+        if (b.notOffered) return;
         W[p].t++;
         if (c === 'Yes') {
           W[p].w++;
           if (!W.best || nu > W.best.u) {
-            var team = scorer === hp ? r[4] : scorer === ap ? r[5] : '';
-            var odds = scorer === hp ? r[8] : scorer === ap ? r[9] : '';
+            var team = scorer === hp ? b.home : scorer === ap ? b.away : '';
+            var odds = scorer === hp ? b.homeOdds : scorer === ap ? b.awayOdds : '';
             W.best = { p: p, u: nu, player: scorer, team: team, odds: odds };
           }
         }
@@ -131,7 +124,7 @@
 
       var wk = keys[0], W = weeks[wk], M = W.Maria, D = W.Danielle;
       var live = false;
-      function u(n) { return (n >= 0 ? '+' : '') + n.toFixed(1) + 'u'; }
+      var u = fmtU;
       var mName = '<span style="color:' + SB_M + ';font-weight:700">Maria</span>';
       var dName = '<span style="color:' + SB_D + ';font-weight:700">Danielle</span>';
 
@@ -151,7 +144,7 @@
           (mWins ? dName : mName) + ' went ' + lose.w + '/' + lose.t + ' (' + u(lose.u) + ').';
       }
       if (W.best) {
-        var pc = W.best.p === 'Maria' ? SB_M : SB_D;
+        var pc = personColor(W.best.p);
         var player = W.best.team ? teamPill(W.best.player, W.best.team) : '<b>' + W.best.player + '</b>';
         text += ' Biggest hit: ' + player + (W.best.odds ? ' at ' + formatOdds(W.best.odds) : '') +
           ' for <span style="color:' + pc + ';font-weight:600">' + W.best.p + '</span>.';
@@ -170,12 +163,9 @@
       return '+' + Math.round(n * 100);
     }
 
-    function getPickAndOdds(row) {
-      if (!row) return { player: '—', odds: '—' };
-      const homePick = (row[6] || '').trim();
-      const awayPick = (row[7] || '').trim();
-      const homeOdds = row[8] || '';
-      const awayOdds = row[9] || '';
+    function getPickAndOdds(b) {
+      if (!b) return { player: '—', odds: '—' };
+      const { homePick, awayPick, homeOdds, awayOdds } = b;
       // Both picks present — show both
       if (homePick && awayPick) return { player: `${homePick} / ${awayPick}`, odds: `${formatOdds(homeOdds)} / ${formatOdds(awayOdds)}` };
       if (homePick) return { player: homePick, odds: formatOdds(homeOdds) };
@@ -185,54 +175,24 @@
 
     async function load() {
       try {
-        const bets = await fetchSheet('Winnings', 'A1:Q400');
-        const rows = bets.slice(1).filter(r => r[0] && r[3]);
+        const rows = readBets(await fetchSheet('Winnings', 'A1:Q400')).filter(b => b.game && b.picker);
+        const counts = (b) => b.scored && !b.notOffered; // a real win or loss
 
         let mCorrect = 0, mTotal = 0, dCorrect = 0, dTotal = 0;
-        const betLog = [];
-
-        for (const r of rows) {
-          const picker = (r[3] || '').trim();
-          const homeTeam = r[4] || '';
-          const awayTeam = r[5] || '';
-          const homePick = (r[6] || '').trim();
-          const awayPick = (r[7] || '').trim();
-          const homeOdds = r[8] || '';
-          const awayOdds = r[9] || '';
-          const correct = (r[12] || '').trim();
-          const wasOffered = (r[14] || '').trim();
-          const game = homeTeam && awayTeam ? `${homeTeam} vs ${awayTeam}` : '';
-          const netUnits = parseFloat(r[15]) || 0;
-          // Only count in stats if both picks are made AND game has been scored
-          const notOffered = wasOffered === 'No' && netUnits === 0 && (r[11] || '').trim() !== '';
-          const gameScored = (correct === 'Yes' || correct === 'No') && !notOffered;
-          if (picker === 'Maria' && gameScored) { mTotal++; if (correct === 'Yes') mCorrect++; }
-          else if (picker === 'Danielle' && gameScored) { dTotal++; if (correct === 'Yes') dCorrect++; }
-          // Only include in betLog if both picks exist
-          if (homePick && awayPick) {
-            betLog.push({ picker, game, homeTeam, awayTeam, homePick, awayPick, homeOdds, awayOdds, correct, wasOffered, netUnits, searchText: `${game} ${picker} ${homePick} ${awayPick}`.toLowerCase() });
-          }
+        for (const b of rows) {
+          if (!counts(b)) continue;
+          if (b.picker === 'Maria') { mTotal++; if (b.correct === 'Yes') mCorrect++; }
+          else if (b.picker === 'Danielle') { dTotal++; if (b.correct === 'Yes') dCorrect++; }
         }
 
-        // Calculate current streak per person
+        // Current streak per person (not-offered games skipped)
         function getCurrentStreak(picker) {
-          // Filter to scored games, skip not-offered (correct=No but netUnits=0)
-          const personBets = rows.filter(r => {
-            const correct = (r[12] || '').trim();
-            const homePick = (r[6] || '').trim();
-            const awayPick = (r[7] || '').trim();
-            const wasOffered = (r[14] || '').trim();
-            const netUnits = parseFloat(r[15]) || 0;
-            const notOffered = wasOffered === 'No' && netUnits === 0 && (r[11] || '').trim() !== '';
-            return r[3] === picker && (homePick || awayPick) && (correct === 'Yes' || correct === 'No') && !notOffered;
-          });
+          const personBets = rows.filter(b => b.picker === picker && (b.homePick || b.awayPick) && counts(b));
           if (!personBets.length) return { count: 0, type: null };
-          const last = personBets[personBets.length - 1];
-          const type = last[12].trim() === 'Yes' ? 'win' : 'loss';
+          const type = personBets[personBets.length - 1].correct === 'Yes' ? 'win' : 'loss';
           let count = 0;
           for (let i = personBets.length - 1; i >= 0; i--) {
-            const t = personBets[i][12].trim() === 'Yes' ? 'win' : 'loss';
-            if (t === type) count++;
+            if ((personBets[i].correct === 'Yes' ? 'win' : 'loss') === type) count++;
             else break;
           }
           return { count, type };
@@ -243,17 +203,11 @@
         // Combined streak: increases when at least one person wins, breaks only when BOTH lose
         function getCombinedStreak() {
           const gameMap = {};
-          rows.forEach(r => {
-            const correct = (r[12] || '').trim();
-            const picker = (r[3] || '').trim();
-            const homePick = (r[6] || '').trim();
-            const wasOffered = (r[14] || '').trim();
-            const netUnits = parseFloat(r[15]) || 0;
-            const notOffered = wasOffered === 'No' && netUnits === 0 && (r[11] || '').trim() !== '';
-            if (!homePick || !(correct === 'Yes' || correct === 'No') || notOffered) return;
-            const gameKey = (r[0] || '') + '_' + (r[1] || '') + '_' + (r[4] || '') + '_' + (r[5] || '');
+          rows.forEach(b => {
+            if (!b.homePick || !counts(b)) return;
+            const gameKey = b.game + '_' + b.week + '_' + b.home + '_' + b.away;
             if (!gameMap[gameKey]) gameMap[gameKey] = { order: Object.keys(gameMap).length };
-            gameMap[gameKey][picker] = correct;
+            gameMap[gameKey][b.picker] = b.correct;
           });
           const both = Object.values(gameMap)
             .filter(g => g.Maria && g.Danielle)
@@ -261,8 +215,7 @@
           if (!both.length) return { count: 0, type: null };
           // A game is a "combined win" if at least one person got it right; "combined loss" only if both wrong
           const gameType = g => (g.Maria === 'Yes' || g.Danielle === 'Yes') ? 'win' : 'loss';
-          const last = both[both.length - 1];
-          const lastType = gameType(last);
+          const lastType = gameType(both[both.length - 1]);
           let count = 0;
           for (let i = both.length - 1; i >= 0; i--) {
             if (gameType(both[i]) === lastType) count++;
@@ -272,17 +225,12 @@
         }
         const combinedStreak = getCombinedStreak();
 
-        // Calculate units/dollars only from scored games
+        // Units/dollars from scored games
         let mariaUnits = 0, danielleUnits = 0, mariaDollars = 0, danielleDollars = 0;
-        for (const r of rows) {
-          const picker = (r[3] || '').trim();
-          const correct = (r[12] || '').trim();
-          const gameScored2 = correct === 'Yes' || correct === 'No';
-          if (!gameScored2) continue;
-          const nu = parseFloat(r[15]) || 0;
-          const nd = parseFloat(r[16]) || 0;
-          if (picker === 'Maria') { mariaUnits += nu; mariaDollars += nd; }
-          else if (picker === 'Danielle') { danielleUnits += nu; danielleDollars += nd; }
+        for (const b of rows) {
+          if (!b.scored) continue;
+          if (b.picker === 'Maria') { mariaUnits += b.units; mariaDollars += b.dollars; }
+          else if (b.picker === 'Danielle') { danielleUnits += b.units; danielleDollars += b.dollars; }
         }
 
         // Leader banner
@@ -301,17 +249,10 @@
 
         // Stats
         const statsEl = document.getElementById('stats-section');
-        const mDolStr = (mariaDollars >= 0 ? '+' : '') + '$' + mariaDollars.toFixed(2);
-        const dDolStr = (danielleDollars >= 0 ? '+' : '') + '$' + danielleDollars.toFixed(2);
-        const mUnitStr = (mariaUnits >= 0 ? '+' : '') + mariaUnits.toFixed(1);
-        const dUnitStr = (danielleUnits >= 0 ? '+' : '') + danielleUnits.toFixed(1);
-        // Calculate weeks won — group by week number (col B = r[1]), only count complete weeks
+        // Weeks won: only complete weeks count
         const weekWins = {};
-        for (const r of rows) {
-          const correct = (r[12] || '').trim();
-          const picker = (r[3] || '').trim();
-          const homePick = (r[6] || '').trim();
-          const wk = (r[1] || '').trim(); // week number is col B
+        for (const b of rows) {
+          const correct = b.correct, picker = b.picker, homePick = b.homePick, wk = b.week;
           if (!wk) continue;
           if (!weekWins[wk]) weekWins[wk] = { Maria: 0, Danielle: 0, total: 0, incomplete: false };
           if (homePick && !correct) weekWins[wk].incomplete = true;
@@ -349,19 +290,19 @@
 
         // Live picks — show all pending games
         const liveEl = document.getElementById('live-picks');
-        const pendingRows = rows.filter(r => (!r[11] || r[11].trim() === '') && (r[6] || '').trim() && (r[7] || '').trim());
+        const pendingRows = rows.filter(b => !b.scorer && b.homePick && b.awayPick);
         if (pendingRows.length === 0) {
           liveEl.innerHTML = '<div class="no-live">No pending picks — all games have been scored.</div>';
         } else {
           // Group by game number
-          const pendingGames = [...new Set(pendingRows.map(r => r[0]))];
+          const pendingGames = [...new Set(pendingRows.map(b => b.game))];
           let html = '';
           for (const gameNum of pendingGames) {
-            const gameRows = pendingRows.filter(r => r[0] === gameNum);
-            const mariaRow = gameRows.find(r => r[3] === 'Maria');
-            const danielleRow = gameRows.find(r => r[3] === 'Danielle');
-            const homeTeamName = mariaRow ? mariaRow[4] : danielleRow ? danielleRow[4] : '';
-            const awayTeamName = mariaRow ? mariaRow[5] : danielleRow ? danielleRow[5] : '';
+            const gameRows = pendingRows.filter(b => b.game === gameNum);
+            const mariaRow = gameRows.find(b => b.picker === 'Maria');
+            const danielleRow = gameRows.find(b => b.picker === 'Danielle');
+            const homeTeamName = (mariaRow || danielleRow || {}).home || '';
+            const awayTeamName = (mariaRow || danielleRow || {}).away || '';
             const homeC = teamColor(homeTeamName);
             const awayC = teamColor(awayTeamName);
 
@@ -369,9 +310,9 @@
             if (!mariaRow || !danielleRow) {
               const done = mariaRow ? 'Maria' : 'Danielle';
               const waiting = mariaRow ? 'Danielle' : 'Maria';
-              const doneC = done === 'Maria' ? SB_M : SB_D;
-              const waitC = waiting === 'Maria' ? SB_M : SB_D;
-              html += `<div class="live-game" data-wg="${(mariaRow || danielleRow)[1]}_${gameNum}" style="margin-top:${html ? '22px' : '0'}">
+              const doneC = personColor(done);
+              const waitC = personColor(waiting);
+              html += `<div class="live-game" data-wg="${(mariaRow || danielleRow).week}_${gameNum}" style="margin-top:${html ? '22px' : '0'}">
               <div class="live-game-title">
                 ${teamPill(homeTeamName, homeTeamName)}
                 <span style="color:rgba(255,255,255,0.45)"> vs </span>
@@ -396,8 +337,8 @@
               return colored.join('<br>');
             }
 
-            const revealKey = (mariaRow[1] || '') + '_' + gameNum + '_' + homeTeamName;
-            html += `<div class="live-game" data-reveal="${revealKey}" data-wg="${mariaRow[1]}_${gameNum}" style="margin-top:${html ? '22px' : '0'}">
+            const revealKey = mariaRow.week + '_' + gameNum + '_' + homeTeamName;
+            html += `<div class="live-game" data-reveal="${revealKey}" data-wg="${mariaRow.week}_${gameNum}" style="margin-top:${html ? '22px' : '0'}">
               <div class="live-game-title">
                 ${teamPill(homeTeamName, homeTeamName)}
                 <span style="color:rgba(255,255,255,0.45)"> vs </span>
@@ -516,10 +457,10 @@
     function renderFirstTDs(rows, pickWeek) {
       var wrap = document.getElementById('ftd-wrap');
       if (!wrap) return;
-      var weeks = rows.filter(function(r) { return (r[11] || '').trim(); }).map(function(r) { return parseInt(r[1], 10) || 0; });
+      var weeks = rows.filter(function(b) { return b.scorer; }).map(function(b) { return b.weekN; });
       if (!weeks.length) { wrap.style.display = 'none'; return; }
       var latest = Math.max.apply(null, weeks);
-      var allWeeks = rows.filter(function(r) { return (r[4] || '').trim(); }).map(function(r) { return parseInt(r[1], 10) || 0; })
+      var allWeeks = rows.filter(function(b) { return b.home; }).map(function(b) { return b.weekN; })
         .filter(function(w, i, a) { return w && a.indexOf(w) === i; }).sort(function(a, b) { return a - b; });
       FTD.rows = rows;
       if (pickWeek) { FTD.week = pickWeek; FTD.picked = pickWeek !== latest; }
@@ -527,15 +468,13 @@
       var week = (FTD.picked && allWeeks.indexOf(FTD.week) >= 0) ? FTD.week : latest;
       FTD.week = week;
       var G = {}, order = [];
-      rows.forEach(function(r) {
-        if ((parseInt(r[1], 10) || 0) !== week || !(r[4] || '').trim()) return;
-        var k = String(r[0]).trim();
-        var g = G[k] || (G[k] = (order.push(k), { game: k, slot: (r[2] || '').trim(), home: r[4].trim(), away: (r[5] || '').trim(), scorer: '', side: '', md: {}, notOffered: false }));
-        var sc = (r[11] || '').trim();
-        if (sc) { g.scorer = sc; g.side = (r[13] || '').trim(); }
-        if (sc && (r[14] || '').trim() === 'No' && (parseFloat(r[15]) || 0) === 0) g.notOffered = true;
-        var who = (r[3] || '').trim();
-        if (who === 'Maria' || who === 'Danielle') g.md[who] = (r[12] || '').trim();
+      rows.forEach(function(b) {
+        if (b.weekN !== week || !b.home) return;
+        var k = b.game;
+        var g = G[k] || (G[k] = (order.push(k), { game: k, slot: b.slot, home: b.home, away: b.away, scorer: '', side: '', md: {}, notOffered: false }));
+        if (b.scorer) { g.scorer = b.scorer; g.side = b.side; }
+        if (b.notOffered) g.notOffered = true;
+        if (b.picker === 'Maria' || b.picker === 'Danielle') g.md[b.picker] = b.correct;
       });
       var done = order.filter(function(k) { return G[k].scorer; }).length;
       var wi = allWeeks.indexOf(week);
@@ -557,7 +496,7 @@
           var team = /^home$/i.test(g.side) ? g.home : /^away$/i.test(g.side) ? g.away : '';
           var hits = ['Maria', 'Danielle'].filter(function(n) { return g.md[n] === 'Yes'; });
           var who = g.notOffered ? 'Not offered, so no bet counted'
-            : hits.length ? hits.map(function(n) { return '<span class="hit" style="color:' + (n === 'Maria' ? SB_M : SB_D) + '">✅ ' + n + '</span>'; }).join(' & ') + ' had him'
+            : hits.length ? hits.map(function(n) { return '<span class="hit" style="color:' + (personColor(n)) + '">✅ ' + n + '</span>'; }).join(' & ') + ' had him'
             : 'Nobody had him';
           h += '<div class="ftd-scorer">' + (team ? headshot(g.scorer, team, 34) : '🏈 ') + '<div class="ftd-sc-txt">' + (team ? teamPill(escHtml(g.scorer), team) : '<b>' + escHtml(g.scorer) + '</b>') +
             '<div class="ftd-who">' + who + '<span class="ftd-friends"></span></div></div></div>';
@@ -608,8 +547,8 @@
       var wrap = document.getElementById('hist-wrap');
       if (!wrap || typeof loadAllBets !== 'function') return;
       // "This week" = the earliest week that still has games to score, else the latest week
-      var open = rows.filter(function(r) { return (r[4] || '').trim() && !(r[11] || '').trim(); }).map(function(r) { return parseInt(r[1], 10) || 0; }).filter(Boolean);
-      var all = rows.map(function(r) { return parseInt(r[1], 10) || 0; }).filter(Boolean);
+      var open = rows.filter(function(b) { return b.home && !b.scorer; }).map(function(b) { return b.weekN; }).filter(Boolean);
+      var all = rows.map(function(b) { return b.weekN; }).filter(Boolean);
       var week = open.length ? Math.min.apply(null, open) : all.length ? Math.max.apply(null, all) : 0;
       if (!week || week === HIST.week) return;
       HIST.week = week;
@@ -622,7 +561,7 @@
         });
         var ys = Object.keys(years).sort(function(a, b) { return b - a; });
         if (!ys.length) { wrap.style.display = 'none'; return; }
-        function c(n) { return n === 'Maria' ? SB_M : SB_D; }
+        function c(n) { return personColor(n); }
         function u(v) { v = Math.round(v * 10) / 10; return (v > 0 ? '+' : '') + v + 'u'; }
         var h = '';
         ys.forEach(function(y) {
@@ -631,8 +570,7 @@
           list.forEach(function(b) {
             units[b.picker] += b.netUnits;
             if (b.firstScorer) scorers[b.firstScorer] = b.slot;
-            var no = b.wasOffered === 'No' && b.netUnits === 0 && b.firstScorer;
-            if (b.correct === 'Yes' && !no) {
+            if (b.correct === 'Yes' && !b.notOffered) {
               var odds = b.firstScorer === b.homePick ? b.homeOdds : b.firstScorer === b.awayPick ? b.awayOdds : Math.max(b.homeOdds, b.awayOdds);
               var team = b.firstScorer === b.homePick ? b.homeTeam : b.firstScorer === b.awayPick ? b.awayTeam : '';
               hits.push({ who: b.picker, name: b.firstScorer, odds: odds, team: team, slot: b.slot });
@@ -666,7 +604,7 @@
       var el = document.getElementById('pace-line');
       if (!el) return;
       var weeks = {};
-      rows.forEach(function(r) { var c = (r[12] || '').trim(); if (c === 'Yes' || c === 'No') weeks[parseInt(r[1], 10) || 0] = 1; });
+      rows.forEach(function(b) { if (b.scored) weeks[b.weekN] = 1; });
       var done = Object.keys(weeks).filter(function(w) { return +w > 0 && +w <= 18; }).length;
       if (done < 2 || done >= 18) { el.style.display = 'none'; return; }
       function p(u) { var x = Math.round(u / done * 18); return (x >= 0 ? '+' : '') + x + 'u'; }
@@ -679,14 +617,13 @@
     var VISIT = { shown: false, parts: [], chat: 0 };
     function renderVisitBanner(rows) {
       var G = {}, order = [];
-      rows.forEach(function(r) {
-        var sc = (r[11] || '').trim(); if (!sc) return;
-        var k = CURRENT_YEAR + '_' + (r[1] || '').trim() + '_' + String(r[0]).trim();
-        var g = G[k] || (G[k] = (order.push(k), { week: parseInt(r[1], 10) || 0, scorer: sc, hits: [] }));
-        var who = (r[3] || '').trim(), notOffered = (r[14] || '').trim() === 'No' && (parseFloat(r[15]) || 0) === 0;
-        if ((who === 'Maria' || who === 'Danielle') && (r[12] || '').trim() === 'Yes' && !notOffered) {
-          var odds = sc === (r[6] || '').trim() ? r[8] : r[9];
-          g.hits.push({ who: who, odds: formatOdds(odds) });
+      rows.forEach(function(b) {
+        var sc = b.scorer; if (!sc) return;
+        var k = CURRENT_YEAR + '_' + b.week + '_' + b.game;
+        var g = G[k] || (G[k] = (order.push(k), { week: b.weekN, scorer: sc, hits: [] }));
+        var who = b.picker;
+        if ((who === 'Maria' || who === 'Danielle') && b.correct === 'Yes' && !b.notOffered) {
+          g.hits.push({ who: who, odds: formatOdds(sc === b.homePick ? b.homeOdds : b.awayOdds) });
         }
       });
       var saved = null;
@@ -697,7 +634,7 @@
       if (!saved || !saved.scored) return; // first visit on this phone: nothing to compare yet
       var fresh = order.filter(function(k) { return saved.scored.indexOf(k) < 0; });
       var hits = [];
-      fresh.forEach(function(k) { G[k].hits.forEach(function(h) { hits.push('<b style="color:' + (h.who === 'Maria' ? SB_M : SB_D) + '">' + h.who + '</b> hit <b>' + escHtml(G[k].scorer) + '</b> (' + h.odds + ')'); }); });
+      fresh.forEach(function(k) { G[k].hits.forEach(function(h) { hits.push('<b style="color:' + (personColor(h.who)) + '">' + h.who + '</b> hit <b>' + escHtml(G[k].scorer) + '</b> (' + h.odds + ')'); }); });
       var parts = hits.slice(0, 3);
       if (hits.length > 3) parts.push('+' + (hits.length - 3) + ' more hits');
       if (fresh.length) parts.push(fresh.length + ' game' + (fresh.length > 1 ? 's' : '') + ' scored' + (hits.length ? '' : ', nobody hit'));
@@ -724,7 +661,7 @@
         ['Maria', 'Danielle'].forEach(function(who) {
           now[who].forEach(function(a) {
             if ((saved[who] || []).indexOf(a.k) >= 0) return;
-            news.push('<b style="color:' + (who === 'Maria' ? SB_M : SB_D) + '">' + who + '</b> ' + (a.shame ? 'earned' : 'unlocked') + ' ' + a.ic + ' <b>' + a.k + '</b>' + (a.shame ? ' 🤡' : ''));
+            news.push('<b style="color:' + (personColor(who)) + '">' + who + '</b> ' + (a.shame ? 'earned' : 'unlocked') + ' ' + a.ic + ' <b>' + a.k + '</b>' + (a.shame ? ' 🤡' : ''));
           });
         });
         if (!news.length) return;
@@ -967,7 +904,7 @@
               strip.classList.add('ls-celebrate');
               setTimeout(function(s) { s.classList.remove('ls-celebrate'); }, 4200, strip);
             }
-            var who = hitBy.map(function(n) { return '<span style="color:' + (n === 'Maria' ? SB_M : SB_D) + ';font-weight:700">' + n + '</span>'; });
+            var who = hitBy.map(function(n) { return '<span style="color:' + (personColor(n)) + ';font-weight:700">' + n + '</span>'; });
             tdHtml = '<div class="ls-td">🏈 First TD: <b>' + scorer + '</b>' +
               (picks.length ? (who.length ? ' · 🎉 ' + who.join(' & ') + (who.length > 1 ? ' both' : '') + ' hit it!' : ' · Nobody had him') : '') +
               '</div>';

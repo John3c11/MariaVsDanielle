@@ -169,7 +169,7 @@
 
     function chatBubble(m) {
       var cls = m.who === 'Maria' ? 'maria' : 'danielle';
-      var c = m.who === 'Maria' ? SB_M : SB_D;
+      var c = personColor(m.who);
       var t = m.when ? m.when.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : 'now';
       var pills = m.reactions ? reactionPills(m) : '';
       return '<div class="chat-msg ' + cls + '"' + (m.row ? ' data-row="' + m.row + '"' : '') + '>' +
@@ -299,7 +299,7 @@
       if (!feed) return;
       var pinned = msgs.filter(function(m) { return m.pinned; });
       pinBox.innerHTML = pinned.map(function(m) {
-        return '<div class="chat-pinned">📌 <b style="color:' + (m.who === 'Maria' ? SB_M : SB_D) + '">' + m.who + ':</b> ' + escHtml(m.text) + '</div>';
+        return '<div class="chat-pinned">📌 <b style="color:' + (personColor(m.who)) + '">' + m.who + ':</b> ' + escHtml(m.text) + '</div>';
       }).join('');
       if (!msgs.length) {
         feed.innerHTML = '<div class="chat-empty" style="text-align:center;color:#A1A9B6;padding:28px 0">' +

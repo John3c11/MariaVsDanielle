@@ -13,18 +13,18 @@
     function drawSchedule(values) {
       var el = document.getElementById('schedule-content');
       var games = [], idx = {};
-      values.slice(1).forEach(function(r) {
-        var picker = (r[3] || '').trim();
-        if (!r[0] || !r[4] || (picker !== 'Maria' && picker !== 'Danielle')) return;
-        var k = (r[1] || '') + '_' + r[0];
+      readBets(values).forEach(function(b) {
+        var picker = b.picker;
+        if (!b.game || !b.home || (picker !== 'Maria' && picker !== 'Danielle')) return;
+        var k = b.week + '_' + b.game;
         if (!(k in idx)) {
           idx[k] = games.length;
-          games.push({ week: parseInt(r[1]) || 0, slot: (r[2] || '').trim(), home: resolveTeam(r[4]), away: resolveTeam(r[5]), scorer: '', picked: {}, hit: {} });
+          games.push({ week: b.weekN, slot: b.slot, home: resolveTeam(b.home), away: resolveTeam(b.away), scorer: '', picked: {}, hit: {} });
         }
         var g = games[idx[k]];
-        if ((r[11] || '').trim()) g.scorer = r[11].trim();
-        g.picked[picker] = !!((r[6] || '').trim() && (r[7] || '').trim());
-        g.hit[picker] = (r[12] || '').trim() === 'Yes';
+        if (b.scorer) g.scorer = b.scorer;
+        g.picked[picker] = !!(b.homePick && b.awayPick);
+        g.hit[picker] = b.correct === 'Yes';
       });
       if (!games.length) { el.innerHTML = '<div class="loading">No games entered yet.</div>'; return; }
 
@@ -52,13 +52,13 @@
         if (g.scorer) {
           var hits = ['Maria', 'Danielle'].filter(function(n) { return g.hit[n]; });
           status = '🏈 First TD: <b>' + escHtml(g.scorer) + '</b> · ' + (hits.length
-            ? hits.map(function(n) { var c = n === 'Maria' ? SB_M : SB_D; return '<span class="sch-chip" style="color:' + c + ';background:' + hexA(c, 0.15) + '">✅ ' + n + '</span>'; }).join('')
+            ? hits.map(function(n) { var c = personColor(n); return '<span class="sch-chip" style="color:' + c + ';background:' + hexA(c, 0.15) + '">✅ ' + n + '</span>'; }).join('')
             : '<span style="color:#A1A9B6">nobody had him</span>');
         } else {
           var m = g.picked.Maria, d = g.picked.Danielle;
           if (m && d) status = '<span class="sch-chip" style="color:#6EE7B7;background:rgba(52,211,153,0.14)">✅ Both picks in</span>';
           else if (m || d) {
-            var waiting = m ? 'Danielle' : 'Maria', c = waiting === 'Maria' ? SB_M : SB_D;
+            var waiting = m ? 'Danielle' : 'Maria', c = personColor(waiting);
             status = '<span class="sch-chip" style="color:#FCD34D;background:rgba(251,191,36,0.14)">⏳ Waiting on <span style="color:' + c + '">' + waiting + '</span></span>';
           } else status = '<span class="sch-chip" style="color:#A1A9B6;background:rgba(255,255,255,0.06)">No picks yet</span>';
         }

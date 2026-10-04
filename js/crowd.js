@@ -12,17 +12,17 @@
     // One entry per game from this season's public sheet
     function crowdGames(values) {
       var G = {};
-      values.slice(1).forEach(function(r) {
-        var picker = (r[3] || '').trim();
-        if (!r[0] || !r[4]) return;
-        var k = (r[1] || '') + '_' + r[0];
-        var g = G[k] || (G[k] = { key: k, week: parseInt(r[1]) || 0, game: parseInt(r[0]) || 0, slot: (r[2] || '').trim(), home: resolveTeam(r[4]), away: resolveTeam(r[5]),
+      readBets(values).forEach(function(b) {
+        var picker = b.picker;
+        if (!b.game || !b.home) return;
+        var k = b.week + '_' + b.game;
+        var g = G[k] || (G[k] = { key: k, week: b.weekN, game: parseInt(b.game) || 0, slot: b.slot, home: resolveTeam(b.home), away: resolveTeam(b.away),
           scorer: '', notOffered: false, md: {}, mdCorrect: {} });
-        if ((r[11] || '').trim()) g.scorer = r[11].trim();
-        if ((r[14] || '').trim() === 'No' && (parseFloat(r[15]) || 0) === 0 && (r[11] || '').trim()) g.notOffered = true;
+        if (b.scorer) g.scorer = b.scorer;
+        if (b.notOffered) g.notOffered = true;
         if (picker === 'Maria' || picker === 'Danielle') {
-          g.md[picker] = [(r[6] || '').trim(), (r[7] || '').trim()];
-          g.mdCorrect[picker] = (r[12] || '').trim();
+          g.md[picker] = [b.homePick, b.awayPick];
+          g.mdCorrect[picker] = b.correct;
         }
       });
       return G;
@@ -115,7 +115,7 @@
         var rank = 0;
         h += '<div style="font-size:11px;color:#A1A9B6;text-align:right;margin-bottom:4px">Tap a name to see their profile</div><table class="cr-table"><tr><th>#</th><th>Name</th><th>Record</th><th>Win %</th><th>Streak</th></tr>';
         board.forEach(function(s) {
-          var c = s.ref ? (s.name === 'Maria' ? SB_M : SB_D) : FRIEND_COLOR;
+          var c = s.ref ? (personColor(s.name)) : FRIEND_COLOR;
           if (!s.ref) rank++;
           h += '<tr class="' + (s.ref ? 'ref' : '') + '"><td>' + (s.ref ? '' : (rank === 1 ? '👑' : rank)) + '</td>' +
             '<td style="font-weight:700;color:' + c + '">' + (s.ref ? '<a class="fr-link" data-fname="' + s.name + '" style="color:' + c + '">' + s.name + '</a> <span style="font-size:10px;color:#A1A9B6">(for reference)</span>' : fName(s.name)) + '</td>' +

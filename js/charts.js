@@ -47,7 +47,6 @@
           (r.homePick || r.awayPick) && (r.correct === 'Yes' || r.correct === 'No');
       });
     }
-    function chNotOffered(r) { return r.wasOffered === 'No' && r.netUnits === 0 && !!r.firstScorer; }
 
     // ── 1. Weekly units: one up/down bar per person per week ────────────────
     function weeklyUnitsChart(rows, season) {
@@ -56,7 +55,7 @@
         var k = r.year + '_' + r.week;
         var w = W[k] || (W[k] = (order.push(k), { year: r.year, week: r.week, Maria: { u: 0, h: 0, n: 0 }, Danielle: { u: 0, h: 0, n: 0 } }));
         var p = w[r.picker]; p.u += r.netUnits;
-        if (!chNotOffered(r)) { p.n++; if (r.correct === 'Yes') p.h++; }
+        if (!isNotOffered(r)) { p.n++; if (r.correct === 'Yes') p.h++; }
       });
       if (order.length < 2) return '<div class="ch-empty">Needs at least two weeks of results.</div>';
       var vals = [];
@@ -103,13 +102,13 @@
       ]);
       ['Maria', 'Danielle'].forEach(function(who) {
         var mine = bets.filter(function(r) { return r.picker === who; });
-        var c = who === 'Maria' ? SB_M : SB_D, hits = 0, n = 0;
+        var c = personColor(who), hits = 0, n = 0;
         var cells = '', lastWeek = null, lastYear = null;
         mine.forEach(function(r) {
           if (r.year !== lastYear) { cells += (lastYear ? '<span class="hg-yr">' + r.year + '</span>' : (season === 'all' ? '<span class="hg-yr">' + r.year + '</span>' : '')); lastYear = r.year; lastWeek = null; }
           if (lastWeek !== null && r.week !== lastWeek) cells += '<i class="hg-gap"></i>';
           lastWeek = r.week;
-          var no = chNotOffered(r), hit = r.correct === 'Yes' && !no;
+          var no = isNotOffered(r), hit = r.correct === 'Yes' && !no;
           if (!no) { n++; if (hit) hits++; }
           var tip = (season === 'all' ? r.year + ' ' : '') + 'Wk ' + r.week + ' · ' + resolveTeam(r.homeTeam) + ' vs ' + resolveTeam(r.awayTeam) +
             ' · First TD: ' + (r.firstScorer || '?') + ' · ' + who + ' had ' + [r.homePick, r.awayPick].filter(Boolean).join(' / ') + (no ? ' (not offered)' : hit ? ' ✅' : ' ❌');
@@ -122,7 +121,7 @@
 
     // ── 3. Odds strip: every player picked, placed by his odds ─────────────
     function oddsStripChart(rows, season) {
-      var bets = chDecided(rows, season).filter(function(r) { return !chNotOffered(r); });
+      var bets = chDecided(rows, season).filter(function(r) { return !isNotOffered(r); });
       var pts = { Maria: [], Danielle: [] };
       bets.forEach(function(r) {
         [[r.homePick, r.homeOdds, r.homeTeam], [r.awayPick, r.awayOdds, r.awayTeam]].forEach(function(x) {
@@ -143,7 +142,7 @@
       });
       var notes = [];
       ['Maria', 'Danielle'].forEach(function(who, ri) {
-        var c = who === 'Maria' ? SB_M : SB_D, y0 = T + ri * rowH, mid = y0 + rowH / 2;
+        var c = personColor(who), y0 = T + ri * rowH, mid = y0 + rowH / 2;
         svg += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + mid + '" y2="' + mid + '" stroke="rgba(255,255,255,0.05)"/>' +
           '<text x="' + (L - 10) + '" y="' + (mid + 4) + '" font-size="12" font-weight="700" fill="' + c + '" text-anchor="end">' + who + '</text>';
         // misses first so hits sit on top; deterministic jitter so dots don't stack
@@ -211,7 +210,7 @@
 
     // ── 4. Form: win % over each person's last 8 bets ──────────────────────
     function formChart(rows, season) {
-      var N = 8, bets = chDecided(rows, season).filter(function(r) { return !chNotOffered(r); });
+      var N = 8, bets = chDecided(rows, season).filter(function(r) { return !isNotOffered(r); });
       var G = [], gi = {};
       bets.forEach(function(r) { var k = r.year + '_' + r.week + '_' + r.game; if (!(k in gi)) { gi[k] = G.length; G.push({ year: r.year, week: r.week, home: r.homeTeam, away: r.awayTeam }); } });
       if (G.length < N) return '<div class="ch-empty">Needs at least ' + N + ' games.</div>';

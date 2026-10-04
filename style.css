@@ -301,8 +301,6 @@ html.theme-jewish .holiday-pill { color: #FFFFFF; text-shadow: 0 1px 2px rgba(0,
 .division-teams { display: none; padding-top: 8px; }
 .division-teams.open { display: block; }
 
-
-
 .player-list { display: flex; flex-direction: column; gap: 4px; }
 
 .player-row {
@@ -325,7 +323,6 @@ html.theme-jewish .holiday-pill { color: #FFFFFF; text-shadow: 0 1px 2px rgba(0,
 .player-name-text.qb-valid { color: #34D399; font-weight: 500; }
 .player-name-text.extra { color: #A1A9B6; }
 
-
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 .page-layout {
@@ -333,8 +330,6 @@ html.theme-jewish .holiday-pill { color: #FFFFFF; text-shadow: 0 1px 2px rgba(0,
   margin: 0 auto;
   padding: 48px 24px 80px;
 }
-
-.main-content { min-width: 0; }
 
 .kalshi-ad {
   position: fixed;
@@ -388,8 +383,6 @@ html.theme-jewish .holiday-pill { color: #FFFFFF; text-shadow: 0 1px 2px rgba(0,
   margin-top: auto;
 }
 
-
-
 .campbell-bottom {
   display: flex;
   flex-direction: column;
@@ -417,19 +410,11 @@ html.theme-jewish .holiday-pill { color: #FFFFFF; text-shadow: 0 1px 2px rgba(0,
   justify-content: center;
 }
 
-
-
 .campbell-ad img {
   width: 200px;
   height: auto;
   border-radius: 10px;
   object-fit: contain;
-}
-
-.campbell-ad .campbell-caption {
-  font-size: 12px;
-  color: #9CA3AF;
-  font-style: italic;
 }
 
 @media (max-width: 1100px) {
@@ -464,8 +449,7 @@ html.theme-jewish .holiday-pill { color: #FFFFFF; text-shadow: 0 1px 2px rgba(0,
   /* Stack side-by-side cards */
   .two-col { grid-template-columns: 1fr !important; }
   .live-picks-grid { grid-template-columns: 1fr; }
-  .season-grid { grid-template-columns: 1fr 1fr !important; }
-  .money-num { font-size: 16px !important; }
+
 }
 
 body {
@@ -665,36 +649,6 @@ details.pf-locked[open] > summary::before { content: '▾ '; }
   margin-bottom: 12px;
 }
 
-.bet-row {
-  display: grid;
-  grid-template-columns: 1fr auto auto auto;
-  gap: 8px;
-  padding: 10px 0;
-  border-bottom: 0.5px solid rgba(255,255,255,0.06);
-  font-size: 13px;
-  align-items: center;
-}
-
-.bet-row:last-child { border-bottom: none; }
-
-.bet-game { font-weight: 500; color: #F3F4F6; }
-.bet-picker { font-size: 12px; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
-.bet-picker.maria { background: rgba(251,191,36,0.15); color: var(--maria); }
-.bet-picker.danielle { background: rgba(var(--danielle-rgb),0.16); color: var(--danielle); }
-
-.bet-result {
-  font-size: 12px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-weight: 500;
-}
-
-.bet-result.win { background: rgba(52,211,153,0.15); color: #34D399; }
-.bet-result.loss { background: rgba(248,113,113,0.15); color: #F87171; }
-.bet-result.pending { background: rgba(255,255,255,0.08); color: #9CA3AF; }
-
-.bet-units { font-size: 12px; color: #9CA3AF; }
-
 .live-game-title {
   font-size: 15px;
   font-weight: 600;
@@ -751,49 +705,6 @@ footer {
 
 .loading { color: #9CA3AF; font-size: 14px; text-align: center; padding: 24px; }
 
-.history-row {
-  display: grid;
-  grid-template-columns: 30px 1fr 65px 1fr 75px 50px 42px;
-  gap: 8px;
-  padding: 10px 0;
-  border-bottom: 0.5px solid rgba(255,255,255,0.06);
-  font-size: 12px;
-  align-items: start;
-}
-
-.history-row.header {
-  font-size: 10px;
-  font-weight: 600;
-  color: #9CA3AF;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding-bottom: 8px;
-}
-
-.history-row:last-child { border-bottom: none; }
-
-.h-week { color: #9CA3AF; text-align: center; }
-.h-game { font-weight: 500; color: #F3F4F6; }
-.h-picker.maria { color: var(--maria); font-weight: 500; }
-.h-picker.danielle { color: var(--danielle); font-weight: 500; }
-.h-player { color: #F3F4F6; }
-.h-odds { color: #A1A9B6; }
-.h-units { text-align: right; font-weight: 500; }
-.h-units.pos { color: #34D399; }
-.h-units.neg { color: #F87171; }
-.h-units.zero { color: #9CA3AF; }
-
-.h-result {
-  font-size: 11px;
-  font-weight: 500;
-  padding: 2px 6px;
-  border-radius: 4px;
-  text-align: center;
-}
-.h-result.win { background:rgba(52,211,153,0.15); color:#34D399; }
-.h-result.loss { background:rgba(248,113,113,0.15); color:#F87171; }
-.h-result.na { background:rgba(255,255,255,0.08); color:#9CA3AF; }
-
 .team-block {
   margin-bottom: 16px;
   padding: 0;
@@ -811,12 +722,6 @@ footer {
 .team-players-inner {
   padding: 10px 16px 14px;
   background: rgba(255,255,255,0.05);
-}
-
-.not-offered-note {
-  font-size: 10px;
-  color: #9CA3AF;
-  font-style: italic;
 }
 
 .filter-btn {
@@ -927,7 +832,6 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
 @keyframes hfxFall { to { transform: translate3d(var(--drift, 20px), 1400px, 0) rotate(var(--spin, 180deg)); } }
 @media (prefers-reduced-motion: reduce) { .holiday-fx { display: none; } }
 
-
 /* ── Profiles ── */
 .pf-switch { display: flex; gap: 8px; justify-content: center; margin-bottom: 18px; }
 .pf-switch button { font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; padding: 9px 22px; border-radius: 999px; cursor: pointer; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04); color: #A1A9B6; }
@@ -1007,7 +911,6 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
 .pf-bar > i { display: block; height: 100%; background: rgba(255,255,255,0.4); border-radius: 3px; }
 .pf-badge .pg { font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 4px; }
 
-
 /* Admin tools */
 .adm-nav { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 18px; }
 .adm-nav button { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; padding: 7px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04); color: #A1A9B6; cursor: pointer; }
@@ -1021,7 +924,6 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
 .adm-issue.bad { background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.35); }
 .adm-issue .t { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
 .adm-issue .fix { color: #6EE7B7; font-weight: 600; }
-
 
 /* Schedule */
 .sch-week { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 800; margin: 22px 0 10px; padding-bottom: 8px; border-bottom: 1.5px solid rgba(255,255,255,0.16); }
@@ -1250,3 +1152,6 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
   .cb-cap { margin-top: 0; font-size: 11px; }
   .foot-line { padding-bottom: 0; }
 }
+.chk-more summary { list-style: none; display: inline-block; margin: 2px 0 12px; cursor: pointer; }
+.chk-more summary::-webkit-details-marker { display: none; }
+.chk-more[open] summary { display: none; }

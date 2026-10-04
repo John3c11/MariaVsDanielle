@@ -600,11 +600,11 @@
       });
     }
 
-    // ── Admin tools (0328): Odds · Injuries · Trash Talk · Data Check ───────
+    // ── Admin tools (0328): Odds · Friends · Injuries · Trash Talk · Season · Theme · Status ───────
     var ADMIN = { oddsRes: null };
 
     function adminHeader(active) {
-      var tabs = [['odds', '💲 Odds'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['check', '🔍 Data Check'], ['season', '🆕 Season'], ['theme', '🎨 Theme'], ['status', '🩺 Status']];
+      var tabs = [['odds', '💲 Odds'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['season', '🆕 Season'], ['theme', '🎨 Theme'], ['status', '🩺 Status']];
       return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
         '<div style="font-size:16px;font-weight:700">Hi John</div>' +
         '<button class="link-btn" id="sub-switch">Log out</button></div>' +
@@ -645,6 +645,7 @@
         var s = res[0], be = res[1], sh = res[2];
         var siteV = (document.firstChild && document.firstChild.nodeType === 8) ? document.firstChild.nodeValue.trim() : '?';
         var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:10px">Everything the site depends on, checked right now. <button class="link-btn" id="st-again">Check again</button></div>';
+        var dataSlot = '<div class="pf-h">🔍 Data check <small>every season, every row</small></div><div id="st-data"><div class="loading">Checking every row in every season…</div></div>';
         h += '<div class="pf-h">🔌 Connections</div>';
         h += row(sh.ok ? 'ok' : 'bad', 'Google Sheets (from this browser)', sh.ok ? 'Reachable · ' + sh.ms + ' ms' : 'Not reachable' + (sh.code ? ' (HTTP ' + sh.code + (sh.code === 429 ? ', too many requests: wait a minute' : sh.code === 403 ? ', check the API key limits' : '') + ')' : ''));
         h += row(s.error ? 'bad' : 'ok', 'Picks script (PicksAPI)', s.error ? s.error : 'Reachable · season ' + s.season + ' · ' + s.friends + ' friend' + (s.friends === 1 ? '' : 's'));
@@ -677,6 +678,7 @@
           h += gapRow(gp.noOdds, 'Scored games missing odds', 'Enter them on the 💲 Odds screen.');
           var no = gp.notOffered || [];
           h += row('info', 'Games where the scorer wasn\'t offered' + (no.length ? ': ' + no.length : ''), no.length ? no.join(' · ') + '<br><span style="color:#6B7280">These count 0 units. If one is wrong, clear that game\'s column O cells and FirstTD re-checks it on its next run.</span>' : 'None');
+          h += dataSlot;
           h += '<div class="pf-h">🏷️ Versions</div>';
           var v = s.versions || {};
           h += row('info', 'Website', siteV + ' · ' + (navigator.serviceWorker && navigator.serviceWorker.controller ? 'offline mode on' : 'offline mode not active yet'));
@@ -686,8 +688,14 @@
           });
           if (window.HOLIDAY_FORCED) h += row('info', 'Theme preview is on for this device', window.HOLIDAY_THEME || 'off');
         }
+        if (h.indexOf('id="st-data"') < 0) h += dataSlot; // script unreachable: still check the sheets
         body.innerHTML = h;
         document.getElementById('st-again').addEventListener('click', adminStatus);
+        clearSheetCache(); ALL_BETS_PROMISE = null;
+        loadAllBets().then(function(rows) {
+          var el = document.getElementById('st-data');
+          if (el) el.innerHTML = dataCheckHtml(rows);
+        }).catch(function() { var el = document.getElementById('st-data'); if (el) el.innerHTML = row('bad', 'Couldn\'t read the sheets', ''); });
       });
     }
 
@@ -853,7 +861,7 @@
       }
       if (section === 'injuries') adminInjuries();
       if (section === 'chat') adminChat();
-      if (section === 'check') adminCheck();
+      if (section === 'check') adminStatus(); // Data Check now lives inside Status
       if (section === 'season') adminSeason();
       if (section === 'theme') adminTheme();
       if (section === 'status') adminStatus();
@@ -1002,10 +1010,8 @@
       return prev[b.length];
     }
 
-    function adminCheck() {
-      var body = adminScreen('check', '<div class="loading">Checking every row in every season…</div>');
-      clearSheetCache(); ALL_BETS_PROMISE = null;
-      loadAllBets().then(function(rows) {
+    // 🔍 Data check (part of 🩺 Status): spelling mismatches and other things that quietly throw off the numbers
+    function dataCheckHtml(rows) {
         var issues = [];
         function add(level, title, r, text, fix) {
           issues.push({ level: level, title: title, where: r ? r.year + ' sheet · row ' + r.row + ' · Wk ' + r.week + ' · ' + r.picker : '', text: text, fix: fix });
@@ -1065,22 +1071,22 @@
         }
 
         var bad = issues.filter(function(x) { return x.level === 'bad'; }).length;
-        var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:14px">Checks every season for spelling mismatches, wrong "Which Side Scored", missing odds, and other things that quietly throw off the numbers. Fix them in the sheet, then run this again.</div>';
+        var h = '';
         if (!issues.length) {
-          h += '<div style="text-align:center;padding:30px 0;font-size:15px">✅ Everything checks out.</div>';
+          h += '<div class="st-row"><span class="st-ic">✅</span><div><div class="st-l">Every season checks out</div><div class="st-d">No spelling mismatches, wrong sides or missing odds on wins.</div></div></div>';
         } else {
           h += '<div style="font-size:13px;font-weight:700;margin-bottom:12px">' + issues.length + ' thing' + (issues.length > 1 ? 's' : '') + ' to look at' + (bad ? ' · ' + bad + ' affect the totals' : '') + '</div>';
           issues.sort(function(a, b) { return (a.level === 'bad' ? 0 : 1) - (b.level === 'bad' ? 0 : 1); });
-          h += issues.map(function(x) {
+          var card = function(x) {
             return '<div class="adm-issue ' + (x.level === 'bad' ? 'bad' : '') + '"><div class="t" style="color:' + (x.level === 'bad' ? '#FCA5A5' : '#FCD34D') + '">' + x.title + '</div>' +
               (x.where ? '<div style="font-size:11px;color:#A1A9B6;margin-bottom:3px">' + x.where + '</div>' : '') +
               '<div>' + escHtml(x.text) + '</div><div class="fix">→ ' + escHtml(x.fix) + '</div></div>';
-          }).join('');
+          };
+          // First 5 up front; the rest behind a button so Versions doesn't get buried
+          h += issues.slice(0, 5).map(card).join('');
+          if (issues.length > 5) h += '<details class="chk-more"><summary class="adm-btn">Show the other ' + (issues.length - 5) + '</summary>' + issues.slice(5).map(card).join('') + '</details>';
         }
-        h += '<div style="text-align:center;margin-top:10px"><button class="adm-btn" id="chk-again">Run again</button></div>';
-        body.innerHTML = h;
-        document.getElementById('chk-again').addEventListener('click', adminCheck);
-      });
+        return h;
     }
 
     function bindSwitch() {

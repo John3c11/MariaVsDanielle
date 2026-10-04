@@ -562,7 +562,7 @@
         var ys = Object.keys(years).sort(function(a, b) { return b - a; });
         if (!ys.length) { wrap.style.display = 'none'; return; }
         function c(n) { return personColor(n); }
-        function u(v) { v = Math.round(v * 10) / 10; return (v > 0 ? '+' : '') + v + 'u'; }
+        var u = fmtU; // +5.0u, same as everywhere else
         var h = '';
         ys.forEach(function(y) {
           var list = years[y], ago = parseInt(CURRENT_YEAR, 10) - parseInt(y, 10);

@@ -1155,3 +1155,47 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
 .chk-more summary { list-style: none; display: inline-block; margin: 2px 0 12px; cursor: pointer; }
 .chk-more summary::-webkit-details-marker { display: none; }
 .chk-more[open] summary { display: none; }
+
+/* ── v89: insights ──────────────────────────────────────────────────────── */
+/* Season win probability on Stats (replaces the pace line) */
+.wp-line { font-size: 13px; color: rgba(255,255,255,0.8); text-align: center; cursor: help; }
+.wp-bar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin: 6px auto 0; max-width: 320px; background: rgba(255,255,255,0.1); }
+.wp-bar i { display: block; height: 100%; }
+/* Luck Meter */
+.lk-cards { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 10px; margin-bottom: 10px; }
+.lk-card { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 12px; border-top: 3px solid var(--pc); }
+.lk-name { font-size: 13px; font-weight: 800; color: var(--pc); }
+.lk-big { font-size: 26px; font-weight: 800; margin: 2px 0; font-variant-numeric: tabular-nums; }
+.lk-sub { font-size: 12px; color: #A1A9B6; }
+.lk-v { font-size: 12px; font-weight: 700; margin-top: 4px; }
+/* By Game Type: units under the record */
+.gt-u { display: block; font-size: 11px; font-weight: 700; margin-top: 2px; }
+/* Team Report Card callouts */
+.tr-call { font-size: 13px; line-height: 1.7; margin-bottom: 10px; }
+/* Chaos Corner */
+.cc-top { font-size: 13px; line-height: 1.7; margin-bottom: 10px; }
+.cc-bars { display: flex; align-items: flex-end; gap: 4px; height: 90px; padding: 6px 4px 18px; background: rgba(255,255,255,0.05); border-radius: 10px; }
+.cc-bar { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; position: relative; cursor: help; }
+.cc-bar i { display: block; width: 100%; max-width: 26px; background: linear-gradient(180deg, #C084FC, #7C3AED); border-radius: 3px 3px 0 0; }
+.cc-bar span { position: absolute; bottom: -16px; font-size: 10px; color: rgba(255,255,255,0.45); }
+.cc-list { margin-top: 12px; }
+.cc-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 0.5px solid rgba(255,255,255,0.08); font-size: 13px; }
+.cc-pos { font-size: 10px; font-weight: 700; color: #A1A9B6; background: rgba(255,255,255,0.08); border-radius: 4px; padding: 1px 5px; }
+.cc-meta { font-size: 11px; color: #9CA3AF; margin-top: 2px; }
+.cc-tags { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+.cc-tags span { font-size: 11px; font-weight: 700; background: rgba(192,132,252,0.16); color: #D8B4FE; border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+/* Record Book */
+.rb-list { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 2px 12px; margin-bottom: 28px; }
+.rb-row { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 0.5px solid rgba(255,255,255,0.07); }
+.rb-row:last-child { border-bottom: 0; }
+.rb-ic { font-size: 20px; width: 26px; text-align: center; }
+.rb-mid { flex: 1; min-width: 0; }
+.rb-t { font-size: 13px; font-weight: 700; color: #F3F4F6; }
+.rb-sub { font-size: 11px; color: #9CA3AF; margin-top: 2px; }
+.rb-val { text-align: right; font-size: 13px; white-space: nowrap; }
+.rb-val span { display: block; font-size: 15px; font-weight: 800; color: #F3F4F6; }
+.rb-shame .rb-val span { color: #FCA5A5; }
+.rb-new { font-size: 9px; font-weight: 800; letter-spacing: 0.06em; color: #111; background: #FBBF24; border-radius: 4px; padding: 1px 5px; vertical-align: 1px; }
+/* Week in History now sits at the top of All-Time */
+#tab-legacy #hist-wrap { margin-bottom: 22px; }
+@media (max-width: 700px) { .hm-bar { display: none; } }

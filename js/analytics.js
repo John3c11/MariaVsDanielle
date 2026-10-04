@@ -41,9 +41,9 @@
     // ── Analytics layout: one season picker + five sub-tabs ──────────────────
     var AN_TABS = [
       ['highlights', '🔥 Highlights', ['Pick of the Season', 'Best Stretches & Biggest Wins', 'Streaks', 'Hit Grid', '*Season']],
-      ['trends', '📈 Trends', ['Weekly Units', 'Form', 'Month by Month']],
+      ['trends', '📈 Trends', ['Season Race', 'Luck Meter', 'Weekly Units', 'Form', 'Month by Month']],
       ['picking', '🎯 Picking', ['Odds vs Hits', 'Picking vs Reality', 'Who Scores First', 'Correct Picks by Game Type']],
-      ['players', '🏈 Players & Teams', ['Fun Stats', 'TD Scorer Leaderboard', 'NFL Team Heat Map']],
+      ['players', '🏈 Players & Teams', ['NFL Team Heat Map', 'Fun Stats', 'TD Scorer Leaderboard', 'Chaos Corner']],
       ['pain', '😬 Pain', ['Jinx Tracker', 'Bad Beats']],
     ];
     // Sections folded into another one: [target, 'sub' (shown) or 'list' (behind a button), subheading]
@@ -54,7 +54,7 @@
       'Hit Rate by Position': ['Picking vs Reality', 'sub', 'Hit rate by position'],
       'Home vs Away Pick Accuracy': ['Who Scores First', 'sub', 'Their pick accuracy: home vs away players'],
     };
-    var AN_RENAME = { 'Who Scores First': 'Home vs Away', 'Fun Stats': 'Most Picked', 'Correct Picks by Game Type': 'By Game Type' };
+    var AN_RENAME = { 'Who Scores First': 'Home vs Away', 'Fun Stats': 'Most Picked', 'Correct Picks by Game Type': 'By Game Type', 'NFL Team Heat Map': 'Team Report Card' };
     function anStore(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
 
     function anOrganize(root, seasonOpts) {
@@ -673,7 +673,7 @@
 
         // ── Game Type Breakdown ──────────────────────────────────────────────
         html += section("Correct Picks by Game Type");
-        html += '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">How many picks each person got right, broken down by game slot. Fraction = correct out of total scored games of that type.</div>';
+        html += '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">Hits and units by game slot: who shows up on Thursday night, who chokes on Monday.</div>';
         html += '<div class="af-bars">' + afBar('gt', 'season', 'Season', SEASON_OPTS, CUR_SEASON) + '</div>';
 
         const GAME_TYPE_ORDER = ['TNF','FNF','SNF','MNF','International','Thanksgiving','Black Friday','Saturday','Christmas','WNF'];
@@ -684,8 +684,9 @@
             if (!inSeason(r, season) || !r.slot || !r.homePick) return;
             if (r.correct !== 'Yes' && r.correct !== 'No') return;
             if (r.picker !== 'Maria' && r.picker !== 'Danielle') return;
-            if (!gameTypeStats[r.slot]) gameTypeStats[r.slot] = { Maria: { correct: 0, total: 0 }, Danielle: { correct: 0, total: 0 } };
+            if (!gameTypeStats[r.slot]) gameTypeStats[r.slot] = { Maria: { correct: 0, total: 0, u: 0 }, Danielle: { correct: 0, total: 0, u: 0 } };
             gameTypeStats[r.slot][r.picker].total++;
+            gameTypeStats[r.slot][r.picker].u += r.netUnits;
             if (r.correct === 'Yes') gameTypeStats[r.slot][r.picker].correct++;
           });
           var slotKeys = Object.keys(gameTypeStats).sort(function(a, b) {
@@ -707,7 +708,8 @@
             function cell(st, color) {
               if (!st.total) return '<span style="text-align:center;font-size:14px;font-weight:700;color:' + color + '">—</span>';
               return '<span style="text-align:center;font-size:14px;font-weight:700;color:' + color + '">' + st.correct + '/' + st.total +
-                ' <span style="color:#9CA3AF;font-size:11px">(' + Math.round(st.correct / st.total * 100) + '%)</span></span>';
+                ' <span style="color:#9CA3AF;font-size:11px">(' + Math.round(st.correct / st.total * 100) + '%)</span>' +
+                '<span class="gt-u" style="color:' + (st.u > 0 ? '#34D399' : st.u < 0 ? '#F87171' : '#9CA3AF') + '">' + fmtU(st.u) + '</span></span>';
             }
             var border = i < slotKeys.length - 1 ? 'border-bottom:0.5px solid rgba(255,255,255,0.06)' : '';
             inner += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 0;' + border + ';align-items:center">' +
@@ -804,6 +806,18 @@
         });
 
         // ── Weekly Units (chart) ──
+        // ── Season Race (moved from Stats) ──
+        html += section("Season Race");
+        html += '<div class="ch-intro">Running units, game by game. Tap a point for the score after that game.</div>';
+        html += '<div class="af-bars">' + afBar('race', 'season', 'Season', SEASON_OPTS, AN_YEARS[0]) + '</div>';
+        SEASON_OPTS.forEach(function(so) { html += afVariant('race', [so[0]], '<div class="ch-box">' + seasonRaceChart(rows, so[0]) + '</div>'); });
+
+        // ── Luck Meter ──
+        html += section("Luck Meter");
+        html += '<div class="ch-intro">Good or lucky? Hits compared with what the odds expected.</div>';
+        html += '<div class="af-bars">' + afBar('luck', 'season', 'Season', SEASON_OPTS, AN_YEARS[0]) + '</div>';
+        SEASON_OPTS.forEach(function(so) { html += afVariant('luck', [so[0]], luckSection(rows, so[0])); });
+
         html += section("Weekly Units");
         html += '<div class="ch-intro">Units won or lost each week. Bars above the line are winning weeks.</div>';
         html += '<div class="af-bars">' + afBar('wkunits', 'season', 'Season', SEASON_OPTS, CUR_SEASON) + '</div>';
@@ -1023,13 +1037,13 @@
 
         // ── NFL Team Heat Map ────────────────────────────────────────────────
         html += section("NFL Team Heat Map");
-        html += '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">How often each team appears in picks vs how often they actually produce a first TD scorer.</div>';
+        html += '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">Every team they pick from: how often, how often it paid, and the units won or lost. A hit counts for the scorer\'s team; a miss costs each picked team 1 unit.</div>';
         html += '<div class="af-bars">' +
           afBar('heat', 'season', 'Season', SEASON_OPTS, CUR_SEASON) +
           afBar('heat', 'picker', 'Picker', PICKER_OPTS, 'all') + '</div>';
         var thStyle = 'padding:6px 8px;color:#9CA3AF;font-size:10px;text-transform:uppercase;letter-spacing:0.05em';
         var heatHead = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">' +
-          '<tr style="border-bottom:1.5px solid rgba(255,255,255,0.16)"><th style="text-align:left;' + thStyle + '">Team</th><th style="text-align:center;' + thStyle + '">Times Picked</th><th style="text-align:center;' + thStyle + '">Times Scored</th><th style="text-align:center;' + thStyle + '">Score Rate</th></tr>';
+          '<tr style="border-bottom:1.5px solid rgba(255,255,255,0.16)"><th style="text-align:left;' + thStyle + '">Team</th><th style="text-align:center;' + thStyle + '">Picked</th><th style="text-align:center;' + thStyle + '">Paid</th><th style="text-align:center;' + thStyle + '">Rate</th><th style="text-align:right;' + thStyle + '">Units</th></tr>';
         SEASON_OPTS.forEach(function(so) {
           PICKER_OPTS.forEach(function(po) {
             var season = so[0], picker = po[0];
@@ -1044,6 +1058,7 @@
                 if (scorerTeam) teamScored[scorerTeam] = (teamScored[scorerTeam] || 0) + 1;
               }
             });
+            var TU = teamUnits(rows, season, picker);
             var allTeams = Object.keys(teamPicks).filter(function(t) { return t && t !== 'undefined'; });
             allTeams.sort(function(a, b) {
               return (teamPicks[b] || 0) - (teamPicks[a] || 0) || (teamScored[b] || 0) - (teamScored[a] || 0);
@@ -1057,19 +1072,36 @@
               var bgColor = tc ? 'linear-gradient(90deg,' + hexA(tc.bg === '#FFFFFF' ? tc.primary : tc.bg, 0.35) + ',rgba(255,255,255,0.02) 70%)' : 'transparent';
               var rateColor = rate >= 0.3 ? '#34D399' : rate >= 0.15 ? '#FBBF24' : '#F87171';
               return '<tr style="background:' + bgColor + ';border-bottom:0.5px solid rgba(255,255,255,0.06)">' +
-                '<td style="padding:7px 8px;font-weight:600;color:' + (tc ? tc.dark : '#F3F4F6') + '">' + team + '</td>' +
+                '<td style="padding:7px 8px;font-weight:600;color:' + (tc ? tc.dark : '#F3F4F6') + '">' + teamName2(team) + '</td>' +
                 '<td style="text-align:center;padding:7px 8px">' + picks + '</td>' +
                 '<td style="text-align:center;padding:7px 8px">' + sc + '</td>' +
                 '<td style="padding:7px 8px"><div style="display:flex;align-items:center;gap:6px">' +
-                  '<div style="flex:1;background:rgba(255,255,255,0.12);border-radius:3px;height:8px"><div style="width:' + Math.round(rate * 100) + '%;background:' + rateColor + ';height:8px;border-radius:3px"></div></div>' +
+                  '<div class="hm-bar" style="flex:1;background:rgba(255,255,255,0.12);border-radius:3px;height:8px"><div style="width:' + Math.round(rate * 100) + '%;background:' + rateColor + ';height:8px;border-radius:3px"></div></div>' +
                   '<span style="font-size:11px;color:' + rateColor + ';font-weight:600;min-width:30px">' + Math.round(rate * 100) + '%</span>' +
                 '</div></td>' +
+                '<td style="text-align:right;padding:7px 8px;font-weight:700;white-space:nowrap;color:' + ((TU[team] || 0) > 0 ? '#34D399' : (TU[team] || 0) < 0 ? '#F87171' : '#9CA3AF') + '">' + fmtU(TU[team] || 0) + '</td>' +
               '</tr>';
             });
-            html += afVariant('heat', [season, picker], afList(trs, 10, heatHead, '</table></div>'));
+            // Best and worst team to bet on (at least 3 picks)
+            var ranked = allTeams.filter(function(t) { return (teamPicks[t] || 0) >= 3 && t in TU; }).sort(function(a, b) { return TU[b] - TU[a]; });
+            var call = '';
+            if (ranked.length >= 2) {
+              var best = ranked[0], worst = ranked[ranked.length - 1];
+              call = '<div class="tr-call">' +
+                (TU[best] > 0 ? '<div>💸 Best team to bet on: ' + coloredText('<b>' + resolveTeam(best).split(' ').pop() + '</b>', best) + ' ' + fmtU(TU[best]) + '</div>' : '') +
+                (TU[worst] < 0 ? '<div>🔥 The team that keeps burning ' + (picker === 'all' ? 'them' : picker) + ': ' + coloredText('<b>' + resolveTeam(worst).split(' ').pop() + '</b>', worst) + ' ' + fmtU(TU[worst]) + '</div>' : '') + '</div>';
+            }
+            html += afVariant('heat', [season, picker], call + afList(trs, 10, heatHead, '</table></div>'));
           });
         });
-        html += '<div style="font-size:11px;color:#9CA3AF;margin-top:8px">Score rate = times a correctly-guessed player from that team scored ÷ times any player from that team was picked.</div>';
+        html += '<div style="font-size:11px;color:#9CA3AF;margin-top:8px">Rate = times a pick from that team scored first ÷ times they picked from that team.</div>';
+
+        // ── Chaos Corner ──
+        try { await loadNFL(); } catch (e) {}
+        html += section("Chaos Corner");
+        html += '<div class="ch-intro">The first touchdowns nobody could have picked.</div>';
+        html += '<div class="af-bars">' + afBar('chaos', 'season', 'Season', SEASON_OPTS, AN_YEARS[0]) + '</div>';
+        SEASON_OPTS.forEach(function(so) { html += afVariant('chaos', [so[0]], chaosSection(rows, so[0])); });
 
         // ── TD Scorers ──────────────────────────────────────────────────────────
         html += section("TD Scorer Leaderboard");

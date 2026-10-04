@@ -392,6 +392,9 @@
         // Earnings by season (both of them together). This used to be its own tab.
         html += secH('💵 Earnings by Season', 'Maria + Danielle combined') + '<div id="legacy-earn"><div class="loading">Loading…</div></div>';
 
+        // Record Book (insights.js): every all-time record and who holds it
+        html += secH('📖 Record Book', 'ties go to whoever did it first') + '<div id="legacy-records"><div class="loading">Loading…</div></div>';
+
         // All-time race: running units across every season
         var race = allTimeRaceChart(byYear.slice().reverse().reduce(function(a, ys) { return a.concat(ys.bets); }, []));
         if (race) html += secH('🏁 The All-Time Race') + '<div class="ch-box" style="margin-bottom:28px">' + race + '</div>';
@@ -409,6 +412,7 @@
         document.getElementById('legacy-content').innerHTML = html;
         fillCrowdWrapped();
         loadEarnings(byYear);
+        loadAllBets().then(function(all) { var el = document.getElementById('legacy-records'); if (el) el.innerHTML = recordBookHtml(all) || '<div class="loading">No records yet.</div>'; });
       }).catch(function(e) {
         console.error(e);
         document.getElementById('legacy-content').innerHTML = '<div style="color:#9CA3AF;text-align:center;padding:32px">Error loading legacy data: ' + e.message + '</div>';

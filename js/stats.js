@@ -1,94 +1,6 @@
 // Stats tab: the scoreboard, running units chart, weekly recap, sharing as an image, Live Picks and the live game tracker.
 // Part of the MariaVsDanielle site. All js/ files share one global scope and load in the order listed in index.html.
 
-    // ── Running units chart (Stats tab) ──────────────────────────────────────
-    function unitsChart(rows) {
-      var games = [], idx = {};
-      rows.forEach(function(b) {
-        var p = b.picker;
-        if (!b.scored || (p !== 'Maria' && p !== 'Danielle')) return;
-        var k = b.week + '_' + b.game;
-        if (!(k in idx)) {
-          idx[k] = games.length;
-          games.push({ week: b.week, home: b.home, away: b.away, Maria: 0, Danielle: 0 });
-        }
-        games[idx[k]][p] += b.units;
-      });
-      if (games.length < 2) return '';
-
-      var m = [0], d = [0];
-      games.forEach(function(g) {
-        m.push(m[m.length - 1] + g.Maria);
-        d.push(d[d.length - 1] + g.Danielle);
-      });
-
-      var W = 600, H = 240, L = 38, R = 58, T = 14, B = 30;
-      var all = m.concat(d);
-      var lo = Math.min.apply(null, all.concat([0]));
-      var hi = Math.max.apply(null, all.concat([0]));
-      var steps = [1, 2, 5, 10, 20, 25, 50, 100];
-      var step = steps.find(function(s) { return (hi - lo) / s <= 5; }) || 100;
-      lo = Math.floor(lo / step) * step;
-      hi = Math.ceil(hi / step) * step;
-      if (hi === lo) hi = lo + step;
-
-      function x(i) { return L + i * (W - L - R) / games.length; }
-      function y(v) { return T + (hi - v) / (hi - lo) * (H - T - B); }
-
-      var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block" font-family="Inter,sans-serif">';
-
-      // Horizontal gridlines + y labels
-      for (var v = lo; v <= hi + 0.001; v += step) {
-        var zero = Math.abs(v) < 0.001;
-        svg += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="' + (zero ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.07)') + '" stroke-width="1"' + (zero ? ' stroke-dasharray="4 3"' : '') + '/>';
-        svg += '<text x="' + (L - 6) + '" y="' + (y(v) + 4) + '" font-size="10" fill="rgba(255,255,255,0.45)" text-anchor="end">' + (v > 0 ? '+' : '') + v + '</text>';
-      }
-
-      // Week labels on first game of each week
-      var weekStarts = [];
-      games.forEach(function(g, i) { if (i === 0 || g.week !== games[i - 1].week) weekStarts.push(i); });
-      var every = weekStarts.length > 12 ? 2 : 1;
-      weekStarts.forEach(function(i, n) {
-        if (n % every) return;
-        var gx = x(i + 1);
-        svg += '<line x1="' + gx + '" x2="' + gx + '" y1="' + T + '" y2="' + (H - B) + '" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>';
-        svg += '<text x="' + gx + '" y="' + (H - B + 16) + '" font-size="10" fill="rgba(255,255,255,0.45)" text-anchor="middle">Wk ' + games[i].week + '</text>';
-      });
-
-      function line(vals, color, name) {
-        var pts = vals.map(function(v, i) { return x(i).toFixed(1) + ',' + y(v).toFixed(1); }).join(' ');
-        var out = '<polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
-        vals.forEach(function(v, i) {
-          if (i === 0) return;
-          var g = games[i - 1];
-          var delta = g[name];
-          var tip = name + ' · Wk ' + g.week + ' ' + g.home + ' vs ' + g.away + ': ' + (delta >= 0 ? '+' : '') + delta + 'u (total ' + (v >= 0 ? '+' : '') + v.toFixed(1) + 'u)';
-          out += '<circle cx="' + x(i) + '" cy="' + y(v) + '" r="3.5" fill="' + color + '" stroke="#111318" stroke-width="1.5"><title>' + tip + '</title></circle>';
-        });
-        return out;
-      }
-      svg += line(d, SB_D, 'Danielle');
-      svg += line(m, SB_M, 'Maria');
-
-      // End labels, nudged apart if they'd overlap
-      var n = games.length, ym = y(m[n]), yd = y(d[n]);
-      if (Math.abs(ym - yd) < 14) {
-        var mid = (ym + yd) / 2, up = m[n] >= d[n];
-        ym = mid + (up ? -7 : 7); yd = mid + (up ? 7 : -7);
-      }
-      svg += '<text x="' + (x(n) + 8) + '" y="' + (ym + 4) + '" font-size="12" font-weight="700" fill="' + SB_M + '">' + fmtU(m[n]).replace('u', '') + '</text>';
-      svg += '<text x="' + (x(n) + 8) + '" y="' + (yd + 4) + '" font-size="12" font-weight="700" fill="' + SB_D + '">' + fmtU(d[n]).replace('u', '') + '</text>';
-      svg += '</svg>';
-
-      return '<hr class="divider">' +
-        '<div class="stat-label">Units Over the Season</div>' +
-        '<div style="display:flex;justify-content:center;gap:16px;font-size:12px;margin-bottom:6px">' +
-          '<span style="color:' + SB_M + ';font-weight:600">● Maria</span>' +
-          '<span style="color:' + SB_D + ';font-weight:600">● Danielle</span></div>' +
-        svg;
-    }
-
-
     // ── Weekly recap (Stats tab) ─────────────────────────────────────────────
     function weeklyRecap(rows) {
       var weeks = {};
@@ -245,7 +157,7 @@
         } else {
           banner.innerHTML = `It's <span>tied</span>`;
         }
-        renderPace(rows, mariaUnits, danielleUnits);
+        renderWinProb(rows); // insights.js
 
         // Stats
         const statsEl = document.getElementById('stats-section');
@@ -285,8 +197,7 @@
           ${statBlock('Accuracy', mCorrect / (mTotal || 1), dCorrect / (dTotal || 1), pct(mCorrect, mTotal), pct(dCorrect, dTotal))}
           ${statBlock('Units', mariaUnits, danielleUnits, shortU(mariaUnits).replace('u', ''), shortU(danielleUnits).replace('u', ''))}
           ${statBlock('Dollars', mariaDollars, danielleDollars, shortD(mariaDollars), shortD(danielleDollars))}
-          </div>
-          ${unitsChart(rows)}`;
+          </div>`;
 
         // Live picks — show all pending games
         const liveEl = document.getElementById('live-picks');
@@ -599,19 +510,6 @@
       }).catch(function() {});
     }
 
-    // ── Season pace: units per week so far, stretched to 18 weeks ─────────────
-    function renderPace(rows, mU, dU) {
-      var el = document.getElementById('pace-line');
-      if (!el) return;
-      var weeks = {};
-      rows.forEach(function(b) { if (b.scored) weeks[b.weekN] = 1; });
-      var done = Object.keys(weeks).filter(function(w) { return +w > 0 && +w <= 18; }).length;
-      if (done < 2 || done >= 18) { el.style.display = 'none'; return; }
-      function p(u) { var x = Math.round(u / done * 18); return (x >= 0 ? '+' : '') + x + 'u'; }
-      el.innerHTML = '📈 On pace for <b style="color:' + SB_M + '">Maria ' + p(mU) + '</b> · <b style="color:' + SB_D + '">Danielle ' + p(dU) + '</b> by Week 18';
-      el.style.display = '';
-    }
-
     // ── "Since your last visit" ──────────────────────────────────────────────
     // Each phone remembers which games were already scored the last time it opened the site.
     var VISIT = { shown: false, parts: [], chat: 0 };
@@ -664,8 +562,9 @@
             news.push('<b style="color:' + (personColor(who)) + '">' + who + '</b> ' + (a.shame ? 'earned' : 'unlocked') + ' ' + a.ic + ' <b>' + a.k + '</b>' + (a.shame ? ' 🤡' : ''));
           });
         });
-        if (!news.length) return;
         if (news.length > 3) news = news.slice(0, 3).concat(['+' + (news.length - 3) + ' more trophies (see Profiles)']);
+        if (typeof checkNewRecords === 'function') news = checkNewRecords(all).concat(news); // 🚨 records broken
+        if (!news.length) return;
         VISIT.parts = VISIT.parts.concat(news);
         if (!VISIT.since) VISIT.since = Date.now();
         drawVisitBanner();

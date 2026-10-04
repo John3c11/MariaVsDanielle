@@ -3,7 +3,7 @@
 //   fetched fresh when possible, and fall back to the last saved copy when not.
 // - Live game data (ESPN) and pick submission are never cached.
 
-const CACHE = 'mvd-v1';
+const CACHE = 'mvd-v2'; // renaming this wipes every phone's saved copy once (v85 cleanup)
 const NET_TIMEOUT = 4000; // ms to wait for the network before using the saved copy
 
 self.addEventListener('install', (e) => {
@@ -49,11 +49,23 @@ self.addEventListener('fetch', (e) => {
   e.respondWith(networkFirst(req, isSheets(url) || /[?&]v=/.test(url.search)));
 });
 
+// Saving style.css?v=86 deletes the saved style.css?v=85, so phones only ever keep one version
+async function dropOldVersions(cache, url) {
+  if (url.origin !== self.location.origin || !url.searchParams.has('v')) return;
+  const keys = await cache.keys();
+  await Promise.all(keys.map((k) => {
+    const u = new URL(k.url);
+    return u.pathname === url.pathname && u.search !== url.search ? cache.delete(k) : null;
+  }));
+}
+
 async function networkFirst(req, exact) {
   const cache = await caches.open(CACHE);
+  const url = new URL(req.url);
   const network = fetch(req).then(async (res) => {
-    if (res.ok) {
-      cache.put(req, res.clone()).catch(() => {});
+    // One-off checks (the Status screen adds &_=time) are never saved
+    if (res.ok && !url.searchParams.has('_')) {
+      cache.put(req, res.clone()).then(() => dropOldVersions(cache, url)).catch(() => {});
     }
     return res;
   });

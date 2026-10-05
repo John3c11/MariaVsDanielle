@@ -1,4 +1,4 @@
-<!-- v93 -->
+<!-- v94 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -45,7 +45,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=93">
+  <link rel="stylesheet" href="style.css?v=94">
 </head>
 <body>
   <div class="page-layout">
@@ -61,14 +61,15 @@
 
   <div class="wrap">
     <nav class="tabs-nav">
-      <button class="tab-btn active" onclick="switchTab('stats')">Stats</button>
-      <button class="tab-btn" id="tab-login" onclick="switchTab('submit')">Log In</button>
-      <button class="tab-btn" onclick="switchTab('chat')">Trash Talk</button>
-      <button class="tab-btn" onclick="switchTab('profiles')">Profiles</button>
+      <!-- data-ic = the icon shown above the label in the phone bottom bar -->
+      <button class="tab-btn active" data-ic="🏈" onclick="switchTab('stats')">Stats</button>
+      <button class="tab-btn" id="tab-login" data-ic="👤" onclick="switchTab('submit')">Log In</button>
+      <button class="tab-btn" data-ic="🗣️" onclick="switchTab('chat')">Trash Talk</button>
+      <button class="tab-btn" data-ic="⭐" onclick="switchTab('profiles')">Profiles</button>
       <button class="tab-btn tab-wide" onclick="switchTab('analytics')">Analytics</button>
       <!-- Everything else lives in the More menu (on phones Analytics does too) -->
       <div class="tab-more-wrap">
-        <button class="tab-btn tab-more" id="tab-more" onclick="toggleTabMenu(event)">More <span class="tab-caret">▾</span></button>
+        <button class="tab-btn tab-more" id="tab-more" data-ic="☰" onclick="toggleTabMenu(event)">More <span class="tab-caret">▾</span></button>
         <div class="tab-menu" id="tab-menu">
           <button class="tab-btn menu-phone" onclick="switchTab('analytics')">📊 Analytics</button>
           <button class="tab-btn" onclick="switchTab('crowd')">🏅 Crowd</button>
@@ -176,19 +177,19 @@
 
   <script src="config.js"></script>
   <!-- Site code, split by tab. Bump ?v= on every file when any file changes. -->
-  <script src="js/core.js?v=93"></script>
-  <script src="js/stats.js?v=93"></script>
-  <script src="js/players.js?v=93"></script>
-  <script src="js/picks.js?v=93"></script>
-  <script src="js/schedule.js?v=93"></script>
-  <script src="js/profiles.js?v=93"></script>
-  <script src="js/chat.js?v=93"></script>
-  <script src="js/crowd.js?v=93"></script>
-  <script src="js/history.js?v=93"></script>
-  <script src="js/analytics.js?v=93"></script>
-  <script src="js/charts.js?v=93"></script>
-  <script src="js/insights.js?v=93"></script>
-  <script src="js/main.js?v=93"></script>
+  <script src="js/core.js?v=94"></script>
+  <script src="js/stats.js?v=94"></script>
+  <script src="js/players.js?v=94"></script>
+  <script src="js/picks.js?v=94"></script>
+  <script src="js/schedule.js?v=94"></script>
+  <script src="js/profiles.js?v=94"></script>
+  <script src="js/chat.js?v=94"></script>
+  <script src="js/crowd.js?v=94"></script>
+  <script src="js/history.js?v=94"></script>
+  <script src="js/analytics.js?v=94"></script>
+  <script src="js/charts.js?v=94"></script>
+  <script src="js/insights.js?v=94"></script>
+  <script src="js/main.js?v=94"></script>
   
   </div><!-- end wrap -->
 

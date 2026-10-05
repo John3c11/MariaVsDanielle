@@ -1240,3 +1240,40 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
 /* Player card: older games behind "Show all" */
 .pc-folded .pc-extra { display: none; }
 .pc-all { display: block; margin: 8px auto 0; }
+
+/* ── v94: phone bottom tab bar ──────────────────────────────────────────── */
+#tab-login[data-in]::before { content: attr(data-ic) ' '; }   /* desktop: "👤 Maria" like before */
+@media (max-width: 700px) {
+  .wrap { backdrop-filter: none; -webkit-backdrop-filter: none; } /* a blur here would trap the fixed bar inside the box */
+  .page-layout { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  .tabs-nav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 900; margin: 0;
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    background: rgba(12,13,17,0.94); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+    border-bottom: 0; border-top: 1px solid rgba(255,255,255,0.12);
+    align-items: stretch;
+  }
+  .tabs-nav > .tab-btn, .tab-more {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    border-bottom: 0 !important; margin: 0; padding: 4px 2px !important; font-size: 10.5px; font-weight: 600; border-radius: 12px;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .tabs-nav > .tab-btn::before, .tab-more::before { content: attr(data-ic); font-size: 19px; line-height: 1.1; opacity: 0.55; filter: grayscale(0.6); }
+  .tabs-nav > .tab-btn.active, .tab-more.active { color: #FFFFFF; background: rgba(255,255,255,0.08); }
+  .tabs-nav > .tab-btn.active::before, .tab-more.active::before { opacity: 1; filter: none; }
+  #tab-login[data-in]::before { content: attr(data-ic); }
+  #tab-login { max-width: none; }
+  .tab-more .tab-caret { display: none; }
+  .tabs-nav > .tab-wide { display: none !important; } /* Analytics lives in More on phones */
+  .tab-menu { top: auto; bottom: calc(100% + 8px); right: 4px; }
+  .tab-dot { position: absolute; margin: -2px 0 0 18px; }
+  .tabs-nav > .tab-btn { position: relative; }
+  .theme-chip { bottom: calc(80px + env(safe-area-inset-bottom)); }
+  body.kb-open .tabs-nav { display: none; }
+  body.kb-open .page-layout { padding-bottom: 24px; }
+}
+/* Pull to refresh indicator */
+.ptr { position: fixed; top: calc(8px + env(safe-area-inset-top)); left: 50%; transform: translate(-50%,-60px); opacity: 0; z-index: 950;
+  font: 700 12px/1 Inter, sans-serif; color: #F3F4F6; background: rgba(24,26,32,0.95); border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 999px; padding: 9px 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); pointer-events: none; transition: opacity 0.15s; white-space: nowrap; }
+@media (max-width: 700px) { html, body { overscroll-behavior-y: contain; } } /* the browser's own pull-to-refresh would fight ours */

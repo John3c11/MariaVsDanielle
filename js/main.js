@@ -44,11 +44,15 @@
     function setLoginTab() {
       var b = document.getElementById('tab-login');
       if (!b) return;
-      b.textContent = !SUB.pin ? 'Log In' : SUB.role === 'admin' ? '🔧 Admin' : '👤 ' + (SUB.name || 'Me');
+      b.textContent = !SUB.pin ? 'Log In' : SUB.role === 'admin' ? 'Admin' : (SUB.name || 'Me');
+      b.setAttribute('data-ic', SUB.role === 'admin' ? '🔧' : '👤');
+      if (SUB.pin) b.setAttribute('data-in', '1'); else b.removeAttribute('data-in'); // desktop shows the icon once logged in
     }
 
     function switchTab(name) {
       if (name === 'money') name = 'legacy'; // Earnings now lives inside All-Time
+      var cur = document.querySelector('.tab-panel.active');
+      if (cur && cur.id !== 'tab-' + name) window.scrollTo(0, 0); // new tab starts at the top (the phone bar sits at the bottom)
       document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
       document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
       document.querySelectorAll('.tab-btn').forEach(function(b) {
@@ -119,3 +123,7 @@
       }
       card.insertBefore(fx, card.firstChild);
     })();
+
+    // Phones: hide the bottom tab bar while typing, so it doesn't ride up on top of the keyboard
+    document.addEventListener('focusin', function(e) { if (e.target.matches && e.target.matches('input, textarea')) document.body.classList.add('kb-open'); });
+    document.addEventListener('focusout', function() { document.body.classList.remove('kb-open'); });

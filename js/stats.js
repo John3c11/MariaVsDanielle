@@ -818,3 +818,37 @@
       }
       if (nextIn) LIVE.timer = setTimeout(updateLive, nextIn);
     }
+
+    // ── Pull to refresh (Stats, phones) ─────────────────────────────────────
+    // At the top of Stats, drag down and let go to fetch the latest picks and first TDs.
+    (function() {
+      var startY = null, dist = 0, busy = false, el = null, PULL = 70;
+      function ind() { if (!el) { el = document.createElement('div'); el.className = 'ptr'; document.body.appendChild(el); } return el; }
+      function hide() { var i = ind(); i.style.opacity = 0; i.style.transform = 'translate(-50%,-60px)'; }
+      function onStats() { var p = document.getElementById('tab-stats'); return p && p.classList.contains('active'); }
+      document.addEventListener('touchstart', function(e) {
+        startY = (!busy && onStats() && window.scrollY <= 0 && !document.getElementById('pc-backdrop')) ? e.touches[0].clientY : null;
+        dist = 0;
+      }, { passive: true });
+      document.addEventListener('touchmove', function(e) {
+        if (startY === null) return;
+        dist = e.touches[0].clientY - startY;
+        if (dist <= 0 || window.scrollY > 0) { hide(); return; }
+        var d = Math.min(dist, 130), i = ind();
+        i.textContent = d >= PULL ? '↻ Release to refresh' : '↓ Pull to refresh';
+        i.style.opacity = Math.min(1, d / 50);
+        i.style.transform = 'translate(-50%,' + Math.round(d * 0.6 - 40) + 'px)';
+      }, { passive: true });
+      document.addEventListener('touchend', function() {
+        if (startY === null) return;
+        var go = dist >= PULL && window.scrollY <= 0;
+        startY = null;
+        if (!go) { hide(); return; }
+        busy = true;
+        var i = ind();
+        i.textContent = '↻ Refreshing…'; i.style.opacity = 1; i.style.transform = 'translate(-50%,14px)';
+        clearSheetCache();
+        Promise.resolve(load()).then(function() { i.textContent = '✓ Up to date'; }, function() { i.textContent = 'Couldn\'t refresh'; })
+          .then(function() { setTimeout(function() { hide(); busy = false; }, 900); });
+      });
+    })();

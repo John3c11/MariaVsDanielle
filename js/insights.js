@@ -306,3 +306,121 @@
         el.style.display = '';
       }).catch(function() { el.style.display = 'none'; });
     }
+
+    // ── 🌟 Overachievers & Busts: players vs what their odds expected ─────────
+    // Each pick counts on its own: expected = the chance its odds gave it, hit = he scored first.
+    function playerLuck(rows, season, picker) {
+      var P = {};
+      rows.forEach(function(r) {
+        if ((season !== 'all' && r.year !== season) || !(picker === 'all' ? isMD(r.picker) : r.picker === picker)) return;
+        if ((r.correct !== 'Yes' && r.correct !== 'No') || isNotOffered(r)) return;
+        [[r.homePick, r.homeOdds, r.homeTeam], [r.awayPick, r.awayOdds, r.awayTeam]].forEach(function(s) {
+          if (!s[0] || !oddsN(s[1])) return;
+          var k = playerKey(s[0]);
+          var p = P[k] || (P[k] = { name: s[0], team: s[2], n: 0, hits: 0, exp: 0 });
+          p.n++; p.exp += impliedP(s[1]); if (r.firstScorer && playerKey(r.firstScorer) === k) p.hits++;
+          p.team = s[2];
+        });
+      });
+      return Object.keys(P).map(function(k) { return P[k]; }).filter(function(p) { return p.n >= 3; });
+    }
+    function bustsSection(rows, season, picker) {
+      var L = playerLuck(rows, season, picker);
+      if (!L.length) return '<div class="ch-empty">Needs players picked at least 3 times.</div>';
+      function row(p) {
+        var d = p.hits - p.exp;
+        return '<div class="ob-row"><div class="ob-name">' + coloredText(escHtml(p.name), p.team) +
+          '<div class="ob-meta">picked ' + p.n + '× · ' + p.hits + ' hit' + (p.hits === 1 ? '' : 's') + ' vs ' + p.exp.toFixed(1) + ' expected</div></div>' +
+          '<span class="ob-d" style="color:' + (d >= 0 ? '#34D399' : '#F87171') + '">' + luckTxt(d) + '</span></div>';
+      }
+      var over = L.filter(function(p) { return p.hits - p.exp >= 0.3; }).sort(function(a, b) { return (b.hits - b.exp) - (a.hits - a.exp); }).slice(0, 5);
+      var bust = L.filter(function(p) { return p.hits - p.exp <= -0.3; }).sort(function(a, b) { return (a.hits - a.exp) - (b.hits - b.exp); }).slice(0, 5);
+      return '<div class="ob-grid"><div><div class="ob-h">🌟 Overachievers</div>' + (over.length ? over.map(row).join('') : '<div class="ob-none">Nobody yet</div>') + '</div>' +
+        '<div><div class="ob-h">💀 Busts</div>' + (bust.length ? bust.map(row).join('') : '<div class="ob-none">Nobody yet</div>') + '</div></div>' +
+        '<div class="ch-note">Each pick on its own: a +1500 pick is expected to score first about 6% of the time. Players picked at least 3 times. Not-offered games are skipped.</div>';
+    }
+
+    // ── 🎲 Boldness Meter: how long the odds they pick are, week by week ─────
+    function oddsTxt(n) { return '+' + Math.round(n * 100); }
+    function boldSection(rows, season) {
+      var bets = rows.filter(function(r) { return (season === 'all' || r.year === season) && isMD(r.picker) && (r.homePick || r.awayPick); });
+      var W = [], wi = {}, tot = { Maria: { s: 0, n: 0 }, Danielle: { s: 0, n: 0 } };
+      var scored = { Maria: [], Danielle: [] };
+      bets.forEach(function(r) {
+        var picks = [[r.homePick, r.homeOdds], [r.awayPick, r.awayOdds]].filter(function(s) { return s[0] && oddsN(s[1]); });
+        if (!picks.length) return;
+        var avg = picks.reduce(function(a, s) { return a + oddsN(s[1]); }, 0) / picks.length;
+        var k = r.year + '_' + r.week;
+        if (!(k in wi)) { wi[k] = W.length; W.push({ year: r.year, week: r.week, Maria: { s: 0, n: 0 }, Danielle: { s: 0, n: 0 } }); }
+        W[wi[k]][r.picker].s += avg; W[wi[k]][r.picker].n++;
+        tot[r.picker].s += avg; tot[r.picker].n++;
+        if ((r.correct === 'Yes' || r.correct === 'No') && !isNotOffered(r)) scored[r.picker].push({ avg: avg, hit: r.correct === 'Yes', u: r.netUnits });
+      });
+      if (!tot.Maria.n && !tot.Danielle.n) return '<div class="ch-empty">No odds entered yet.</div>';
+      // Does going bold pay? Split each person's bets at their own middle odds
+      var cards = '<div class="lk-cards lk-stack">' + ['Maria', 'Danielle'].map(function(n) {
+        var t = tot[n], list = scored[n].slice().sort(function(a, b) { return a.avg - b.avg; });
+        var avg = t.n ? t.s / t.n : 0, h = '';
+        if (list.length >= 6) {
+          var mid = list[Math.floor(list.length / 2)].avg;
+          var safe = list.filter(function(b) { return b.avg < mid; }), bold = list.filter(function(b) { return b.avg >= mid; });
+          function line(lbl, L) { var hits = L.filter(function(b) { return b.hit; }).length, u = L.reduce(function(a, b) { return a + b.u; }, 0); return '<div class="bm-l"><span>' + lbl + '</span><b style="color:' + (u >= 0 ? '#34D399' : '#F87171') + '">' + fmtU(u) + '</b> <i>' + hits + '/' + L.length + '</i></div>'; }
+          h = line('🛡️ Safer', safe) + line('🎲 Bolder', bold);
+        }
+        return '<div class="lk-card" style="--pc:' + personColor(n) + '"><div class="lk-name">' + n + '</div>' +
+          '<div class="lk-big">' + (t.n ? oddsTxt(avg) : '—') + '</div><div class="lk-sub">average odds per pick</div>' + h + '</div>';
+      }).join('') + '</div>';
+      if (W.length < 2) return cards;
+      var m = W.map(function(w) { return w.Maria.n ? w.Maria.s / w.Maria.n : null; }), d = W.map(function(w) { return w.Danielle.n ? w.Danielle.s / w.Danielle.n : null; });
+      var xl = [], dv = [], tips = W.map(function(w, i) {
+        if (season === 'all' && i > 0 && w.year !== W[i - 1].year) dv.push({ i: i, label: w.year });
+        if (season !== 'all') xl.push({ i: i, label: 'Wk ' + w.week });
+        return (season === 'all' ? w.year + ' ' : '') + 'Wk ' + w.week + ' · Maria ' + (m[i] === null ? '—' : oddsTxt(m[i])) + ' · Danielle ' + (d[i] === null ? '—' : oddsTxt(d[i]));
+      });
+      var keep = Math.ceil(xl.length / 9); xl = xl.filter(function(l, k) { return k % keep === 0; });
+      var chart = chLineChart({ n: W.length, series: [{ name: 'Maria', color: SB_M, vals: m }, { name: 'Danielle', color: SB_D, vals: d }],
+        xLabels: xl, dividers: dv, tips: tips, zeroLine: false, fmt: function(v) { return oddsTxt(v); } });
+      return cards + '<div class="ch-box">' + chart + '</div><div class="ch-note">Average odds of the players they picked each week. Higher = bolder. "Safer / Bolder" splits each person\'s scored bets at her own middle odds.</div>';
+    }
+
+    // ── 😰 Pressure Picks: how they do when they're behind for the week ──────
+    // Within each week, game by game: whoever has fewer units that week so far is "behind"
+    // going into the next game. Compares hit rates behind vs ahead vs overall.
+    function pressureSection(rows, season) {
+      var G = gamesOf(rows.filter(function(r) { return (season === 'all' || r.year === season) && isMD(r.picker) && (r.correct === 'Yes' || r.correct === 'No') && (r.homePick || r.awayPick); }));
+      var S = {}, wkU = {}, lastOf = {};
+      ['Maria', 'Danielle'].forEach(function(n) { S[n] = { behind: { h: 0, n: 0, u: 0 }, ahead: { h: 0, n: 0, u: 0 }, all: { h: 0, n: 0 }, final: { h: 0, n: 0 } }; });
+      G.forEach(function(g, i) { lastOf[g.year + '_' + g.week] = i; });
+      G.forEach(function(g, i) {
+        var wk = g.year + '_' + g.week;
+        var u = wkU[wk] || (wkU[wk] = { Maria: 0, Danielle: 0, games: 0 });
+        ['Maria', 'Danielle'].forEach(function(n) {
+          var r = g.by[n]; if (!r || isNotOffered(r)) return;
+          var other = n === 'Maria' ? 'Danielle' : 'Maria', hit = r.correct === 'Yes' ? 1 : 0;
+          S[n].all.n++; S[n].all.h += hit;
+          if (!u.games) return; // first game of the week: nobody's behind yet
+          var side = u[n] < u[other] ? 'behind' : u[n] > u[other] ? 'ahead' : null;
+          if (!side) return;
+          S[n][side].n++; S[n][side].h += hit; S[n][side].u += r.netUnits;
+          if (side === 'behind' && lastOf[wk] === i) { S[n].final.n++; S[n].final.h += hit; }
+        });
+        ['Maria', 'Danielle'].forEach(function(n) { if (g.by[n]) u[n] += g.by[n].netUnits; });
+        u.games++;
+      });
+      function pc(o) { return o.n ? Math.round(o.h / o.n * 100) + '%' : '—'; }
+      var any = S.Maria.behind.n + S.Danielle.behind.n;
+      if (!any) return '<div class="ch-empty">Not enough weeks yet.</div>';
+      return '<div class="lk-cards lk-stack">' + ['Maria', 'Danielle'].map(function(n) {
+        var s = S[n], b = s.behind, a = s.ahead, base = s.all.n ? s.all.h / s.all.n : 0;
+        var v = b.n < 4 ? { t: 'Not enough pressure spots yet', c: '#9CA3AF' }
+          : b.h / b.n - base >= 0.08 ? { t: '🧊 Ice in her veins', c: '#93C5FD' }
+          : b.h / b.n - base <= -0.08 ? { t: '😰 Feels the pressure', c: '#FCA5A5' }
+          : { t: '😐 Same either way', c: '#D1D5DB' };
+        return '<div class="lk-card" style="--pc:' + personColor(n) + '"><div class="lk-name">' + n + '</div>' +
+          '<div class="bm-l"><span>😬 Behind</span><b>' + pc(b) + '</b> <i>' + b.h + '/' + b.n + '</i></div>' +
+          '<div class="bm-l"><span>😎 Ahead</span><b>' + pc(a) + '</b> <i>' + a.h + '/' + a.n + '</i></div>' +
+          '<div class="bm-l"><span>📊 Overall</span><b>' + pc(s.all) + '</b> <i>' + s.all.h + '/' + s.all.n + '</i></div>' +
+          (s.final.n ? '<div class="bm-l"><span>🏁 Last game</span><b>' + pc(s.final) + '</b> <i>' + s.final.h + '/' + s.final.n + '</i></div>' : '') +
+          '<div class="lk-v" style="color:' + v.c + '">' + v.t + '</div></div>';
+      }).join('') + '</div><div class="ch-note">Behind / Ahead = fewer or more units than the other that week, going into the game. Last game = the week\'s final game while behind. The first game of each week and not-offered games are left out.</div>';
+    }

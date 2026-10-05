@@ -42,8 +42,8 @@
     var AN_TABS = [
       ['highlights', '🔥 Highlights', ['Pick of the Season', 'Best Stretches & Biggest Wins', 'Streaks', 'Hit Grid', '*Season']],
       ['trends', '📈 Trends', ['Season Race', 'Luck Meter', 'Weekly Units', 'Form', 'Month by Month']],
-      ['picking', '🎯 Picking', ['Odds vs Hits', 'Picking vs Reality', 'Who Scores First', 'Correct Picks by Game Type']],
-      ['players', '🏈 Players & Teams', ['NFL Team Heat Map', 'Fun Stats', 'TD Scorer Leaderboard', 'Chaos Corner']],
+      ['picking', '🎯 Picking', ['Boldness Meter', 'Odds vs Hits', 'Pressure Picks', 'Picking vs Reality', 'Who Scores First', 'Correct Picks by Game Type']],
+      ['players', '🏈 Players & Teams', ['NFL Team Heat Map', 'Overachievers & Busts', 'Fun Stats', 'TD Scorer Leaderboard', 'Chaos Corner']],
       ['pain', '😬 Pain', ['Jinx Tracker', 'Bad Beats']],
     ];
     // Sections folded into another one: [target, 'sub' (shown) or 'list' (behind a button), subheading]
@@ -1095,6 +1095,20 @@
           });
         });
         html += '<div style="font-size:11px;color:#9CA3AF;margin-top:8px">Rate = times a pick from that team scored first ÷ times they picked from that team.</div>';
+
+        // ── Overachievers & Busts / Boldness Meter / Pressure Picks (insights.js) ──
+        html += section("Overachievers & Busts");
+        html += '<div class="ch-intro">Players who keep beating their odds, and the ones who keep letting them down.</div>';
+        html += '<div class="af-bars">' + afBar('ob', 'season', 'Season', SEASON_OPTS, AN_YEARS[0]) + afBar('ob', 'picker', 'Picker', PICKER_OPTS, 'all') + '</div>';
+        SEASON_OPTS.forEach(function(so) { PICKER_OPTS.forEach(function(po) { html += afVariant('ob', [so[0], po[0]], bustsSection(rows, so[0], po[0])); }); });
+        html += section("Boldness Meter");
+        html += '<div class="ch-intro">Are they getting braver or playing it safe, and does going bold pay?</div>';
+        html += '<div class="af-bars">' + afBar('bold', 'season', 'Season', SEASON_OPTS, AN_YEARS[0]) + '</div>';
+        SEASON_OPTS.forEach(function(so) { html += afVariant('bold', [so[0]], boldSection(rows, so[0])); });
+        html += section("Pressure Picks");
+        html += '<div class="ch-intro">Clutch or choker: how each does when she\'s behind for the week.</div>';
+        html += '<div class="af-bars">' + afBar('press', 'season', 'Season', SEASON_OPTS, AN_YEARS[0]) + '</div>';
+        SEASON_OPTS.forEach(function(so) { html += afVariant('press', [so[0]], pressureSection(rows, so[0])); });
 
         // ── Chaos Corner ──
         try { await loadNFL(); } catch (e) {}

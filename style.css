@@ -1199,3 +1199,18 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
 /* Week in History now sits at the top of All-Time */
 #tab-legacy #hist-wrap { margin-bottom: 22px; }
 @media (max-width: 700px) { .hm-bar { display: none; } }
+/* Overachievers & Busts */
+.ob-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 16px; }
+@media (max-width: 700px) { .ob-grid { grid-template-columns: 1fr; gap: 6px; } }
+.ob-h { font-size: 12px; font-weight: 800; color: #D1D5DB; margin: 4px 0 2px; }
+.ob-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid rgba(255,255,255,0.08); font-size: 13px; }
+.ob-name { min-width: 0; }
+.ob-meta { font-size: 11px; color: #9CA3AF; margin-top: 2px; }
+.ob-d { font-size: 15px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ob-none { font-size: 12px; color: #9CA3AF; padding: 8px 0; }
+/* Boldness + Pressure card lines */
+.bm-l { display: flex; align-items: baseline; gap: 6px; font-size: 12px; margin-top: 6px; color: #D1D5DB; }
+.bm-l span { flex: 1; min-width: 0; color: #A1A9B6; }
+.bm-l b { font-variant-numeric: tabular-nums; }
+.bm-l i { font-style: normal; font-size: 11px; color: #9CA3AF; min-width: 30px; text-align: right; }
+@media (max-width: 700px) { .lk-cards.lk-stack { grid-template-columns: 1fr; } }

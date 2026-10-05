@@ -1053,8 +1053,6 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
 @keyframes lsFlash { 50% { background: rgba(52,211,153,0.22); border-color: rgba(52,211,153,0.6); } }
 @media (prefers-reduced-motion: reduce) { .live-pick-card.lp-celebrate, .live-strip.ls-celebrate { animation: none; } }
 /* Scouting line on Submit Picks options */
-.chip-scout { display: block; font-size: 11px; font-weight: 500; opacity: 0.65; margin-top: 3px; }
-.chip-scout:empty { display: none; }
 
 /* Team "jersey" pills: real team colors that read on dark backgrounds */
 .tpill { display: inline-block; padding: 0 7px; border-radius: 5px; font-weight: 700; line-height: 1.55; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.14); }
@@ -1225,3 +1223,17 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
 .tc-sc { font-size: 12px; display: flex; justify-content: space-between; gap: 6px; margin-top: 3px; }
 .tc-game span:nth-child(2) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tc-next { font-size: 12px; color: #D1D5DB; margin-top: 8px; }
+/* Scouting report (profiles) */
+.sr-list { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 2px 12px; margin-bottom: 20px; }
+.sr-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 0.5px solid rgba(255,255,255,0.07); }
+.sr-row:last-child { border-bottom: 0; }
+.sr-ic { font-size: 18px; width: 24px; text-align: center; }
+.sr-mid { flex: 1; min-width: 0; }
+.sr-l { font-size: 13px; font-weight: 700; color: #F3F4F6; }
+.sr-n { font-size: 11px; color: #9CA3AF; margin-top: 2px; line-height: 1.4; }
+.sr-v { font-size: 16px; white-space: nowrap; text-align: right; }
+/* Pick preview on Live Picks */
+.lp-prev { margin-top: 8px; padding-top: 7px; border-top: 1px dashed rgba(255,255,255,0.14); font-size: 12px; color: rgba(255,255,255,0.75); }
+.lp-ch b { color: #F3F4F6; }
+.lp-rec { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+.lp-best { font-size: 10px; font-weight: 800; color: #FBBF24; white-space: nowrap; }

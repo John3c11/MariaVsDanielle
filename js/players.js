@@ -116,7 +116,8 @@
           if (el.children.length) return;
           var t = el.textContent.trim();
           if (t.length < 4 || t.length > 40) return;
-          if (el.closest('.pick-chip, button, input, .pc-card, .tabs-nav, .pin-input')) return;
+          // Nothing on the Log In tab opens a card: picks are made without seeing stats
+          if (el.closest('.pick-chip, button, input, .pc-card, .tabs-nav, .pin-input, #tab-submit')) return;
           if (isKnownPlayer(t)) { el.classList.add('pl-link'); el.setAttribute('data-pname', t); return; }
           // Team names open a team card (a team pill with a logo is tagged as a whole)
           var team = isTeamText(t);
@@ -404,25 +405,6 @@
           '<div class="team-block" style="border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03)"><div class="team-players-inner" style="background:transparent">' + rows + '</div></div>' +
         '</div></div>';
       schedulePlayerTagging();
-    }
-
-    // Short scouting line under each Submit Picks option
-    function scoutLine(name) {
-      var p = PLAYER_DB && PLAYER_DB[playerKey(name)];
-      if (!p) return 'No history yet';
-      var k = playerKey(name);
-      var tds = Object.keys(p.tds).length;
-      var picked = p.gameOrder.map(function(g) { return p.games[g]; }).filter(function(g) { return g.by.length && g.scorer; });
-      var hits = picked.filter(function(g) { return playerKey(g.scorer) === k; }).length;
-      var bits = ['🏈 ' + tds + ' TD' + (tds === 1 ? '' : 's')];
-      if (picked.length) bits.push('hit ' + hits + '/' + picked.length);
-      if (p.lastOdds) bits.push('last ' + formatOdds(p.lastOdds.odds));
-      return bits.join(' · ');
-    }
-    function fillScouting() {
-      document.querySelectorAll('.chip-scout').forEach(function(el) {
-        el.textContent = scoutLine(el.getAttribute('data-scout'));
-      });
     }
 
     function closePlayerCard() {

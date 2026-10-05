@@ -19,8 +19,13 @@
       return h + '</div>';
     }
 
+    // Only the version on screen is put on the page; the rest wait in AF_HTML until a filter shows them
+    // (Analytics used to put every season x picker version of every section on the page at once).
+    var AF_HTML = {}, AF_SEQ = 0;
     function afVariant(g, vals, inner) {
-      return '<div class="af-v" data-g="' + g + '" data-v="' + vals.join('|') + '" style="display:none">' + inner + '</div>';
+      var id = 'afv' + (++AF_SEQ);
+      AF_HTML[id] = inner;
+      return '<div class="af-v" data-g="' + g + '" data-v="' + vals.join('|') + '" data-lazy="' + id + '" style="display:none"></div>';
     }
 
     // rowsHtml: array of row strings. Rows past `limit` hide behind a "Show all" button.
@@ -40,21 +45,25 @@
 
     // ── Analytics layout: one season picker + five sub-tabs ──────────────────
     var AN_TABS = [
-      ['highlights', '🔥 Highlights', ['Pick of the Season', 'Best Stretches & Biggest Wins', 'Streaks', 'Hit Grid', '*Season']],
+      ['highlights', '🔥 Highlights', ['Pick of the Season', 'Streaks', 'Hit Grid', '*Season']],
       ['trends', '📈 Trends', ['Season Race', 'Luck Meter', 'Weekly Units', 'Form', 'Month by Month']],
-      ['picking', '🎯 Picking', ['Boldness Meter', 'Odds vs Hits', 'Pressure Picks', 'Picking vs Reality', 'Who Scores First', 'Correct Picks by Game Type']],
-      ['players', '🏈 Players & Teams', ['NFL Team Heat Map', 'Overachievers & Busts', 'Fun Stats', 'TD Scorer Leaderboard', 'Chaos Corner']],
+      ['picking', '🎯 Picking', ['Boldness Meter', 'Pressure Picks', 'Picking vs Reality', 'Who Scores First', 'Correct Picks by Game Type']],
+      ['players', '🏈 Players & Teams', ['NFL Team Heat Map', 'Overachievers & Busts', 'TD Scorer Leaderboard', 'Chaos Corner']],
       ['pain', '😬 Pain', ['Jinx Tracker', 'Bad Beats']],
     ];
-    // Sections folded into another one: [target, 'sub' (shown) or 'list' (behind a button), subheading]
+    // Sections folded into another one: [target, 'sub' (shown) or 'list' (behind a button), subheading, button label]
+    // Order matters: a section that receives others must be merged after them.
     var AN_MERGE = {
-      'Week-by-Week Results': ['Weekly Units', 'list', 'Week by week'],
-      'Win Rate by Week': ['Weekly Units', 'list', 'Win rate by week'],
-      'Win Rate by Odds Range': ['Odds vs Hits', 'sub', 'Win rate by odds range'],
+      'Week-by-Week Results': ['Weekly Units', 'list', 'Week by week', 'Show the week-by-week list'],
+      'Win Rate by Week': ['Weekly Units', 'list', 'Win rate by week', 'Show the week-by-week list'],
+      'Win Rate by Odds Range': ['Boldness Meter', 'list', 'Win rate by odds range', 'Show win rate by odds range'],
+      'Odds vs Hits': ['Boldness Meter', 'sub', 'Where the hits come from'],
+      'Best Stretches & Biggest Wins': ['Streaks', 'list', 'Best stretches & biggest wins (all seasons)', 'Show best stretches & biggest wins'],
+      'Fun Stats': ['Overachievers & Busts', 'list', 'Most picked & cursed picks (all seasons)', 'Show most picked & cursed picks'],
       'Hit Rate by Position': ['Picking vs Reality', 'sub', 'Hit rate by position'],
       'Home vs Away Pick Accuracy': ['Who Scores First', 'sub', 'Their pick accuracy: home vs away players'],
     };
-    var AN_RENAME = { 'Who Scores First': 'Home vs Away', 'Fun Stats': 'Most Picked', 'Correct Picks by Game Type': 'By Game Type', 'NFL Team Heat Map': 'Team Report Card' };
+    var AN_RENAME = { 'Who Scores First': 'Home vs Away', 'Correct Picks by Game Type': 'By Game Type', 'NFL Team Heat Map': 'Team Report Card' };
     function anStore(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
 
     function anOrganize(root, seasonOpts) {
@@ -79,7 +88,7 @@
         Array.prototype.slice.call(from.childNodes).forEach(function(n) { if (!(n.classList && n.classList.contains('an-h'))) box.appendChild(n); });
         if (m[1] === 'list') {
           var det = to.querySelector(':scope > details.an-more');
-          if (!det) { det = document.createElement('details'); det.className = 'an-more'; det.innerHTML = '<summary>Show the week-by-week list</summary>'; to.appendChild(det); }
+          if (!det) { det = document.createElement('details'); det.className = 'an-more'; det.innerHTML = '<summary>' + (m[3] || 'Show more') + '</summary>'; to.appendChild(det); }
           det.appendChild(box);
         } else to.appendChild(box);
         from.remove(); delete secs[src];
@@ -144,7 +153,9 @@
     function afApply(g) {
       var want = AF[g].keys.map(function(k) { return AF[g].state[k]; }).join('|');
       document.querySelectorAll('.af-v[data-g="' + g + '"]').forEach(function(el) {
-        el.style.display = el.getAttribute('data-v') === want ? '' : 'none';
+        var show = el.getAttribute('data-v') === want, id = el.getAttribute('data-lazy');
+        if (show && id) { el.innerHTML = AF_HTML[id] || ''; delete AF_HTML[id]; el.removeAttribute('data-lazy'); }
+        el.style.display = show ? '' : 'none';
       });
     }
 

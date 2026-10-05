@@ -129,8 +129,7 @@
             out += '<button class="pick-chip" disabled style="opacity:0.45;cursor:not-allowed;text-decoration:line-through">' +
               name + '<span class="pos-hint">Taken</span></button>';
           } else {
-            out += '<button class="pick-chip" data-side="' + side + '" data-idx="' + i + '">' + name +
-              '<span class="chip-scout" data-scout="' + name.replace(/"/g, '&quot;') + '"></span></button>';
+            out += '<button class="pick-chip" data-side="' + side + '" data-idx="' + i + '">' + name + '</button>';
           }
         });
         return out + '</div>';
@@ -145,7 +144,7 @@
 
       el.innerHTML = html;
       bindSwitch(); bindPlayerNav();
-      loadPlayerDB().then(fillScouting);
+      // No player stats while picking: picks should be made blind
 
       el.querySelectorAll('.pick-chip[data-side]').forEach(function(btn) {
         btn.addEventListener('click', function() {
@@ -384,8 +383,7 @@
         var tc = TEAM_COLORS[team] || { bg: '#1C1C1E', text: '#FFFFFF', primary: '#1C1C1E' };
         return '<div><div class="team-header-bar" style="background:' + (tc.bg || tc.primary) + ';color:' + tc.text + ';border-radius:8px;margin-bottom:8px">' + team + '</div>' +
           players.map(function(n) {
-            return '<button class="pick-chip fr-chip" data-fs="' + side + '" data-fn="' + escHtml(n) + '">' + escHtml(n) +
-              '<span class="chip-scout" data-scout="' + escHtml(n) + '"></span></button>';
+            return '<button class="pick-chip fr-chip" data-fs="' + side + '" data-fn="' + escHtml(n) + '">' + escHtml(n) + '</button>';
           }).join('') + '</div>';
       }
       body.innerHTML = '<div style="text-align:center;margin-bottom:16px">' +
@@ -422,7 +420,6 @@
         }).catch(function() { btn.disabled = false; btn.textContent = 'Save Picks'; msg.style.color = '#F87171'; msg.textContent = 'Couldn\'t reach the sheet. Try again.'; });
       });
       paint();
-      loadPlayerDB().then(fillScouting);
     }
 
     // ── Admin: friends ──────────────────────────────────────────────────────

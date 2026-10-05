@@ -386,7 +386,7 @@
     // ── 😰 Pressure Picks: how they do when they're behind for the week ──────
     // Within each week, game by game: whoever has fewer units that week so far is "behind"
     // going into the next game. Compares hit rates behind vs ahead vs overall.
-    function pressureSection(rows, season) {
+    function pressureStats(rows, season) {
       var G = gamesOf(rows.filter(function(r) { return (season === 'all' || r.year === season) && isMD(r.picker) && (r.correct === 'Yes' || r.correct === 'No') && (r.homePick || r.awayPick); }));
       var S = {}, wkU = {}, lastOf = {};
       ['Maria', 'Danielle'].forEach(function(n) { S[n] = { behind: { h: 0, n: 0, u: 0 }, ahead: { h: 0, n: 0, u: 0 }, all: { h: 0, n: 0 }, final: { h: 0, n: 0 } }; });
@@ -407,15 +407,22 @@
         ['Maria', 'Danielle'].forEach(function(n) { if (g.by[n]) u[n] += g.by[n].netUnits; });
         u.games++;
       });
+      return S;
+    }
+    function pressureVerdict(s) {
+      var b = s.behind, base = s.all.n ? s.all.h / s.all.n : 0;
+      return b.n < 4 ? { t: 'Not enough pressure spots yet', c: '#9CA3AF' }
+        : b.h / b.n - base >= 0.08 ? { t: '🧊 Ice in her veins', c: '#93C5FD' }
+        : b.h / b.n - base <= -0.08 ? { t: '😰 Feels the pressure', c: '#FCA5A5' }
+        : { t: '😐 Same either way', c: '#D1D5DB' };
+    }
+    function pressureSection(rows, season) {
+      var S = pressureStats(rows, season);
       function pc(o) { return o.n ? Math.round(o.h / o.n * 100) + '%' : '—'; }
       var any = S.Maria.behind.n + S.Danielle.behind.n;
       if (!any) return '<div class="ch-empty">Not enough weeks yet.</div>';
       return '<div class="lk-cards lk-stack">' + ['Maria', 'Danielle'].map(function(n) {
-        var s = S[n], b = s.behind, a = s.ahead, base = s.all.n ? s.all.h / s.all.n : 0;
-        var v = b.n < 4 ? { t: 'Not enough pressure spots yet', c: '#9CA3AF' }
-          : b.h / b.n - base >= 0.08 ? { t: '🧊 Ice in her veins', c: '#93C5FD' }
-          : b.h / b.n - base <= -0.08 ? { t: '😰 Feels the pressure', c: '#FCA5A5' }
-          : { t: '😐 Same either way', c: '#D1D5DB' };
+        var s = S[n], b = s.behind, a = s.ahead, v = pressureVerdict(s);
         return '<div class="lk-card" style="--pc:' + personColor(n) + '"><div class="lk-name">' + n + '</div>' +
           '<div class="bm-l"><span>😬 Behind</span><b>' + pc(b) + '</b> <i>' + b.h + '/' + b.n + '</i></div>' +
           '<div class="bm-l"><span>😎 Ahead</span><b>' + pc(a) + '</b> <i>' + a.h + '/' + a.n + '</i></div>' +
@@ -519,4 +526,125 @@
         bd.addEventListener('click', function(e) { if (e.target === bd) closePlayerCard(); });
         document.getElementById('pc-close').addEventListener('click', closePlayerCard);
       });
+    }
+
+    // ── 🧭 Scouting report (Maria / Danielle profiles) ────────────────────────
+    function scoutingReportHtml(who, rows) {
+      var season = CURRENT_YEAR;
+      var lk = luckData(rows, season).out[who];
+      if (lk.n < 4) { season = 'all'; lk = luckData(rows, 'all').out[who]; }
+      var tag = season === 'all' ? 'all seasons' : season;
+      var items = [];
+      // Luck
+      var lv = luckVerdict(lk);
+      if (lk.n) items.push(['🍀', 'Luck', '<b style="color:' + lv.c + '">' + luckTxt(lk.hits - lk.exp) + '</b>', lk.hits + ' hits vs ' + lk.exp.toFixed(1) + ' expected · ' + lv.t + ' (' + tag + ')']);
+      // Boldness
+      var odds = [];
+      rows.forEach(function(r) {
+        if (r.picker !== who || (season !== 'all' && r.year !== season)) return;
+        [[r.homePick, r.homeOdds], [r.awayPick, r.awayOdds]].forEach(function(s) { if (s[0] && oddsN(s[1])) odds.push(oddsN(s[1])); });
+      });
+      if (odds.length) {
+        var avg = odds.reduce(function(a, b) { return a + b; }, 0) / odds.length;
+        var other = who === 'Maria' ? 'Danielle' : 'Maria', oOdds = [];
+        rows.forEach(function(r) { if (r.picker === other && (season === 'all' || r.year === season)) [[r.homePick, r.homeOdds], [r.awayPick, r.awayOdds]].forEach(function(s) { if (s[0] && oddsN(s[1])) oOdds.push(oddsN(s[1])); }); });
+        var oAvg = oOdds.length ? oOdds.reduce(function(a, b) { return a + b; }, 0) / oOdds.length : 0;
+        items.push(['🎲', 'Boldness', '<b>' + oddsTxt(avg) + '</b>', 'average odds per pick · ' + (oAvg ? (avg > oAvg * 1.05 ? 'bolder than ' + other : avg < oAvg * 0.95 ? 'safer than ' + other : 'about the same as ' + other) : '') + ' (' + tag + ')']);
+      }
+      // Pressure (all seasons, it needs the samples)
+      var ps = pressureStats(rows, 'all')[who], pv = pressureVerdict(ps);
+      items.push(['😰', 'Under pressure', '<b style="color:' + pv.c + '">' + (ps.behind.n ? Math.round(ps.behind.h / ps.behind.n * 100) + '%' : '—') + '</b>',
+        'hit rate when behind for the week (' + ps.behind.h + '/' + ps.behind.n + ') · ' + pv.t]);
+      // Teams
+      var TU = teamUnits(rows, 'all', who), cnt = {};
+      rows.forEach(function(r) { if (r.picker !== who) return; if (r.homePick) cnt[r.homeTeam] = (cnt[r.homeTeam] || 0) + 1; if (r.awayPick) cnt[r.awayTeam] = (cnt[r.awayTeam] || 0) + 1; });
+      var ranked = Object.keys(TU).filter(function(t) { return (cnt[t] || 0) >= 3; }).sort(function(a, b) { return TU[b] - TU[a]; });
+      if (ranked.length >= 2) {
+        var best = ranked[0], worst = ranked[ranked.length - 1];
+        if (TU[best] > 0) items.push(['💸', 'Best team', coloredText('<b>' + best.split(' ').pop() + '</b>', best), fmtU(TU[best]) + ' picking from them (all seasons)']);
+        if (TU[worst] < 0) items.push(['🔥', 'Burning team', coloredText('<b>' + worst.split(' ').pop() + '</b>', worst), fmtU(TU[worst]) + ' picking from them (all seasons)']);
+      }
+      // Records she holds
+      var R = computeRecords(rows), held = RECORDS.filter(function(d) { return R[d.k] && R[d.k].who === who; });
+      if (held.length) items.push(['📖', 'Records', '<b>' + held.length + '</b>', held.map(function(d) { return d.ic + ' ' + d.t + ' (' + R[d.k].txt + ')'; }).join(' · ')]);
+      if (!items.length) return '';
+      return '<div class="pf-h">🧭 Scouting Report <small>how she bets</small></div><div class="sr-list">' + items.map(function(it) {
+        return '<div class="sr-row"><span class="sr-ic">' + it[0] + '</span><div class="sr-mid"><div class="sr-l">' + it[1] + '</div><div class="sr-n">' + it[3] + '</div></div><div class="sr-v">' + it[2] + '</div></div>';
+      }).join('') + '</div>';
+    }
+
+    // ── 🎁 Extra Season Wrapped tiles: luck, boldness, team of the year, chaos week, records set ──
+    function wrappedExtraTiles(year, all) {
+      var rows = all.filter(function(r) { return r.year === year; });
+      function nm(n) { return '<span style="color:' + personColor(n) + '">' + n + '</span>'; }
+      function tile(label, main, sub) { return '<div class="wr-tile"><div class="wr-tile-label">' + label + '</div><div class="wr-tile-main">' + main + '</div>' + (sub ? '<div class="wr-tile-sub">' + sub + '</div>' : '') + '</div>'; }
+      var out = [];
+      // Luckiest: most hits above what the odds expected
+      var L = luckData(rows, year).out, lm = L.Maria.hits - L.Maria.exp, ld = L.Danielle.hits - L.Danielle.exp;
+      if (L.Maria.n + L.Danielle.n >= 6) {
+        var lucky = lm >= ld ? 'Maria' : 'Danielle', lv = Math.max(lm, ld);
+        out.push(tile('🍀 Luckiest', nm(lucky) + ' ' + luckTxt(lv), 'hits above what the odds expected'));
+      }
+      // Boldest picker: longest average odds
+      var avg = {};
+      ['Maria', 'Danielle'].forEach(function(n) {
+        var o = [];
+        rows.forEach(function(r) { if (r.picker === n) [[r.homePick, r.homeOdds], [r.awayPick, r.awayOdds]].forEach(function(s) { if (s[0] && oddsN(s[1])) o.push(oddsN(s[1])); }); });
+        avg[n] = o.length ? o.reduce(function(a, b) { return a + b; }, 0) / o.length : 0;
+      });
+      if (avg.Maria && avg.Danielle) { var bold = avg.Maria >= avg.Danielle ? 'Maria' : 'Danielle'; out.push(tile('🎲 Boldest Picker', nm(bold) + ' ' + oddsTxt(avg[bold]), 'average odds per pick')); }
+      // Team of the year: most units won picking from one team
+      var TU = teamUnits(all, year, 'all'), best = Object.keys(TU).sort(function(a, b) { return TU[b] - TU[a]; })[0];
+      if (best && TU[best] > 0) out.push(tile('💸 Team of the Year', coloredText(best.split(' ').pop(), best) + ' ' + fmtU(TU[best]), 'units won picking from them'));
+      // Chaos week
+      var C = chaosGames(all, year), wk = {};
+      C.forEach(function(c) { var k = c.g.week; wk[k] = wk[k] || { n: 0, x: 0 }; wk[k].n++; if (c.tags.length) wk[k].x++; });
+      var cw = Object.keys(wk).filter(function(k) { return wk[k].x; }).sort(function(a, b) { return wk[b].x / wk[b].n - wk[a].x / wk[a].n || wk[b].x - wk[a].x; })[0];
+      if (cw) out.push(tile('🌀 Chaos Week', 'Week ' + cw, wk[cw].x + ' of ' + wk[cw].n + ' first TDs from off the board'));
+      // Records set this season (still standing)
+      var R = computeRecords(all), set = RECORDS.filter(function(d) { return R[d.k] && R[d.k].year === year; });
+      if (set.length) out.push('<div class="wr-tile"><div class="wr-tile-label">📖 Records Set</div>' + set.slice(0, 3).map(function(d) {
+        return '<div class="wr-fav">' + d.ic + ' ' + nm(R[d.k].who) + ' · ' + d.t + ' <span style="opacity:0.6;font-weight:500">' + R[d.k].txt + '</span></div>';
+      }).join('') + '</div>');
+      return out.join('');
+    }
+    function fillWrappedExtras() {
+      var slots = document.querySelectorAll('.wr-more[data-wr-year]');
+      if (!slots.length) return;
+      loadAllBets().then(function(all) {
+        slots.forEach(function(el) { el.outerHTML = wrappedExtraTiles(el.getAttribute('data-wr-year'), all); });
+      }).catch(function() { slots.forEach(function(el) { el.remove(); }); });
+    }
+
+    // ── 🎯 Pick preview on Live Picks (only once both picks are revealed, so they're locked) ──
+    // Each card gets its chance from the odds and each player's track record when picked.
+    function addPickPreview(root) {
+      var games = root.querySelectorAll('.live-game[data-reveal]');
+      if (!games.length) return;
+      loadPlayerDB().then(function(db) {
+        games.forEach(function(gEl) {
+          if (gEl.querySelector('.lp-prev')) return;
+          var chance = {};
+          gEl.querySelectorAll('.live-pick-card').forEach(function(card) {
+            var who = card.classList.contains('maria') ? 'Maria' : 'Danielle';
+            var odds = ((card.querySelector('.pick-odds') || {}).textContent || '').split('/').map(function(s) { return oddsN(s.trim()); });
+            var names = Array.prototype.map.call(card.querySelectorAll('.lp-pick'), function(el) { return el.getAttribute('data-player'); });
+            var p = 0, known = names.length > 0;
+            var recs = names.map(function(n, i) {
+              if (!odds[i]) known = false; else p += impliedP(odds[i]);
+              var k = playerKey(n), pl = db[k];
+              var picked = pl ? pl.gameOrder.map(function(g) { return pl.games[g]; }).filter(function(g) { return g.by.length && g.scorer; }) : [];
+              var hits = picked.filter(function(g) { return playerKey(g.scorer) === k; }).length;
+              return '<span>' + escHtml(n.split(' ').slice(-1)[0]) + ' ' + (picked.length ? hits + '/' + picked.length : 'new') + '</span>';
+            });
+            chance[who] = known ? p : null;
+            card.insertAdjacentHTML('beforeend', '<div class="lp-prev"><div class="lp-ch">' + (known ? '🎯 <b>' + Math.round(p * 100) + '%</b> chance' : '🎯 odds coming') + '</div><div class="lp-rec">' + recs.join(' · ') + '</div></div>');
+          });
+          if (chance.Maria != null && chance.Danielle != null && Math.round(chance.Maria * 100) !== Math.round(chance.Danielle * 100)) {
+            var better = chance.Maria > chance.Danielle ? 'maria' : 'danielle';
+            var c = gEl.querySelector('.live-pick-card.' + better + ' .lp-ch');
+            if (c) c.insertAdjacentHTML('beforeend', ' <span class="lp-best">⭐ better shot</span>');
+          }
+        });
+      }).catch(function() {});
     }

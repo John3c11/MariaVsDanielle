@@ -318,6 +318,7 @@
       }
       if (topTD) h += tile('🏈 TD Machine', topTD.name, topTD.n + ' first TD' + (topTD.n === 1 ? '' : 's'));
       if (cursed) h += tile('💀 Cursed Pick', cursed.name, 'Picked ' + cursed.n + 'x, never cashed');
+      h += '<div class="wr-more" data-wr-year="' + year + '"></div>'; // luck, boldness, team of the year… (insights.js)
       h += '</div></div>';
       return h;
     }
@@ -411,6 +412,7 @@
 
         document.getElementById('legacy-content').innerHTML = html;
         fillCrowdWrapped();
+        if (typeof fillWrappedExtras === 'function') fillWrappedExtras();
         loadEarnings(byYear);
         loadAllBets().then(function(all) { var el = document.getElementById('legacy-records'); if (el) el.innerHTML = recordBookHtml(all) || '<div class="loading">No records yet.</div>'; });
       }).catch(function(e) {

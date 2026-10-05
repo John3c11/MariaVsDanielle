@@ -188,6 +188,7 @@
           tile('Bad Beats', S.beats ? S.beats.length : (S.beatsState === 'down' ? '—' : '…'), S.closest ? 'Closest: ' + S.closest.player + ' (' + S.closest.gap + ' min)' : (S.beats ? 'None yet' : S.beatsState === 'down' ? 'Couldn\'t reach ESPN' : 'Checking ESPN…')) +
           tile('Jinxes', S.jinxes.length, 'Loyalty ' + S.loyalty) +
           '</div>';
+        if (typeof scoutingReportHtml === 'function') h += scoutingReportHtml(who, rows);
 
         var A = achievementsFor(S);
         function badges(list) {

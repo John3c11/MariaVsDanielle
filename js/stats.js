@@ -273,6 +273,7 @@
           fillHeadshots(liveEl);
           playPickReveals(liveEl);
           addCrowdLines(liveEl);
+          if (typeof addPickPreview === 'function') addPickPreview(liveEl);
           startLiveTracker();
           // A game is still waiting on someone's picks: check back every minute so the reveal can happen live
           clearInterval(window.REVEAL_POLL);

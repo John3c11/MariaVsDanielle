@@ -92,6 +92,13 @@
       return PLAYER_DB_LOADING;
     }
 
+    // "Buffalo Bills", "Bills" or another known spelling -> "Buffalo Bills" (exact names only, no guessing)
+    function isTeamText(t) {
+      var r = resolveTeam(t);
+      if (!TEAM_COLORS[r]) return '';
+      return t === r || t === r.split(' ').pop() || TEAM_ALIASES[t] === r ? r : '';
+    }
+
     function isKnownPlayer(text) {
       var k = playerKey(text);
       return !!k && ((PLAYER_DB && PLAYER_DB[k]) || ROSTER_INFO[k] || (NFL[k] && SKILL_POS[NFL[k].pos]));
@@ -110,7 +117,13 @@
           var t = el.textContent.trim();
           if (t.length < 4 || t.length > 40) return;
           if (el.closest('.pick-chip, button, input, .pc-card, .tabs-nav, .pin-input')) return;
-          if (isKnownPlayer(t)) { el.classList.add('pl-link'); el.setAttribute('data-pname', t); }
+          if (isKnownPlayer(t)) { el.classList.add('pl-link'); el.setAttribute('data-pname', t); return; }
+          // Team names open a team card (a team pill with a logo is tagged as a whole)
+          var team = isTeamText(t);
+          if (team && !el.closest('.tm-link, .af-bar, .filter-btn')) {
+            var target = el.closest('.tpill') || el;
+            target.classList.add('tm-link'); target.setAttribute('data-team', team);
+          }
         });
       });
     }
@@ -418,6 +431,8 @@
     }
 
     document.addEventListener('click', function(e) {
+      var tm = e.target.closest && e.target.closest('.tm-link');
+      if (tm && !tm.closest('.pc-card') && !(e.target.closest('.pl-link'))) { e.preventDefault(); openTeamCard(tm.getAttribute('data-team')); return; }
       var el = e.target.closest && e.target.closest('.pl-link');
       if (!el || el.closest('.pc-card')) return;
       e.preventDefault();

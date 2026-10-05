@@ -365,6 +365,8 @@
     // Shows the latest week that has a first scorer. It flips to the next week once
     // that week's first game is scored, so last week stays up until Thursday night.
     var FTD = { rows: null, week: 0, picked: false };
+    // A tappable team (opens the team card)
+    function tmTag(team, inner) { var r = resolveTeam(team); return TEAM_COLORS[r] ? '<span class="tm-link" data-team="' + escHtml(r) + '">' + inner + '</span>' : inner; }
     function renderFirstTDs(rows, pickWeek) {
       var wrap = document.getElementById('ftd-wrap');
       if (!wrap) return;
@@ -402,7 +404,7 @@
         var g = G[k];
         var ab = function(t) { return (TEAM_ABBR[resolveTeam(t)] || resolveTeam(t).split(' ').pop()).toUpperCase(); };
         h += '<div class="ftd-row" data-ftd="' + escHtml(k) + '" data-ctx-year="' + CURRENT_YEAR + '" data-ctx-week="' + week + '"><div class="ftd-top"><span class="ftd-slot">' + escHtml(g.slot) + '</span>' +
-          '<span class="ftd-teams">' + teamLogo(g.home) + ab(g.home) + ' <span style="color:rgba(255,255,255,0.4)">vs</span> ' + teamLogo(g.away) + ab(g.away) + '</span></div>';
+          '<span class="ftd-teams">' + tmTag(g.home, teamLogo(g.home) + ab(g.home)) + ' <span style="color:rgba(255,255,255,0.4)">vs</span> ' + tmTag(g.away, teamLogo(g.away) + ab(g.away)) + '</span></div>';
         if (g.scorer) {
           var team = /^home$/i.test(g.side) ? g.home : /^away$/i.test(g.side) ? g.away : '';
           var hits = ['Maria', 'Danielle'].filter(function(n) { return g.md[n] === 'Yes'; });

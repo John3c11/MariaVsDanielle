@@ -424,3 +424,99 @@
           '<div class="lk-v" style="color:' + v.c + '">' + v.t + '</div></div>';
       }).join('') + '</div><div class="ch-note">Behind / Ahead = fewer or more units than the other that week, going into the game. Last game = the week\'s final game while behind. The first game of each week and not-offered games are left out.</div>';
     }
+
+    // ── 🏟️ Team card: tap any team name (works like the player cards) ────────
+    function openTeamCard(team) {
+      team = resolveTeam(team);
+      if (!TEAM_COLORS[team]) return;
+      Promise.all([loadAllBets(), loadNFL().catch(function() {}), (typeof ROSTERS_READY !== 'undefined' ? ROSTERS_READY : Promise.resolve()).catch(function() {})]).then(function(res) {
+        var rows = res[0].filter(function(r) { return isMD(r.picker) && (r.homeTeam === team || r.awayTeam === team); });
+        var tc = TEAM_COLORS[team], headBg = tc.bg === '#FFFFFF' ? tc.primary : tc.bg, nick = team.split(' ').pop();
+        function scorerTeam(r) {
+          var s = (r.side || '').toLowerCase();
+          if (s === 'home') return r.homeTeam;
+          if (s === 'away') return r.awayTeam;
+          if (r.firstScorer === r.homePick) return r.homeTeam;
+          if (r.firstScorer === r.awayPick) return r.awayTeam;
+          var n = typeof nflOf === 'function' ? nflOf(r.firstScorer) : null;
+          return n ? n.team : '';
+        }
+        // One entry per game
+        var G = gamesOf(rows), scored = G.filter(function(g) { var r = g.by.Maria || g.by.Danielle; return r.firstScorer; });
+        var ownFirst = 0, scorers = {};
+        scored.forEach(function(g) {
+          var r = g.by.Maria || g.by.Danielle;
+          if (scorerTeam(r) === team) { ownFirst++; scorers[r.firstScorer] = (scorers[r.firstScorer] || 0) + 1; }
+        });
+        // Picks from this team, per person
+        var me = {};
+        ['Maria', 'Danielle'].forEach(function(n) {
+          var picked = 0, paid = 0;
+          rows.forEach(function(r) {
+            if (r.picker !== n) return;
+            var pk = r.homeTeam === team ? r.homePick : r.awayPick;
+            if (!pk) return;
+            picked++;
+            if (r.correct === 'Yes' && !isNotOffered(r) && r.firstScorer === pk) paid++;
+          });
+          me[n] = { picked: picked, paid: paid, u: teamUnits(res[0], 'all', n)[team] || 0 };
+        });
+        function person(n) {
+          var m = me[n], c = personColor(n);
+          return '<div class="pc-person"><span style="color:' + c + ';font-weight:700">' + n + '</span><span style="color:rgba(255,255,255,0.85)">' +
+            (m.picked ? 'picked ' + m.picked + 'x · paid ' + m.paid + 'x · <span style="font-weight:700;color:' + (m.u > 0 ? '#34D399' : m.u < 0 ? '#F87171' : '#9CA3AF') + '">' + fmtU(m.u) + '</span>'
+              : '<span style="color:rgba(255,255,255,0.45)">never picked from them</span>') + '</span></div>';
+        }
+        // Offered right now (Rosters tab)
+        var ORDER = ['WR1', 'RB1', 'WR2', 'QB', 'TE', 'WR3'];
+        var offered = Object.keys(ROSTER_INFO).map(function(k) { return ROSTER_INFO[k]; })
+          .filter(function(p) { return p.team && !p.hidden && resolveTeam(p.team) === team; })
+          .sort(function(a, b) { var ai = ORDER.indexOf(a.pos), bi = ORDER.indexOf(b.pos); return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi); });
+        var offeredHtml = offered.length ? '<div class="tc-offered">' + offered.map(function(p) {
+          return '<span class="tc-pl' + (playerKey(p.name) in INJURED ? ' is-out' : '') + '"><i>' + (p.pos || '+') + '</i>' + escHtml(p.name) + '</span>';
+        }).join('') + '</div>' : '<div class="pc-small">Nobody offered right now.</div>';
+        var top = Object.keys(scorers).sort(function(a, b) { return scorers[b] - scorers[a]; }).slice(0, 4);
+        function res1(r) {
+          if (!r) return '';
+          var c = personColor(r.picker), t = !r.firstScorer ? '⏳' : isNotOffered(r) ? '🚫' : r.correct === 'Yes' ? '✅' : '❌';
+          return '<span class="pc-chip" style="color:' + c + ';background:' + hexA(c, 0.15) + '">' + r.picker.charAt(0) + ' ' + t + '</span>';
+        }
+        var played = G.filter(function(g) { var r = g.by.Maria || g.by.Danielle; return r.firstScorer; });
+        var next = G.filter(function(g) { var r = g.by.Maria || g.by.Danielle; return !r.firstScorer; })[0];
+        var nextHtml = '';
+        if (next) {
+          var nr = next.by.Maria || next.by.Danielle, no = nr.homeTeam === team ? nr.awayTeam : nr.homeTeam;
+          nextHtml = '<div class="tc-next">⏭️ Next: ' + nr.year + ' Week ' + nr.week + (nr.slot ? ' ' + escHtml(nr.slot) : '') + ' · ' + (nr.homeTeam === team ? 'vs ' : '@ ') +
+            '<b style="color:' + ((TEAM_COLORS[no] || {}).dark || '#F3F4F6') + '">' + no.split(' ').pop() + '</b></div>';
+        }
+        var recent = played.slice().reverse().slice(0, 5).map(function(g) {
+          var r = g.by.Maria || g.by.Danielle, opp = r.homeTeam === team ? r.awayTeam : r.homeTeam;
+          var oc = TEAM_COLORS[opp];
+          var ftd = r.firstScorer ? (scorerTeam(r) === team ? '<b style="color:' + tc.dark + '">' + escHtml(r.firstScorer) + '</b>' : '<span style="color:rgba(255,255,255,0.55)">' + escHtml(r.firstScorer) + '</span>') : '<span style="color:rgba(255,255,255,0.45)">Not played</span>';
+          return '<div class="pc-game tc-game"><span style="color:rgba(255,255,255,0.55)">' + r.year + ' Wk ' + r.week + '</span>' +
+            '<span>' + (r.homeTeam === team ? 'vs ' : '@ ') + '<b style="color:' + (oc ? oc.dark : '#F3F4F6') + '">' + (TEAM_ABBR[opp] || opp).toUpperCase() + '</b> · ' + ftd + '</span>' +
+            '<span>' + res1(g.by.Maria) + res1(g.by.Danielle) + '</span></div>';
+        }).join('');
+        var nfl = Object.keys(NFL).filter(function(k) { return NFL[k].team === team && SKILL_POS[NFL[k].pos] && NFL[k].inj; }).map(function(k) { return NFL[k]; });
+        var html = '<div class="pc-backdrop" id="pc-backdrop"><div class="pc-card" role="dialog" aria-label="' + team + '">' +
+          '<div class="pc-head" style="background:linear-gradient(150deg,' + hexA(headBg, 0.95) + ' 0%,' + hexA(headBg, 0.35) + ' 70%, rgba(17,19,24,1) 100%)">' +
+            '<button class="pc-close" id="pc-close" aria-label="Close">×</button>' +
+            '<div class="tc-logo">' + teamLogo(team) + '</div>' +
+            '<div class="pc-name">' + team + '</div>' +
+            '<div class="pc-sub">' + (G.length ? G.length + ' game' + (G.length === 1 ? '' : 's') + ' bet on' : 'No games bet on yet') + (nfl.length ? ' · 🩹 ' + nfl.length + ' on ESPN\'s injury report' : '') + '</div>' +
+          '</div><div class="pc-body">' +
+            '<div class="pc-tiles">' +
+              '<div class="pc-tile"><div class="pc-label">Scores first</div><div class="pc-big">' + (scored.length ? Math.round(ownFirst / scored.length * 100) + '%' : '—') + '</div><div class="pc-small">' + (scored.length ? 'the ' + nick + ' scored first in ' + ownFirst + ' of ' + scored.length : 'no scored games yet') + '</div></div>' +
+              '<div class="pc-tile"><div class="pc-label">Top scorers</div>' + (top.length ? top.map(function(n) { return '<div class="tc-sc">' + escHtml(n) + ' <b>' + scorers[n] + '</b></div>'; }).join('') : '<div class="pc-small">None yet</div>') + '</div>' +
+            '</div>' +
+            person('Maria') + person('Danielle') +
+            '<div class="pc-games"><div class="pc-label">Offered now</div>' + offeredHtml + '</div>' +
+            (recent || nextHtml ? '<div class="pc-games"><div class="pc-label">Recent games</div>' + recent + nextHtml + '</div>' : '') +
+          '</div></div></div>';
+        closePlayerCard();
+        document.body.insertAdjacentHTML('beforeend', html);
+        var bd = document.getElementById('pc-backdrop');
+        bd.addEventListener('click', function(e) { if (e.target === bd) closePlayerCard(); });
+        document.getElementById('pc-close').addEventListener('click', closePlayerCard);
+      });
+    }

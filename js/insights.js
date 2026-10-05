@@ -601,8 +601,9 @@
       C.forEach(function(c) { var k = c.g.week; wk[k] = wk[k] || { n: 0, x: 0 }; wk[k].n++; if (c.tags.length) wk[k].x++; });
       var cw = Object.keys(wk).filter(function(k) { return wk[k].x; }).sort(function(a, b) { return wk[b].x / wk[b].n - wk[a].x / wk[a].n || wk[b].x - wk[a].x; })[0];
       if (cw) out.push(tile('🌀 Chaos Week', 'Week ' + cw, wk[cw].x + ' of ' + wk[cw].n + ' first TDs from off the board'));
-      // Records set this season (still standing)
-      var R = computeRecords(all), set = RECORDS.filter(function(d) { return R[d.k] && R[d.k].year === year; });
+      // All-time records set this season, as they stood when the season ended
+      // (later seasons don't count, so a season's Wrapped never changes after the fact)
+      var R = computeRecords(all.filter(function(r) { return parseInt(r.year, 10) <= parseInt(year, 10); })), set = RECORDS.filter(function(d) { return R[d.k] && R[d.k].year === year; });
       if (set.length) out.push('<div class="wr-tile"><div class="wr-tile-label">📖 Records Set</div>' + set.slice(0, 3).map(function(d) {
         return '<div class="wr-fav">' + d.ic + ' ' + nm(R[d.k].who) + ' · ' + d.t + ' <span style="opacity:0.6;font-weight:500">' + R[d.k].txt + '</span></div>';
       }).join('') + '</div>');

@@ -1237,3 +1237,6 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
 .lp-ch b { color: #F3F4F6; }
 .lp-rec { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
 .lp-best { font-size: 10px; font-weight: 800; color: #FBBF24; white-space: nowrap; }
+/* Player card: older games behind "Show all" */
+.pc-folded .pc-extra { display: none; }
+.pc-all { display: block; margin: 8px auto 0; }

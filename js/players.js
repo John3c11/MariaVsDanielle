@@ -314,7 +314,9 @@
             '</span></div>';
         }
 
-        var games = p.gameOrder.slice().reverse().slice(0, 6).map(function(gk) {
+        // Newest first; past 6 they hide behind a "Show all" button
+        var allGames = p.gameOrder.slice().reverse();
+        var games = allGames.map(function(gk, gi) {
           var g = p.games[gk];
           var myTeam = g.team || (team === g.home || team === g.away ? team : '');
           var opp = myTeam === g.home ? g.away : myTeam === g.away ? g.home : '';
@@ -329,7 +331,7 @@
           var res = !g.scorer ? '<span style="color:rgba(255,255,255,0.45)">Pending</span>'
                   : playerKey(g.scorer) === k ? '<span style="color:#34D399;font-weight:700">🏈 Scored first</span>'
                   : '<span style="color:rgba(255,255,255,0.45)">—</span>';
-          return '<div class="pc-game"><span style="color:rgba(255,255,255,0.55)">' + g.year + ' Wk ' + g.week + '</span>' +
+          return '<div class="pc-game' + (gi >= 6 ? ' pc-extra' : '') + '"><span style="color:rgba(255,255,255,0.55)">' + g.year + ' Wk ' + g.week + '</span>' +
             '<span>' + vs + ' ' + chips + '</span><span>' + res + '</span></div>';
         }).join('');
 
@@ -351,7 +353,7 @@
                 '<div class="pc-small">' + (pickedGames.length ? 'scored first in ' + hitGames + ' of ' + pickedGames.length : 'no picked games yet') + '</div></div>' +
             '</div>' +
             person('Maria') + person('Danielle') +
-            (games ? '<div class="pc-games"><div class="pc-label">Recent games</div>' + games + '</div>' : '') +
+            (games ? '<div class="pc-games' + (allGames.length > 6 ? ' pc-folded' : '') + '"><div class="pc-label">Recent games</div>' + games + (allGames.length > 6 ? '<button class="link-btn pc-all" onclick="this.parentNode.classList.remove(\'pc-folded\');this.remove()">Show all ' + allGames.length + ' games</button>' : '') + '</div>' : '') +
           '</div></div></div>';
 
         closePlayerCard();

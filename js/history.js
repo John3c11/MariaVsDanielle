@@ -247,7 +247,7 @@
       var cursed = null;
       Object.keys(all).forEach(function(k) {
         if (hit[k] || all[k] < 2) return;
-        if (!cursed || all[k] > cursed.n) cursed = { name: k, n: all[k] };
+        if (!cursed || all[k] > cursed.n) cursed = { name: k, n: all[k], by: who.filter(function(n) { return picks[n][k]; }).map(function(n) { return n + ' ' + picks[n][k] + 'x'; }) };
       });
 
       // Top first-TD scorer of the season (one count per game)
@@ -317,7 +317,7 @@
         h += '<div class="wr-tile"><div class="wr-tile-label">❤️ Ride or Die</div>' + fav('Maria', favM) + fav('Danielle', favD) + '</div>';
       }
       if (topTD) h += tile('🏈 TD Machine', topTD.name, topTD.n + ' first TD' + (topTD.n === 1 ? '' : 's'));
-      if (cursed) h += tile('💀 Cursed Pick', cursed.name, 'Picked ' + cursed.n + 'x, never cashed');
+      if (cursed) h += tile('💀 Cursed Pick', cursed.name, cursed.by.map(function(s) { var n = s.split(' ')[0]; return nm(n) + s.slice(n.length); }).join(' · ') + ', never cashed');
       h += '<div class="wr-more" data-wr-year="' + year + '"></div>'; // luck, boldness, team of the year… (insights.js)
       h += '</div></div>';
       return h;

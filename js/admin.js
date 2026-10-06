@@ -182,7 +182,7 @@
     var ADMIN = { oddsRes: null };
 
     function adminHeader(active) {
-      var tabs = [['odds', '💲 Odds'], ['games', '🏈 Games'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['season', '🆕 Season'], ['theme', '🎨 Theme'], ['museum', '🏛️ Museum'], ['eggs', '🥚 Eggs'], ['status', '🩺 Status']];
+      var tabs = [['odds', '💲 Odds'], ['games', '🏈 Games'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['season', '🆕 Season'], ['bracket', '🏆 Bracket'], ['theme', '🎨 Theme'], ['museum', '🏛️ Museum'], ['eggs', '🥚 Eggs'], ['status', '🩺 Status']];
       return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
         '<div style="font-size:16px;font-weight:700">Hi John</div>' +
         '<button class="link-btn" id="sub-switch">Log out</button></div>' +
@@ -203,12 +203,13 @@
     function markErrSeen(list) { if (list && list.length) { try { localStorage.setItem('mvd-err-seen', list[0].at); } catch (e) {} } }
     function adminAlertHtml() {
       var a = ADMIN.alert;
-      if (!a || ADMIN.alertHidden || (!a.issues && !a.errs)) return '';
+      if (!a || ADMIN.alertHidden || (!a.issues && !a.errs && !a.bracket)) return '';
       var parts = [];
+      if (a.bracket) parts.push('🏆 Playoff field is (almost) set: <b>open the Bracket Challenge</b> <button class="adm-btn" data-adm="bracket">Bracket</button>');
       if (a.issues) parts.push('🔍 Data check: <b>' + a.issues + ' thing' + (a.issues > 1 ? 's' : '') + ' to look at</b>' + (a.bad ? ' (' + a.bad + ' affect' + (a.bad === 1 ? 's' : '') + ' the totals)' : ''));
       if (a.errs) parts.push('📱 <b>' + a.errs + ' new error' + (a.errs > 1 ? 's' : '') + '</b> from phones');
       return '<div class="adm-alert" id="adm-alert"><span>⚠️ ' + parts.join(' · ') + '</span>' +
-        '<span style="white-space:nowrap"><button class="adm-btn" data-adm="status">Open Status</button> <button class="link-btn" id="adm-alert-x" aria-label="Hide">✕</button></span></div>';
+        '<span style="white-space:nowrap">' + (a.issues || a.errs ? '<button class="adm-btn" data-adm="status">Open Status</button> ' : '') + '<button class="link-btn" id="adm-alert-x" aria-label="Hide">✕</button></span></div>';
     }
     function adminLoginCheck() {
       ADMIN.alert = null; ADMIN.alertHidden = false;
@@ -221,7 +222,9 @@
         if (res[1].dcOk) ADMIN.dcOk = res[1].dcOk;
         var c = res[0] ? dcCounts(res[0]) : { issues: 0, bad: 0 };
         var errs = (res[1].errors || []).filter(function(e) { return e.at > seen; }).length;
-        ADMIN.alert = { issues: c.issues, bad: c.bad, errs: errs };
+        // January, before Wild Card weekend: nudge to set the playoff field
+        var mo = new Date().getMonth(), brOff = typeof BRACKET_ON === 'undefined' || !BRACKET_ON;
+        ADMIN.alert = { issues: c.issues, bad: c.bad, errs: errs, bracket: mo === 0 && new Date().getDate() <= 14 && brOff };
         var nav = document.querySelector('#submit-content .adm-nav');
         if (!nav || document.getElementById('adm-alert') || document.querySelector('.adm-nav .on[data-adm="status"]')) return;
         nav.insertAdjacentHTML('afterend', adminAlertHtml());
@@ -365,6 +368,110 @@
         });
         return loadScriptOnce('js/gameday.js').then(function() { startGameDay(g.home, g.away, { year: g.year, week: g.week, picks: picks }); });
       }).catch(function() { alert('Couldn\'t load the games.'); });
+    }
+
+    // ── 🏆 Bracket: set the playoff field, open/lock it, fix a first TD ──────────
+    var BRA = { seeds: null };
+    function adminBracket() {
+      var body = adminScreen('bracket', '<div class="loading">Loading the bracket…</div>');
+      Promise.all([picksApi({ pin: SUB.pin, action: 'bradmin' }), loadScriptOnce('js/bracket.js')]).then(function(res) {
+        var r = res[0];
+        if (r.error) { body.innerHTML = '<div class="inj-warn">' + escHtml(r.error) + (/Bracket\.gs/.test(r.error) ? '' : '') + '</div>'; return; }
+        if (!r.bracket) { body.innerHTML = '<div class="inj-warn">⚠️ The picks script that\'s live is an older version. In Apps Script: <b>Deploy → Manage deployments → ✏️ → New version → Deploy</b>, then reload.</div>'; return; }
+        BRA.seeds = r.seeds ? { AFC: r.seeds.AFC.slice(), NFC: r.seeds.NFC.slice() } : (BRA.seeds || { AFC: ['', '', '', '', '', '', ''], NFC: ['', '', '', '', '', '', ''] });
+        drawAdminBracket(body, r);
+      }).catch(function() { body.innerHTML = '<div class="loading">Couldn\'t reach the script.</div>'; });
+    }
+    function drawAdminBracket(body, r) {
+      var B = r.bracket, S = r.seeds, st = B.state;
+      var teams = Object.keys(TEAM_ABBR).sort();
+      var stateTxt = { off: S ? 'Field saved, not open yet' : 'Not set up', open: 'Open: people can fill out brackets', locked: 'Locked: games are on', done: 'Finished' }[st] || st;
+      var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">Everyone picks the winner and first TD of all 13 playoff games before Wild Card kickoff. It locks by itself at the first kickoff, and results come from ESPN. Set the field right after Week 18.</div>';
+      h += '<div class="st-row"><span class="st-ic">' + (st === 'open' ? '🟢' : st === 'locked' ? '🔒' : st === 'done' ? '🏁' : '⚪') + '</span><div style="flex:1"><div class="st-l">' + stateTxt + '</div>' +
+        '<div class="st-d">' + (B.lockAt ? 'Locks ' + new Date(B.lockAt).toLocaleString() : 'Lock time: the first Wild Card kickoff, once ESPN lists the games') + ' · ' + (r.entries || []).length + ' brackets</div>' +
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">' +
+          (S ? '<button class="adm-btn ' + (S.opened ? '' : 'green') + '" id="bra-open">' + (S.opened ? 'Close it (hide from the site)' : 'Open it') + '</button>' : '') +
+          (S && S.opened && st === 'open' ? '<button class="adm-btn" id="bra-lock">Lock now</button>' : '') +
+          (S && S.lockAt ? '<button class="adm-btn" id="bra-unlock">Undo manual lock</button>' : '') +
+          (st !== 'off' ? '<button class="adm-btn" id="bra-see">See the page →</button>' : '') +
+        '</div></div></div>';
+      h += '<div class="pf-h" style="margin-top:16px">🏈 The field <small>seed 1 gets the bye</small></div>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px"><button class="adm-btn" id="bra-pull">Fill from ESPN standings</button></div>' +
+        '<div class="bra-seeds">' + ['AFC', 'NFC'].map(function(c) {
+          return '<div><div class="bra-conf">' + c + '</div>' + BRA.seeds[c].map(function(t, i) {
+            return '<label class="bra-seed"><span>' + (i + 1) + '</span><select class="adm-input" data-bra="' + c + '|' + i + '"><option value="">—</option>' + teams.map(function(x) {
+              return '<option value="' + escHtml(x) + '"' + (resolveTeam(t) === x ? ' selected' : '') + '>' + escHtml(x.split(' ').pop()) + '</option>'; }).join('') + '</select></label>';
+          }).join('') + '</div>';
+        }).join('') + '</div>' +
+        '<button class="primary-btn" id="bra-save" style="padding:10px 20px">' + (S && S.opened ? 'Save the field' : 'Save and open the bracket') + '</button>' +
+        (S && !S.opened ? ' <button class="link-btn" id="bra-save-only" style="margin-left:8px">Save without opening</button>' : '') +
+        '<div class="submit-msg" id="adm-msg" style="text-align:left"></div>';
+      var E = r.entries || [];
+      h += '<div class="pf-h" style="margin-top:18px">👥 Brackets <small>' + E.length + '</small></div>' + (E.length ? E.map(function(e) {
+        var n = BR_ORDER.filter(function(k) { return e.picks[k] && e.picks[k].w; }).length, ns = BR_ORDER.filter(function(k) { return e.picks[k] && e.picks[k].s; }).length;
+        return '<div class="adm-row"><div><b>' + escHtml(e.who) + '</b> <span style="color:#9CA3AF">· ' + n + '/13 winners · ' + ns + '/13 first TDs' + (e.at && !isNaN(new Date(e.at)) ? ' · ' + new Date(e.at).toLocaleDateString() : '') + '</span></div>' +
+          '<button class="adm-btn red" data-bra-rm="' + escHtml(e.who) + '">Remove</button></div>';
+      }).join('') : '<div style="font-size:13px;color:#A1A9B6">None yet.</div>');
+      var G = B.games || [];
+      if (G.length) {
+        h += '<div class="pf-h" style="margin-top:18px">📋 Results from ESPN <small>fix a first TD if ESPN\'s name doesn\'t match</small></div>';
+        G.forEach(function(g) {
+          h += '<div class="adm-row"><div style="min-width:0"><b>' + escHtml(brNick(g.teams[0])) + ' vs ' + escHtml(brNick(g.teams[1])) + '</b> <span style="color:#9CA3AF">· ' + BR_ROUNDS[g.round].t + ' · ' + (g.state === 'post' ? 'final' + (g.winner ? ', ' + escHtml(brNick(g.winner)) + ' won' : '') : g.state === 'in' ? 'live' : 'not started') + '</span>' +
+            '<div style="font-size:12px;margin-top:3px">First TD: <b>' + escHtml(g.ftd || '—') + '</b>' + (g.fixed ? ' (fixed by you)' : '') + '</div></div>' +
+            '<span style="white-space:nowrap"><button class="adm-btn" data-bra-fix="' + escHtml(g.id) + '">Fix</button>' + (g.fixed ? ' <button class="adm-btn" data-bra-unfix="' + escHtml(g.id) + '">Use ESPN</button>' : '') + '</span></div>';
+        });
+      }
+      body.innerHTML = h;
+
+      function call(q, msg) {
+        q.pin = SUB.pin; adminMsg('Saving…', true);
+        return picksApi(q).then(function(x) {
+          if (x.needForce) { if (confirm(x.error + ' Save anyway?')) { q.force = '1'; return call(q, msg); } adminMsg('Not saved.', false); return; }
+          if (x.error) { adminMsg(x.error, false); return; }
+          BRA.seeds = x.seeds ? { AFC: x.seeds.AFC.slice(), NFC: x.seeds.NFC.slice() } : BRA.seeds;
+          drawAdminBracket(body, x); adminMsg(msg, true);
+          if (typeof setBracketState === 'function') setBracketState(x.bracket && x.bracket.state !== 'off' ? { state: x.bracket.state, lockAt: x.bracket.lockAt } : null);
+          if (typeof BR !== 'undefined') BR.data = null;
+        }).catch(function() { adminMsg('Couldn\'t reach the script. Try again.', false); });
+      }
+      body.querySelectorAll('[data-bra]').forEach(function(sel) {
+        sel.addEventListener('change', function() { var x = sel.getAttribute('data-bra').split('|'); BRA.seeds[x[0]][+x[1]] = sel.value; });
+      });
+      function saveSeeds(open) {
+        var all = BRA.seeds.AFC.concat(BRA.seeds.NFC);
+        if (all.some(function(t) { return !t; })) { adminMsg('Fill in all 7 seeds for both conferences.', false); return; }
+        call({ action: 'brseeds', seeds: JSON.stringify(BRA.seeds), open: open ? '1' : '' }, open ? 'Saved. The bracket is open. 🏆' : 'Saved.');
+      }
+      document.getElementById('bra-save').addEventListener('click', function() { saveSeeds(!S || !S.opened ? true : true); });
+      var so = document.getElementById('bra-save-only'); if (so) so.addEventListener('click', function() { saveSeeds(false); });
+      document.getElementById('bra-pull').addEventListener('click', function() {
+        adminMsg('Asking ESPN…', true);
+        picksApi({ pin: SUB.pin, action: 'brpull' }).then(function(x) {
+          if (x.error || !x.espn) { adminMsg(x.error || 'ESPN didn\'t answer.', false); return; }
+          ['AFC', 'NFC'].forEach(function(c) { for (var i = 0; i < 7; i++) BRA.seeds[c][i] = (x.espn[c] && x.espn[c][i]) ? resolveTeam(x.espn[c][i]) : BRA.seeds[c][i]; });
+          drawAdminBracket(body, r); adminMsg('Filled from ESPN. Check it, then save.', true);
+        }).catch(function() { adminMsg('Couldn\'t reach the script.', false); });
+      });
+      var ob = document.getElementById('bra-open'); if (ob) ob.addEventListener('click', function() { call({ action: 'bropen', open: S.opened ? '' : '1' }, S.opened ? 'Closed. The 🏆 Bracket page is hidden.' : 'Open. 🏆'); });
+      var lk = document.getElementById('bra-lock'); if (lk) lk.addEventListener('click', function() { if (confirm('Lock every bracket right now?')) call({ action: 'brlock', lock: '1' }, 'Locked.'); });
+      var ul = document.getElementById('bra-unlock'); if (ul) ul.addEventListener('click', function() { call({ action: 'brlock', lock: '' }, 'Back to locking at the first kickoff.'); });
+      var see = document.getElementById('bra-see'); if (see) see.addEventListener('click', function() { switchTab('bracket'); });
+      body.querySelectorAll('[data-bra-rm]').forEach(function(b) {
+        b.addEventListener('click', function() { var w = b.getAttribute('data-bra-rm'); if (confirm('Remove ' + w + '\'s bracket?')) call({ action: 'brrm', who: w }, 'Removed.'); });
+      });
+      body.querySelectorAll('[data-bra-fix]').forEach(function(b) {
+        b.addEventListener('click', function() {
+          var id = b.getAttribute('data-bra-fix'), g = G.filter(function(x) { return x.id === id; })[0];
+          var name = prompt('First TD scorer for ' + brNick(g.teams[0]) + ' vs ' + brNick(g.teams[1]) + ' (spell it like the Rosters tab):', g.ftd || '');
+          if (name === null || !name.trim()) return;
+          var team = prompt('His team? Type ' + brNick(g.teams[0]) + ' or ' + brNick(g.teams[1]) + ':', g.ftdTeam ? brNick(g.ftdTeam) : '');
+          var full = g.teams.filter(function(t) { return team && brNick(t).toLowerCase() === team.trim().toLowerCase(); })[0] || g.ftdTeam || '';
+          call({ action: 'brfix', id: id, ftd: name.trim(), team: full }, 'Fixed.');
+        });
+      });
+      body.querySelectorAll('[data-bra-unfix]').forEach(function(b) {
+        b.addEventListener('click', function() { call({ action: 'brfix', id: b.getAttribute('data-bra-unfix'), ftd: '' }, 'Back to ESPN\'s answer.'); });
+      });
     }
 
     // ── 🏛️ Museum: John's notes, photos and moments (js/museum.js draws the page) ──
@@ -636,8 +743,9 @@
               '<button class="adm-btn" id="ns-copy">Copy</button>'
             : '<div class="ns-sub">The site already lists ' + configFor.year + ' (it shows ' + siteYear + ' as the current season).</div>')
           : '<div class="ns-sub">You\'ll get the exact file to paste here.</div>');
-        h += '<div class="submit-msg" id="adm-msg" style="text-align:left"></div>' +
-          '<div style="font-size:11px;color:#6B7280;margin-top:14px">Keep editing the scripts in the 2026 sheet\'s Apps Script. The new sheet gets a copy of them only so the team colors keep working there.</div>';
+        h += '<div class="submit-msg" id="adm-msg" style="text-align:left"></div>';
+        h += '<div class="pf-h" style="margin-top:18px">✅ Ready for ' + (pend ? pend.year : cur.year) + '? <small><button class="link-btn" id="ns-recheck">Check again</button></small></div><div id="ns-check"><div class="loading">Checking…</div></div>';
+        h += '<div style="font-size:11px;color:#6B7280;margin-top:14px">Keep editing the scripts in the 2026 sheet\'s Apps Script. The new sheet gets a copy of them only so the team colors keep working there.</div>';
         body.innerHTML = h;
 
         function run(action, btn, label) {
@@ -657,6 +765,27 @@
         if (un) un.addEventListener('click', function() {
           if (confirm('Go back to the ' + prev.year + ' sheet? (The ' + cur.year + ' sheet stays in Drive, ready to switch again.)')) run('undoseason', un, 'Switching back…');
         });
+        // ✅ The checklist: the script looks at the sheet, this page checks the website's config.js
+        function drawCheck() {
+          var box = document.getElementById('ns-check');
+          if (!box) return;
+          box.innerHTML = '<div class="loading">Checking…</div>';
+          picksApi({ pin: SUB.pin, action: 'seasoncheck' }).then(function(c) {
+            if (c.error || !c.items) { box.innerHTML = '<div class="inj-warn">' + escHtml(c.error || 'The picks script that\'s live is older. Deploy → Manage deployments → ✏️ → New version → Deploy.') + '</div>'; return; }
+            var items = c.items.slice();
+            var listed = SEASONS.some(function(x) { return x.year === c.year; });
+            items.splice(items.length - 2, 0, { state: !pend && CURRENT_YEAR === c.year ? 'ok' : pend ? 'now' : listed ? 'ok' : 'bad', label: 'Website shows ' + c.year,
+              detail: CURRENT_YEAR === c.year ? 'config.js lists it as the current season.' : pend ? 'After switching, upload the new config.js (step 4).' : 'Upload the new config.js (step 4). The site still shows ' + CURRENT_YEAR + '.' });
+            var bad = items.filter(function(x) { return x.state === 'bad' || x.state === 'warn' || x.state === 'now'; }).length;
+            box.innerHTML = '<div class="ns-sum ' + (bad ? 'todo' : 'ready') + '">' + (bad ? bad + ' thing' + (bad === 1 ? '' : 's') + ' left before ' + c.year + ' is ready' : '🎉 All set for ' + c.year + '.') + '</div>' +
+              items.map(function(x) {
+                var ic = x.state === 'ok' ? '✅' : x.state === 'warn' ? '⚠️' : x.state === 'bad' ? '❌' : x.state === 'now' ? '👉' : 'ℹ️';
+                return '<div class="st-row"><span class="st-ic">' + ic + '</span><div><div class="st-l">' + escHtml(x.label) + '</div>' + (x.detail ? '<div class="st-d">' + escHtml(x.detail) + '</div>' : '') + '</div></div>';
+              }).join('');
+          }).catch(function() { box.innerHTML = '<div class="loading">Couldn\'t reach the script.</div>'; });
+        }
+        drawCheck();
+        document.getElementById('ns-recheck').addEventListener('click', drawCheck);
         var cp = document.getElementById('ns-copy');
         if (cp) cp.addEventListener('click', function() {
           var ta = document.getElementById('ns-config'); ta.select();
@@ -797,6 +926,7 @@
       if (section === 'chat') adminChat();
       if (section === 'season') adminSeason();
       if (section === 'theme') adminTheme();
+      if (section === 'bracket') adminBracket();
       if (section === 'museum') adminMuseum();
       if (section === 'eggs') adminEggs();
       if (section === 'status') adminStatus();

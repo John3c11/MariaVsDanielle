@@ -740,6 +740,7 @@
         try { localStorage.setItem('mvd-announce', JSON.stringify(r.announce || null)); } catch (e) {}
         draw(r.announce);
         applyMyTheme(r.themes || {});
+        if (typeof setBracketState === 'function') setBracketState(r.bracket);
       }).catch(function() {});
     }
 

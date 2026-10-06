@@ -60,7 +60,7 @@
       });
       document.getElementById('tab-' + name).classList.add('active');
       // "More" shows which hidden tab you're on
-      var extra = { crowd: 'Crowd', schedule: 'Schedule', legacy: 'All-Time', museum: 'Museum', bethistory: 'Bet Log', rosters: 'Rosters' }[name];
+      var extra = { crowd: 'Crowd', schedule: 'Schedule', legacy: 'All-Time', museum: 'Museum', bracket: 'Bracket', bethistory: 'Bet Log', rosters: 'Rosters' }[name];
       if (name === 'analytics' && window.matchMedia('(max-width: 700px)').matches) extra = 'Analytics';
       var more = document.getElementById('tab-more');
       if (more) {
@@ -79,6 +79,30 @@
       if (name === 'crowd') loadCrowdTab();
       if (name === 'rosters') setupPlayerSearch();
       if (name === 'museum') openMuseum();
+      if (name === 'bracket') openBracket();
+    }
+    // 🏆 Playoff Bracket Challenge (js/bracket.js, loaded the first time it opens)
+    function openBracket() {
+      loadScriptOnce('js/bracket.js').then(function() { loadBracketTab(true); }).catch(function() {
+        var el = document.getElementById('bracket-content');
+        if (el) el.innerHTML = '<div class="loading">Couldn\'t load the bracket. Check your connection. <button class="link-btn" onclick="openBracket()">Try again</button></div>';
+      });
+    }
+    // The 🏆 Bracket menu item, Log In shortcut and Stats banner only exist while the challenge is on
+    var BRACKET_ON = null; // { state, lockAt } from the script, or null
+    function setBracketState(b) {
+      BRACKET_ON = b && b.state && b.state !== 'off' ? b : null;
+      var mi = document.getElementById('menu-bracket');
+      if (mi) mi.style.display = BRACKET_ON ? '' : 'none';
+      var bn = document.getElementById('br-banner');
+      if (!bn) return;
+      var closed = ''; try { closed = localStorage.getItem('mvd-br-banner') || ''; } catch (e) {}
+      if (!BRACKET_ON || BRACKET_ON.state !== 'open' || closed === CURRENT_YEAR) { bn.style.display = 'none'; return; }
+      var when = BRACKET_ON.lockAt ? new Date(BRACKET_ON.lockAt).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
+      bn.innerHTML = '<span>🏆 <b>The Playoff Bracket Challenge is open.</b> Pick every playoff winner and first TD' + (when ? ' before ' + when : ' before Wild Card kickoff') + '.</span>' +
+        '<span style="white-space:nowrap"><button class="adm-btn" onclick="switchTab(\'bracket\')">Fill mine out</button> <button class="vb-x" aria-label="Dismiss">✕</button></span>';
+      bn.style.display = '';
+      bn.querySelector('.vb-x').addEventListener('click', function() { try { localStorage.setItem('mvd-br-banner', CURRENT_YEAR); } catch (e) {} bn.style.display = 'none'; });
     }
     // 🏛️ The Museum (js/museum.js, loaded the first time it opens)
     function openMuseum() {

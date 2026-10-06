@@ -340,6 +340,7 @@
     function playerHeader(name, active) {
       var pc = personColor(name);
       var sections = SUB.role === 'friend' ? FRIEND_SECTIONS : PLAYER_SECTIONS;
+      if (typeof BRACKET_ON !== 'undefined' && BRACKET_ON) sections = sections.concat([['bracket', '🏆 Bracket']]);
       if (SUB.role === 'friend') pc = '#2DD4BF';
       return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
         '<div style="font-size:16px;font-weight:700">Hi <span style="color:' + pc + '">' + name + '</span></div>' +
@@ -379,6 +380,7 @@
       }
       if (section === 'fprofile') openProfile(SUB.name);
       if (section === 'crowd') switchTab('crowd');
+      if (section === 'bracket') switchTab('bracket');
       if (section === 'market') {
         var mb = playerScreen('market', '<div class="loading">Loading the market…</div>');
         loadScriptOnce('js/market.js').then(function() { mb.innerHTML = ''; renderMarket(mb, { trade: true, fresh: true }); })

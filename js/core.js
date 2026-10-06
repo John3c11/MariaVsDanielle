@@ -160,6 +160,7 @@
         homeOdds: parseFloat(b.homeOdds) || 0, awayOdds: parseFloat(b.awayOdds) || 0,
         firstScorer: b.scorer, correct: b.correct, wasOffered: b.wasOffered,
         netUnits: b.units, netDollars: b.dollars, notOffered: b.notOffered,
+        homeOddsTxt: b.homeOdds, awayOddsTxt: b.awayOdds, amount: b.amount, // as typed (for the Data check)
       };
     }
     var ALL_BETS_PROMISE = null;

@@ -1278,6 +1278,16 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
   border-radius: 999px; padding: 9px 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); pointer-events: none; transition: opacity 0.15s; white-space: nowrap; }
 @media (max-width: 700px) { html, body { overscroll-behavior-y: contain; } } /* the browser's own pull-to-refresh would fight ours */
 
+/* v96: 🏈 Games admin screen */
+.ag-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; margin: 6px 0 10px; }
+.ag-form label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; font-weight: 700; color: #A1A9B6; letter-spacing: 0.04em; text-transform: uppercase; }
+.ag-form .adm-input { width: 100%; box-sizing: border-box; text-transform: none; letter-spacing: 0; font-weight: 400; }
+.ag-note { font-size: 12px; color: #FCD34D; margin-bottom: 10px; }
+.ag-note:empty { display: none; }
+.ag-wk { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #9CA3AF; margin: 14px 0 2px; }
+.ag-st { font-size: 11px; color: #9CA3AF; white-space: nowrap; }
+.wide-only { display: none !important; }
+
 /* ── v95: wide desktop layout (1440px and up only — phones and laptops are untouched) ── */
 @media (min-width: 1440px) {
   .page-layout { max-width: calc(min(1100px, 100vw - 540px) + 48px); }
@@ -1300,6 +1310,11 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
   /* a lone section stuck between two charts (or after the last chart) gets the full row instead of half */
   .an-pane > .an-sec:has(.ch-svg) + .an-sec:not(:has(.ch-svg)):last-child,
   .an-pane > .an-sec:has(.ch-svg) + .an-sec:not(:has(.ch-svg)):has(+ .an-sec .ch-svg) { grid-column: 1 / -1; }
+  .an-pane[data-pane="picking"] > [data-sec="Pressure Picks"] { order: 1; }
+  .an-pane[data-pane="picking"] > [data-sec="Correct Picks by Game Type"] { order: 2; }
+  .an-pane[data-pane="picking"] > [data-sec="Picking vs Reality"] { order: 3; }
+  .an-pane[data-pane="picking"] > [data-sec="Who Scores First"] { order: 4; }
+  #hist-wrap2.on { display: block !important; }
   /* Rosters: two divisions per row */
   #rosters-content { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 24px; align-items: start; }
   #rosters-content > :not(.division-block) { grid-column: 1 / -1; }

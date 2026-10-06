@@ -488,6 +488,12 @@
             }
           }
         } catch(e) { console.warn('Could not load pick counts', e); }
+        // "Maria x3, Danielle x1" next to a name (this season's picks)
+        const pickNoteHtml = (name) => {
+          const c = pickCounts[name] || {};
+          const notes = ['Maria', 'Danielle'].filter(w => c[w]).map(w => `${w} x${c[w]}`);
+          return notes.length ? `<span style="font-size:10px;color:#9CA3AF;margin-left:6px">${notes.join(', ')}</span>` : '';
+        };
 
         // Render divisions
         let html = '';
@@ -511,20 +517,12 @@
               // Skip QBs not in the offered list entirely
               if (isQB && !validQBs.has(name)) { ROSTER_INFO[playerKey(name)].hidden = true; continue; }
               const nameClass = isQB ? 'qb-valid' : 'player-name-text';
-              const counts = pickCounts[name] || {};
-              const pickNotes = [];
-              if (counts['Maria']) pickNotes.push(`Maria x${counts['Maria']}`);
-              if (counts['Danielle']) pickNotes.push(`Danielle x${counts['Danielle']}`);
-              const pickNote = pickNotes.length ? `<span style="font-size:10px;color:#9CA3AF;margin-left:6px">${pickNotes.join(', ')}</span>` : '';
+              const pickNote = pickNoteHtml(name);
               const posColor = tc.dark || tc.primary;
               html += `<div class="player-row${outRow(name)}"><span class="pos-label" style="color:${posColor}">${pos}</span><span class="${nameClass}"><span>${name}</span>${outBadge(name)}${pickNote}</span></div>`;
             }
             for (const extra of td.extras) {
-              const counts = pickCounts[extra] || {};
-              const pickNotes = [];
-              if (counts['Maria']) pickNotes.push(`Maria x${counts['Maria']}`);
-              if (counts['Danielle']) pickNotes.push(`Danielle x${counts['Danielle']}`);
-              const pickNote = pickNotes.length ? `<span style="font-size:10px;color:#9CA3AF;margin-left:6px">${pickNotes.join(', ')}</span>` : '';
+              const pickNote = pickNoteHtml(extra);
               html += `<div class="player-row${outRow(extra)}"><span class="pos-label" style="color:${tc.dark || tc.primary}">+</span><span class="player-name-text extra"><span>${extra}</span>${outBadge(extra)}${pickNote}</span></div>`;
             }
             // Everyone else on the team (from ESPN), grayed out

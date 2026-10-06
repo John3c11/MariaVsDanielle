@@ -601,7 +601,7 @@
     var ADMIN = { oddsRes: null };
 
     function adminHeader(active) {
-      var tabs = [['odds', '💲 Odds'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['season', '🆕 Season'], ['theme', '🎨 Theme'], ['status', '🩺 Status']];
+      var tabs = [['odds', '💲 Odds'], ['games', '🏈 Games'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['season', '🆕 Season'], ['theme', '🎨 Theme'], ['status', '🩺 Status']];
       return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
         '<div style="font-size:16px;font-weight:700">Hi John</div>' +
         '<button class="link-btn" id="sub-switch">Log out</button></div>' +
@@ -805,7 +805,7 @@
             : '<div class="ns-sub">Copies the ' + cur.year + ' sheet into a new "' + next + '" sheet in the same Drive folder, keeping every formula, tab, dropdown and the team-color script, then blanks the game rows, Trash Talk and Injured list. The ' + cur.year + ' sheet is not changed. Nothing switches yet.</div>' +
               '<button class="primary-btn" id="ns-make" style="margin-top:10px">Make ' + next + ' sheet</button>');
         h += step(2, 'Fill it in', pend ? 'now' : prev ? 'done' : 'later',
-          '<div class="ns-sub">Pre-fill the game rows like you always do, and update the Rosters and QBs tabs for the new year. The site and scripts keep using ' + (pend ? cur.year : 'the old sheet') + ' until step 3.</div>');
+          '<div class="ns-sub">Pre-fill the game rows like you always do (or add them on the 🏈 Games screen, which only works after step 3), and update the Rosters and QBs tabs for the new year. The site and scripts keep using ' + (pend ? cur.year : 'the old sheet') + ' until step 3.</div>');
         h += step(3, 'Switch over', pend ? 'now' : prev ? 'done' : 'later',
           pend ? '<div class="ns-sub">Do this before ' + pend.year + ' Week 1. Picks, odds, chat, first TDs and the Tuesday email move to the ' + pend.year + ' sheet. Friends and their old picks stay.</div><button class="adm-btn green" id="ns-switch" style="margin-top:10px;padding:9px 16px;font-size:13px">Switch to ' + pend.year + '</button>'
             : prev ? '<div class="ns-sub">Switched from ' + prev.year + ' to ' + cur.year + '. <button class="link-btn" id="ns-undo">Undo, go back to ' + prev.year + '</button></div>' : '');
@@ -846,6 +846,95 @@
       }).catch(function() { body.innerHTML = '<div class="loading">Couldn\'t reach the script.</div>'; });
     }
 
+    // ── 🏈 Games: add a game (two rows, Maria + Danielle) or take out one nobody has picked ──
+    var GAMES = { showAll: false };
+    function adminGames() {
+      var body = adminScreen('games', '<div class="loading">Loading games…</div>');
+      picksApi({ pin: SUB.pin, action: 'gamelist' }).then(function(r) {
+        if (r.error) { body.innerHTML = '<div class="loading">' + escHtml(r.error) + '</div>'; return; }
+        if (!r.games) { body.innerHTML = '<div class="inj-warn">⚠️ The picks script that\'s live is an older version. In Apps Script: <b>Deploy → Manage deployments → ✏️ → Version: New version → Deploy</b>, then reload.</div>'; return; }
+        drawGames(body, r);
+      }).catch(function() { body.innerHTML = '<div class="loading">Couldn\'t reach the script.</div>'; });
+    }
+    function drawGames(body, r) {
+      var teams = Object.keys(TEAM_ABBR).sort();
+      function teamSel(id) {
+        return '<select class="adm-input" id="' + id + '"><option value="">Pick a team</option>' + teams.map(function(t) { return '<option>' + escHtml(t) + '</option>'; }).join('') + '</select>';
+      }
+      function nick(t) { return escHtml(resolveTeam(t).split(' ').pop()); }
+      var h = '<div class="pf-h" style="margin-top:4px">➕ Add a game <small>' + CURRENT_YEAR + ' sheet</small></div>' +
+        '<div class="ag-form">' +
+          '<label>Week<input class="adm-input" id="ag-week" type="number" min="1" max="30" value="' + (r.lastWeek || 1) + '"></label>' +
+          '<label>Time<input class="adm-input" id="ag-slot" list="ag-slots" placeholder="TNF, SNF…"><datalist id="ag-slots">' + (r.slots || []).map(function(x) { return '<option value="' + escHtml(x) + '">'; }).join('') + '</datalist></label>' +
+          '<label>Home team' + teamSel('ag-home') + '</label>' +
+          '<label>Away team' + teamSel('ag-away') + '</label>' +
+          '<label>Amount bet<input class="adm-input" id="ag-amt" type="number" min="1" step="any" value="' + escHtml(r.amount || '5') + '"></label>' +
+        '</div>' +
+        '<div class="ag-note" id="ag-note"></div>' +
+        '<button class="primary-btn" id="ag-add" style="padding:10px 20px">Add game</button>' +
+        '<div class="submit-msg" id="adm-msg" style="text-align:left"></div>' +
+        '<div style="font-size:11px;color:#6B7280;margin:8px 0 20px">Adds two rows right below the last game (game ' + r.nextGame + '), one for Maria and one for Danielle, with the formulas, dropdowns and team colors. Odds start as "+" like always.</div>';
+      // Game list: the latest two weeks, the rest behind a button
+      var weeks = [], byWeek = {};
+      r.games.forEach(function(g) { if (!byWeek[g.week]) { byWeek[g.week] = []; weeks.push(g.week); } byWeek[g.week].push(g); });
+      weeks.sort(function(a, b) { return b - a; });
+      var shown = GAMES.showAll ? weeks : weeks.slice(0, 2);
+      h += '<div class="pf-h">📋 Games in the sheet <small>' + r.games.length + ' games</small></div>';
+      if (!weeks.length) h += '<div style="font-size:13px;color:#A1A9B6">No games yet.</div>';
+      shown.forEach(function(w) {
+        h += '<div class="ag-wk">Week ' + w + '</div>';
+        byWeek[w].forEach(function(g) {
+          var state = g.scorer ? '<span class="ag-st">🏈 ' + escHtml(g.scorer) + '</span>' : g.picked ? '<span class="ag-st">picked</span>' : '';
+          h += '<div class="adm-row"><div style="min-width:0"><b>' + nick(g.home) + '</b> vs <b>' + nick(g.away) + '</b> <span style="color:#9CA3AF">· ' + escHtml(g.slot || '—') + ' · game ' + escHtml(g.game) + ' · rows ' + g.rows.join(', ') + '</span></div>' +
+            (g.picked || g.scorer ? state : '<button class="adm-btn red" data-rmg="' + g.week + '|' + escHtml(g.game) + '|' + nick(g.home) + ' vs ' + nick(g.away) + '">Remove</button>') + '</div>';
+        });
+      });
+      if (weeks.length > 2) h += '<button class="link-btn" id="ag-all" style="margin-top:10px">' + (GAMES.showAll ? 'Show only the latest weeks' : 'Show all ' + weeks.length + ' weeks') + '</button>';
+      body.innerHTML = h;
+
+      var wk = document.getElementById('ag-week'), note = document.getElementById('ag-note');
+      function warnOrder() {
+        var w = parseInt(wk.value, 10);
+        note.textContent = w && w < r.lastWeek ? 'Heads-up: this goes at the bottom of the sheet, after the Week ' + r.lastWeek + ' games. Picking still goes in week order, so it comes up when it should.' : '';
+      }
+      wk.addEventListener('input', warnOrder); warnOrder();
+      document.getElementById('ag-add').addEventListener('click', function() {
+        var btn = this;
+        var p = { pin: SUB.pin, action: 'addgame', week: wk.value, slot: document.getElementById('ag-slot').value.trim(),
+          home: document.getElementById('ag-home').value, away: document.getElementById('ag-away').value, amount: document.getElementById('ag-amt').value };
+        if (!p.home || !p.away) return adminMsg('Pick both teams.');
+        if (p.home === p.away) return adminMsg('Home and away are the same team.');
+        if (!p.slot && !confirm('No time (TNF, SNF…) filled in. Add it anyway?')) return;
+        btn.disabled = true; adminMsg('Adding…', true);
+        picksApiOnce(p).then(function(x) { // once: a retry could add it twice
+          btn.disabled = false;
+          if (x.error) return adminMsg(x.error);
+          clearSheetCache(); ALL_BETS_PROMISE = null;
+          picksApi({ pin: SUB.pin, action: 'gamelist' }).then(function(r2) {
+            drawGames(body, r2);
+            adminMsg('✅ Added Week ' + x.week + ': ' + x.home + ' vs ' + x.away + ' (rows ' + x.rows.join(' and ') + ').' + (x.warn ? ' ⚠️ ' + x.warn : ''), !x.warn);
+          });
+        }).catch(function() { btn.disabled = false; adminMsg('Couldn\'t reach the script. Check the sheet before trying again, it may have gone through.'); });
+      });
+      var all = document.getElementById('ag-all');
+      if (all) all.addEventListener('click', function() { GAMES.showAll = !GAMES.showAll; drawGames(body, r); });
+      body.querySelectorAll('[data-rmg]').forEach(function(b) {
+        b.addEventListener('click', function() {
+          var parts = b.getAttribute('data-rmg').split('|');
+          if (!confirm('Remove Week ' + parts[0] + ' ' + parts[2] + '? Both rows go (Maria and Danielle). Nobody has picked in it yet.')) return;
+          b.disabled = true; b.textContent = 'Removing…';
+          picksApiOnce({ pin: SUB.pin, action: 'rmgame', week: parts[0], game: parts[1] }).then(function(x) {
+            if (x.error) { b.disabled = false; b.textContent = 'Remove'; return adminMsg(x.error); }
+            clearSheetCache(); ALL_BETS_PROMISE = null;
+            picksApi({ pin: SUB.pin, action: 'gamelist' }).then(function(r2) {
+              drawGames(body, r2);
+              adminMsg(x.how === 'gap' ? 'Removed, but the sheet wouldn\'t let the rows below move up, so rows ' + x.rows.join(' and ') + ' are blank now. Delete them in the sheet if you want.' : '✅ Removed Week ' + parts[0] + ' ' + parts[2] + '.', x.how !== 'gap');
+            });
+          }).catch(function() { b.disabled = false; b.textContent = 'Remove'; adminMsg('Couldn\'t reach the script.'); });
+        });
+      });
+    }
+
     function adminMsg(text, ok) {
       var m = document.getElementById('adm-msg');
       if (m) { m.style.color = ok ? '#6EE7B7' : '#F87171'; m.textContent = text; }
@@ -858,6 +947,7 @@
         picksApi({ pin: SUB.pin }).then(function(res) { if (res.admin) renderOdds(res); });
       }
       if (section === 'injuries') adminInjuries();
+      if (section === 'games') adminGames();
       if (section === 'chat') adminChat();
       if (section === 'check') adminStatus(); // Data Check now lives inside Status
       if (section === 'season') adminSeason();
@@ -1043,6 +1133,56 @@
             if (!odds) add('warn', 'Missing odds on a win', r, 'The winning pick (' + r.firstScorer + ') has no odds, so this win is worth 0 units.', 'Enter the odds.');
           }
         });
+        // Odds the sheet's Net Units formula would misread. It wants "+15" (15 to 1).
+        rows.forEach(function(r) {
+          if (r.picker !== 'Maria' && r.picker !== 'Danielle') return;
+          [['home', r.homePick, r.homeOddsTxt], ['away', r.awayPick, r.awayOddsTxt]].forEach(function(x) {
+            var pick = x[1], txt = (x[2] || '').trim();
+            if (!pick || txt === '' || txt === '+') return;
+            var won = r.correct === 'Yes' && r.firstScorer && playerKey(r.firstScorer) === playerKey(pick);
+            if (!/^\+?\d+(\.\d+)?$/.test(txt)) {
+              add(won ? 'bad' : 'warn', 'Odds the sheet can\'t read', r, pick + '\'s odds are "' + txt + '". Net Units counts unreadable odds as 0' + (won ? ', so this win is worth nothing right now.' : '.'), 'Type it like +15 (that\'s +1500).');
+              return;
+            }
+            var n = parseFloat(txt.replace('+', ''));
+            if (n >= 100) {
+              add(won ? 'bad' : 'warn', 'Odds typed the long way', r, pick + '\'s odds are "' + txt + '". The sheet reads that as ' + n + ' units, not ' + (n / 100) + (won ? ', and this one hit, so the totals are way off.' : '. It only matters if he scores, but fix it now.'), 'Change it to +' + (Math.round(n) / 100) + '.');
+            } else if (n < 1.5 || n > 60) {
+              add('warn', 'Unusual odds', r, pick + ' at "' + txt + '" means +' + Math.round(n * 100) + '. First TD odds are almost always between +150 and +6000.', 'Double-check it against FanDuel.');
+            }
+          });
+        });
+        // Each game is a Maria row and a Danielle row that should agree on the matchup
+        var games = {}, gameOrder = [];
+        rows.forEach(function(r) {
+          if (!r.game || !r.week) return;
+          var k = r.year + '|' + r.week + '|' + r.game;
+          if (!games[k]) { games[k] = []; gameOrder.push(k); }
+          games[k].push(r);
+        });
+        gameOrder.forEach(function(k) {
+          var g = games[k], a = g[0];
+          var label = 'Week ' + a.week + ' game ' + a.game;
+          g.slice(1).forEach(function(b) {
+            if (b.homeTeam !== a.homeTeam || b.awayTeam !== a.awayTeam) add('bad', 'Game rows don\'t match', b, label + ': row ' + a.row + ' says ' + a.homeTeam + ' vs ' + a.awayTeam + ', row ' + b.row + ' says ' + b.homeTeam + ' vs ' + b.awayTeam + '.', 'Make both rows the same matchup. The first TD and the Crowd go by one of them.');
+            else if ((b.slot || '') !== (a.slot || '')) add('warn', 'Game rows don\'t match', b, label + ': row ' + a.row + ' says "' + (a.slot || 'blank') + '", row ' + b.row + ' says "' + (b.slot || 'blank') + '".', 'Use the same time (TNF, SNF…) on both rows.');
+          });
+          var who = g.map(function(r) { return r.picker; });
+          if (who.length !== who.filter(function(x, i) { return who.indexOf(x) === i; }).length) add('warn', 'Same person twice in one game', g[1], label + ' has ' + who.join(' + ') + ' rows.', 'One of them should be ' + (who.indexOf('Maria') < 0 ? 'Maria' : 'Danielle') + '.');
+          if (a.year !== CURRENT_YEAR) return;
+          if (g.length === 1 && (a.picker === 'Maria' || a.picker === 'Danielle')) add('warn', 'Game with only one row', a, label + ' (' + a.homeTeam + ' vs ' + a.awayTeam + ') only has a ' + a.picker + ' row.', 'Add the ' + (a.picker === 'Maria' ? 'Danielle' : 'Maria') + ' row, or use the 🏈 Games screen next time.');
+          // Upcoming game where both picked the same player (they're not supposed to)
+          if (g.some(function(r) { return r.firstScorer; })) return;
+          var m = g.filter(function(r) { return r.picker === 'Maria'; })[0], d = g.filter(function(r) { return r.picker === 'Danielle'; })[0];
+          if (!m || !d) return;
+          [m.homePick, m.awayPick].forEach(function(pk) {
+            if (pk && [d.homePick, d.awayPick].some(function(q) { return q && playerKey(q) === playerKey(pk); })) add('warn', 'Both picked the same player', d, 'Maria and Danielle both have ' + pk + ' in ' + label + ' (' + a.homeTeam + ' vs ' + a.awayTeam + ').', 'Have one of them switch before kickoff (change it in the sheet).');
+          });
+        });
+        // This season's games with no Amount Bet: Net Winnings would stay $0
+        var noAmt = rows.filter(function(r) { return r.year === CURRENT_YEAR && (r.picker === 'Maria' || r.picker === 'Danielle') && r.homeTeam && !r.amount; });
+        if (noAmt.length) add('warn', 'No amount bet', null, noAmt.length + ' row' + (noAmt.length > 1 ? 's' : '') + ' in the ' + CURRENT_YEAR + ' sheet: ' + noAmt.slice(0, 8).map(function(r) { return r.row; }).join(', ') + (noAmt.length > 8 ? '…' : '') + '. Net Winnings stays $0 on those.', 'Fill in Amount Bet (column K).');
+
         // Spellings that are almost the same (e.g. "Thorton" vs "Thornton")
         var list = Object.keys(names).filter(function(n) { return playerKey(n).length >= 7; });
         var seen = {};
@@ -1071,7 +1211,7 @@
         var bad = issues.filter(function(x) { return x.level === 'bad'; }).length;
         var h = '';
         if (!issues.length) {
-          h += '<div class="st-row"><span class="st-ic">✅</span><div><div class="st-l">Every season checks out</div><div class="st-d">No spelling mismatches, wrong sides or missing odds on wins.</div></div></div>';
+          h += '<div class="st-row"><span class="st-ic">✅</span><div><div class="st-l">Every season checks out</div><div class="st-d">No spelling mismatches, wrong sides, odd-looking odds or mismatched game rows.</div></div></div>';
         } else {
           h += '<div style="font-size:13px;font-weight:700;margin-bottom:12px">' + issues.length + ' thing' + (issues.length > 1 ? 's' : '') + ' to look at' + (bad ? ' · ' + bad + ' affect the totals' : '') + '</div>';
           issues.sort(function(a, b) { return (a.level === 'bad' ? 0 : 1) - (b.level === 'bad' ? 0 : 1); });

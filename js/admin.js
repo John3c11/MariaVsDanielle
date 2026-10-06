@@ -182,7 +182,7 @@
     var ADMIN = { oddsRes: null };
 
     function adminHeader(active) {
-      var tabs = [['odds', '💲 Odds'], ['games', '🏈 Games'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['season', '🆕 Season'], ['theme', '🎨 Theme'], ['status', '🩺 Status']];
+      var tabs = [['odds', '💲 Odds'], ['games', '🏈 Games'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['season', '🆕 Season'], ['theme', '🎨 Theme'], ['eggs', '🥚 Eggs'], ['status', '🩺 Status']];
       return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
         '<div style="font-size:16px;font-weight:700">Hi John</div>' +
         '<button class="link-btn" id="sub-switch">Log out</button></div>' +
@@ -365,6 +365,32 @@
         });
         return loadScriptOnce('js/gameday.js').then(function() { startGameDay(g.home, g.away, { year: g.year, week: g.week, picks: picks }); });
       }).catch(function() { alert('Couldn\'t load the games.'); });
+    }
+
+    // ── 🥚 Easter eggs: the answer key (js/eggs.js has the actual eggs) ──────
+    var EGG_GUIDE = [
+      { k: 'campbell', ic: '🐶', t: 'Campbell Dingus', how: 'Tap Campbell Dingus at the very bottom of any page 5 times, quickly (within about 2 seconds).', what: 'Campbell rains down the screen: "Campbell Dingus has entered the chat."' },
+      { k: 'kelce', ic: '🏈', t: 'KELCE', how: 'On a computer, type K-E-L-C-E anywhere (not inside a text box).', what: 'Football and 87 confetti.' },
+      { k: 'rivalry', ic: '⚔️', t: 'The rivalry', how: 'On Stats, press and hold the VS badge between Maria and Danielle for a second and a half.', what: 'The badge shakes and shows the all-time head-to-head in units.' },
+      { k: 'retro', ic: '🕹️', t: 'Retro mode', how: 'On a computer, type the Konami code: ↑ ↑ ↓ ↓ ← → ← → B A.', what: 'Pixel arcade font and scanlines. Do it again (or reload) to turn it off.' },
+      { k: 'roll', ic: '🌀', t: 'Barrel roll', how: 'On Stats, tap the season title ("2026 Touchdown Bets") 3 times quickly.', what: 'The title does a barrel roll.' },
+    ];
+    function adminEggs() {
+      var got = {};
+      try { got = JSON.parse(localStorage.getItem('mvd-eggs') || '{}'); } catch (e) {}
+      var n = EGG_GUIDE.filter(function(e) { return got[e.k]; }).length;
+      var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:14px">The hidden extras, and how to set each one off. Nobody else sees this list. Finding one shows "🥚 Easter egg N of ' + EGG_GUIDE.length + ' found!", counted per phone.</div>' +
+        '<div class="pf-h">🥚 Easter eggs <small>' + n + ' of ' + EGG_GUIDE.length + ' found on this device</small></div>' +
+        EGG_GUIDE.map(function(e) {
+          return '<div class="egg-row' + (got[e.k] ? ' got' : '') + '"><div class="egg-ic">' + e.ic + '</div><div><div class="egg-t">' + e.t + (got[e.k] ? ' <span class="egg-got">✓ found</span>' : '') + '</div>' +
+            '<div class="egg-how"><b>How:</b> ' + e.how + '</div><div class="egg-what"><b>What happens:</b> ' + e.what + '</div></div></div>';
+        }).join('') +
+        '<div style="margin-top:14px"><button class="adm-btn" id="egg-reset">Reset found eggs on this device</button></div><div class="submit-msg" id="adm-msg" style="text-align:left"></div>';
+      var body = adminScreen('eggs', h);
+      document.getElementById('egg-reset').addEventListener('click', function() {
+        try { localStorage.removeItem('mvd-eggs'); } catch (e) {}
+        adminEggs(); adminMsg('Reset. Every egg counts as new again on this device.', true);
+      });
     }
 
     // ── 🎨 Theme preview (this device only) + 📣 announcement (everyone) ─────
@@ -647,6 +673,7 @@
       if (section === 'chat') adminChat();
       if (section === 'season') adminSeason();
       if (section === 'theme') adminTheme();
+      if (section === 'eggs') adminEggs();
       if (section === 'status') adminStatus();
     }
 

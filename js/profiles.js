@@ -189,7 +189,7 @@
           tile('Bad Beats', S.beats ? S.beats.length : (S.beatsState === 'down' ? '—' : '…'), S.closest ? 'Closest: ' + S.closest.player + ' (' + S.closest.gap + ' min)' : (S.beats ? 'None yet' : S.beatsState === 'down' ? 'Couldn\'t reach ESPN' : 'Checking ESPN…')) +
           tile('Jinxes', S.jinxes.length, 'Loyalty ' + S.loyalty) +
           '</div>';
-        if (typeof scoutingReportHtml === 'function') h += scoutingReportHtml(who, rows);
+        if (typeof scoutingReportHtml === 'function') h += '<div class="sr-wrap">' + scoutingReportHtml(who, rows) + '</div>';
         h += '</div><div class="wide-col">';
 
         var A = achievementsFor(S);
@@ -207,11 +207,15 @@
         shame.sort(function(a, b) { return (b.got ? 1 : 0) - (a.got ? 1 : 0); });
         h += '<div class="pf-h">🏆 Trophy Case <small>' + glory.filter(function(a) { return a.got; }).length + ' / ' + glory.length + ' unlocked</small></div>' + badges(glory);
         h += '<div class="pf-h">🤡 Hall of Shame <small>' + shame.filter(function(a) { return a.got; }).length + ' / ' + shame.length + '</small></div>' + badges(shame);
-        h += '<div class="tcd-slot" data-who="' + who + '"></div>'; // 🃏 Card Collection (js/cards.js)
         h += '</div></div>';
+        h += '<div class="tcd-slot" data-who="' + who + '"></div>'; // 🃏 Card Collection (js/cards.js), full width under both columns
 
         el.innerHTML = h;
         bindProfileSwitch(el);
+        // Big screens: the Scouting Report goes full width under both columns (two rows per line),
+        // so the left column doesn't run far past the trophies on the right
+        var sr = el.querySelector('.sr-wrap');
+        if (sr && window.matchMedia('(min-width: 1440px)').matches) { sr.classList.add('sr-wide'); el.querySelector('.wide-cols').after(sr); }
         var slot = el.querySelector('.tcd-slot');
         if (slot) loadScriptOnce('js/cards.js').then(function() { renderCardAlbum(slot, who); }).catch(function() {});
       }
@@ -329,8 +333,15 @@
         var glory = A.filter(function(a) { return !a.shame; }), shame = A.filter(function(a) { return a.shame; });
         h += '<div class="pf-h">🏆 Trophy Case <small>' + glory.filter(function(a) { return a.got; }).length + ' / ' + glory.length + ' unlocked</small></div>' + badges(glory);
         h += '<div class="pf-h">🤡 Hall of Shame <small>' + shame.filter(function(a) { return a.got; }).length + ' / ' + shame.length + '</small></div>' + badges(shame);
+        h += '<div class="tcd-slot"></div>'; // 🃏 Card Collection (js/cards.js)
         el.innerHTML = h;
         bindProfileSwitch(el);
+        var fslot = el.querySelector('.tcd-slot');
+        if (fslot) loadScriptOnce('js/cards.js').then(function() {
+          renderFriendCards(fslot, name, S.hits.map(function(x) {
+            return { name: x.g.scorer, team: playerKey(x.g.scorer) === playerKey(x.r.homePick) ? x.g.home : x.g.away, year: CURRENT_YEAR, week: x.g.week };
+          }), col);
+        }).catch(function() {});
         var more = document.getElementById('hist-more');
         if (more) more.addEventListener('click', function() { el.querySelectorAll('[data-hist]').forEach(function(d) { d.style.display = ''; }); more.remove(); });
         if (owner) document.getElementById('fr-style-btn').addEventListener('click', function() { openStylePicker(name); });

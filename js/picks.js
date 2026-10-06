@@ -107,7 +107,7 @@
 
       if (done) {
         html += '<div style="background:rgba(52,211,153,0.15);border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:#34D399;line-height:1.6">' +
-          '✅ Locked in for Week ' + done.week + ' ' + done.slot + ': ' +
+          '✅ Locked in for ' + weekName(done.week) + ' ' + done.slot + ': ' +
           coloredText(done.homePick, done.home) + ' / ' + coloredText(done.awayPick, done.away) +
           '. Odds get added later.</div>';
       }
@@ -121,7 +121,7 @@
 
       var g = res;
       html += '<div style="text-align:center;margin-bottom:16px">' +
-        '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Week ' + g.week + ' · ' + g.slot + '</div>' +
+        '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">' + weekName(g.week) + ' · ' + g.slot + '</div>' +
         '<div style="font-size:17px;font-weight:700">' + coloredGame(g.home, g.away) + '</div>' +
         '<div style="font-size:12px;color:#A1A9B6;margin-top:6px">' + (changing ? 'Your current picks are highlighted. Tap someone else to swap.' : 'Pick one player from each team.') + '</div></div>';
 
@@ -227,7 +227,7 @@
     function showSubmitted(res) {
       SUB.busy = false;
       var done = '<div style="background:rgba(52,211,153,0.15);border-radius:10px;padding:14px 16px;font-size:13px;color:#34D399;line-height:1.6">' +
-        '✅ <b>' + res.name + '</b>, you\'re ' + (SUB.mode === 'change' ? 'updated' : 'locked in') + ' for Week ' + res.week + ' ' + res.slot + ': ' +
+        '✅ <b>' + res.name + '</b>, you\'re ' + (SUB.mode === 'change' ? 'updated' : 'locked in') + ' for ' + weekName(res.week) + ' ' + res.slot + ': ' +
         coloredText(res.homePick, res.home) + ' / ' + coloredText(res.awayPick, res.away) +
         '. You\'ve been logged out.</div>';
       renderPinScreen('', done);
@@ -272,7 +272,7 @@
         '<div class="submit-msg" id="fr-msg" style="text-align:left;min-height:0"></div>';
       var lastWeek = null;
       shown.forEach(function(g, i) {
-        if (g.week !== lastWeek) { lastWeek = g.week; h += '<div class="sch-week">Week ' + g.week + '</div>'; }
+        if (g.week !== lastWeek) { lastWeek = g.week; h += '<div class="sch-week">' + weekName(g.week) + '</div>'; }
         var picked = g.myHome && g.myAway;
         var ko = g.kickoff ? new Date(g.kickoff).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : '';
         h += '<div class="sch-game"><div class="sch-top"><span class="sch-slot">' + escHtml(g.slot) + '</span><span class="sch-ko">' + ko + '</span></div>' +
@@ -301,7 +301,7 @@
           }).join('') + '</div>';
       }
       body.innerHTML = '<div style="text-align:center;margin-bottom:16px">' +
-          '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Week ' + g.week + ' · ' + escHtml(g.slot) + '</div>' +
+          '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">' + weekName(g.week) + ' · ' + escHtml(g.slot) + '</div>' +
           '<div style="font-size:17px;font-weight:700">' + coloredGame(g.home, g.away) + '</div></div>' +
         '<div class="two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px">' + column('home', g.home, g.homePlayers) + column('away', g.away, g.awayPlayers) + '</div>' +
         '<div style="text-align:center;margin-top:16px"><button class="primary-btn" id="fr-save">Save Picks</button> <button class="link-btn" id="fr-back" style="margin-left:10px">Back</button>' +
@@ -330,7 +330,7 @@
           CROWD.data = null;
           renderFriendHome(res);
           var m = document.getElementById('fr-msg');
-          if (m) { m.style.color = '#6EE7B7'; m.textContent = '✅ Saved Week ' + r.week + ': ' + r.homePick + ' / ' + r.awayPick; }
+          if (m) { m.style.color = '#6EE7B7'; m.textContent = '✅ Saved ' + weekName(r.week) + ': ' + r.homePick + ' / ' + r.awayPick; }
         }).catch(function() { btn.disabled = false; btn.textContent = 'Save Picks'; msg.style.color = '#F87171'; msg.textContent = 'Couldn\'t reach the sheet. Try again.'; });
       });
       paint();
@@ -436,7 +436,7 @@
           '<div><b>' + open.length + '</b><span>Games left to pick</span></div></div>';
 
         if (open.length) {
-          h += '<div class="adm-row"><div>🏈 Next up: <b>Week ' + open[0].week + ' ' + escHtml(open[0].slot) + '</b> · ' + coloredGame(open[0].home, open[0].away) + '</div>' +
+          h += '<div class="adm-row"><div>🏈 Next up: <b>' + weekName(open[0].week) + ' ' + escHtml(open[0].slot) + '</b> · ' + coloredGame(open[0].home, open[0].away) + '</div>' +
             '<button class="adm-btn green" id="go-pick">Make Pick</button></div>';
         }
         h += '<div style="font-size:11px;font-weight:800;letter-spacing:0.12em;color:#A1A9B6;margin:18px 0 4px">WAITING ON RESULTS (' + waiting.length + ')</div>';

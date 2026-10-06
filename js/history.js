@@ -54,7 +54,7 @@
         var gameDisplay = b.homeTeam && b.awayTeam ? coloredGame(b.homeTeam, b.awayTeam) : (b.game || '—');
         return '<div class="bh-row" data-ctx-year="' + b.year + '" data-ctx-week="' + b.week + '" style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 110px 50px;gap:8px;padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:12px;align-items:start">' +
           '<span style="font-size:11px;font-weight:600;color:' + (b.year === CURRENT_YEAR ? '#60A5FA' : '#34D399') + '">' + b.year + '</span>' +
-          '<span style="color:#9CA3AF;text-align:center">' + b.week + '</span>' +
+          '<span style="color:#9CA3AF;text-align:center">' + (PLAYOFF_SHORT[parseInt(b.week, 10)] || b.week) + '</span>' +
           '<span style="font-weight:500">' + gameDisplay + '</span>' +
           '<span style="font-weight:500;color:' + pickerColor + '">' + b.picker + '</span>' +
           '<span>' + players + '</span>' +
@@ -304,8 +304,8 @@
       }
       h += '<div class="wr-tiles">';
       if (pos) h += tile('🎯 Pick of the Season', pos.b.firstScorer + ' ' + fmtOdds(pos.o),
-        nm(pos.b.picker) + ' · Wk ' + pos.b.week + (pos.b.game ? ' · ' + pos.b.game : ''));
-      if (bestWk && bestWk.u > 0) h += tile('📈 Best Week', nm(bestWk.who) + ' ' + fmtU(bestWk.u), 'Week ' + bestWk.week);
+        nm(pos.b.picker) + ' · ' + wkName(pos.b.week) + (pos.b.game ? ' · ' + pos.b.game : ''));
+      if (bestWk && bestWk.u > 0) h += tile('📈 Best Week', nm(bestWk.who) + ' ' + fmtU(bestWk.u), weekName(bestWk.week));
       if (heater.n) h += tile('🔥 Longest Heater', heater.n + ' straight', nm(heater.who));
       if (drought.n) h += tile('🧊 Longest Drought', drought.n + ' straight misses', nm(drought.who));
       h += tile('🗓️ Weeks Won', nm('Maria') + ' ' + ww.Maria + ' · ' + nm('Danielle') + ' ' + ww.Danielle, ww.tie ? ww.tie + ' tied' : '');
@@ -348,7 +348,7 @@
         if (g.week === lastWk) return;
         lastWk = g.week;
         if (n++ % 3) return;
-        svg += '<text x="' + x(i + 1) + '" y="' + (H - 4) + '" font-size="10" fill="rgba(255,255,255,0.45)" text-anchor="middle">Wk ' + g.week + '</text>';
+        svg += '<text x="' + x(i + 1) + '" y="' + (H - 4) + '" font-size="10" fill="rgba(255,255,255,0.45)" text-anchor="middle">' + wkShort(g.week) + '</text>';
       });
       function line(vals, color) {
         var pts = vals.map(function(v, i) { return x(i).toFixed(1) + ',' + y(v).toFixed(1); }).join(' ');
@@ -476,7 +476,7 @@
       }
       h += '<div class="wr-tiles">';
       if (heat && heat.heater.n) h += tile('🔥 Longest Heater', heat.heater.n + ' straight', nm(heat.name));
-      if (bestWk && bestWk.n) h += tile('📈 Best Week', bestWk.n + ' hits', nm(bestWk.who) + ' · Week ' + bestWk.week);
+      if (bestWk && bestWk.n) h += tile('📈 Best Week', bestWk.n + ' hits', nm(bestWk.who) + ' · ' + weekName(bestWk.week));
       if (wolf && wolf.lone.length) h += tile('🐺 Lone Wolf', wolf.lone.length + ' solo hit' + (wolf.lone.length > 1 ? 's' : ''), nm(wolf.name));
       if (beatM && beatM.h2h.Maria.me) h += tile('⚔️ Maria\'s Rival', nm(beatM.name), 'beat her ' + beatM.h2h.Maria.me + ' time' + (beatM.h2h.Maria.me > 1 ? 's' : ''));
       if (beatD && beatD.h2h.Danielle.me) h += tile('⚔️ Danielle\'s Rival', nm(beatD.name), 'beat her ' + beatD.h2h.Danielle.me + ' time' + (beatD.h2h.Danielle.me > 1 ? 's' : ''));

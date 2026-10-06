@@ -24,20 +24,21 @@
         games[idx[k]].rows.push(r);
       });
 
-      function oddsInput(row, side, val) {
-        return '<input class="odds-input" data-row="' + row + '" data-side="' + side + '" inputmode="decimal" autocomplete="off" placeholder="+" value="' + (val || '') + '" ' +
-          'style="width:84px;font-family:Inter,sans-serif;font-size:14px;padding:7px 10px;border:1.5px solid rgba(255,255,255,0.10);border-radius:8px;background:rgba(255,255,255,0.04);color:#F3F4F6;text-align:right">';
+      function oddsInput(row, side, val, pick) {
+        return '<span class="odds-wrap"><input class="odds-input" data-row="' + row + '" data-side="' + side + '" data-pick="' + escHtml(pick || '') + '" inputmode="decimal" autocomplete="off" placeholder="+" value="' + (val || '') + '" ' +
+          'style="width:84px;font-family:Inter,sans-serif;font-size:14px;padding:7px 10px;border:1.5px solid rgba(255,255,255,0.10);border-radius:8px;background:rgba(255,255,255,0.04);color:#F3F4F6;text-align:right">' +
+          '<span class="odds-hint"></span></span>';
       }
 
       games.forEach(function(g) {
         html += '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:14px 16px;margin-bottom:14px">' +
-          '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Week ' + g.week + ' · ' + g.slot + '</div>' +
+          '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">' + weekName(g.week) + ' · ' + g.slot + '</div>' +
           '<div style="font-size:15px;font-weight:700;margin-bottom:10px">' + coloredGame(g.home, g.away) + '</div>';
         g.rows.forEach(function(r) {
           html += '<div style="margin-top:8px">' +
             '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:' + personColor(r.picker) + ';margin-bottom:4px">' + r.picker + '</div>' +
-            '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:14px">' + coloredText(r.homePick, r.home) + oddsInput(r.row, 'home', r.homeOdds) + '</div>' +
-            '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:14px">' + coloredText(r.awayPick, r.away) + oddsInput(r.row, 'away', r.awayOdds) + '</div>' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:14px">' + coloredText(r.homePick, r.home) + oddsInput(r.row, 'home', r.homeOdds, r.homePick) + '</div>' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:14px">' + coloredText(r.awayPick, r.away) + oddsInput(r.row, 'away', r.awayOdds, r.awayPick) + '</div>' +
             '</div>';
         });
         html += '</div>';
@@ -50,6 +51,30 @@
       el.innerHTML = html;
       bindSwitch(); bindAdminNav();
       document.getElementById('odds-go').addEventListener('click', saveOdds);
+      // Live check: what each box will save as, and a heads-up on odds that look off
+      el.querySelectorAll('.odds-input').forEach(function(inp) {
+        inp.addEventListener('input', function() { oddsHint(inp); });
+        oddsHint(inp);
+      });
+    }
+    // Same rules as the script: 15 or +15 = 15 to 1; +1500 or 1500 is turned into +15
+    function oddsCheck(v) {
+      v = String(v || '').trim();
+      if (!v || v === '+') return { empty: true };
+      if (!/^\+?\d+(\.\d+)?$/.test(v)) return { bad: true };
+      var n = parseFloat(v.replace('+', ''));
+      if (!(n > 0)) return { bad: true };
+      var conv = n >= 100;
+      if (conv) n = n / 100;
+      n = Math.round(n * 100) / 100;
+      return { n: n, conv: conv, odd: n < 1.5 || n > 60, american: '+' + Math.round(n * 100), saves: '+' + n };
+    }
+    function oddsHint(inp) {
+      var c = oddsCheck(inp.value), h = inp.parentNode.querySelector('.odds-hint');
+      inp.classList.toggle('odds-bad', !!c.bad);
+      inp.classList.toggle('odds-odd', !!c.odd);
+      h.className = 'odds-hint' + (c.bad ? ' bad' : c.odd ? ' odd' : '');
+      h.textContent = c.empty ? '' : c.bad ? 'can\'t read that' : c.odd ? c.american + '? unusual, double-check' : c.conv ? 'saves as ' + c.saves + ' (' + c.american + ')' : '= ' + c.american;
     }
 
     function saveOdds() {
@@ -65,6 +90,14 @@
       var items = Object.keys(byRow).map(function(k) { return byRow[k]; });
       var msg = document.getElementById('odds-msg');
       if (!items.length) { msg.style.color = '#F87171'; msg.textContent = 'Nothing entered yet.'; return; }
+      var bad = [], odd = [];
+      document.querySelectorAll('.odds-input').forEach(function(inp) {
+        var c = oddsCheck(inp.value), who = inp.getAttribute('data-pick') || 'a pick';
+        if (c.bad) bad.push(who + ' ("' + inp.value.trim() + '")');
+        else if (c.odd) odd.push(who + ' at ' + c.american);
+      });
+      if (bad.length) { msg.style.color = '#F87171'; msg.textContent = 'Can\'t read: ' + bad.join(', ') + '. Type it like 15 or +1500.'; return; }
+      if (odd.length && !confirm('These look unusual:\n\n' + odd.join('\n') + '\n\nSave anyway?')) return;
 
       SUB.busy = true;
       var btn = document.getElementById('odds-go');
@@ -229,7 +262,7 @@
         h += row(s.error ? 'bad' : 'ok', 'Picks script (PicksAPI)', s.error ? s.error : 'Reachable · season ' + s.season + ' · ' + s.friends + ' friend' + (s.friends === 1 ? '' : 's'));
         h += row(be.ok ? 'ok' : 'warn', 'ESPN (from this browser)', be.ok ? 'Reachable · ' + be.ms + ' ms · used for Live Picks scores and kickoff times' : 'Not reachable right now. Live scores and kickoff times won\'t show; nothing else is affected.');
         if (!s.error) {
-          h += row(s.espn && s.espn.ok ? 'ok' : 'bad', 'ESPN (from Google, for FirstTD)', s.espn && s.espn.ok ? 'Reachable · ESPN says it\'s ' + (s.espn.week ? (s.espn.week > 18 ? 'playoff round ' + (s.espn.week - 18) : 'Week ' + s.espn.week) : 'the offseason') : 'Not reachable: ' + (s.espn ? s.espn.error : '') + '. First TDs won\'t fill in until this works.');
+          h += row(s.espn && s.espn.ok ? 'ok' : 'bad', 'ESPN (from Google, for FirstTD)', s.espn && s.espn.ok ? 'Reachable · ESPN says it\'s ' + (s.espn.week ? (s.espn.week > 18 ? 'playoff round ' + (s.espn.week - 18) : weekName(s.espn.week)) : 'the offseason') : 'Not reachable: ' + (s.espn ? s.espn.error : '') + '. First TDs won\'t fill in until this works.');
           var trig = s.triggers || [];
           h += '<div class="pf-h">⏱️ Automatic jobs</div>';
           h += row(trig.indexOf('fillFirstTDs') >= 0 ? 'ok' : 'bad', 'First TD auto-fill', (trig.indexOf('fillFirstTDs') >= 0 ? 'On (every 30 min)' : 'OFF: run setupFirstTDAutoFill in Apps Script') +
@@ -475,9 +508,9 @@
       }
       function nick(t) { return escHtml(resolveTeam(t).split(' ').pop()); }
       var E = GAMES.edit;
-      var h = '<div class="pf-h" style="margin-top:4px">' + (E ? '✏️ Edit Week ' + E.week + ': ' + nick(E.home) + ' vs ' + nick(E.away) : '➕ Add a game') + ' <small>' + CURRENT_YEAR + ' sheet</small></div>' +
+      var h = '<div class="pf-h" style="margin-top:4px">' + (E ? '✏️ Edit ' + weekName(E.week) + ': ' + nick(E.home) + ' vs ' + nick(E.away) : '➕ Add a game') + ' <small>' + CURRENT_YEAR + ' sheet</small></div>' +
         '<div class="ag-form">' +
-          '<label>Week<input class="adm-input" id="ag-week" type="number" min="1" max="30" value="' + (r.lastWeek || 1) + '"></label>' +
+          '<label>Week <span class="ag-hint">playoffs: 19 WC · 20 DIV · 21 CONF · 23 SB</span><input class="adm-input" id="ag-week" type="number" min="1" max="30" value="' + (r.lastWeek || 1) + '"></label>' +
           '<label>Time<input class="adm-input" id="ag-slot" list="ag-slots" placeholder="TNF, SNF…"><datalist id="ag-slots">' + (r.slots || []).map(function(x) { return '<option value="' + escHtml(x) + '">'; }).join('') + '</datalist></label>' +
           '<label>Home team' + teamSel('ag-home') + '</label>' +
           '<label>Away team' + teamSel('ag-away') + '</label>' +
@@ -498,7 +531,7 @@
       h += '<div class="pf-h">📋 Games in the sheet <small>' + r.games.length + ' games</small></div>';
       if (!weeks.length) h += '<div style="font-size:13px;color:#A1A9B6">No games yet.</div>';
       shown.forEach(function(w) {
-        h += '<div class="ag-wk">Week ' + w + '</div>';
+        h += '<div class="ag-wk">' + weekName(w) + '</div>';
         byWeek[w].forEach(function(g) {
           var state = g.scorer ? '<span class="ag-st">🏈 ' + escHtml(g.scorer) + '</span>' : g.picked ? '<span class="ag-st">picked</span>' : '';
           h += '<div class="adm-row"><div style="min-width:0"><b>' + nick(g.home) + '</b> vs <b>' + nick(g.away) + '</b> <span style="color:#9CA3AF">· ' + escHtml(g.slot || '—') + ' · game ' + escHtml(g.game) + ' · rows ' + g.rows.join(', ') + '</span></div>' +
@@ -517,7 +550,10 @@
       }
       function warnOrder() {
         var w = parseInt(wk.value, 10);
-        note.textContent = !E && w && w < r.lastWeek ? 'Heads-up: this goes at the bottom of the sheet, after the Week ' + r.lastWeek + ' games. Picking still goes in week order, so it comes up when it should.' : '';
+        var t = [];
+        if (isPlayoffWeek(w)) t.push('🏆 Week ' + w + ' = ' + weekName(w) + (w === 22 ? ' (there are no games that week; the Super Bowl is 23)' : '') + '.');
+        if (!E && w && w < r.lastWeek) t.push('Heads-up: this goes at the bottom of the sheet, after the ' + weekName(r.lastWeek) + ' games. Picking still goes in week order, so it comes up when it should.');
+        note.textContent = t.join(' ');
       }
       wk.addEventListener('input', warnOrder); warnOrder();
       function reload(msg, ok) {
@@ -538,8 +574,8 @@
         picksApiOnce(p).then(function(x) { // once: a retry could add it twice
           btn.disabled = false;
           if (x.error) return adminMsg(x.error);
-          if (E) { GAMES.edit = null; return reload('✅ Saved Week ' + x.week + ': ' + x.home + ' vs ' + x.away + (x.slot ? ' (' + x.slot + ')' : '') + ', rows ' + x.rows.join(' and ') + '.', true); }
-          reload('✅ Added Week ' + x.week + ': ' + x.home + ' vs ' + x.away + ' (rows ' + x.rows.join(' and ') + ').' + (x.warn ? ' ⚠️ ' + x.warn : ''), !x.warn);
+          if (E) { GAMES.edit = null; return reload('✅ Saved ' + weekName(x.week) + ': ' + x.home + ' vs ' + x.away + (x.slot ? ' (' + x.slot + ')' : '') + ', rows ' + x.rows.join(' and ') + '.', true); }
+          reload('✅ Added ' + weekName(x.week) + ': ' + x.home + ' vs ' + x.away + ' (rows ' + x.rows.join(' and ') + ').' + (x.warn ? ' ⚠️ ' + x.warn : ''), !x.warn);
         }).catch(function() { btn.disabled = false; adminMsg('Couldn\'t reach the script. Check the sheet before trying again, it may have gone through.'); });
       });
       body.querySelectorAll('[data-edg]').forEach(function(b) {
@@ -555,14 +591,14 @@
       body.querySelectorAll('[data-rmg]').forEach(function(b) {
         b.addEventListener('click', function() {
           var parts = b.getAttribute('data-rmg').split('|');
-          if (!confirm('Remove Week ' + parts[0] + ' ' + parts[2] + '? Both rows go (Maria and Danielle). Nobody has picked in it yet.')) return;
+          if (!confirm('Remove ' + weekName(parts[0]) + ' ' + parts[2] + '? Both rows go (Maria and Danielle). Nobody has picked in it yet.')) return;
           b.disabled = true; b.textContent = 'Removing…'; GAMES.edit = null;
           picksApiOnce({ pin: SUB.pin, action: 'rmgame', week: parts[0], game: parts[1] }).then(function(x) {
             if (x.error) { b.disabled = false; b.textContent = 'Remove'; return adminMsg(x.error); }
             clearSheetCache(); ALL_BETS_PROMISE = null;
             picksApi({ pin: SUB.pin, action: 'gamelist' }).then(function(r2) {
               drawGames(body, r2);
-              adminMsg(x.how === 'gap' ? 'Removed, but the sheet wouldn\'t let the rows below move up, so rows ' + x.rows.join(' and ') + ' are blank now. Delete them in the sheet if you want.' : '✅ Removed Week ' + parts[0] + ' ' + parts[2] + '.', x.how !== 'gap');
+              adminMsg(x.how === 'gap' ? 'Removed, but the sheet wouldn\'t let the rows below move up, so rows ' + x.rows.join(' and ') + ' are blank now. Delete them in the sheet if you want.' : '✅ Removed ' + weekName(parts[0]) + ' ' + parts[2] + '.', x.how !== 'gap');
             });
           }).catch(function() { b.disabled = false; b.textContent = 'Remove'; adminMsg('Couldn\'t reach the script.'); });
         });
@@ -583,7 +619,6 @@
       if (section === 'injuries') adminInjuries();
       if (section === 'games') adminGames();
       if (section === 'chat') adminChat();
-      if (section === 'check') adminStatus(); // Data Check now lives inside Status
       if (section === 'season') adminSeason();
       if (section === 'theme') adminTheme();
       if (section === 'status') adminStatus();
@@ -736,7 +771,7 @@
     function dataCheckHtml(rows) {
         var issues = [];
         function add(level, title, r, text, fix) {
-          var where = r ? r.year + ' sheet · row ' + r.row + ' · Wk ' + r.week + ' · ' + r.picker : '';
+          var where = r ? r.year + ' sheet · row ' + r.row + ' · ' + wkName(r.week) + ' · ' + r.picker : '';
           issues.push({ level: level, title: title, where: where, text: text, fix: fix, key: dcKey(title + '|' + where + '|' + text) });
         }
         var names = {}; // spelling -> { n, first: row }
@@ -797,7 +832,7 @@
         });
         gameOrder.forEach(function(k) {
           var g = games[k], a = g[0];
-          var label = 'Week ' + a.week + ' game ' + a.game;
+          var label = weekName(a.week) + ' game ' + a.game;
           g.slice(1).forEach(function(b) {
             if (b.homeTeam !== a.homeTeam || b.awayTeam !== a.awayTeam) add('bad', 'Game rows don\'t match', b, label + ': row ' + a.row + ' says ' + a.homeTeam + ' vs ' + a.awayTeam + ', row ' + b.row + ' says ' + b.homeTeam + ' vs ' + b.awayTeam + '.', 'Make both rows the same matchup. The first TD and the Crowd go by one of them.');
             else if ((b.slot || '') !== (a.slot || '')) add('warn', 'Game rows don\'t match', b, label + ': row ' + a.row + ' says "' + (a.slot || 'blank') + '", row ' + b.row + ' says "' + (b.slot || 'blank') + '".', 'Use the same time (TNF, SNF…) on both rows.');

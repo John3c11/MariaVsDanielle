@@ -45,7 +45,7 @@
 
     function profileStats(who, rows, jx, bb) {
       var other = who === 'Maria' ? 'Danielle' : 'Maria';
-      function wk(r) { return r.year + ' Wk ' + r.week; }
+      function wk(r) { return r.year + ' ' + wkName(r.week); }
       function hitOdds(r) {
         var o = r.firstScorer === r.homePick ? r.homeOdds : r.firstScorer === r.awayPick ? r.awayOdds : Math.max(r.homeOdds, r.awayOdds);
         return Math.abs(o);
@@ -85,7 +85,7 @@
         var W = weeks[k];
         if (!W.done) return;
         if (W.c[who] > W.c[other]) S.weeksWon++;
-        if (W.g[who] >= 2 && W.c[who] === W.g[who] && !S.sweep) S.sweep = W.year + ' Wk ' + W.week;
+        if (W.g[who] >= 2 && W.c[who] === W.g[who] && !S.sweep) S.sweep = W.year + ' ' + wkName(W.week);
       });
 
       // Seasons (finished seasons only for titles)
@@ -122,7 +122,7 @@
 
     function achievementsFor(S) {
       function hitAt(min) { return S.hits.filter(function(h) { return h.odds >= min; })[0]; }
-      function hitLabel(h) { return h ? h.r.year + ' Wk ' + h.r.week + ' · ' + h.r.firstScorer + ' ' + fmtOdds(h.odds) : ''; }
+      function hitLabel(h) { return h ? h.r.year + ' ' + wkName(h.r.week) + ' · ' + h.r.firstScorer + ' ' + fmtOdds(h.odds) : ''; }
       var sniper = hitAt(20), moon = hitAt(30);
       var beats = S.beats;
       var heart = beats ? beats.filter(function(b) { return b.gap <= 2; })[0] : null;
@@ -133,7 +133,7 @@
         { ic: '🌋', n: 'On Fire', d: '5 correct picks in a row', got: S.heater.n >= 5, w: S.heater.n >= 5 ? 'Best run: ' + S.heater.n + ' · ' + S.heater.at : '', p: [Math.min(S.heater.n, 5), 5] },
         { ic: '🧹', n: 'Clean Sweep', d: 'Go perfect in a week (2+ games)', got: !!S.sweep, w: S.sweep || '' },
         { ic: '👑', n: 'Weekly Champ', d: 'Win 5 weeks', got: S.weeksWon >= 5, w: S.weeksWon + ' weeks won', p: [Math.min(S.weeksWon, 5), 5] },
-        { ic: '💰', n: 'Big Payday', d: 'Win $100+ on one bet', got: !!S.payday, w: S.payday ? S.payday.year + ' Wk ' + S.payday.week + ' · +$' + S.payday.netDollars : '' },
+        { ic: '💰', n: 'Big Payday', d: 'Win $100+ on one bet', got: !!S.payday, w: S.payday ? S.payday.year + ' ' + wkName(S.payday.week) + ' · +$' + S.payday.netDollars : '' },
         { ic: '📈', n: 'In the Black', d: 'Finish a season up in units', got: S.inBlack.length > 0, w: S.inBlack.join(', ') },
         { ic: '🏆', n: 'Champion', d: 'Win a season', got: S.titles.length > 0, w: S.titles.length ? S.titles.join(', ') + ' champ' : '' },
         { ic: '❤️', n: 'Ride or Die', d: 'Pick the same player 10 times', got: !!(S.fav && S.fav.n >= 10), w: S.fav && S.fav.n >= 10 ? S.fav.name + ' · ' + S.fav.n + 'x' : '', p: [S.fav ? Math.min(S.fav.n, 10) : 0, 10] },
@@ -144,7 +144,7 @@
         { shame: true, ic: '🧊', n: 'Ice Cold', d: '5 misses in a row', got: S.drought.n >= 5, w: S.drought.n >= 5 ? 'Worst run: ' + S.drought.n + ' · ' + S.drought.at : '', p: [Math.min(S.drought.n, 5), 5] },
         { shame: true, ic: '💀', n: 'Cursed', d: 'Pick a player 5 times who never hits for you', got: !!(S.cursed && S.cursed.n >= 5), w: S.cursed && S.cursed.n >= 5 ? S.cursed.name + ' · 0 for ' + S.cursed.n : '', p: [S.cursed ? Math.min(S.cursed.n, 5) : 0, 5] },
         { shame: true, ic: '🪄', n: 'Jinx Master', d: '3 jinxes', got: S.jinxes.length >= 3, w: S.jinxes.length + ' jinxes', p: [Math.min(S.jinxes.length, 3), 3] },
-        { shame: true, ic: '💔', n: 'Heartbreaker', d: 'A bad beat within 2 minutes', got: !!heart, w: heart ? heart.year + ' Wk ' + heart.week + ' · ' + heart.player : '' },
+        { shame: true, ic: '💔', n: 'Heartbreaker', d: 'A bad beat within 2 minutes', got: !!heart, w: heart ? heart.year + ' ' + wkName(heart.week) + ' · ' + heart.player : '' },
         { shame: true, ic: '🐍', n: 'Snakebitten', d: '5 bad beats', got: !!(beats && beats.length >= 5), w: beats ? beats.length + ' bad beats' : '', p: beats ? [Math.min(beats.length, 5), 5] : null },
       ];
       return A;
@@ -182,7 +182,7 @@
 
         function tile(l, v, sub) { return '<div class="pf-tile"><div class="l">' + l + '</div><div class="v">' + v + '</div>' + (sub ? '<div class="s">' + sub + '</div>' : '') + '</div>'; }
         h += '<div class="pf-tiles">' +
-          tile('Best Hit', S.best ? S.best.r.firstScorer + ' ' + fmtOdds(S.best.odds) : '—', S.best ? S.best.r.year + ' Wk ' + S.best.r.week : '') +
+          tile('Best Hit', S.best ? S.best.r.firstScorer + ' ' + fmtOdds(S.best.odds) : '—', S.best ? S.best.r.year + ' ' + wkName(S.best.r.week) : '') +
           tile('Weeks Won', S.weeksWon, 'Most correct that week') +
           tile('Longest Heater', S.heater.n + ' straight', S.heater.at || '') +
           tile('Ride or Die', S.fav ? S.fav.name : '—', S.fav ? 'picked ' + S.fav.n + 'x' : '') +
@@ -243,7 +243,7 @@
         var holiday = S.hits.filter(function(x) { return /thanksgiving|black friday|christmas/i.test(x.g.slot); })[0];
         var intl = S.hits.filter(function(x) { return /international/i.test(x.g.slot); })[0];
         var playerPicks = Object.keys(S.players).reduce(function(a, p) { return a + S.players[p]; }, 0);
-        function hitW(x) { return x ? 'Wk ' + x.g.week + ' · ' + x.g.scorer : ''; }
+        function hitW(x) { return x ? wkName(x.g.week) + ' · ' + x.g.scorer : ''; }
 
         var h = profileSwitchHtml(name);
         h += '<div class="pf-hero" style="--pc:' + col + ';background:linear-gradient(140deg,#0F0F12 0%,' + hexA(col, 0.16) + ' 55%,' + hexA(col, 0.45) + ' 100%)">' +
@@ -259,13 +259,13 @@
         function tile(l, v, sub) { return '<div class="pf-tile"><div class="l">' + l + '</div><div class="v">' + v + '</div>' + (sub ? '<div class="s">' + sub + '</div>' : '') + '</div>'; }
         var last = S.hits[S.hits.length - 1];
         h += '<div class="pf-tiles">' +
-          tile('Latest Hit', last ? escHtml(last.g.scorer) : '—', last ? 'Week ' + last.g.week : '') +
+          tile('Latest Hit', last ? escHtml(last.g.scorer) : '—', last ? weekName(last.g.week) : '') +
           tile('Lone Wolves', S.lone.length, 'Hits nobody else had') +
-          tile('Longest Heater', S.heater.n + ' straight', S.heater.n ? 'through Wk ' + S.heater.at : '') +
+          tile('Longest Heater', S.heater.n + ' straight', S.heater.n ? 'through ' + wkName(S.heater.at) : '') +
           tile('Ride or Die', fav ? escHtml(fav) : '—', fav ? 'picked ' + S.players[fav] + 'x' : '') +
           tile('Games Picked', S.picks, (owner || admin) ? S.upcoming.length + ' still to play' : 'that have kicked off') +
           tile('Best Week', (function() { var b = Object.keys(S.weeks).sort(function(a, c) { return S.weeks[c].w - S.weeks[a].w; })[0]; return b && S.weeks[b].w ? S.weeks[b].w + ' hit' + (S.weeks[b].w > 1 ? 's' : '') : '—'; })(),
-            (function() { var b = Object.keys(S.weeks).sort(function(a, c) { return S.weeks[c].w - S.weeks[a].w; })[0]; return b && S.weeks[b].w ? 'Week ' + b : ''; })()) +
+            (function() { var b = Object.keys(S.weeks).sort(function(a, c) { return S.weeks[c].w - S.weeks[a].w; })[0]; return b && S.weeks[b].w ? weekName(b) : ''; })()) +
           '</div>';
 
         // ⚔️ Head to head vs Maria and Danielle: games where only one of them hit
@@ -281,7 +281,7 @@
 
         if ((owner || admin) && S.upcoming.length) {
           h += '<div class="pf-h">⏳ Upcoming Picks <small>🔒 only ' + (owner ? 'you' : escHtml(name)) + ' and admin can see these</small></div>' + S.upcoming.map(function(x) {
-            return '<div class="adm-row"><span style="color:#A1A9B6">Wk ' + x.g.week + ' · ' + escHtml(x.g.slot) + '</span><span>' + coloredText(x.r.homePick, x.g.home) + ' / ' + coloredText(x.r.awayPick, x.g.away) + '</span></div>';
+            return '<div class="adm-row"><span style="color:#A1A9B6">' + wkName(x.g.week) + ' · ' + escHtml(x.g.slot) + '</span><span>' + coloredText(x.r.homePick, x.g.home) + ' / ' + coloredText(x.r.awayPick, x.g.away) + '</span></div>';
           }).join('') + '<div style="height:18px"></div>';
         }
 
@@ -295,7 +295,7 @@
             var tag = x.status === 'hit' ? '<span class="hist-tag hit">HIT</span>' : x.status === 'miss' ? '<span class="hist-tag miss">MISS</span>' :
               x.status === 'void' ? '<span class="hist-tag">NOT OFFERED</span>' : '<span class="hist-tag live">LIVE</span>';
             h += '<div class="hist-row"' + (i >= 8 ? ' data-hist style="display:none"' : '') + '>' +
-              '<div class="hist-l"><div class="hist-wk">Wk ' + g.week + ' · ' + escHtml(g.slot) + '</div>' +
+              '<div class="hist-l"><div class="hist-wk">' + wkName(g.week) + ' · ' + escHtml(g.slot) + '</div>' +
               '<div>' + pk(x.r.homePick, g.home) + ' <span style="color:rgba(255,255,255,0.35)">/</span> ' + pk(x.r.awayPick, g.away) + '</div>' +
               (g.scorer ? '<div class="hist-sc">🏈 ' + escHtml(g.scorer) + '</div>' : '') + '</div>' + tag + '</div>';
           });
@@ -307,7 +307,7 @@
           { ic: '🐺', n: 'Lone Wolf', d: 'Hit a scorer nobody else had', got: S.lone.length > 0, w: hitW(S.lone[0]) },
           { ic: '🔥', n: 'Heater', d: '3 hits in a row', got: S.heater.n >= 3, w: 'Best run: ' + S.heater.n, p: [Math.min(S.heater.n, 3), 3] },
           { ic: '🌋', n: 'On Fire', d: '5 hits in a row', got: S.heater.n >= 5, w: 'Best run: ' + S.heater.n, p: [Math.min(S.heater.n, 5), 5] },
-          { ic: '🧹', n: 'Clean Sweep', d: 'Hit every game in a week (2+)', got: !!sweep, w: sweep ? 'Week ' + sweep : '' },
+          { ic: '🧹', n: 'Clean Sweep', d: 'Hit every game in a week (2+)', got: !!sweep, w: sweep ? weekName(sweep) : '' },
           { ic: '❤️', n: 'Ride or Die', d: 'Pick the same player 10 times', got: !!(fav && S.players[fav] >= 10), w: fav ? escHtml(fav) + ' · ' + S.players[fav] + 'x' : '', p: [fav ? Math.min(S.players[fav], 10) : 0, 10] },
           { ic: '🦃', n: 'Holiday Hero', d: 'Hit on Thanksgiving, Black Friday or Christmas', got: !!holiday, w: hitW(holiday) },
           { ic: '🌍', n: 'Globetrotter', d: 'Hit in an International game', got: !!intl, w: hitW(intl) },

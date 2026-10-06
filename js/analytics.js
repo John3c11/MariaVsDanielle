@@ -1,4 +1,5 @@
-// Analytics tab, plus the jinx and bad-beat math that Profiles also uses.
+// Analytics tab. Not in index.html: core.js (openAnalytics) loads it the first time someone opens Analytics.
+// The jinx and bad-beat math that Stats and Profiles also use lives in insights.js.
 // Part of the MariaVsDanielle site. All js/ files share one global scope and load in the order listed in index.html.
 
     // ── Analytics section filters ───────────────────────────────────────────
@@ -179,145 +180,6 @@
       });
     }
 
-    // Jinxes + loyalty from analytics-style rows (used by Analytics and Profiles)
-    function computeJinxes(rows) {
-      // Build games in chronological order (2025 before 2026, sheet order within a year)
-      var chrono = rows.slice().sort(function(a, b) {
-        return a.year !== b.year ? parseInt(a.year) - parseInt(b.year) : a.idx - b.idx;
-      });
-      var jGames = [], jIdx = {};
-      chrono.forEach(function(r) {
-        if (r.picker !== 'Maria' && r.picker !== 'Danielle') return;
-        var k = r.year + '_' + r.week + '_' + r.game + '_' + r.homeTeam + '_' + r.awayTeam;
-        if (!(k in jIdx)) {
-          jIdx[k] = jGames.length;
-          jGames.push({ year: r.year, week: r.week, home: resolveTeam(r.homeTeam), away: resolveTeam(r.awayTeam),
-            homeRaw: r.homeTeam, awayRaw: r.awayTeam, scorer: '', rows: {} });
-        }
-        var g = jGames[jIdx[k]];
-        g.rows[r.picker] = r;
-        if (r.firstScorer) g.scorer = r.firstScorer;
-      });
-
-      var tracking = { Maria: {}, Danielle: {} }; // player -> where they were last picked
-      var jinxes = { Maria: [], Danielle: [] };
-      var loyalty = { Maria: { kept: 0, dropped: 0 }, Danielle: { kept: 0, dropped: 0 } };
-
-      jGames.forEach(function(g) {
-        if (!g.scorer) return; // unscored games don't count yet
-        // 1) Check players each person was tracking whose team is in this game
-        ['Maria', 'Danielle'].forEach(function(p) {
-          var mine = g.rows[p];
-          if (!mine || (!mine.homePick && !mine.awayPick)) return;
-          var picks = [mine.homePick, mine.awayPick];
-          Object.keys(tracking[p]).forEach(function(player) {
-            var t = tracking[p][player];
-            if (t.team !== g.home && t.team !== g.away) return;
-            delete tracking[p][player]; // only the next appearance counts
-            if (picks.indexOf(player) !== -1) { loyalty[p].kept++; return; }
-            loyalty[p].dropped++;
-            if (g.scorer === player) {
-              var other = p === 'Maria' ? 'Danielle' : 'Maria';
-              var o = g.rows[other], cashed = null;
-              if (o && o.correct === 'Yes' && (o.homePick === player || o.awayPick === player)) {
-                cashed = { units: o.netUnits, odds: o.homePick === player ? o.homeOdds : o.awayOdds };
-              }
-              jinxes[p].push({ picker: p, other: other, player: player, team: t.rawTeam,
-                fromYear: t.year, fromWeek: t.week, year: g.year, week: g.week, cashed: cashed });
-            }
-          });
-        });
-        // 2) Start tracking this game's picks
-        ['Maria', 'Danielle'].forEach(function(p) {
-          var mine = g.rows[p];
-          if (!mine) return;
-          if (mine.homePick) tracking[p][mine.homePick] = { team: g.home, rawTeam: g.homeRaw, year: g.year, week: g.week };
-          if (mine.awayPick) tracking[p][mine.awayPick] = { team: g.away, rawTeam: g.awayRaw, year: g.year, week: g.week };
-        });
-      });
-      return { jinxes: jinxes, loyalty: loyalty };
-    }
-
-    // Bad beats from analytics-style rows: checks ESPN once per finished game, then caches it
-    var BAD_BEATS_CACHE = null;
-    async function computeBadBeats(rows, onProgress) {
-      if (BAD_BEATS_CACHE) return BAD_BEATS_CACHE;
-    var games = {}, order = [];
-    rows.forEach(function(r) {
-      if (!r.firstScorer || (r.picker !== 'Maria' && r.picker !== 'Danielle')) return;
-      var k = r.year + '_' + r.week + '_' + r.homeTeam + '_' + r.awayTeam;
-      if (!games[k]) { games[k] = { key: k, year: r.year, week: r.week, home: r.homeTeam, away: r.awayTeam, first: r.firstScorer, picks: { Maria: [], Danielle: [] } }; order.push(k); }
-      [[r.homePick, r.homeTeam], [r.awayPick, r.awayTeam]].forEach(function(x) { if (x[0]) games[k].picks[r.picker].push({ name: x[0], team: x[1] }); });
-    });
-
-    var cache = {};
-    try { cache = JSON.parse(localStorage.getItem('mvd-tds-v1') || '{}'); } catch (e) {}
-    var boards = {}, failed = 0, done = 0;
-    function board(year, week) {
-      var k = year + '_' + week;
-      if (!boards[k]) {
-        var path = week > 18
-          ? 'scoreboard?dates=' + year + '&seasontype=3&week=' + (week - 18)
-          : 'scoreboard?dates=' + year + '&seasontype=2&week=' + week;
-        boards[k] = espnGet(path).then(function(d) { return d.events || []; }).catch(function() { return []; });
-      }
-      return boards[k];
-    }
-    function clockSecs(c) { var m = (c || '').match(/(\d+):(\d+)/); return m ? +m[1] * 60 + +m[2] : 0; }
-
-    async function tdsFor(g) {
-      if (cache[g.key]) return cache[g.key];
-      var events = await board(g.year, g.week);
-      var hk = espnTeamKey(g.home), ak = espnTeamKey(g.away), ev = null;
-      events.forEach(function(e) {
-        var c = e.competitions && e.competitions[0];
-        if (!c) return;
-        var keys = c.competitors.map(function(x) { return espnTeamKey(x.team.displayName); });
-        if (keys.indexOf(hk) >= 0 && keys.indexOf(ak) >= 0) ev = e;
-      });
-      if (!ev) { failed++; return null; }
-      var sum = await espnGet('summary?event=' + ev.id);
-      var tds = (sum.scoringPlays || []).filter(tdPlay).map(function(p) {
-        var per = (p.period && p.period.number) || 1;
-        return { n: tdScorerName(p.text), p: per, c: (p.clock && p.clock.displayValue) || '', t: (per - 1) * 900 + (900 - clockSecs(p.clock && p.clock.displayValue)) };
-      });
-      if (ev.status && ev.status.type && ev.status.type.state === 'post') cache[g.key] = tds;
-      return tds;
-    }
-
-    // A few at a time so it's gentle on ESPN
-    var queue = order.slice(), results = {};
-    async function worker() {
-      while (queue.length) {
-        var k = queue.shift();
-        try { results[k] = await tdsFor(games[k]); } catch (e) { failed++; }
-        done++;
-        if (onProgress && done % 5 === 0) onProgress(done, order.length);
-      }
-    }
-    await Promise.all([worker(), worker(), worker(), worker()]);
-    try { localStorage.setItem('mvd-tds-v1', JSON.stringify(cache)); } catch (e) {}
-
-    var beats = [];
-    order.forEach(function(k) {
-      var g = games[k], tds = results[k];
-      if (!tds || !tds.length) return;
-      var firstT = tds[0].t;
-      ['Maria', 'Danielle'].forEach(function(who) {
-        g.picks[who].forEach(function(pk) {
-          if (normName(pk.name) === normName(g.first)) return; // that's a hit, not a bad beat
-          var td = tds.filter(function(t, i) { return i > 0 && sameScorer(t.n, pk.name); })[0];
-          if (!td) return;
-          beats.push({ who: who, player: pk.name, team: pk.team, year: g.year, week: g.week, first: g.first,
-            q: td.p > 4 ? 'OT' : 'Q' + td.p, clock: td.c, gap: Math.max(0, Math.round((td.t - firstT) / 60)) });
-        });
-      });
-    });
-      var anyData = Object.keys(results).some(function(k) { return results[k]; });
-      BAD_BEATS_CACHE = { beats: beats, failed: failed, order: order, results: results, anyData: anyData };
-      return BAD_BEATS_CACHE;
-    }
-
     var ANALYTICS_LOADED = false;
     async function loadAnalyticsTab() {
       if (ANALYTICS_LOADED) return;
@@ -375,7 +237,7 @@
           .filter(function(y, i, a) { return a.indexOf(y) === i; })
           .sort(function(a, b) { return parseInt(b) - parseInt(a); });
         var CUR_SEASON = 'all'; // default view: every season
-        function wkLabel(year, week) { return year + ' Wk ' + week; }
+        function wkLabel(year, week) { return year + ' ' + wkName(week); }
         var SEASON_OPTS = AN_YEARS.map(function(y) { return [y, y]; }).concat([['all', 'All']]);
         var PICKER_OPTS = [['all', 'Both'], ['Maria', 'Maria', 'maria-btn'], ['Danielle', 'Danielle', 'danielle-btn']];
         function inSeason(r, season) { return season === 'all' || r.year === season; }
@@ -456,7 +318,7 @@
           var pColor = personColor(j.picker);
           var oColor = personColor(j.other);
           // Year on the scoring week always; on the drop week only if it was a different season
-          var from = j.fromYear !== j.year ? wkLabel(j.fromYear, j.fromWeek) : 'Wk ' + j.fromWeek;
+          var from = j.fromYear !== j.year ? wkLabel(j.fromYear, j.fromWeek) : wkName(j.fromWeek);
           var to = wkLabel(j.year, j.week);
           var txt = '<span style="color:' + pColor + ';font-weight:600">' + j.picker + '</span> dropped ' +
             coloredText(j.player, j.team) + ' after ' + from + '. He scored first in ' + to + '.';
@@ -645,7 +507,7 @@
               if (d > best.dollars) {
                 var a = w[0], z = w[w.length - 1];
                 var span = a.year === z.year
-                  ? (a.week === z.week ? wkLabel(a.year, a.week) : a.year + ' Wk ' + a.week + '–' + z.week)
+                  ? (a.week === z.week ? wkLabel(a.year, a.week) : a.year + ' ' + wkName(a.week) + '–' + (isPlayoffWeek(z.week) ? wkName(z.week) : z.week))
                   : wkLabel(a.year, a.week) + ' to ' + wkLabel(z.year, z.week);
                 best = { wins:wins, total:w.length, units:u, dollars:d,
                   label: '$'+d.toFixed(2)+' (+'+u.toFixed(1)+'u) — '+wins+'/'+w.length+' correct · '+span };

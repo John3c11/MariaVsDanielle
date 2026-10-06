@@ -70,7 +70,7 @@
       var menu = document.getElementById('tab-menu');
       if (menu) menu.classList.remove('open');
       if (name === 'legacy') loadLegacyTab();
-      if (name === 'analytics') loadAnalyticsTab();
+      if (name === 'analytics') openAnalytics(); // loads js/analytics.js the first time
       if (name === 'bethistory') loadBetHistoryTab();
       if (name === 'submit') loadSubmitTab();
       if (name === 'chat') loadChatTab(); else stopChatRefresh();

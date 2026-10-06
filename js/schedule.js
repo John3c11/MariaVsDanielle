@@ -44,7 +44,7 @@
       shown.forEach(function(g) {
         if (g.week !== lastWeek) {
           lastWeek = g.week;
-          h += '<div class="sch-week">Week ' + g.week + (g.week === thisWeek ? ' <span class="sch-now">THIS WEEK</span>' : '') + '</div>';
+          h += '<div class="sch-week">' + weekName(g.week) + (g.week === thisWeek ? ' <span class="sch-now">THIS WEEK</span>' : '') + '</div>';
         }
         var ko = SCHED.kickoffs[CURRENT_YEAR + '_' + g.week + '_' + espnTeamKey(g.home) + '_' + espnTeamKey(g.away)];
         var koText = ko ? new Date(ko).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';

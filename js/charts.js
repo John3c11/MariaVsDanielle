@@ -78,8 +78,8 @@
             '<text x="' + (L + band * i + 4) + '" y="' + (T + 10) + '" font-size="10" font-weight="700" fill="' + CH.axis + '">' + w.year + '</text>';
         }
         svg += chBar(cx - bw - 1, bw, y(0), y(w.Maria.u), SB_M) + chBar(cx + 1, bw, y(0), y(w.Danielle.u), SB_D);
-        if (i % every === 0) svg += '<text x="' + cx + '" y="' + (H - B + 16) + '" font-size="10" fill="' + CH.axis + '" text-anchor="middle">' + w.week + '</text>';
-        var tip = (season === 'all' ? w.year + ' ' : '') + 'Week ' + w.week + ' · Maria ' + chU(w.Maria.u) + ' (' + w.Maria.h + '/' + w.Maria.n + ') · Danielle ' + chU(w.Danielle.u) + ' (' + w.Danielle.h + '/' + w.Danielle.n + ')';
+        if (i % every === 0) svg += '<text x="' + cx + '" y="' + (H - B + 16) + '" font-size="10" fill="' + CH.axis + '" text-anchor="middle">' + (PLAYOFF_SHORT[parseInt(w.week, 10)] || w.week) + '</text>';
+        var tip = (season === 'all' ? w.year + ' ' : '') + weekName(w.week) + ' · Maria ' + chU(w.Maria.u) + ' (' + w.Maria.h + '/' + w.Maria.n + ') · Danielle ' + chU(w.Danielle.u) + ' (' + w.Danielle.h + '/' + w.Danielle.n + ')';
         svg += '<rect x="' + (L + band * i) + '" y="' + T + '" width="' + band + '" height="' + (H - T - B) + '" fill="transparent" class="ch-hit" data-tip="' + chTip(tip) + '"/>';
       });
       svg += '<text x="' + (L + pw / 2) + '" y="' + (H - 1) + '" font-size="9" fill="' + CH.axis + '" text-anchor="middle" opacity="0.7">WEEK</text></svg>';
@@ -110,7 +110,7 @@
           lastWeek = r.week;
           var no = isNotOffered(r), hit = r.correct === 'Yes' && !no;
           if (!no) { n++; if (hit) hits++; }
-          var tip = (season === 'all' ? r.year + ' ' : '') + 'Wk ' + r.week + ' · ' + resolveTeam(r.homeTeam) + ' vs ' + resolveTeam(r.awayTeam) +
+          var tip = (season === 'all' ? r.year + ' ' : '') + wkName(r.week) + ' · ' + resolveTeam(r.homeTeam) + ' vs ' + resolveTeam(r.awayTeam) +
             ' · First TD: ' + (r.firstScorer || '?') + ' · ' + who + ' had ' + [r.homePick, r.awayPick].filter(Boolean).join(' / ') + (no ? ' (not offered)' : hit ? ' ✅' : ' ❌');
           cells += '<i class="hg-cell' + (no ? ' no' : '') + '" style="' + (hit ? 'background:' + c : no ? '' : 'background:' + CH.miss) + '" data-tip="' + chTip(tip) + '"></i>';
         });
@@ -149,7 +149,7 @@
         var list = pts[who].slice().sort(function(a, b) { return (a.hit ? 1 : 0) - (b.hit ? 1 : 0); });
         list.forEach(function(p, i) {
           var j = ((i * 37) % 9 - 4) * 5.2;
-          var tip = p.name + ' +' + p.odds + ' · ' + (season === 'all' ? p.r.year + ' ' : '') + 'Wk ' + p.r.week + (p.hit ? ' · scored first ✅' : '');
+          var tip = p.name + ' +' + p.odds + ' · ' + (season === 'all' ? p.r.year + ' ' : '') + wkName(p.r.week) + (p.hit ? ' · scored first ✅' : '');
           svg += p.hit
             ? '<circle cx="' + x(p.odds).toFixed(1) + '" cy="' + (mid + j * 0.4).toFixed(1) + '" r="6" fill="' + c + '" stroke="' + CH.surface + '" stroke-width="2" data-tip="' + chTip(tip) + '"/>'
             : '<circle cx="' + x(p.odds).toFixed(1) + '" cy="' + (mid + j).toFixed(1) + '" r="4" fill="none" stroke="rgba(255,255,255,0.32)" stroke-width="1.5" data-tip="' + chTip(tip) + '"/>';
@@ -226,9 +226,9 @@
       var xl = [], dv = [], tips = [];
       G.forEach(function(g, i) {
         if (i > 0 && g.year !== G[i - 1].year) dv.push({ i: i, label: g.year });
-        if (i === 0 || g.week !== G[i - 1].week) xl.push({ i: i, label: 'Wk ' + g.week });
+        if (i === 0 || g.week !== G[i - 1].week) xl.push({ i: i, label: wkShort(g.week) });
         var m = series.Maria[i], d = series.Danielle[i];
-        tips.push(m === null && d === null ? '' : (season === 'all' ? g.year + ' ' : '') + 'Wk ' + g.week + ' · last ' + N + ': Maria ' + (m === null ? '—' : Math.round(m) + '%') + ' · Danielle ' + (d === null ? '—' : Math.round(d) + '%'));
+        tips.push(m === null && d === null ? '' : (season === 'all' ? g.year + ' ' : '') + wkName(g.week) + ' · last ' + N + ': Maria ' + (m === null ? '—' : Math.round(m) + '%') + ' · Danielle ' + (d === null ? '—' : Math.round(d) + '%'));
       });
       var keep = Math.ceil(xl.length / 9); xl = xl.filter(function(l, k) { return k % keep === 0; });
       return chLineChart({ n: G.length, series: [{ name: 'Maria', color: SB_M, vals: series.Maria }, { name: 'Danielle', color: SB_D, vals: series.Danielle }],
@@ -251,7 +251,7 @@
       G.forEach(function(g, i) {
         m.push(m[i] + g.Maria); d.push(d[i] + g.Danielle);
         if (i > 0 && g.year !== G[i - 1].year) dv.push({ i: i + 1, label: g.year });
-        tips.push(g.year + ' Wk ' + g.week + ' · Maria ' + chU(m[i + 1]) + ' · Danielle ' + chU(d[i + 1]));
+        tips.push(g.year + ' ' + wkName(g.week) + ' · Maria ' + chU(m[i + 1]) + ' · Danielle ' + chU(d[i + 1]));
       });
       xl.push({ i: 0, label: G[0].year });
       return chLineChart({ n: G.length + 1, series: [{ name: 'Maria', color: SB_M, vals: m }, { name: 'Danielle', color: SB_D, vals: d }],

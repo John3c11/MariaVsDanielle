@@ -281,7 +281,7 @@
         // Team history, newest first: "2026 Patriots · 2025 Packers"
         var hist = stints.slice().reverse().map(function(s) {
           var same = stints.filter(function(x) { return x.year === s.year; }).length > 1;
-          return '<span style="color:' + ((TEAM_COLORS[s.team] || {}).dark || '#F3F4F6') + '">' + s.year + ' ' + nick(s.team) + (same ? ' Wk ' + s.from + '–' + s.to : '') + '</span>';
+          return '<span style="color:' + ((TEAM_COLORS[s.team] || {}).dark || '#F3F4F6') + '">' + s.year + ' ' + nick(s.team) + (same ? ' ' + wkName(s.from) + '–' + (isPlayoffWeek(s.to) ? wkName(s.to) : s.to) : '') + '</span>';
         });
         var moved = stints.some(function(s) { return s.team !== team; });
         if (team && lastStint && lastStint.team !== team) hist.unshift('<span style="color:' + ((TEAM_COLORS[team] || {}).dark || '#F3F4F6') + '">Now ' + nick(team) + '</span>');
@@ -290,7 +290,7 @@
         if (ctx && ctx.year && ctx.week) {
           var cg = null;
           p.gameOrder.forEach(function(gk) { var g = p.games[gk]; if (String(g.year) === String(ctx.year) && +g.week === +ctx.week && g.team) cg = g; });
-          if (cg && cg.team !== team) ctxLine = '<div class="pc-ctx">In that game: ' + teamLogo(cg.team) + '<b>' + nick(cg.team) + '</b> · ' + cg.year + ' Week ' + cg.week + '</div>';
+          if (cg && cg.team !== team) ctxLine = '<div class="pc-ctx">In that game: ' + teamLogo(cg.team) + '<b>' + nick(cg.team) + '</b> · ' + cg.year + ' ' + weekName(cg.week) + '</div>';
         }
         var tc = TEAM_COLORS[team] || { bg: '#1F2937', text: '#FFFFFF', primary: '#1F2937', dark: '#F3F4F6' };
         var headBg = tc.bg === '#FFFFFF' ? tc.primary : tc.bg;
@@ -331,7 +331,7 @@
           var res = !g.scorer ? '<span style="color:rgba(255,255,255,0.45)">Pending</span>'
                   : playerKey(g.scorer) === k ? '<span style="color:#34D399;font-weight:700">🏈 Scored first</span>'
                   : '<span style="color:rgba(255,255,255,0.45)">—</span>';
-          return '<div class="pc-game' + (gi >= 6 ? ' pc-extra' : '') + '"><span style="color:rgba(255,255,255,0.55)">' + g.year + ' Wk ' + g.week + '</span>' +
+          return '<div class="pc-game' + (gi >= 6 ? ' pc-extra' : '') + '"><span style="color:rgba(255,255,255,0.55)">' + g.year + ' ' + wkName(g.week) + '</span>' +
             '<span>' + vs + ' ' + chips + '</span><span>' + res + '</span></div>';
         }).join('');
 
@@ -344,7 +344,7 @@
               (nf && nf.inj ? '<span class="pc-tag inj">ESPN: ' + escHtml(nf.inj) + '</span>' : '') + (!inNFL && nf === null && Object.keys(NFL).length ? '<span class="pc-tag">Not on an NFL roster</span>' : '') + '</div>' +
             '<div class="pc-name">' + p.name + outBadge(p.name) + '</div>' +
  (moved || (hist.length && !inNFL) ? '<div class="pc-teams">' + hist.join(' · ') + '</div>' : '') + ctxLine +
-            (p.lastOdds ? '<div class="pc-sub">Last odds ' + formatOdds(p.lastOdds.odds) + ' (' + p.lastOdds.year + ' Wk ' + p.lastOdds.week + ')</div>' : '') +
+            (p.lastOdds ? '<div class="pc-sub">Last odds ' + formatOdds(p.lastOdds.odds) + ' (' + p.lastOdds.year + ' ' + wkName(p.lastOdds.week) + ')</div>' : '') +
           '</div>' +
           '<div class="pc-body">' +
             '<div class="pc-tiles">' +
@@ -396,7 +396,7 @@
           '<span class="pos-label" style="min-width:74px;color:' + (tc ? tc.dark : '#A1A9B6') + '">' + nick + '</span>' +
           '<span class="player-name-text" style="flex:1"><span>' + p.name + '</span></span>' +
           '<span style="font-size:10px;text-align:right">' + bits.join(' <span style="color:rgba(255,255,255,0.25)">·</span> ') +
-          (p.last ? ' <span style="color:rgba(255,255,255,0.4)">· last ' + p.last.year + ' Wk ' + p.last.week + '</span>' : '') + '</span>' +
+          (p.last ? ' <span style="color:rgba(255,255,255,0.4)">· last ' + p.last.year + ' ' + wkName(p.last.week) + '</span>' : '') + '</span>' +
         '</div>';
       }).join('');
 

@@ -1282,6 +1282,7 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
 .ag-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; margin: 6px 0 10px; }
 .ag-form label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; font-weight: 700; color: #A1A9B6; letter-spacing: 0.04em; text-transform: uppercase; }
 .ag-form .adm-input { width: 100%; box-sizing: border-box; text-transform: none; letter-spacing: 0; font-weight: 400; }
+.ag-form .ag-hint { font-size: 9px; font-weight: 600; letter-spacing: 0.02em; color: #6B7280; text-transform: none; }
 .ag-note { font-size: 12px; color: #FCD34D; margin-bottom: 10px; }
 .ag-note:empty { display: none; }
 .ag-wk { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #9CA3AF; margin: 14px 0 2px; }
@@ -1290,6 +1291,12 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
 /* v97: admin heads-up after login, new phone errors */
 .adm-alert { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin: 4px 0 16px; padding: 10px 12px; border-radius: 12px; font-size: 13px; line-height: 1.45; background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.35); color: #FDE68A; }
 .adm-alert b { color: #FEF3C7; }
+.odds-wrap { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.odds-hint { font-size: 10px; color: #9CA3AF; min-height: 12px; white-space: nowrap; }
+.odds-hint.odd { color: #FCD34D; }
+.odds-hint.bad { color: #F87171; }
+.odds-input.odds-odd { border-color: rgba(251,191,36,0.6) !important; }
+.odds-input.odds-bad { border-color: rgba(248,113,113,0.7) !important; }
 .dc-act { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
 .dc-act span { font-size: 11px; color: #9CA3AF; }
 .dc-fine { margin-top: 10px; }

@@ -64,7 +64,7 @@
 
       return '<div class="sb-glass" data-share="recap-week-' + wk + '" style="position:relative;border-left:3px solid ' + accent + ';padding:12px 16px;margin-bottom:20px">' +
         '<button class="share-btn" onclick="shareCard(this)" title="Share as image">Share</button>' +
-        '<div class="sb-dim" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:6px">Week ' + wk + ' Recap' + (live ? ' · in progress' : '') + '</div>' +
+        '<div class="sb-dim" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:6px">' + weekName(wk) + ' Recap' + (live ? ' · in progress' : '') + '</div>' +
         '<div style="font-size:13px;color:rgba(255,255,255,0.85);line-height:1.8">' + text + '</div></div>';
     }
 
@@ -395,7 +395,7 @@
       var prevW = wi > 0 ? allWeeks[wi - 1] : 0, nextW = wi >= 0 && wi < allWeeks.length - 1 ? allWeeks[wi + 1] : 0;
       var title = document.getElementById('ftd-title');
       title.innerHTML = '<div class="ftd-nav"><button data-ftd-w="' + prevW + '"' + (prevW ? '' : ' disabled') + ' aria-label="Previous week">‹</button>' +
-        '<span>🏈 Week ' + week + ' First Touchdowns' + (week !== latest ? '<button class="ftd-latest" data-ftd-w="' + latest + '">Latest</button>' : '') + '</span>' +
+        '<span>🏈 ' + weekName(week) + ' First Touchdowns' + (week !== latest ? '<button class="ftd-latest" data-ftd-w="' + latest + '">Latest</button>' : '') + '</span>' +
         '<button data-ftd-w="' + nextW + '"' + (nextW ? '' : ' disabled') + ' aria-label="Next week">›</button></div>';
       title.querySelectorAll('[data-ftd-w]').forEach(function(b) {
         b.addEventListener('click', function() { var w = +b.getAttribute('data-ftd-w'); if (w) renderFirstTDs(FTD.rows, w); });
@@ -492,7 +492,7 @@
           });
           hits.sort(function(a, b) { return b.odds - a.odds; });
           var winner = units.Maria > units.Danielle ? 'Maria' : units.Danielle > units.Maria ? 'Danielle' : '';
-          h += '<div class="hist-yr" data-ctx-year="' + y + '" data-ctx-week="' + week + '"><div class="hist-ago">' + (ago === 1 ? '1 year ago' : ago + ' years ago') + ' · ' + y + ' Week ' + week + '</div>';
+          h += '<div class="hist-yr" data-ctx-year="' + y + '" data-ctx-week="' + week + '"><div class="hist-ago">' + (ago === 1 ? '1 year ago' : ago + ' years ago') + ' · ' + y + ' ' + weekName(week) + '</div>';
           if (hits.length) {
             h += hits.slice(0, 3).map(function(x) {
               return '<div class="hist-hit">' + (x.team ? headshot(x.name, x.team, 30) : '') + '<span><b style="color:' + c(x.who) + '">' + x.who + '</b> hit ' +
@@ -505,7 +505,7 @@
           h += '<div class="hist-wk">' + (winner ? '<b style="color:' + c(winner) + '">' + winner + '</b> won the week · ' : 'Even week · ') +
             '<span style="color:' + SB_M + '">Maria ' + u(units.Maria) + '</span> · <span style="color:' + SB_D + '">Danielle ' + u(units.Danielle) + '</span></div></div>';
         });
-        document.getElementById('hist-title').textContent = '📅 Week ' + week + ' in History';
+        document.getElementById('hist-title').textContent = '📅 ' + weekName(week) + ' in History';
         var list = document.getElementById('hist-list');
         list.innerHTML = h;
         fillHeadshots(list);
@@ -513,7 +513,7 @@
         // Same card on the Stats tab, shown only on big screens (CSS)
         var w2 = document.getElementById('hist-wrap2');
         if (w2) {
-          document.getElementById('hist-title2').textContent = '📅 Week ' + week + ' in History';
+          document.getElementById('hist-title2').textContent = '📅 ' + weekName(week) + ' in History';
           var l2 = document.getElementById('hist-list2');
           l2.innerHTML = h; fillHeadshots(l2);
           w2.classList.add('on');

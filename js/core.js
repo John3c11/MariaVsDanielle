@@ -49,6 +49,39 @@
       window.reportSiteError = report; // for testing from the console
     })();
 
+    // ── Week names: playoff weeks get their round's name everywhere on the site ──
+    // Same numbering as ESPN and the scripts: 19 = Wild Card, 20 = Divisional, 21 = Conference, 23 = Super Bowl (22 is the Pro Bowl week).
+    var PLAYOFF_ROUNDS = { 19: 'Wild Card', 20: 'Divisional', 21: 'Conference', 22: 'Pro Bowl', 23: 'Super Bowl' };
+    var PLAYOFF_SHORT = { 19: 'WC', 20: 'DIV', 21: 'CONF', 22: 'PB', 23: 'SB' };
+    function weekName(w) { return PLAYOFF_ROUNDS[parseInt(w, 10)] || 'Week ' + w; }  // "Week 5" / "Wild Card"
+    function wkName(w) { return PLAYOFF_ROUNDS[parseInt(w, 10)] || 'Wk ' + w; }       // "Wk 5" / "Wild Card"
+    function wkShort(w) { return PLAYOFF_SHORT[parseInt(w, 10)] || 'Wk ' + w; }       // chart axes: "Wk 5" / "WC"
+    function isPlayoffWeek(w) { return parseInt(w, 10) > 18; }
+
+    // ── Files loaded only when needed (Analytics) ──────────────────────────
+    // Same ?v= as the rest of the site, so a new version never mixes with an old one.
+    var SCRIPT_LOADS = {};
+    function loadScriptOnce(path) {
+      if (SCRIPT_LOADS[path]) return SCRIPT_LOADS[path];
+      SCRIPT_LOADS[path] = new Promise(function(res, rej) {
+        var me = document.querySelector('script[src*="js/core.js"]');
+        var v = me && /[?&]v=([^&]+)/.exec(me.getAttribute('src'));
+        var sc = document.createElement('script');
+        sc.src = path + (v ? '?v=' + v[1] : '');
+        sc.onload = function() { res(); };
+        sc.onerror = function() { delete SCRIPT_LOADS[path]; sc.remove(); rej(new Error(path)); };
+        document.body.appendChild(sc);
+      });
+      return SCRIPT_LOADS[path];
+    }
+    function openAnalytics() {
+      if (typeof loadAnalyticsTab === 'function') return loadAnalyticsTab();
+      loadScriptOnce('js/analytics.js').then(function() { loadAnalyticsTab(); }).catch(function() {
+        var el = document.getElementById('analytics-content');
+        if (el) el.innerHTML = '<div class="loading">Couldn\'t load Analytics. Check your connection. <button class="link-btn" onclick="openAnalytics()">Try again</button></div>';
+      });
+    }
+
     // ── Google Sheets request sharing ───────────────────────────────────────
     // Google allows about 60 reads a minute. Many tabs read the same sheet, so identical
     // requests made within 30 seconds share one answer, and a "too many requests" reply

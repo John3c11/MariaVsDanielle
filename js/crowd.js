@@ -141,7 +141,7 @@
         var wkKeys = Object.keys(weeks).filter(function(w) { return weeks[w].best > 0; }).sort(function(a, b) { return b - a; });
         if (wkKeys.length) {
           h += '<div class="pf-h" style="margin-top:22px">🗓️ Weekly Best</div>' + wkKeys.map(function(w) {
-            return '<div class="adm-row"><span style="color:#A1A9B6">Week ' + w + '</span><span><b>' + weeks[w].who.map(fName).join(' & ') + '</b> · ' + weeks[w].best + ' hit' + (weeks[w].best > 1 ? 's' : '') + '</span></div>';
+            return '<div class="adm-row"><span style="color:#A1A9B6">' + weekName(w) + '</span><span><b>' + weeks[w].who.map(fName).join(' & ') + '</b> · ' + weeks[w].best + ' hit' + (weeks[w].best > 1 ? 's' : '') + '</span></div>';
           }).join('');
         }
 
@@ -157,7 +157,7 @@
               var hit = g.scorer && playerKey(p) === sk;
               return '<span style="' + (hit ? 'color:#34D399;font-weight:800' : '') + '">' + escHtml(p) + (hit ? ' ✅' : '') + '</span>';
             }
-            h += '<div class="sch-game" style="' + (i >= 6 ? 'display:none' : '') + '" data-cg="1"><div class="sch-top"><span class="sch-slot">Week ' + g.week + ' · ' + escHtml(g.slot) + '</span>' +
+            h += '<div class="sch-game" style="' + (i >= 6 ? 'display:none' : '') + '" data-cg="1"><div class="sch-top"><span class="sch-slot">' + weekName(g.week) + ' · ' + escHtml(g.slot) + '</span>' +
               '<span class="sch-ko">' + (g.scorer ? '🏈 ' + escHtml(g.scorer) : '⏳ In progress') + '</span></div>' +
               '<div class="sch-teams">' + teamPill(g.home, g.home) + ' <span style="color:rgba(255,255,255,0.45)">vs</span> ' + teamPill(g.away, g.away) + '</div>' +
               byGame[k].map(function(p) {

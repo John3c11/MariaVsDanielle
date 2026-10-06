@@ -381,6 +381,8 @@
 
         var html = '<div style="font-size:13px;color:#A1A9B6;margin-bottom:24px">' + winner + ' · ' + SEASONS.length + ' seasons of data</div>';
 
+        // Big screens: totals + earnings on the left, Record Book on the right (no effect elsewhere)
+        html += '<div class="wide-cols"><div class="wide-col">';
         // All-time stats
         html += secH('📊 All-Time Totals');
         html += '<div class="lg-grid">';
@@ -393,8 +395,10 @@
         // Earnings by season (both of them together). This used to be its own tab.
         html += secH('💵 Earnings by Season', 'Maria + Danielle combined') + '<div id="legacy-earn"><div class="loading">Loading…</div></div>';
 
+        html += '</div><div class="wide-col">';
         // Record Book (insights.js): every all-time record and who holds it
         html += secH('📖 Record Book', 'ties go to whoever did it first') + '<div id="legacy-records"><div class="loading">Loading…</div></div>';
+        html += '</div></div>';
 
         // All-time race: running units across every season
         var race = allTimeRaceChart(byYear.slice().reverse().reduce(function(a, ys) { return a.concat(ys.bets); }, []));
@@ -402,11 +406,12 @@
 
         // Previous seasons: one Season Wrapped card each, newest first
         if (legacyYears.length > 0) {
-          html += secH('🎁 Season Wrapped');
+          html += secH('🎁 Season Wrapped') + '<div class="wr-list">';
           legacyYears.forEach(function(ys) {
             html += wrappedCard(ys.year, ys.bets);
             if (parseInt(ys.year, 10) >= 2026) html += '<div class="crowd-wr-slot" data-year="' + ys.year + '"></div>'; // the Crowd started in 2026
           });
+          html += '</div>';
         }
         html += '<div style="font-size:12px;color:#9CA3AF;text-align:center;margin:-8px 0 20px">' + CURRENT_YEAR + ' Wrapped unlocks when the season is over.</div>';
 

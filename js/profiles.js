@@ -169,6 +169,7 @@
 
         var h = profileSwitchHtml(who);
 
+        h += '<div class="wide-cols"><div class="wide-col">'; // big screens: profile left, trophies right
         h += '<div class="pf-hero" style="--pc:' + pc + ';background:' + grad + '">' +
           '<img src="pics/' + who + '.jpeg" alt="' + who + '">' +
           '<div class="pf-name">' + who + '</div>' +
@@ -189,6 +190,7 @@
           tile('Jinxes', S.jinxes.length, 'Loyalty ' + S.loyalty) +
           '</div>';
         if (typeof scoutingReportHtml === 'function') h += scoutingReportHtml(who, rows);
+        h += '</div><div class="wide-col">';
 
         var A = achievementsFor(S);
         function badges(list) {
@@ -205,6 +207,7 @@
         shame.sort(function(a, b) { return (b.got ? 1 : 0) - (a.got ? 1 : 0); });
         h += '<div class="pf-h">🏆 Trophy Case <small>' + glory.filter(function(a) { return a.got; }).length + ' / ' + glory.length + ' unlocked</small></div>' + badges(glory);
         h += '<div class="pf-h">🤡 Hall of Shame <small>' + shame.filter(function(a) { return a.got; }).length + ' / ' + shame.length + '</small></div>' + badges(shame);
+        h += '</div></div>';
 
         el.innerHTML = h;
         bindProfileSwitch(el);

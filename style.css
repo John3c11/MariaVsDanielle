@@ -1277,3 +1277,32 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
   font: 700 12px/1 Inter, sans-serif; color: #F3F4F6; background: rgba(24,26,32,0.95); border: 1px solid rgba(255,255,255,0.14);
   border-radius: 999px; padding: 9px 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); pointer-events: none; transition: opacity 0.15s; white-space: nowrap; }
 @media (max-width: 700px) { html, body { overscroll-behavior-y: contain; } } /* the browser's own pull-to-refresh would fight ours */
+
+/* ── v95: wide desktop layout (1440px and up only — phones and laptops are untouched) ── */
+@media (min-width: 1440px) {
+  .page-layout { max-width: calc(min(1100px, 100vw - 540px) + 48px); }
+  .wrap { max-width: min(1100px, calc(100vw - 540px)); }
+  /* Stats: scoreboard left, Live Picks + First TDs right */
+  #tab-stats.active { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); column-gap: 28px; align-items: start; grid-auto-flow: row dense; }
+  #tab-stats > .announce-banner, #tab-stats > .visit-banner { grid-column: 1 / -1; }
+  #tab-stats > #sb-main { grid-column: 1; grid-row: span 6; }
+  #tab-stats > .sb-live { grid-column: 2; }
+  /* Generic two-column split used by All-Time and Profiles */
+  .wide-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 28px; align-items: start; }
+  /* Season Wrapped cards two across */
+  .wr-list { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 20px; align-items: start; }
+  .wr-list > .crowd-wr-slot:empty { display: none; }
+  .wr-list:not(:has(> .wrapped ~ .wrapped)) { grid-template-columns: minmax(0, 560px); justify-content: center; } /* only one finished season so far */
+  /* Analytics: sections two-up, charts full width */
+  .an-pane { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 28px; align-items: start; }
+  .an-pane[style*="none"] { display: none; }
+  .an-pane > .an-sec:has(.ch-svg), .an-pane > .an-sec:only-child { grid-column: 1 / -1; }
+  /* a lone section stuck between two charts (or after the last chart) gets the full row instead of half */
+  .an-pane > .an-sec:has(.ch-svg) + .an-sec:not(:has(.ch-svg)):last-child,
+  .an-pane > .an-sec:has(.ch-svg) + .an-sec:not(:has(.ch-svg)):has(+ .an-sec .ch-svg) { grid-column: 1 / -1; }
+  /* Rosters: two divisions per row */
+  #rosters-content { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 24px; align-items: start; }
+  #rosters-content > :not(.division-block) { grid-column: 1 / -1; }
+  /* Tabs that read better narrow stay centered */
+  #tab-chat, #tab-submit, #tab-schedule, #tab-crowd { max-width: 720px; margin-left: auto; margin-right: auto; }
+}

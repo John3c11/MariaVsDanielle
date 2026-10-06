@@ -144,6 +144,14 @@
       btn.disabled = true; btn.textContent = 'Posting…'; msg.textContent = '';
       picksApi({ pin: pin, action: 'chat', text: text }).then(function(res) {
         btn.disabled = false; btn.textContent = 'Post';
+        if (res.error === 'Wrong PIN.' && CHAT.pin) { // a remembered PIN that John has since changed
+          CHAT.pin = ''; CHAT.name = ''; CHAT.open = true;
+          try { localStorage.removeItem('mvd-chat-pin'); localStorage.removeItem('mvd-chat-name'); } catch (e) {}
+          renderComposer();
+          var ta2 = document.getElementById('chat-text'); if (ta2) ta2.value = text; // keep what they typed
+          var m2 = document.getElementById('chat-msg'); if (m2) { m2.style.color = '#F87171'; m2.textContent = 'Your PIN changed. Type the new one and post again.'; }
+          return;
+        }
         if (res.error) { msg.style.color = '#F87171'; msg.textContent = res.error; return; }
         var hadPin = !!CHAT.pin;
         rememberChatUser(pin, res.name);

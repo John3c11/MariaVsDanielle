@@ -1,8 +1,8 @@
-// Admin screens (PIN 0328 only): Odds, Games, Friends, Injuries, Trash Talk, Season, Theme, Status + Data check.
+// Admin screens (John's admin PIN only): Odds, Games, Friends, Injuries, Trash Talk, Season, Theme, Status + Data check.
 // Loaded by picks.js (loadAdmin) only after the admin PIN is accepted, so nobody else downloads it.
 // Part of the MariaVsDanielle site. Shares the global scope with the other js/ files.
 
-    // ── Admin odds entry (PIN 0328) ─────────────────────────────────────────
+    // ── Admin odds entry (admin PIN) ─────────────────────────────────────────
     function renderOdds(res) {
       ADMIN.oddsRes = res;
       var el = document.getElementById('submit-content');
@@ -135,7 +135,9 @@
       picksApi({ pin: SUB.pin, action: 'friends' }).then(function(res) {
         ADMIN.friends = res.friends || [];
         var list = ADMIN.friends;
-        var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">Friends log in with their PIN to make their own picks. PINs are stored in the script, not the sheet. Text each friend their PIN.</div>' +
+        var h = '<div class="pf-h" style="margin-top:0">🔑 Main PINs <small>no code edits needed</small></div><div id="main-pins"><div class="loading">Loading…</div></div>' +
+          '<div class="pf-h">👥 Friends</div>' +
+          '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">Friends log in with their PIN to make their own picks. PINs are stored in the script, not the sheet. Text each friend their PIN.</div>' +
           '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">' +
             '<input class="adm-input" id="fr-name" placeholder="Name" maxlength="24" style="flex:2;min-width:140px">' +
             '<input class="adm-input" id="fr-pin" placeholder="PIN" maxlength="4" inputmode="numeric" style="width:90px;letter-spacing:0.2em;text-align:center">' +
@@ -146,6 +148,7 @@
         h += list.length ? list.map(function(f) {
           return '<div class="adm-row"><div><b style="color:' + fStyle(f.name).color + '">' + (fStyle(f.name).emoji ? fStyle(f.name).emoji + ' ' : '') + escHtml(f.name) + '</b> <span style="color:#A1A9B6;letter-spacing:0.15em;margin-left:6px">' + f.pin + '</span></div>' +
             '<div style="display:flex;gap:6px"><button class="adm-btn" data-fprof="' + escHtml(f.name) + '">Profile</button>' +
+            '<button class="adm-btn" data-fpin="' + escHtml(f.name) + '">PIN</button>' +
             '<button class="adm-btn red" data-frm="' + escHtml(f.name) + '">Remove</button></div></div>';
         }).join('') : '<div style="color:#A1A9B6;font-size:13px;padding:10px 0">No friends yet.</div>';
         body.innerHTML = h;
@@ -174,11 +177,82 @@
         body.querySelectorAll('[data-fprof]').forEach(function(b) {
           b.addEventListener('click', function() { openProfile(b.getAttribute('data-fprof')); });
         });
+        body.querySelectorAll('[data-fpin]').forEach(function(b) {
+          b.addEventListener('click', function() {
+            var n = b.getAttribute('data-fpin');
+            var pin = prompt('New 4-digit PIN for ' + n + ':', '');
+            if (pin === null) return;
+            pin = pin.trim();
+            if (!/^\d{4}$/.test(pin)) return adminMsg('PINs are 4 digits.');
+            adminMsg('Saving…', true);
+            picksApi({ pin: SUB.pin, action: 'friendpin', name: n, newpin: pin }).then(function(r) {
+              if (r.error) return adminMsg(r.error);
+              adminFriends(); setTimeout(function() { adminMsg(n + '\'s new PIN is saved. Their old one stops working now.', true); }, 600);
+            }).catch(function() { adminMsg('Couldn\'t reach the script.'); });
+          });
+        });
+        drawMainPins();
       });
+    }
+    // 🔑 Maria's, Danielle's and John's PINs (kept in the script's settings, changeable here)
+    function drawMainPins() {
+      var box = document.getElementById('main-pins');
+      if (!box) return;
+      picksApi({ pin: SUB.pin, action: 'pins' }).then(function(r) {
+        if (!r.pins) { box.innerHTML = '<div class="inj-warn" style="margin:0">Changing these needs the newest PicksAPI.gs (Deploy → Manage deployments → ✏️ → New version → Deploy).</div>'; return; }
+        var who = [['Maria', SB_M], ['Danielle', SB_D], ['ADMIN', '#E5E7EB']];
+        box.innerHTML = who.map(function(w) {
+          return '<div class="adm-row"><div><b style="color:' + w[1] + '">' + (w[0] === 'ADMIN' ? 'You (admin)' : w[0]) + '</b> <span class="mp-pin" style="color:#A1A9B6;letter-spacing:0.15em;margin-left:6px">••••</span></div>' +
+            '<div style="display:flex;gap:6px"><button class="adm-btn" data-mp-show="' + w[0] + '">Show</button><button class="adm-btn" data-mp-set="' + w[0] + '">Change</button></div></div>';
+        }).join('');
+        box.querySelectorAll('[data-mp-show]').forEach(function(b) {
+          b.addEventListener('click', function() {
+            var sp = b.closest('.adm-row').querySelector('.mp-pin');
+            var on = sp.textContent === '••••';
+            sp.textContent = on ? r.pins[b.getAttribute('data-mp-show')] : '••••'; b.textContent = on ? 'Hide' : 'Show';
+          });
+        });
+        box.querySelectorAll('[data-mp-set]').forEach(function(b) {
+          b.addEventListener('click', function() {
+            var w = b.getAttribute('data-mp-set'), label = w === 'ADMIN' ? 'your admin' : w + '\'s';
+            var pin = prompt('New 4-digit PIN for ' + label + ' login:', '');
+            if (pin === null) return;
+            pin = pin.trim();
+            if (!/^\d{4}$/.test(pin)) return adminMsg('PINs are 4 digits.');
+            if (!confirm('Change ' + label + ' PIN? The old one stops working right away' + (w === 'ADMIN' ? '' : ', and ' + w + ' will need the new one to log in (phones that remembered the old one get logged out)') + '.')) return;
+            picksApi({ pin: SUB.pin, action: 'setpin', who: w, newpin: pin }).then(function(x) {
+              if (x.error) return adminMsg(x.error);
+              if (w === 'ADMIN') SUB.pin = pin; // stay logged in
+              r.pins = x.pins;
+              adminMsg((w === 'ADMIN' ? 'Your' : w + '\'s') + ' new PIN is saved.', true);
+            }).catch(function() { adminMsg('Couldn\'t reach the script.'); });
+          });
+        });
+      }).catch(function() { box.innerHTML = ''; });
     }
 
 
-    // ── Admin tools (0328): Odds · Friends · Injuries · Trash Talk · Season · Theme · Status ───────
+    // ── 📜 Which copy of each Apps Script file the website expects ─────────────
+    // Bump these whenever a delivery includes that file. Status and the admin alert compare them
+    // with what the live script says, so a file that didn't get pasted (or deployed) shows up.
+    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-10', Features: '2026-10-10', Automation: '2026-10-10', WeeklyRecap: '2026-10-06' };
+    var OLD_SCRIPT_FILES = { Features: 'Market.gs, Museum.gs and Bracket.gs', Automation: 'FirstTD.gs, NFLPlayers.gs, Injuries.gs and Playoffs.gs' };
+    var DEPLOY_STEPS = 'Deploy → Manage deployments → ✏️ → New version → Deploy';
+    function scriptIssues(v) {
+      var out = [];
+      Object.keys(SCRIPT_VERSIONS).forEach(function(k) {
+        var live = (v || {})[k] || 'missing', want = SCRIPT_VERSIONS[k], t = null, kind = 'old';
+        if (live === 'missing') t = 'Not in Apps Script yet. Add ' + k + '.gs, then ' + DEPLOY_STEPS + '.';
+        else if (live === 'old separate files') t = 'Still the old separate files. Paste ' + k + '.gs, delete ' + OLD_SCRIPT_FILES[k] + ', then ' + DEPLOY_STEPS + '.';
+        else if (!/^\d{4}-/.test(live)) t = 'An old copy (' + live + '). Paste the newest ' + k + '.gs, then ' + DEPLOY_STEPS + '.';
+        else if (live < want) t = 'The live copy is from ' + live + ', the site expects ' + want + '. Paste the newest ' + k + '.gs and ' + DEPLOY_STEPS + ' (if you already pasted it, it only needs the deploy).';
+        else if (live > want) { kind = 'newer'; t = 'The script (' + live + ') is newer than the website expects (' + want + '). Upload the newest website files to GitHub, then hard-refresh.'; }
+        if (t) out.push({ file: k, kind: kind, text: t });
+      });
+      return out;
+    }
+
+    // ── Admin tools (admin PIN): Odds · Friends · Injuries · Trash Talk · Season · Theme · Status ───────
     var ADMIN = { oddsRes: null };
 
     function adminHeader(active) {
@@ -203,13 +277,14 @@
     function markErrSeen(list) { if (list && list.length) { try { localStorage.setItem('mvd-err-seen', list[0].at); } catch (e) {} } }
     function adminAlertHtml() {
       var a = ADMIN.alert;
-      if (!a || ADMIN.alertHidden || (!a.issues && !a.errs && !a.bracket)) return '';
+      if (!a || ADMIN.alertHidden || (!a.issues && !a.errs && !a.bracket && !(a.scripts && a.scripts.length))) return '';
       var parts = [];
+      if (a.scripts && a.scripts.length) parts.push('📜 <b>' + a.scripts.map(function(x) { return x.file + '.gs'; }).join(', ') + (a.scripts.length === 1 ? ' needs' : ' need') + ' updating</b> in Apps Script');
       if (a.bracket) parts.push('🏆 Playoff field is (almost) set: <b>open the Bracket Challenge</b> <button class="adm-btn" data-adm="bracket">Bracket</button>');
       if (a.issues) parts.push('🔍 Data check: <b>' + a.issues + ' thing' + (a.issues > 1 ? 's' : '') + ' to look at</b>' + (a.bad ? ' (' + a.bad + ' affect' + (a.bad === 1 ? 's' : '') + ' the totals)' : ''));
       if (a.errs) parts.push('📱 <b>' + a.errs + ' new error' + (a.errs > 1 ? 's' : '') + '</b> from phones');
       return '<div class="adm-alert" id="adm-alert"><span>⚠️ ' + parts.join(' · ') + '</span>' +
-        '<span style="white-space:nowrap">' + (a.issues || a.errs ? '<button class="adm-btn" data-adm="status">Open Status</button> ' : '') + '<button class="link-btn" id="adm-alert-x" aria-label="Hide">✕</button></span></div>';
+        '<span style="white-space:nowrap">' + (a.issues || a.errs || (a.scripts && a.scripts.length) ? '<button class="adm-btn" data-adm="status">Open Status</button> ' : '') + '<button class="link-btn" id="adm-alert-x" aria-label="Hide">✕</button></span></div>';
     }
     function adminLoginCheck() {
       ADMIN.alert = null; ADMIN.alertHidden = false;
@@ -217,6 +292,7 @@
       Promise.all([
         loadAllBets().catch(function() { return null; }),
         picksApi({ pin: SUB.pin, action: 'errlist' }).catch(function() { return {}; }),
+        picksApi({ pin: SUB.pin, action: 'versions' }).catch(function() { return {}; }),
       ]).then(function(res) {
         if (SUB.role !== 'admin') return;
         if (res[1].dcOk) ADMIN.dcOk = res[1].dcOk;
@@ -224,7 +300,9 @@
         var errs = (res[1].errors || []).filter(function(e) { return e.at > seen; }).length;
         // January, before Wild Card weekend: nudge to set the playoff field
         var mo = new Date().getMonth(), brOff = typeof BRACKET_ON === 'undefined' || !BRACKET_ON;
-        ADMIN.alert = { issues: c.issues, bad: c.bad, errs: errs, bracket: mo === 0 && new Date().getDate() <= 14 && brOff };
+        // An older PicksAPI doesn't know 'versions' (it answers with the odds list): treat that as old too
+        var scripts = res[2] && res[2].versions ? scriptIssues(res[2].versions).filter(function(x) { return x.kind !== 'newer'; }) : (res[2] && !res[2].error && Object.keys(res[2]).length ? [{ file: 'PicksAPI', kind: 'old' }] : []);
+        ADMIN.alert = { scripts: scripts, issues: c.issues, bad: c.bad, errs: errs, bracket: mo === 0 && new Date().getDate() <= 14 && brOff };
         var nav = document.querySelector('#submit-content .adm-nav');
         if (!nav || document.getElementById('adm-alert') || document.querySelector('.adm-nav .on[data-adm="status"]')) return;
         nav.insertAdjacentHTML('afterend', adminAlertHtml());
@@ -313,9 +391,10 @@
           h += '<div class="pf-h">🏷️ Versions</div>';
           var v = s.versions || {};
           h += row('info', 'Website', siteV + ' · ' + (navigator.serviceWorker && navigator.serviceWorker.controller ? 'offline mode on' : 'offline mode not active yet'));
-          ['PicksAPI', 'FirstTD', 'WeeklyRecap', 'NFLPlayers', 'Injuries', 'Market'].forEach(function(k) {
-            var old = !/^\d{4}-/.test(v[k] || '');
-            h += row(old ? 'warn' : 'info', k + '.gs', old ? (v[k] || 'unknown') + ': paste the latest copy into Apps Script' : 'Updated ' + v[k]);
+          var bad = scriptIssues(v);
+          Object.keys(SCRIPT_VERSIONS).forEach(function(k) {
+            var x = bad.filter(function(i) { return i.file === k; })[0];
+            h += row(x ? (x.kind === 'newer' ? 'warn' : 'bad') : 'ok', k + '.gs', x ? x.text : 'Up to date (' + v[k] + ')');
           });
           if (window.HOLIDAY_FORCED) h += row('info', 'Theme preview is on for this device', window.HOLIDAY_THEME || 'off');
         }

@@ -17,6 +17,39 @@
     var CARDS = { season: {}, sort: {}, all: {} }; // per album: chosen season / sort / show-all
     function tierOf(k) { return CARD_TIERS.filter(function(t) { return t.k === k; })[0]; }
 
+    // 📸 Roster history (Automation.gs saves both teams' Rosters columns when a game kicks off),
+    // so a card shows where a player was on the depth chart THAT week, not where he is today.
+    var RH_POS = ['WR1', 'RB1', 'WR2', 'QB', 'TE', 'WR3', 'Extra', 'Extra', 'Extra'];
+    var ROSTER_HIST = null; // year -> week -> playerKey -> { pos, team }
+    function loadRosterHistory() {
+      if (ROSTER_HIST) return Promise.resolve(ROSTER_HIST);
+      return Promise.all(SEASONS.map(function(se) {
+        var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + se.sheetId + '/values/' + encodeURIComponent("'Roster History'!A1:M4000") + '?key=' + API_KEY;
+        return fetch(url).then(function(r) { return r.ok ? r.json() : { values: [] }; }).then(function(d) { return { year: se.year, rows: (d.values || []).slice(1) }; })
+          .catch(function() { return { year: se.year, rows: [] }; });
+      })).then(function(list) {
+        ROSTER_HIST = {};
+        list.forEach(function(x) {
+          var Y = ROSTER_HIST[x.year] = {};
+          x.rows.forEach(function(r) {
+            var w = parseInt(r[0], 10);
+            if (!w) return;
+            var W = Y[w] = Y[w] || {};
+            for (var i = 0; i < RH_POS.length; i++) { var n = (r[4 + i] || '').trim(); if (n && !W[playerKey(n)]) W[playerKey(n)] = { pos: RH_POS[i], team: r[2] }; }
+          });
+        });
+        return ROSTER_HIST;
+      });
+    }
+    // Where he was the week of this hit (null if that week wasn't saved)
+    function depthThen(name, year, week) {
+      var W = ROSTER_HIST && ROSTER_HIST[year] && ROSTER_HIST[year][parseInt(week, 10)];
+      var x = W && W[playerKey(name)];
+      if (!x) return null;
+      if (TIER_BY_SLOT[x.pos]) return { slot: x.pos, tier: tierOf(TIER_BY_SLOT[x.pos]), then: true };
+      return { slot: 'Deep cut', tier: tierOf('legendary'), then: true };
+    }
+
     // Where a player sits on the Rosters tab right now
     function depthOf(name) {
       var ri = typeof ROSTER_INFO !== 'undefined' ? ROSTER_INFO[playerKey(name)] : null;
@@ -49,15 +82,18 @@
         if (x.year > latest.year || (x.year === latest.year && x.week > latest.week)) latest = { year: x.year, week: x.week };
       });
       return Object.keys(C).map(function(k) {
-        var c = C[k], d = depthOf(c.name);
-        c.slot = d.slot; c.gone = d.gone;
+        var c = C[k], last = c.hits[c.hits.length - 1];
+        var d = depthThen(c.name, last.year, last.week) || depthOf(c.name); // that week's depth chart if saved, else today's
+        c.slot = d.slot; c.gone = d.gone; c.then = d.then;
         c.tier = mode === 'odds' ? oddsTier(c.best) : d.tier;
         c.isNew = c.hits.some(function(h) { return h.year === latest.year && h.week === latest.week && h.year === CURRENT_YEAR; });
         return c;
       });
     }
 
-    function rostersReady() { return (typeof ROSTERS_READY !== 'undefined' ? ROSTERS_READY : Promise.resolve()).catch(function() {}); }
+    function rostersReady() {
+      return Promise.all([(typeof ROSTERS_READY !== 'undefined' ? ROSTERS_READY : Promise.resolve()).catch(function() {}), loadRosterHistory().catch(function() {})]);
+    }
     // Maria or Danielle's album
     function renderCardAlbum(el, who) {
       if (!el) return;
@@ -130,7 +166,7 @@
         '</div>' +
         '<div class="tcd-back">' +
           '<div class="tcd-bname">' + escHtml(c.name) + '</div>' +
-          '<div class="tcd-bsub">' + (c.gone ? 'Not on the Rosters tab anymore' : c.slot + ' for the ' + (t ? t.split(' ').pop() : 'team')) + ' · ' + c.tier.t + '</div>' +
+          '<div class="tcd-bsub">' + (c.then ? (c.slot === 'Deep cut' ? 'A deep cut' : c.slot) + ' for the ' + (t ? t.split(' ').pop() : 'team') + ' that week' : c.gone ? 'Not on the Rosters tab anymore' : c.slot + ' for the ' + (t ? t.split(' ').pop() : 'team')) + ' · ' + c.tier.t + '</div>' +
           '<div class="tcd-bsub">Hit ' + c.hits.length + '× for ' + escHtml(A.who) + (c.units ? ' · ' + fmtU(c.units) + ' total' : '') + '</div>' +
           '<div class="tcd-hits">' + back + '</div>' +
           '<div class="tcd-bsub">First pulled ' + first.year + ' ' + wkName(first.week) + '</div>' +

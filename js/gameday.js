@@ -3,12 +3,13 @@
 // Reads ESPN's public scoreboard + game summary every 20 seconds; nothing is saved anywhere.
 // Part of the MariaVsDanielle site. Shares the global scope with the other js/ files.
 
-    var GD = { home: '', away: '', id: null, timer: null, picks: [], done: false };
+    var GD = { home: '', away: '', id: null, timer: null, picks: [], done: false, test: null };
     var GD_MS = 20000;
 
-    function startGameDay(home, away) {
-      GD.home = home; GD.away = away; GD.id = null; GD.done = false;
-      GD.picks = gdPicksFromLive(home, away);
+    // test = { year, week, picks } opens a finished game instead of a live one (admin's 📺 Test Game Day)
+    function startGameDay(home, away, test) {
+      GD.home = home; GD.away = away; GD.id = null; GD.done = false; GD.test = test || null;
+      GD.picks = test ? test.picks : gdPicksFromLive(home, away);
       var root = document.getElementById('gameday');
       if (!root) {
         root = document.createElement('div');
@@ -23,7 +24,7 @@
         });
         document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && root.classList.contains('open')) closeGameDay(); });
       }
-      root.innerHTML = '<div class="gd-frame"><div class="gd-top"><span class="gd-title">📺 Game Day</span><button class="gd-x" aria-label="Close">✕</button></div><div class="gd-body"><div class="st-loading">Getting the game from ESPN…</div></div></div>';
+      root.innerHTML = '<div class="gd-frame"><div class="gd-top"><span class="gd-title">📺 Game Day' + (test ? ' <span class="gd-test">TEST · ' + escHtml(test.year + ' ' + weekName(test.week)) + '</span>' : '') + '</span><button class="gd-x" aria-label="Close">✕</button></div><div class="gd-body"><div class="st-loading">Getting the game from ESPN…</div></div></div>';
       root.classList.add('open');
       document.documentElement.classList.add('st-lock');
       gdRefresh();
@@ -59,7 +60,7 @@
       if (!root || !root.classList.contains('open')) return;
       var body = root.querySelector('.gd-body');
       try {
-        var board = await espnGet('scoreboard');
+        var board = await espnGet(GD.test ? (GD.test.week > 18 ? 'scoreboard?dates=' + GD.test.year + '&seasontype=3&week=' + (GD.test.week - 18) : 'scoreboard?dates=' + GD.test.year + '&seasontype=2&week=' + GD.test.week) : 'scoreboard');
         var hk = espnTeamKey(GD.home), ak = espnTeamKey(GD.away), ev = null;
         (board.events || []).forEach(function(e) {
           var c = e.competitions && e.competitions[0];
@@ -195,8 +196,8 @@
       if (!first || !GD.id) return;
       var seen = {};
       try { seen = JSON.parse(localStorage.getItem('mvd-gd-td') || '{}'); } catch (e) {}
-      if (seen[GD.id]) return;
-      seen[GD.id] = Date.now();
+      if (seen[GD.id] && !GD.test) return; // a test replays it every time
+      if (!GD.test) seen[GD.id] = Date.now();
       try { localStorage.setItem('mvd-gd-td', JSON.stringify(seen)); } catch (e) {}
       var who = GD.picks.filter(function(p) { return sameScorer(first, p.name); });
       var p0 = who[0];

@@ -258,6 +258,8 @@
         var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:10px">Everything the site depends on, checked right now. <button class="link-btn" id="st-again">Check again</button></div>';
         var dataSlot = '<div class="pf-h">🔍 Data check <small>every season, every row</small></div><div id="st-data"><div class="loading">Checking every row in every season…</div></div>';
         h += '<div class="pf-h">🔌 Connections</div>';
+        h += row('info', '📺 Game Day', 'Only shows up while a game they both picked is live. <button class="adm-btn" id="gd-test">Test it on the last game</button>' +
+          '<br><span style="color:#6B7280">Opens the most recent finished game they both picked, with the final box score, plays and the touchdown moment.</span>');
         h += row(sh.ok ? 'ok' : 'bad', 'Google Sheets (from this browser)', sh.ok ? 'Reachable · ' + sh.ms + ' ms' : 'Not reachable' + (sh.code ? ' (HTTP ' + sh.code + (sh.code === 429 ? ', too many requests: wait a minute' : sh.code === 403 ? ', check the API key limits' : '') + ')' : ''));
         h += row(s.error ? 'bad' : 'ok', 'Picks script (PicksAPI)', s.error ? s.error : 'Reachable · season ' + s.season + ' · ' + s.friends + ' friend' + (s.friends === 1 ? '' : 's'));
         h += row(be.ok ? 'ok' : 'warn', 'ESPN (from this browser)', be.ok ? 'Reachable · ' + be.ms + ' ms · used for Live Picks scores and kickoff times' : 'Not reachable right now. Live scores and kickoff times won\'t show; nothing else is affected.');
@@ -317,6 +319,8 @@
         if (h.indexOf('id="st-data"') < 0) h += dataSlot; // script unreachable: still check the sheets
         body.innerHTML = h;
         document.getElementById('st-again').addEventListener('click', adminStatus);
+        var gdt = document.getElementById('gd-test');
+        if (gdt) gdt.addEventListener('click', function() { gdt.disabled = true; gdt.textContent = 'Finding a game…'; adminTestGameDay().then(function() { gdt.disabled = false; gdt.textContent = 'Test it on the last game'; }); });
         body.querySelectorAll('[data-errdel]').forEach(function(b) {
           b.addEventListener('click', function() {
             b.disabled = true; b.textContent = 'Dismissing…';
@@ -339,6 +343,28 @@
           if (el) drawDataCheck(el, rows);
         }).catch(function() { var el = document.getElementById('st-data'); if (el) el.innerHTML = row('bad', 'Couldn\'t read the sheets', ''); });
       });
+    }
+
+    // 📺 Game Day test: the latest scored game where both made picks, with their picks and odds
+    function adminTestGameDay() {
+      return loadAllBets().then(function(all) {
+        var G = {}, order = [];
+        all.forEach(function(r) {
+          if (!r.firstScorer || !(r.homePick || r.awayPick) || (r.picker !== 'Maria' && r.picker !== 'Danielle')) return;
+          var k = r.year + '_' + r.week + '_' + r.game;
+          if (!G[k]) { G[k] = { year: r.year, week: r.week, home: r.homeTeam, away: r.awayTeam, by: {} }; order.push(k); }
+          G[k].by[r.picker] = r;
+        });
+        var k = order.filter(function(x) { return G[x].by.Maria && G[x].by.Danielle; }).pop();
+        if (!k) { alert('No finished game with both picks yet.'); return; }
+        var g = G[k], picks = [];
+        ['Maria', 'Danielle'].forEach(function(n) {
+          var r = g.by[n];
+          if (r.homePick) picks.push({ who: n, name: r.homePick, team: g.home, odds: r.homeOdds ? fmtOdds(r.homeOdds) : '' });
+          if (r.awayPick) picks.push({ who: n, name: r.awayPick, team: g.away, odds: r.awayOdds ? fmtOdds(r.awayOdds) : '' });
+        });
+        return loadScriptOnce('js/gameday.js').then(function() { startGameDay(g.home, g.away, { year: g.year, week: g.week, picks: picks }); });
+      }).catch(function() { alert('Couldn\'t load the games.'); });
     }
 
     // ── 🎨 Theme preview (this device only) + 📣 announcement (everyone) ─────

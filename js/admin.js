@@ -236,7 +236,7 @@
     // ── 📜 Which copy of each Apps Script file the website expects ─────────────
     // Bump these whenever a delivery includes that file. Status and the admin alert compare them
     // with what the live script says, so a file that didn't get pasted (or deployed) shows up.
-    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-13', Features: '2026-10-10', Automation: '2026-10-10', WeeklyRecap: '2026-10-06', Machine: '2026-10-15' };
+    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-16', Features: '2026-10-10', Automation: '2026-10-10', WeeklyRecap: '2026-10-06', Machine: '2026-10-16' };
     var OLD_SCRIPT_FILES = { Features: 'Market.gs, Museum.gs and Bracket.gs', Automation: 'FirstTD.gs, NFLPlayers.gs, Injuries.gs and Playoffs.gs' };
     var DEPLOY_STEPS = 'Deploy → Manage deployments → ✏️ → New version → Deploy';
     function scriptIssues(v) {
@@ -257,7 +257,7 @@
     var ADMIN = { oddsRes: null };
 
     function adminHeader(active) {
-      var tabs = [['odds', '💲 Odds'], ['games', '🏈 Games'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['season', '🆕 Season'], ['bracket', '🏆 Bracket'], ['theme', '🎨 Theme'], ['museum', '🏛️ Museum'], ['machine', '🤖 Machine'], ['eggs', '🥚 Eggs'], ['status', '🩺 Status']];
+      var tabs = [['odds', '💲 Odds'], ['games', '🏈 Games'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['season', '🆕 Season'], ['bracket', '🏆 Bracket'], ['theme', '🎨 Theme'], ['museum', '🏛️ Museum'], ['machine', '🤖 Machine'], ['mlines', '🎯 Machine Lines'], ['eggs', '🥚 Eggs'], ['status', '🩺 Status']];
       return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
         '<div style="font-size:16px;font-weight:700">Hi John</div>' +
         '<button class="link-btn" id="sub-switch">Log out</button></div>' +
@@ -1102,6 +1102,49 @@
       });
     }
 
+    // ── 🎯 Machine Lines: real FanDuel odds for the Machine's correct picks ──
+    function adminMachineLines() {
+      var body = adminScreen('mlines', '<div class="loading">Loading its correct picks…</div>');
+      picksApi({ pin: SUB.pin, action: 'mlines' }).then(function(r) { drawMachineLines(body, r); })
+        .catch(function() { body.innerHTML = '<div class="loading">Couldn\'t reach the script.</div>'; });
+    }
+    function drawMachineLines(body, r) {
+      if (!document.body.contains(body)) return; // left this tab before it loaded
+      if (r.error) { body.innerHTML = '<div class="inj-warn">' + escHtml(r.error) + '</div>'; return; }
+      if (!r.lines) { body.innerHTML = '<div class="inj-warn">⚠️ The picks script that\'s live is older. Deploy → Manage deployments → ✏️ → New version → Deploy, then reload.</div>'; return; }
+      var need = r.lines.filter(function(x) { return !x.real && !x.mine; }).length;
+      var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">The Machine\'s correct picks in ' + escHtml(r.season) + '. A miss costs 1 unit at any price, so only these need real odds. ' +
+        'Type FanDuel\'s price to replace its estimate. Clear the box to go back to the estimate.</div>';
+      if (!r.lines.length) {
+        body.innerHTML = h + '<div class="mc-note" style="text-align:center;margin:18px 0">No correct picks yet this season.</div>';
+        return;
+      }
+      h += '<div class="mll-sum">' + (need ? '⚠️ <b>' + need + '</b> still on an estimate' : '✅ Every correct pick has real odds') + '</div><div class="submit-msg" id="adm-msg" style="text-align:left"></div>';
+      r.lines.forEach(function(x, i) {
+        var src = x.real ? '<span class="mll-src">Real · same pick as Maria/Danielle</span>' : x.mine ? '<span class="mll-src ok">Real · you entered it</span>' : '<span class="mll-src est">Estimate +' + x.est + '</span>';
+        h += '<div class="mll-row"><div class="mll-l"><div class="mll-p">✅ ' + escHtml(x.player) + ' <small>' + escHtml(x.team) + '</small></div>' +
+          '<div class="mll-g">' + wkName(parseInt(x.week, 10)) + ' · ' + escHtml(x.away) + ' @ ' + escHtml(x.home) + (x.retro ? ' · after the fact' : '') + '</div>' + src + '</div>' +
+          (x.real ? '<b class="mll-odds">+' + x.real + '</b>' :
+            '<div class="mll-in"><input class="adm-input" data-mll="' + i + '" inputmode="decimal" autocomplete="off" placeholder="+' + x.est + ' est" value="' + (x.mine ? '+' + x.mine : '') + '" style="width:96px;text-align:center">' +
+            '<button class="adm-btn green" data-mll-save="' + i + '">Save</button></div>') + '</div>';
+      });
+      body.innerHTML = h;
+      body.querySelectorAll('[data-mll-save]').forEach(function(b) {
+        b.addEventListener('click', function() {
+          var i = +b.getAttribute('data-mll-save'), x = r.lines[i], inp = body.querySelector('[data-mll="' + i + '"]');
+          var val = inp.value.trim();
+          if (val && !(parseFloat(val.replace('+', '')) > 0)) { adminMsg('Odds should look like +475.'); return; }
+          b.disabled = true; b.textContent = 'Saving…';
+          picksApi({ pin: SUB.pin, action: 'mlineset', game: x.game, side: x.side, player: x.player, odds: val }).then(function(res) {
+            if (res.error) { b.disabled = false; b.textContent = 'Save'; adminMsg(res.error); return; }
+            if (typeof MACHINE !== 'undefined' && MACHINE) { MACHINE.data = null; MACHINE.loading = null; } // the Machine tab reloads with the new price
+            drawMachineLines(body, res);
+            adminMsg(val ? 'Saved. ' + x.player + ' now pays at the real price.' : 'Cleared. Back to the estimate.', true);
+          }).catch(function() { b.disabled = false; b.textContent = 'Save'; adminMsg('Couldn\'t reach the script.'); });
+        });
+      });
+    }
+
     function adminMsg(text, ok) {
       var m = document.getElementById('adm-msg');
       if (m) { m.style.color = ok ? '#6EE7B7' : '#F87171'; m.textContent = text; }
@@ -1121,6 +1164,7 @@
       if (section === 'bracket') adminBracket();
       if (section === 'museum') adminMuseum();
       if (section === 'machine') adminMachine();
+      if (section === 'mlines') adminMachineLines();
       if (section === 'eggs') adminEggs();
       if (section === 'status') adminStatus();
     }

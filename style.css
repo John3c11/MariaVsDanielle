@@ -1908,3 +1908,17 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 .mc-pc-r:first-child { border-top: 0; }
 .mc-pc-r small { color: #8B93A1; font-size: 10.5px; }
 .mc-pc-h { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #8B93A1; background: rgba(255,255,255,0.04); }
+
+/* 🎯 Machine Lines (admin) */
+.mll-sum { font-size: 13px; color: #E5E7EB; margin: 0 0 8px; }
+.mll-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; margin: 6px 0; border-radius: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+.mll-l { min-width: 0; flex: 1; }
+.mll-p { font-weight: 700; font-size: 14px; color: #F3F4F6; }
+.mll-p small { font-weight: 500; color: #A1A9B6; margin-left: 4px; }
+.mll-g { font-size: 12px; color: #A1A9B6; margin: 2px 0 4px; }
+.mll-src { font-size: 11px; font-weight: 700; color: #9CA3AF; }
+.mll-src.ok { color: #6EE7B7; }
+.mll-src.est { color: #FDE68A; }
+.mll-odds { font-size: 15px; color: #6EE7B7; white-space: nowrap; }
+.mll-in { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+@media (max-width: 420px) { .mll-row { flex-wrap: wrap; } .mll-in { width: 100%; } .mll-in input { flex: 1; } }

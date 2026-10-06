@@ -72,7 +72,7 @@
       bets.forEach(function(b) { if (b.year === year && !b.firstScorer && b.game) upcoming[b.game] = 1; });
       var seen = {}; games.forEach(function(g) { seen[g.game] = 1; });
       // Sealed = picks it has already made for games that haven't kicked off (the script only sends the count)
-      return { pub: pub, year: year, games: games, gradeMap: gradeMap, sealed: pub.sealed != null ? pub.sealed : 0, made: pub.made != null ? pub.made : games.length, trained: !!pub.trainedAt };
+      return { pub: pub, year: year, games: games, gradeMap: gradeMap, anyEst: games.some(function(g) { return g.estHit; }), sealed: pub.sealed != null ? pub.sealed : 0, made: pub.made != null ? pub.made : games.length, trained: !!pub.trainedAt };
     }
 
     // Standings for the three of them over the same settled games
@@ -153,10 +153,10 @@
         '<div class="sb-grid mch-grid">' +
           mcBlock('Correct', T, function(t) { return t.h; }, function(t) { return t.h + '/' + t.n; }) +
           mcBlock('Accuracy', T, function(t) { return t.n ? t.h / t.n : 0; }, function(t) { return t.n ? Math.round(t.h / t.n * 100) + '%' : '—'; }) +
-          mcBlock('Units', T, function(t) { return t.u; }, function(t, w) { return shortU(t.u).replace('u', '') + (w === 'Machine' ? '<sup>est</sup>' : ''); }) +
-          mcBlock('Dollars', T, function(t) { return t.d; }, function(t, w) { return shortD(t.d) + (w === 'Machine' ? '<sup>est</sup>' : ''); }) +
+          mcBlock('Units', T, function(t) { return t.u; }, function(t, w) { return shortU(t.u).replace('u', '') + (w === 'Machine' && D.anyEst ? '<sup>est</sup>' : ''); }) +
+          mcBlock('Dollars', T, function(t) { return t.d; }, function(t, w) { return shortD(t.d) + (w === 'Machine' && D.anyEst ? '<sup>est</sup>' : ''); }) +
         '</div>' +
-        '<div class="mch-foot">' + T.Machine.n + ' games, the same ones for all three. "est": when the Machine picks a player neither of them had, its odds are an estimate of FanDuel\'s.</div></div>';
+        '<div class="mch-foot">' + T.Machine.n + ' games, the same ones for all three.' + (D.anyEst ? ' "est": at least one of its hits is paid at an estimate of FanDuel\'s odds until the real price is entered.' : ' Every hit is paid at real FanDuel odds.') + '</div></div>';
       // Units race
       if (race.length >= 2 && typeof chLineChart === 'function') {
         var tips = [''].concat(race.map(function(x) { return wkName(x.g.week) + ' · Maria ' + chU(x.Maria) + ' · Danielle ' + chU(x.Danielle) + ' · Machine ' + chU(x.Machine); }));
@@ -231,7 +231,7 @@
           '<div class="pf-hero" style="--pc:' + MC_COLOR + ';background:linear-gradient(140deg,#0F0F12 0%,#1E1240 55%,#5B21B6 100%)"><div class="mch-avatar">🤖</div>' +
           '<div class="pf-name" style="color:' + MC_COLOR + '">The Machine</div><div class="pf-sub">' + D.year + ' · ' + S.n + ' games played</div>' +
           '<div class="pf-big"><div><b>' + S.h + '/' + S.n + '</b><span>Record · ' + (S.n ? Math.round(S.h / S.n * 100) : 0) + '%</span></div>' +
-          '<div><b style="color:' + (S.u >= 0 ? '#34D399' : '#F87171') + '">' + shortU(S.u) + '</b><span>Units (est)</span></div>' +
+          '<div><b style="color:' + (S.u >= 0 ? '#34D399' : '#F87171') + '">' + shortU(S.u) + '</b><span>Units' + (D.anyEst ? ' (est)' : '') + '</span></div>' +
           '<div><b>' + D.sealed + '</b><span>Sealed picks</span></div></div></div>' +
           '<div class="pf-tiles">' +
             '<div class="pf-tile"><div class="l">Best hit</div><div class="v">' + (best ? escHtml(best.hit.name) + ' +' + Math.round(best.hit.price) : '—') + '</div><div class="s">' + (best ? wkName(best.week) + (best.hit.real ? '' : ' · est price') : '') + '</div></div>' +
@@ -258,7 +258,7 @@
       loadMachine().then(function(D) {
         var S = mcStandings(D, false);
         if (!S.Machine.n) { el.style.display = 'none'; return; }
-        el.innerHTML = '🤖 <b style="color:' + MC_COLOR + '">The Machine</b> ' + fmtU(S.Machine.u) + ' <span class="mc-est">est</span> · ' + S.Machine.h + ' of ' + S.Machine.n + ' hit · ' +
+        el.innerHTML = '🤖 <b style="color:' + MC_COLOR + '">The Machine</b> ' + fmtU(S.Machine.u) + (D.anyEst ? ' <span class="mc-est">est</span>' : '') + ' · ' + S.Machine.h + ' of ' + S.Machine.n + ' hit · ' +
           '<button class="link-btn" onclick="switchTab(\'machine\')">vs Maria ' + fmtU(S.Maria.u) + ' & Danielle ' + fmtU(S.Danielle.u) + ' →</button>';
         el.style.display = '';
       }).catch(function() {});

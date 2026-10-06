@@ -127,3 +127,6 @@
     // Phones: hide the bottom tab bar while typing, so it doesn't ride up on top of the keyboard
     document.addEventListener('focusin', function(e) { if (e.target.matches && e.target.matches('input, textarea')) document.body.classList.add('kb-open'); });
     document.addEventListener('focusout', function() { document.body.classList.remove('kb-open'); });
+
+    // 🥚 Hidden extras, loaded once the page has settled
+    setTimeout(function() { loadScriptOnce('js/eggs.js').catch(function() {}); }, 2500);

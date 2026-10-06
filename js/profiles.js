@@ -207,10 +207,13 @@
         shame.sort(function(a, b) { return (b.got ? 1 : 0) - (a.got ? 1 : 0); });
         h += '<div class="pf-h">🏆 Trophy Case <small>' + glory.filter(function(a) { return a.got; }).length + ' / ' + glory.length + ' unlocked</small></div>' + badges(glory);
         h += '<div class="pf-h">🤡 Hall of Shame <small>' + shame.filter(function(a) { return a.got; }).length + ' / ' + shame.length + '</small></div>' + badges(shame);
+        h += '<div class="tcd-slot" data-who="' + who + '"></div>'; // 🃏 Card Collection (js/cards.js)
         h += '</div></div>';
 
         el.innerHTML = h;
         bindProfileSwitch(el);
+        var slot = el.querySelector('.tcd-slot');
+        if (slot) loadScriptOnce('js/cards.js').then(function() { renderCardAlbum(slot, who); }).catch(function() {});
       }
     }
 

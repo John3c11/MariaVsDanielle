@@ -396,7 +396,7 @@
           h += '<div style="text-align:center;padding:26px 0;color:#A1A9B6;font-size:14px">Nothing to change right now. Every pick you\'ve made is locked in.</div>';
         } else {
           h += res.games.map(function(g, i) {
-            return '<div class="adm-row"><div><div style="font-size:11px;font-weight:700;color:#A1A9B6;letter-spacing:0.08em">WEEK ' + g.week + ' · ' + escHtml(g.slot).toUpperCase() + '</div>' +
+            return '<div class="adm-row"><div><div style="font-size:11px;font-weight:700;color:#A1A9B6;letter-spacing:0.08em">' + weekName(g.week).toUpperCase() + ' · ' + escHtml(g.slot).toUpperCase() + '</div>' +
               '<div style="margin-top:4px">' + coloredText(g.homePick, g.home) + ' / ' + coloredText(g.awayPick, g.away) + '</div></div>' +
               '<button class="adm-btn" data-chg="' + i + '">Change</button></div>';
           }).join('');
@@ -448,7 +448,7 @@
         h += waiting.length ? waiting.map(function(r) {
           var o = byGame[r.week + '_' + r.game];
           var otherIn = o && o.homePick;
-          return '<div class="adm-row"><div><div style="font-size:11px;font-weight:700;color:#A1A9B6">WEEK ' + r.week + ' · ' + escHtml(r.slot).toUpperCase() + '</div>' +
+          return '<div class="adm-row"><div><div style="font-size:11px;font-weight:700;color:#A1A9B6">' + weekName(r.week).toUpperCase() + ' · ' + escHtml(r.slot).toUpperCase() + '</div>' +
             '<div style="margin-top:3px">' + picksOf(r) + '</div><div style="font-size:11px;color:#A1A9B6;margin-top:2px">' + oddsOf(r) + '</div></div>' +
             '<span class="sch-chip" style="' + (otherIn ? 'color:#6EE7B7;background:rgba(52,211,153,0.14)">🔒 Locked' : 'color:#FCD34D;background:rgba(251,191,36,0.14)">✏️ Can change') + '</span></div>';
         }).join('') : '<div style="color:#A1A9B6;font-size:13px;padding:8px 0">Nothing pending.</div>';
@@ -456,7 +456,7 @@
         h += '<div style="font-size:11px;font-weight:800;letter-spacing:0.12em;color:#A1A9B6;margin:18px 0 4px">RECENT RESULTS</div>';
         h += done.length ? done.slice(-6).reverse().map(function(r) {
           var win = r.correct === 'Yes', u = r.units, no = r.notOffered;
-          return '<div class="adm-row"><div><div style="font-size:11px;font-weight:700;color:#A1A9B6">WEEK ' + r.week + ' · ' + escHtml(r.slot).toUpperCase() + '</div>' +
+          return '<div class="adm-row"><div><div style="font-size:11px;font-weight:700;color:#A1A9B6">' + weekName(r.week).toUpperCase() + ' · ' + escHtml(r.slot).toUpperCase() + '</div>' +
             '<div style="margin-top:3px">' + picksOf(r) + '</div><div style="font-size:11px;color:#A1A9B6;margin-top:2px">First TD: ' + escHtml(r.scorer) + '</div></div>' +
             '<div style="text-align:right"><div style="font-weight:800;color:' + (no ? '#A1A9B6' : win ? '#34D399' : '#F87171') + '">' + (no ? 'NOT OFFERED' : win ? 'WIN' : 'LOSS') + '</div>' +
             '<div style="font-size:12px;color:' + (u > 0 ? '#34D399' : u < 0 ? '#F87171' : '#A1A9B6') + '">' + (u > 0 ? '+' : '') + u + 'u</div></div></div>';

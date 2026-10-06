@@ -286,6 +286,7 @@
 
 
 
+        renderOffseason(rows);
         renderFirstTDs(rows);
         renderHistory(rows);
         renderVisitBanner(rows);
@@ -453,6 +454,71 @@
           else el.textContent = '⏳ ' + new Date(ev.date).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' });
         });
       }).catch(function() {});
+    }
+
+    // ── 🏖️ Offseason mode: champion, countdown to Week 1, and the season's highlights ──
+    // Week 1 = the Thursday after Labor Day (first Monday of September), 8:20 PM Eastern
+    function week1Kickoff(year) {
+      var y = parseInt(year, 10), d = new Date(Date.UTC(y, 8, 1));
+      var mon = 1 + ((8 - d.getUTCDay()) % 7);            // first Monday of September
+      return new Date(Date.UTC(y, 8, mon + 3 + 1, 0, 20));  // Thursday 8:20 PM ET = Friday 00:20 UTC
+    }
+    function offseasonState(rows, now) {
+      var md = rows.filter(function(b) { return (b.picker === 'Maria' || b.picker === 'Danielle') && b.home; });
+      var scored = md.filter(function(b) { return b.scorer; });
+      var maxWeek = scored.reduce(function(a, b) { return Math.max(a, b.weekN); }, 0);
+      var y = parseInt(CURRENT_YEAR, 10);
+      if (md.length && scored.length === md.length && (maxWeek >= 22 || now >= Date.UTC(y + 1, 1, 15))) {
+        var u = { Maria: 0, Danielle: 0 };
+        scored.forEach(function(b) { u[b.picker] += b.units; });
+        return { mode: 'over', year: CURRENT_YEAR, champ: u.Maria > u.Danielle ? 'Maria' : u.Danielle > u.Maria ? 'Danielle' : null, margin: Math.abs(u.Maria - u.Danielle), kickoff: week1Kickoff(y + 1), next: String(y + 1) };
+      }
+      var k1 = week1Kickoff(y);
+      if (!scored.length && now < k1.getTime() + 86400000) return { mode: 'pre', kickoff: k1, next: CURRENT_YEAR };
+      return null;
+    }
+    var OFF = { timer: null };
+    function renderOffseason(rows) {
+      var el = document.getElementById('offseason');
+      if (!el) return;
+      clearInterval(OFF.timer);
+      var st = offseasonState(rows, Date.now());
+      if (!st) { el.style.display = 'none'; el.innerHTML = ''; return; }
+      function draw(s) {
+        var champ = s.champ;
+        var h = '<div class="os-card' + (champ ? ' os-' + champ.toLowerCase() : '') + '">' +
+          '<div class="os-kick">' + (s.mode === 'over' ? '🏖️ Offseason' : '🏈 Almost time') + '</div>' +
+          '<div class="os-grid">' +
+          (champ ? '<div class="os-champ"><img src="pics/' + champ + '.jpeg" alt="' + champ + '" style="--pc:' + personColor(champ) + '"><div><div class="os-crown">👑 ' + s.year + ' Champion</div>' +
+            '<div class="os-name" style="color:' + personColor(champ) + '">' + champ + '</div><div class="os-sub">won by ' + s.margin.toFixed(1) + ' units</div></div></div>' : '') +
+          '<div class="os-count"><div class="os-sub">' + s.next + ' Week 1 kicks off in</div><div class="os-timer" id="os-timer"></div>' +
+          '<div class="os-sub">' + s.kickoff.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' (about, the NFL sets the exact time)</div></div></div>' +
+          '<div class="os-btns">' + (s.year ? '<button class="os-btn" onclick="openStory(\'' + s.year + '\')">▶ The ' + s.year + ' story</button>' : '') +
+          '<button class="os-btn" onclick="switchTab(\'legacy\')">📖 Record Book</button>' +
+          (champ ? '<button class="os-btn" onclick="openProfile(\'' + champ + '\')">🃏 ' + champ + '\'s cards</button>' : '') + '</div></div>';
+        el.innerHTML = h;
+        el.style.display = '';
+        function tick() {
+          var t = document.getElementById('os-timer');
+          if (!t) return;
+          var ms = s.kickoff.getTime() - Date.now();
+          if (ms <= 0) { t.textContent = 'Any minute now 🏈'; return; }
+          var d = Math.floor(ms / 86400000), hr = Math.floor(ms % 86400000 / 3600000), mi = Math.floor(ms % 3600000 / 60000);
+          t.innerHTML = '<b>' + d + '</b><small>days</small><b>' + hr + '</b><small>hrs</small><b>' + mi + '</b><small>min</small>';
+        }
+        tick();
+        OFF.timer = setInterval(tick, 30000);
+      }
+      if (st.mode === 'over') { draw(st); return; }
+      // Preseason: last season's champion comes from the all-seasons data
+      var prev = SEASONS[1] && SEASONS[1].year;
+      if (!prev) { draw(st); return; }
+      loadAllBets().then(function(all) {
+        var u = { Maria: 0, Danielle: 0 }, any = false;
+        all.forEach(function(r) { if (r.year === prev && u[r.picker] !== undefined && (r.correct === 'Yes' || r.correct === 'No')) { u[r.picker] += r.netUnits; any = true; } });
+        if (any) { st.year = prev; st.champ = u.Maria > u.Danielle ? 'Maria' : u.Danielle > u.Maria ? 'Danielle' : null; st.margin = Math.abs(u.Maria - u.Danielle); }
+        draw(st);
+      }).catch(function() { draw(st); });
     }
 
     // ── 📅 This Week in History: the same week number in every past season ──
@@ -817,6 +883,7 @@
       try { board = await espnGet('scoreboard'); } catch (e) { return; }
       var events = board.events || [];
       var nextIn = 0; // ms until the next refresh (0 = none needed)
+      var liveNow = []; // games they both picked that are on right now (for the banner at the top of Stats)
 
       for (var i = 0; i < strips.length; i++) {
         var strip = strips[i];
@@ -898,10 +965,24 @@
         if (state === 'in' && strip.closest('.live-game') && strip.closest('.live-game').querySelector('.lp-pick')) {
           var q = function(s) { return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;'); };
           gdBtn = '<button class="gd-open" onclick="openGameDay(\'' + q(strip.getAttribute('data-home')) + '\', \'' + q(strip.getAttribute('data-away')) + '\')">📺 Watch on Game Day</button>';
+          liveNow.push({ onclick: 'openGameDay(\'' + q(strip.getAttribute('data-home')) + '\', \'' + q(strip.getAttribute('data-away')) + '\')',
+            text: H.team.abbreviation + ' ' + (H.score || 0) + '–' + (A.score || 0) + ' ' + A.team.abbreviation, clock: ev.status.type.shortDetail || '' });
         }
         strip.innerHTML = '<div class="ls-row"><div class="ls-score">' + scoreHtml + '</div><div class="ls-status">' + statusHtml + '</div></div>' + tdHtml + gdBtn;
       }
+      drawGameDayAlert(liveNow);
       if (nextIn) LIVE.timer = setTimeout(updateLive, nextIn);
+    }
+    // 🔴 Banner at the top of Stats while one of their games is live
+    function drawGameDayAlert(list) {
+      var el = document.getElementById('gd-alert');
+      if (!el) return;
+      if (!list.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
+      el.innerHTML = list.map(function(g) {
+        return '<button class="gd-alert-row" onclick="' + g.onclick + '"><span class="ls-dot"></span><b>LIVE</b><span class="gd-alert-s">' + escHtml(g.text) + '</span>' +
+          '<span class="gd-alert-c">' + escHtml(g.clock) + '</span><span class="gd-alert-go">📺 Watch on Game Day →</span></button>';
+      }).join('');
+      el.style.display = '';
     }
 
     // ── Pull to refresh (Stats, phones) ─────────────────────────────────────

@@ -42,7 +42,7 @@
           var k = playerKey(name);
           if (!k) return null;
           return db[k] || (db[k] = { name: name.trim(), picks: { Maria: 0, Danielle: 0 }, hits: { Maria: 0, Danielle: 0 },
-            units: { Maria: 0, Danielle: 0 }, tds: {}, games: {}, gameOrder: [], team: '', lastOdds: null });
+            units: { Maria: 0, Danielle: 0 }, tds: {}, games: {}, gameOrder: [], team: '', lastOdds: null, oddsHist: [], oddsSeen: {} });
         }
         function G(p, r) {
           var gk = r.year + '_' + r.week + '_' + r.game;
@@ -58,7 +58,18 @@
             p.picks[r.picker]++;
             if (r.scorer && playerKey(r.scorer) === playerKey(x[0])) { p.hits[r.picker]++; p.units[r.picker] += r.netUnits; }
             p.team = x[1];
-            if (!isNaN(parseFloat(x[2]))) p.lastOdds = { odds: x[2], year: r.year, week: r.week };
+            if (!isNaN(parseFloat(x[2]))) {
+              p.lastOdds = { odds: x[2], year: r.year, week: r.week };
+              // Every price he was picked at, one per game (both picking him the same game = one price)
+              var ok = r.year + '_' + r.week + '_' + r.game, on = parseFloat(String(x[2]).replace('+', ''));
+              if (on > 0 && !p.oddsSeen[ok]) {
+                p.oddsSeen[ok] = 1;
+                p.oddsHist.push({ odds: on >= 100 ? on : on * 100, year: r.year, week: r.week, who: [r.picker], hit: !!(r.scorer && playerKey(r.scorer) === playerKey(x[0])) });
+              } else if (on > 0) {
+                var last = p.oddsHist[p.oddsHist.length - 1];
+                if (last && last.who.indexOf(r.picker) < 0) last.who.push(r.picker);
+              }
+            }
             var g = G(p, r);
             g.team = x[1];
             if (g.by.indexOf(r.picker) < 0) g.by.push(r.picker);
@@ -263,11 +274,35 @@
     }
 
     // ctx (optional): { year, week } of the game the name was tapped in
+    // 📉 Every price he's been picked at, oldest to newest (gold dot = he scored first that game)
+    function oddsHistoryHtml(H) {
+      if (H.length < 2) return '';
+      var W = 300, Hh = 92, L = 6, R = 6, T = 14, B = 18;
+      var vals = H.map(function(h) { return h.odds; }), lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+      if (hi - lo < 200) { hi += 100; lo = Math.max(0, lo - 100); }
+      function x(i) { return L + (H.length > 1 ? i / (H.length - 1) : 0.5) * (W - L - R); }
+      function y(v) { return T + (hi - v) / (hi - lo) * (Hh - T - B); }  // longer odds higher up
+      var d = H.map(function(h, i) { return (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(h.odds).toFixed(1); }).join(' ');
+      var svg = '<svg class="oh-svg" viewBox="0 0 ' + W + ' ' + Hh + '" preserveAspectRatio="none">' +
+        '<path d="' + d + '" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1.6" stroke-linejoin="round"/>' +
+        H.map(function(h, i) {
+          var c = h.hit ? '#FCD34D' : h.who.length > 1 ? '#E5E7EB' : personColor(h.who[0]);
+          return '<circle cx="' + x(i).toFixed(1) + '" cy="' + y(h.odds).toFixed(1) + '" r="' + (h.hit ? 4.6 : 3.4) + '" fill="' + c + '"><title>' + h.year + ' ' + wkName(h.week) + ' · +' + Math.round(h.odds) + ' · ' + h.who.join(' & ') + (h.hit ? ' · scored first' : '') + '</title></circle>';
+        }).join('') +
+        '<text x="' + L + '" y="' + (Hh - 3) + '" font-size="9" fill="rgba(255,255,255,0.5)">' + H[0].year + ' ' + wkName(H[0].week) + '</text>' +
+        '<text x="' + (W - R) + '" y="' + (Hh - 3) + '" font-size="9" fill="rgba(255,255,255,0.5)" text-anchor="end">' + H[H.length - 1].year + ' ' + wkName(H[H.length - 1].week) + '</text></svg>';
+      var first = H[0].odds, last = H[H.length - 1].odds;
+      var verdict = last <= first * 0.8 ? 'The books caught on 📉' : last >= first * 1.25 ? 'Getting longer 📈' : 'About the same price';
+      return '<div class="oh"><div class="pc-label">Odds history</div>' +
+        '<div class="oh-line"><b>+' + Math.round(first) + '</b> → <b>+' + Math.round(last) + '</b> · ' + verdict + '</div>' + svg +
+        '<div class="oh-key"><span style="color:' + SB_M + '">● Maria</span> <span style="color:' + SB_D + '">● Danielle</span> <span>● both</span> <span style="color:#FCD34D">● scored first</span> · higher = longer odds</div></div>';
+    }
+
     function openPlayerCard(name, ctx) {
       Promise.all([loadPlayerDB(), loadNFL()]).then(function(res) {
         var db = res[0];
         var k = playerKey(name);
-        var p = db[k] || { name: name, picks: { Maria: 0, Danielle: 0 }, hits: { Maria: 0, Danielle: 0 }, units: { Maria: 0, Danielle: 0 }, tds: {}, games: {}, gameOrder: [], team: '', lastOdds: null, stints: [] };
+        var p = db[k] || { name: name, picks: { Maria: 0, Danielle: 0 }, hits: { Maria: 0, Danielle: 0 }, units: { Maria: 0, Danielle: 0 }, tds: {}, games: {}, gameOrder: [], team: '', lastOdds: null, stints: [], oddsHist: [] };
         var ri = ROSTER_INFO[k] || {};
         var onRoster = isOffered(name);
         var nf = nflOf(name);
@@ -352,7 +387,7 @@
               '<div class="pc-tile"><div class="pc-label">When Picked</div><div class="pc-big">' + (pickedGames.length ? Math.round(hitGames / pickedGames.length * 100) + '%' : '—') + '</div>' +
                 '<div class="pc-small">' + (pickedGames.length ? 'scored first in ' + hitGames + ' of ' + pickedGames.length : 'no picked games yet') + '</div></div>' +
             '</div>' +
-            person('Maria') + person('Danielle') +
+            person('Maria') + person('Danielle') + oddsHistoryHtml(p.oddsHist || []) +
             (games ? '<div class="pc-games' + (allGames.length > 6 ? ' pc-folded' : '') + '"><div class="pc-label">Recent games</div>' + games + (allGames.length > 6 ? '<button class="link-btn pc-all" onclick="this.parentNode.classList.remove(\'pc-folded\');this.remove()">Show all ' + allGames.length + ' games</button>' : '') + '</div>' : '') +
           '</div></div></div>';
 

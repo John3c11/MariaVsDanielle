@@ -52,14 +52,14 @@
         var awayColored = b.awayPick ? coloredText(b.awayPick, b.awayTeam) : '';
         var players = [homeColored, awayColored].filter(Boolean).join('<span style="color:#9CA3AF"> / </span>') || '—';
         var gameDisplay = b.homeTeam && b.awayTeam ? coloredGame(b.homeTeam, b.awayTeam) : (b.game || '—');
-        if (b.firstScorer && b.homeTeam) gameDisplay += ' <button class="rp-mini" title="Replay this game" aria-label="Replay this game" onclick="replayGame(\'' + b.year + '\',' + parseInt(b.week, 10) + ',\'' + escHtml(String(b.game)) + '\')">⏪</button>';
+        if (b.firstScorer && b.homeTeam) gameDisplay += ' <button class="rp-mini" title="Replay this game" aria-label="Replay this game" onclick="replayGame(\'' + b.year + '\',' + parseInt(b.week, 10) + ',\'' + escHtml(String(b.gameNo)) + '\')">⏪</button>';
         return '<div class="bh-row" data-ctx-year="' + b.year + '" data-ctx-week="' + b.week + '" style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 110px 50px;gap:8px;padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:12px;align-items:start">' +
           '<span style="font-size:11px;font-weight:600;color:' + (b.year === CURRENT_YEAR ? '#60A5FA' : '#34D399') + '">' + b.year + '</span>' +
           '<span style="color:#9CA3AF;text-align:center">' + (PLAYOFF_SHORT[parseInt(b.week, 10)] || b.week) + '</span>' +
           '<span style="font-weight:500">' + gameDisplay + '</span>' +
           '<span style="font-weight:500;color:' + pickerColor + '">' + b.picker + '</span>' +
           '<span>' + players + '</span>' +
-          '<span style="color:#A1A9B6">' + b.odds + '</span>' +
+          '<span style="color:#A1A9B6">' + b.odds + (window.MACHINE_GRADES && MACHINE_GRADES[b.year + '|' + b.gameNo + '|' + b.picker] ? ' <span class="mc-grade g-' + MACHINE_GRADES[b.year + '|' + b.gameNo + '|' + b.picker].g.replace('+', 'p') + '" title="Pick grade from the Machine: the price vs the players\' real chances">' + MACHINE_GRADES[b.year + '|' + b.gameNo + '|' + b.picker].g + '</span>' : '') + '</span>' +
           '<span class="bh-ftd" title="' + (noOffer ? 'Not offered, bet did not count' : '') + '" style="font-size:11px;font-weight:600;padding:3px 7px;border-radius:5px;text-align:center;line-height:1.3;background:' + resultBg + ';color:' + resultColor + '">' + resultText + '</span>' +
           '<span style="text-align:right;font-weight:500;color:' + unitColor + '">' + unitStr + '</span>' +
           '</div>';
@@ -78,6 +78,10 @@
         results.forEach(function(bets) { ALL_BH_BETS = ALL_BH_BETS.concat(bets); });
         // Add original index for tiebreaking within same year+week
         ALL_BH_BETS.forEach(function(b, i) { b.idx = i; });
+        // 🤖 Pick grades (games that have kicked off) appear next to the odds once the Machine answers
+        if (PICKS_URL) loadScriptOnce('js/machine.js').then(function() { return loadMachine(); }).then(function() {
+          if (document.getElementById('bh-history-table') && BH_LAST.length) renderBHHistory(BH_LAST);
+        }).catch(function() {});
         // oldest first: SEASONS array is newest first, so we reverse to get oldest first
 
 
@@ -136,7 +140,7 @@
           if (b.awayPick && !isNaN(parseFloat(b.awayOdds))) oddsArr.push(formatOdds(b.awayOdds));
           return {
             homeOddsN: parseFloat(b.homeOdds) || 0, awayOddsN: parseFloat(b.awayOdds) || 0,
-            year: season.year, week: b.week, game: game,
+            year: season.year, week: b.week, game: game, gameNo: b.game,
             homeTeam: b.home, awayTeam: b.away,
             picker: b.picker, homePick: b.homePick, awayPick: b.awayPick,
             firstScorer: b.scorer, correct: b.correct, wasOffered: b.wasOffered,

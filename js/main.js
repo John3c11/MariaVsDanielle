@@ -60,7 +60,7 @@
       });
       document.getElementById('tab-' + name).classList.add('active');
       // "More" shows which hidden tab you're on
-      var extra = { crowd: 'Crowd', schedule: 'Schedule', legacy: 'All-Time', museum: 'Museum', bracket: 'Bracket', bethistory: 'Bet Log', rosters: 'Rosters' }[name];
+      var extra = { crowd: 'Crowd', schedule: 'Schedule', legacy: 'All-Time', museum: 'Museum', bracket: 'Bracket', machine: 'Machine', bethistory: 'Bet Log', rosters: 'Rosters' }[name];
       if (name === 'analytics' && window.matchMedia('(max-width: 700px)').matches) extra = 'Analytics';
       var more = document.getElementById('tab-more');
       if (more) {
@@ -80,6 +80,9 @@
       if (name === 'rosters') setupPlayerSearch();
       if (name === 'museum') openMuseum();
       if (name === 'bracket') openBracket();
+      if (name === 'machine') loadScriptOnce('js/machine.js').then(function() { loadMachineTab(); }).catch(function() {
+        var el = document.getElementById('machine-content'); if (el) el.innerHTML = '<div class="loading">Couldn\'t load the Machine. Check your connection.</div>';
+      });
     }
     // ⏪ Replay one past game (or a whole week) on the Game Day screen (js/replay.js)
     function replayGame(year, week, game) {
@@ -166,3 +169,5 @@
 
     // 🥚 Hidden extras, loaded once the page has settled
     setTimeout(function() { loadScriptOnce('js/eggs.js').catch(function() {}); }, 2500);
+    // 🤖 The Machine's line under the scoreboard (only games that have kicked off)
+    setTimeout(function() { if (PICKS_URL) loadScriptOnce('js/machine.js').then(function() { renderMachineLine(); }).catch(function() {}); }, 3000);

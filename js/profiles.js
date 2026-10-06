@@ -11,13 +11,16 @@
       if (PROFILE_WHO === 'Maria' || PROFILE_WHO === 'Danielle') {
         renderProfile(PROFILE_WHO);
         if (!CROWD.data) getCrowd().then(function() { if (PROFILE_WHO === 'Maria' || PROFILE_WHO === 'Danielle') { var sw = document.querySelector('#profiles-content .pf-switch'); if (sw) { sw.outerHTML = profileSwitchHtml(PROFILE_WHO); bindProfileSwitch(document.getElementById('profiles-content')); } } }).catch(function() {});
+      } else if (PROFILE_WHO === 'Machine') {
+        var el = document.getElementById('profiles-content');
+        loadScriptOnce('js/machine.js').then(function() { renderMachineProfile(el); }).catch(function() { el.innerHTML = '<div class="loading">Couldn\'t load the Machine.</div>'; });
       } else renderFriendProfile(PROFILE_WHO);
     }
     // Maria / Danielle buttons, plus "you" for a logged-in friend, plus every friend for admin
     function profileSwitchHtml(active) {
       var h = '<div class="pf-switch">' + ['Maria', 'Danielle'].map(function(n) {
         return '<button data-pf="' + n + '" class="' + (n === active ? 'on-' + n.toLowerCase() : '') + '">' + n + '</button>';
-      }).join('');
+      }).join('') + '<button data-pf="Machine" class="' + (active === 'Machine' ? 'on-machine' : '') + '">🤖</button>';
       if (SUB.role === 'friend') h += '<button data-pf="' + escHtml(SUB.name) + '" class="' + (SUB.name === active ? 'on-friend' : '') + '"' + (SUB.name === active ? ' style="border-color:' + fStyle(SUB.name).color + ';background:' + hexA(fStyle(SUB.name).color, 0.25) + '"' : '') + '>' + (fStyle(SUB.name).emoji ? fStyle(SUB.name).emoji + ' ' : '') + escHtml(SUB.name) + '</button>';
       var others = ((CROWD.data && CROWD.data.friends) || []).filter(function(n) { return !(SUB.role === 'friend' && n === SUB.name); });
       if (others.length) {

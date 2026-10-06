@@ -1,4 +1,4 @@
-<!-- v111 -->
+<!-- v112 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -45,7 +45,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=111">
+  <link rel="stylesheet" href="style.css?v=112">
 </head>
 <body>
   <div class="page-layout">
@@ -77,6 +77,7 @@
           <button class="tab-btn" onclick="switchTab('legacy')">📜 All-Time</button>
           <button class="tab-btn" onclick="switchTab('museum')">🏛️ Museum</button>
           <button class="tab-btn" id="menu-bracket" style="display:none" onclick="switchTab('bracket')">🏆 Bracket</button>
+          <button class="tab-btn" onclick="switchTab('machine')">🤖 Machine</button>
           <button class="tab-btn" onclick="switchTab('bethistory')">🧾 Bet Log</button>
           <button class="tab-btn" onclick="switchTab('rosters')">📋 Rosters</button>
         </div>
@@ -108,6 +109,7 @@
 
     <div id="leader-banner" class="leader-banner" style="display:none"></div>
     <div id="pace-line" class="pace-line" style="display:none"></div>
+    <div id="machine-line" class="machine-line" style="display:none"></div>
 
     <div id="stats-section"><div class="loading">Loading stats...</div></div>
     <button class="story-btn" id="story-btn" onclick="openStory()">▶ Season Story</button>
@@ -174,6 +176,10 @@
     </div>
 
 
+    <div id="tab-machine" class="tab-panel">
+      <div id="machine-content"></div>
+    </div>
+
     <div id="tab-bracket" class="tab-panel">
       <div id="bracket-content"></div>
     </div>
@@ -197,18 +203,18 @@
 
   <script src="config.js"></script>
   <!-- Site code, split by tab. Bump ?v= on every file when any file changes. -->
-  <script src="js/core.js?v=111"></script>
-  <script src="js/stats.js?v=111"></script>
-  <script src="js/players.js?v=111"></script>
-  <script src="js/picks.js?v=111"></script>
-  <script src="js/schedule.js?v=111"></script>
-  <script src="js/profiles.js?v=111"></script>
-  <script src="js/chat.js?v=111"></script>
-  <script src="js/crowd.js?v=111"></script>
-  <script src="js/history.js?v=111"></script>
-  <script src="js/charts.js?v=111"></script>
-  <script src="js/insights.js?v=111"></script>
-  <script src="js/main.js?v=111"></script>
+  <script src="js/core.js?v=112"></script>
+  <script src="js/stats.js?v=112"></script>
+  <script src="js/players.js?v=112"></script>
+  <script src="js/picks.js?v=112"></script>
+  <script src="js/schedule.js?v=112"></script>
+  <script src="js/profiles.js?v=112"></script>
+  <script src="js/chat.js?v=112"></script>
+  <script src="js/crowd.js?v=112"></script>
+  <script src="js/history.js?v=112"></script>
+  <script src="js/charts.js?v=112"></script>
+  <script src="js/insights.js?v=112"></script>
+  <script src="js/main.js?v=112"></script>
   
   </div><!-- end wrap -->
 

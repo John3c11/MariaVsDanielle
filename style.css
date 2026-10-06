@@ -1290,6 +1290,11 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
 /* v97: admin heads-up after login, new phone errors */
 .adm-alert { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin: 4px 0 16px; padding: 10px 12px; border-radius: 12px; font-size: 13px; line-height: 1.45; background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.35); color: #FDE68A; }
 .adm-alert b { color: #FEF3C7; }
+.dc-act { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.dc-act span { font-size: 11px; color: #9CA3AF; }
+.dc-fine { margin-top: 10px; }
+.dc-fine summary { list-style: none; cursor: pointer; font-size: 12px; }
+.dc-fine-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 12px; color: #D1D5DB; }
 .err-new { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #0F0F12; background: #FCD34D; border-radius: 6px; padding: 1px 6px; margin-left: 4px; vertical-align: 1px; }
 
 /* ── v95: wide desktop layout (1440px and up only — phones and laptops are untouched) ── */

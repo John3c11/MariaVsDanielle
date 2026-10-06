@@ -181,14 +181,14 @@
       ADMIN.alert = null; ADMIN.alertHidden = false;
       var seen = errSeen();
       Promise.all([
-        loadAllBets().then(function(rows) {
-          var d = document.createElement('div'); d.innerHTML = dataCheckHtml(rows);
-          return { issues: d.querySelectorAll('.adm-issue').length, bad: d.querySelectorAll('.adm-issue.bad').length };
-        }).catch(function() { return { issues: 0, bad: 0 }; }),
-        picksApi({ pin: SUB.pin, action: 'errlist' }).then(function(r) { return (r.errors || []).filter(function(e) { return e.at > seen; }).length; }).catch(function() { return 0; }),
+        loadAllBets().catch(function() { return null; }),
+        picksApi({ pin: SUB.pin, action: 'errlist' }).catch(function() { return {}; }),
       ]).then(function(res) {
         if (SUB.role !== 'admin') return;
-        ADMIN.alert = { issues: res[0].issues, bad: res[0].bad, errs: res[1] };
+        if (res[1].dcOk) ADMIN.dcOk = res[1].dcOk;
+        var c = res[0] ? dcCounts(res[0]) : { issues: 0, bad: 0 };
+        var errs = (res[1].errors || []).filter(function(e) { return e.at > seen; }).length;
+        ADMIN.alert = { issues: c.issues, bad: c.bad, errs: errs };
         var nav = document.querySelector('#submit-content .adm-nav');
         if (!nav || document.getElementById('adm-alert') || document.querySelector('.adm-nav .on[data-adm="status"]')) return;
         nav.insertAdjacentHTML('afterend', adminAlertHtml());
@@ -259,13 +259,14 @@
           h += row('info', 'Games where the scorer wasn\'t offered' + (no.length ? ': ' + no.length : ''), no.length ? no.join(' · ') + '<br><span style="color:#6B7280">These count 0 units. If one is wrong, clear that game\'s column O cells and FirstTD re-checks it on its next run.</span>' : 'None');
           h += dataSlot;
           var errs = s.errors || [], seen = errSeen();
-          h += '<div class="pf-h">📱 Errors from phones <small>last ' + 25 + ' kept</small></div>';
+          h += '<div class="pf-h">📱 Errors from phones <small>last 15 kept</small></div>';
           if (!errs.length) h += row('ok', 'No errors reported', 'If the site breaks on someone\'s phone, it shows up here.');
           else {
             h += errs.slice(0, 10).map(function(e) {
               var isNew = e.at > seen;
-              return row(isNew ? 'warn' : 'info', escHtml(e.msg) + (e.n > 1 ? ' <span style="color:#9CA3AF">×' + e.n + '</span>' : '') + (isNew ? ' <span class="err-new">new</span>' : ''),
-                escHtml(e.who) + ' · ' + escHtml(e.device) + ' · ' + escHtml(e.tab || '?') + ' tab' + (e.where ? ' · ' + escHtml(e.where) : '') + (e.v ? ' · ' + escHtml(e.v) : '') + '<br>' + ago(e.at));
+              return '<div class="err-item">' + row(isNew ? 'warn' : 'info', escHtml(e.msg) + (e.n > 1 ? ' <span style="color:#9CA3AF">×' + e.n + '</span>' : '') + (isNew ? ' <span class="err-new">new</span>' : ''),
+                escHtml(e.who) + ' · ' + escHtml(e.device) + ' · ' + escHtml(e.tab || '?') + ' tab' + (e.where ? ' · ' + escHtml(e.where) : '') + (e.v ? ' · ' + escHtml(e.v) : '') + '<br>' + ago(e.at) +
+                ' · <button class="link-btn" data-errdel="' + escHtml(e.at) + '" data-errmsg="' + escHtml(e.msg) + '">Dismiss</button>') + '</div>';
             }).join('') + (errs.length > 10 ? '<div style="font-size:11px;color:#6B7280;margin:4px 0">+ ' + (errs.length - 10) + ' older</div>' : '') +
               '<div style="margin:8px 0 4px"><button class="adm-btn" id="err-clear">Clear the list</button> <span style="font-size:11px;color:#6B7280">Fixed? Clear it so new ones stand out.</span></div>';
           }
@@ -283,6 +284,15 @@
         if (h.indexOf('id="st-data"') < 0) h += dataSlot; // script unreachable: still check the sheets
         body.innerHTML = h;
         document.getElementById('st-again').addEventListener('click', adminStatus);
+        body.querySelectorAll('[data-errdel]').forEach(function(b) {
+          b.addEventListener('click', function() {
+            b.disabled = true; b.textContent = 'Dismissing…';
+            picksApi({ pin: SUB.pin, action: 'errdel', at: b.getAttribute('data-errdel'), msg: b.getAttribute('data-errmsg') }).then(function(r) {
+              if (r.error || !r.errors) { b.disabled = false; b.textContent = 'Didn\'t work (old script?)'; return; }
+              var item = b.closest('.err-item'); if (item) item.remove();
+            }).catch(function() { b.disabled = false; b.textContent = 'Dismiss'; });
+          });
+        });
         var ec = document.getElementById('err-clear');
         if (ec) ec.addEventListener('click', function() {
           if (!confirm('Clear the list of phone errors?')) return;
@@ -290,9 +300,10 @@
           picksApi({ pin: SUB.pin, action: 'errclear' }).then(adminStatus).catch(function() { ec.disabled = false; });
         });
         clearSheetCache(); ALL_BETS_PROMISE = null;
+        if (s && s.dcOk) ADMIN.dcOk = s.dcOk;
         loadAllBets().then(function(rows) {
           var el = document.getElementById('st-data');
-          if (el) el.innerHTML = dataCheckHtml(rows);
+          if (el) drawDataCheck(el, rows);
         }).catch(function() { var el = document.getElementById('st-data'); if (el) el.innerHTML = row('bad', 'Couldn\'t read the sheets', ''); });
       });
     }
@@ -725,7 +736,8 @@
     function dataCheckHtml(rows) {
         var issues = [];
         function add(level, title, r, text, fix) {
-          issues.push({ level: level, title: title, where: r ? r.year + ' sheet · row ' + r.row + ' · Wk ' + r.week + ' · ' + r.picker : '', text: text, fix: fix });
+          var where = r ? r.year + ' sheet · row ' + r.row + ' · Wk ' + r.week + ' · ' + r.picker : '';
+          issues.push({ level: level, title: title, where: where, text: text, fix: fix, key: dcKey(title + '|' + where + '|' + text) });
         }
         var names = {}; // spelling -> { n, first: row }
         rows.forEach(function(r) {
@@ -831,21 +843,60 @@
           }
         }
 
+        // Items John marked "it's fine" stay hidden while their text is the same
+        var okKeys = {}; (ADMIN.dcOk || []).forEach(function(x) { okKeys[x.k] = 1; });
+        var fine = issues.filter(function(x) { return okKeys[x.key]; });
+        issues = issues.filter(function(x) { return !okKeys[x.key]; });
         var bad = issues.filter(function(x) { return x.level === 'bad'; }).length;
         var h = '';
+        var fineHtml = fine.length ? '<details class="chk-more dc-fine"><summary class="link-btn">✓ ' + fine.length + ' marked as fine</summary>' + fine.map(function(x) {
+          return '<div class="dc-fine-row"><div><b>' + x.title + '</b> <span style="color:#9CA3AF">' + escHtml(x.where) + '</span><div>' + escHtml(x.text) + '</div></div>' +
+            '<button class="adm-btn" data-dcundo="' + x.key + '">Undo</button></div>';
+        }).join('') + '</details>' : '';
         if (!issues.length) {
-          h += '<div class="st-row"><span class="st-ic">✅</span><div><div class="st-l">Every season checks out</div><div class="st-d">No spelling mismatches, wrong sides, odd-looking odds or mismatched game rows.</div></div></div>';
+          h += '<div class="st-row"><span class="st-ic">✅</span><div><div class="st-l">Every season checks out</div><div class="st-d">No spelling mismatches, wrong sides, odd-looking odds or mismatched game rows' + (fine.length ? ', apart from what you marked as fine' : '') + '.</div></div></div>';
         } else {
           h += '<div style="font-size:13px;font-weight:700;margin-bottom:12px">' + issues.length + ' thing' + (issues.length > 1 ? 's' : '') + ' to look at' + (bad ? ' · ' + bad + ' affect the totals' : '') + '</div>';
           issues.sort(function(a, b) { return (a.level === 'bad' ? 0 : 1) - (b.level === 'bad' ? 0 : 1); });
           var card = function(x) {
             return '<div class="adm-issue ' + (x.level === 'bad' ? 'bad' : '') + '"><div class="t" style="color:' + (x.level === 'bad' ? '#FCA5A5' : '#FCD34D') + '">' + x.title + '</div>' +
               (x.where ? '<div style="font-size:11px;color:#A1A9B6;margin-bottom:3px">' + x.where + '</div>' : '') +
-              '<div>' + escHtml(x.text) + '</div><div class="fix">→ ' + escHtml(x.fix) + '</div></div>';
+              '<div>' + escHtml(x.text) + '</div><div class="fix">→ ' + escHtml(x.fix) + '</div>' +
+              '<div class="dc-act"><button class="adm-btn green" data-dcok="' + x.key + '" data-dclabel="' + escHtml((x.title + ': ' + x.text).slice(0, 90)) + '">✓ It\'s fine</button>' +
+              '<span>Hides it until something in that row changes.</span></div></div>';
           };
           // First 5 up front; the rest behind a button so Versions doesn't get buried
           h += issues.slice(0, 5).map(card).join('');
           if (issues.length > 5) h += '<details class="chk-more"><summary class="adm-btn">Show the other ' + (issues.length - 5) + '</summary>' + issues.slice(5).map(card).join('') + '</details>';
         }
-        return h;
+        return h + fineHtml;
+    }
+    // Short fingerprint of an item's exact text (djb2), so "it's fine" sticks to that exact item
+    function dcKey(str) {
+      var h = 5381;
+      for (var i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) >>> 0;
+      return 'k' + h.toString(36) + str.length.toString(36);
+    }
+    function dcCounts(rows) {
+      var d = document.createElement('div'); d.innerHTML = dataCheckHtml(rows);
+      return { issues: d.querySelectorAll('.adm-issue').length, bad: d.querySelectorAll('.adm-issue.bad').length };
+    }
+    // Draw the Data check into el, with working "It's fine" / Undo buttons
+    function drawDataCheck(el, rows) {
+      el.innerHTML = dataCheckHtml(rows);
+      var openFine = false;
+      el.querySelectorAll('[data-dcok], [data-dcundo]').forEach(function(b) {
+        b.addEventListener('click', function() {
+          var ok = b.hasAttribute('data-dcok');
+          b.disabled = true; b.textContent = ok ? 'Saving…' : 'Undoing…';
+          openFine = !ok;
+          picksApi({ pin: SUB.pin, action: ok ? 'dcok' : 'dcundo', key: b.getAttribute(ok ? 'data-dcok' : 'data-dcundo'), label: b.getAttribute('data-dclabel') || '' }).then(function(r) {
+            if (r.error || !r.dcOk) { b.disabled = false; b.textContent = r.error || 'Didn\'t save (old script?)'; return; }
+            ADMIN.dcOk = r.dcOk;
+            if (ADMIN.alert) { var c = dcCounts(rows); ADMIN.alert.issues = c.issues; ADMIN.alert.bad = c.bad; }
+            drawDataCheck(el, rows);
+            var f = el.querySelector('.dc-fine'); if (f && openFine) f.open = true;
+          }).catch(function() { b.disabled = false; b.textContent = 'Couldn\'t reach the script'; });
+        });
+      });
     }

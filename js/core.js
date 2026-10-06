@@ -3,6 +3,52 @@
 
     const API_KEY = CONFIG.API_KEY;
 
+    // ── 📱 Error reports: if the site breaks on someone's phone, John sees it on 🩺 Status ──
+    // Only errors from this site's own files, at most 3 per visit, never the same one twice.
+    (function() {
+      var url = CONFIG.PICKS_URL, sent = {}, count = 0;
+      if (!url) return;
+      function device() {
+        var ua = navigator.userAgent || '';
+        var os = /iPhone/.test(ua) ? 'iPhone' : /iPad/.test(ua) ? 'iPad' : /Android/.test(ua) ? 'Android' : /Mac/.test(ua) ? 'Mac' : /Windows/.test(ua) ? 'Windows' : 'Other';
+        var br = /CriOS|Chrome/.test(ua) && !/Edg/.test(ua) ? 'Chrome' : /Edg/.test(ua) ? 'Edge' : /FxiOS|Firefox/.test(ua) ? 'Firefox' : /Safari/.test(ua) ? 'Safari' : '';
+        var app = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone ? ' (home screen app)' : '';
+        return os + (br ? ' ' + br : '') + app + ' · ' + window.innerWidth + 'px';
+      }
+      function report(msg, file, line, col) {
+        msg = String(msg || '').slice(0, 200);
+        if (!msg || count >= 3) return;
+        if (/^Script error\.?$|ResizeObserver loop|Load failed|Failed to fetch|NetworkError|AbortError|The operation was aborted/i.test(msg)) return; // other sites / bad signal, not bugs
+        var where = '';
+        if (file) {
+          var u; try { u = new URL(file, location.href); } catch (e) { return; }
+          if (u.origin !== location.origin) return; // a browser extension or another site
+          where = u.pathname.split('/').pop() + (line ? ':' + line + (col ? ':' + col : '') : '');
+        }
+        var key = msg + '|' + where;
+        if (sent[key]) return;
+        sent[key] = 1; count++;
+        var active = document.querySelector('.tab-panel.active');
+        var who = (typeof SUB !== 'undefined' && SUB.role === 'admin') ? 'John' : (typeof SUB !== 'undefined' && SUB.name) || '';
+        if (!who) { try { who = localStorage.getItem('mvd-me') || ''; } catch (e) {} }
+        var v = (document.firstChild && document.firstChild.nodeType === 8) ? document.firstChild.nodeValue.trim() : '';
+        var data = JSON.stringify({ msg: msg, where: where, tab: active ? active.id.replace('tab-', '') : '', who: who || 'visitor', device: device(), v: v });
+        try { fetch(url + '?action=logerr&data=' + encodeURIComponent(data), { mode: 'no-cors', keepalive: true }).catch(function() {}); } catch (e) {}
+      }
+      window.addEventListener('error', function(e) {
+        if (e.target && e.target !== window) return; // a picture or file that didn't load, not a code error
+        report(e.message, e.filename, e.lineno, e.colno);
+      });
+      window.addEventListener('unhandledrejection', function(e) {
+        var r = e.reason, file = '', line = 0;
+        var m = r && r.stack && /(https?:\/\/[^\s)]+?):(\d+):\d+/.exec(r.stack);
+        if (m) { file = m[1]; line = m[2]; }
+        if (!m) return; // no stack = usually a network hiccup, not our bug
+        report((r && r.message) || String(r), file, line);
+      });
+      window.reportSiteError = report; // for testing from the console
+    })();
+
     // ── Google Sheets request sharing ───────────────────────────────────────
     // Google allows about 60 reads a minute. Many tabs read the same sheet, so identical
     // requests made within 30 seconds share one answer, and a "too many requests" reply

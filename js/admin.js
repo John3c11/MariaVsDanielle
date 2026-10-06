@@ -236,7 +236,7 @@
     // ── 📜 Which copy of each Apps Script file the website expects ─────────────
     // Bump these whenever a delivery includes that file. Status and the admin alert compare them
     // with what the live script says, so a file that didn't get pasted (or deployed) shows up.
-    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-13', Features: '2026-10-10', Automation: '2026-10-10', WeeklyRecap: '2026-10-06', Machine: '2026-10-13' };
+    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-13', Features: '2026-10-10', Automation: '2026-10-10', WeeklyRecap: '2026-10-06', Machine: '2026-10-15' };
     var OLD_SCRIPT_FILES = { Features: 'Market.gs, Museum.gs and Bracket.gs', Automation: 'FirstTD.gs, NFLPlayers.gs, Injuries.gs and Playoffs.gs' };
     var DEPLOY_STEPS = 'Deploy → Manage deployments → ✏️ → New version → Deploy';
     function scriptIssues(v) {
@@ -581,7 +581,7 @@
       var L = r.library, ll = L.last || {}, R = r.report;
       function pc(x, d) { return (x * 100).toFixed(d == null ? 0 : d) + '%'; }
       function ago(iso) { if (!iso) return 'never'; var m = Math.round((Date.now() - new Date(iso).getTime()) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' hr ago' : Math.round(m / 1440) + ' days ago'; }
-      var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">Only you can see this. Maria, Danielle and friends see nothing from the Machine until step 3, and even then only after kickoff.</div>';
+      var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">Only you can see this report. Everyone else sees the 🤖 Machine tab, where its picks only show up after kickoff.</div>';
       h += '<div class="st-row"><span class="st-ic">' + (!L.on ? '❌' : ll.caught ? '✅' : '⏳') + '</span><div style="flex:1"><div class="st-l">Game library: ' + (ll.total || 0) + ' games</div><div class="st-d">' +
         (!L.on ? 'Not running. In Apps Script, run setupGameLibrary.' : ll.caught ? 'Every NFL game since 2023, up to date. Checks hourly for new ones.' : 'Still filling in (about ' + L.estimate + ' games total), up to ' + escHtml(ll.cursor || '…') + '.') +
         '</div></div></div>';
@@ -627,7 +627,21 @@
         var P = R.price || {};
         h += '<div class="pf-h">💲 Estimated FanDuel prices <small>for picks without real odds</small></div><div class="mc-note" style="margin-bottom:6px">' +
           (P.n >= 20 ? 'Learned from <b>' + P.n + '</b> real FanDuel prices you typed into the sheets. Typical miss: <b>±' + Math.round(P.err * 100) + '%</b> of the real price.' : 'Not enough real prices matched yet (' + (P.n || 0) + '), so it uses the fair price with a 20% cut for now.') + '</div>' +
-          '<div class="mc-prices"><span>5% chance → <b>+' + P.p05 + '</b></span><span>10% → <b>+' + P.p10 + '</b></span><span>20% → <b>+' + P.p20 + '</b></span></div>';
+          '<div class="mc-prices"><span>5% chance → <b>+' + P.p05 + '</b></span><span>10% → <b>+' + P.p10 + '</b></span><span>20% → <b>+' + P.p20 + '</b></span>' +
+            (P.margin != null ? '<span>FanDuel\'s cut: <b>' + Math.round(P.margin * 100) + '%</b></span>' : '') + '</div>';
+        // 🔍 Price check: real prices you typed vs its estimates
+        if (P.ranges && P.ranges.length) {
+          h += '<div class="pf-h">🔍 Price check <small>its estimate for every pick Maria and Danielle made</small></div>' +
+            '<div class="mc-pc"><div class="mc-pc-r mc-pc-h"><span>Real price</span><span>Picks</span><span>Typical real</span><span>Its estimate</span></div>' +
+            P.ranges.filter(function(r) { return r.n; }).map(function(r) {
+              var off = r.est && r.real ? Math.round((r.est - r.real) / r.real * 100) : 0;
+              return '<div class="mc-pc-r"><span>' + r.label + '</span><span>' + r.n + '</span><span>+' + r.real + '</span><span>+' + r.est + ' <small style="color:' + (Math.abs(off) <= 20 ? '#6EE7B7' : '#FCA5A5') + '">' + (off > 0 ? '+' : '') + off + '%</small></span></div>';
+            }).join('') + '</div>';
+          if (P.check && P.check.length) h += '<details class="an-more" style="margin-top:8px"><summary>Biggest misses (' + P.check.length + ')</summary>' +
+            '<div class="mc-pc">' + P.check.map(function(c) {
+              return '<div class="mc-pc-r"><span>' + escHtml(c.n) + ' <small>' + c.y + ' ' + wkName(c.w) + '</small></span><span>' + c.p + '%</span><span>+' + c.real + '</span><span>+' + c.est + '</span></div>';
+            }).join('') + '</div><div class="mc-note">Its chance, the real price, and its estimate. If the misses are mostly stars it rates too low (a low chance with a short real price), the chance is off, not the pricing.</div></details>';
+        }
       }
       body.innerHTML = h;
       var mp = document.getElementById('mc-picks');

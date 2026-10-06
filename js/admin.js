@@ -235,7 +235,7 @@
     // ── 📜 Which copy of each Apps Script file the website expects ─────────────
     // Bump these whenever a delivery includes that file. Status and the admin alert compare them
     // with what the live script says, so a file that didn't get pasted (or deployed) shows up.
-    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-10', Features: '2026-10-10', Automation: '2026-10-10', WeeklyRecap: '2026-10-06' };
+    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-11', Features: '2026-10-10', Automation: '2026-10-10', WeeklyRecap: '2026-10-06', Machine: '2026-10-11' };
     var OLD_SCRIPT_FILES = { Features: 'Market.gs, Museum.gs and Bracket.gs', Automation: 'FirstTD.gs, NFLPlayers.gs, Injuries.gs and Playoffs.gs' };
     var DEPLOY_STEPS = 'Deploy → Manage deployments → ✏️ → New version → Deploy';
     function scriptIssues(v) {
@@ -351,6 +351,17 @@
           h += row(trig.indexOf('fillFirstTDs') >= 0 ? 'ok' : 'bad', 'First TD auto-fill', (trig.indexOf('fillFirstTDs') >= 0 ? 'On (every 30 min)' : 'OFF: run setupFirstTDAutoFill in Apps Script') +
             '<br>Last ran: ' + ago(s.ftdLast && s.ftdLast.at) + (s.ftdLast && s.ftdLast.log && s.ftdLast.log.length ? '<div class="st-log">' + s.ftdLast.log.map(escHtml).join('<br>') + '</div>' : '') +
             'Last wrote something: ' + ago(s.ftdLastWrite && s.ftdLastWrite.at) + (s.ftdLastWrite ? '<div class="st-log">' + s.ftdLastWrite.log.map(escHtml).join('<br>') + '</div>' : ''));
+          // 🤖 The Machine's game library (Machine.gs)
+          var lb = s.library;
+          if (lb) {
+            var ll = lb.last || {};
+            var pct = ll.total && lb.estimate ? Math.min(100, Math.round(ll.total / lb.estimate * 100)) : 0;
+            h += row(!lb.on ? 'bad' : ll.err ? 'warn' : 'ok', '🤖 Game library (every NFL game since 2023)',
+              (!lb.on ? 'OFF: run setupGameLibrary in Apps Script' : ll.caught ? 'Up to date · checks every hour for newly finished games' : 'Building · every 10 minutes') +
+              '<br>' + (ll.total || 0) + ' games saved' + (ll.caught ? '' : ' of about ' + lb.estimate + ' (' + pct + '%)') + (ll.cursor ? ' · up to ' + escHtml(ll.cursor) : '') +
+              '<br>Last ran: ' + ago(ll.at) + (ll.added ? ' · added ' + ll.added : '') + (ll.err ? '<div class="st-log">' + escHtml(ll.err) + '</div>' : '') +
+              (!ll.caught && lb.on ? '<div class="lib-bar"><i style="width:' + pct + '%"></i></div>' : ''));
+          }
           var nl = s.nflLast;
           h += row(trig.indexOf('updateNFLPlayers') >= 0 && nl && !nl.kept ? 'ok' : nl ? 'warn' : 'bad', 'NFL Players list (daily, from ESPN)',
             (trig.indexOf('updateNFLPlayers') >= 0 ? 'On (every 2 hours)' : 'OFF: run setupNFLPlayersDaily in Apps Script') +

@@ -235,7 +235,7 @@
     // ── 📜 Which copy of each Apps Script file the website expects ─────────────
     // Bump these whenever a delivery includes that file. Status and the admin alert compare them
     // with what the live script says, so a file that didn't get pasted (or deployed) shows up.
-    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-11', Features: '2026-10-10', Automation: '2026-10-10', WeeklyRecap: '2026-10-06', Machine: '2026-10-11' };
+    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-12', Features: '2026-10-10', Automation: '2026-10-10', WeeklyRecap: '2026-10-06', Machine: '2026-10-12' };
     var OLD_SCRIPT_FILES = { Features: 'Market.gs, Museum.gs and Bracket.gs', Automation: 'FirstTD.gs, NFLPlayers.gs, Injuries.gs and Playoffs.gs' };
     var DEPLOY_STEPS = 'Deploy → Manage deployments → ✏️ → New version → Deploy';
     function scriptIssues(v) {
@@ -256,7 +256,7 @@
     var ADMIN = { oddsRes: null };
 
     function adminHeader(active) {
-      var tabs = [['odds', '💲 Odds'], ['games', '🏈 Games'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['season', '🆕 Season'], ['bracket', '🏆 Bracket'], ['theme', '🎨 Theme'], ['museum', '🏛️ Museum'], ['eggs', '🥚 Eggs'], ['status', '🩺 Status']];
+      var tabs = [['odds', '💲 Odds'], ['games', '🏈 Games'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['season', '🆕 Season'], ['bracket', '🏆 Bracket'], ['theme', '🎨 Theme'], ['museum', '🏛️ Museum'], ['machine', '🤖 Machine'], ['eggs', '🥚 Eggs'], ['status', '🩺 Status']];
       return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
         '<div style="font-size:16px;font-weight:700">Hi John</div>' +
         '<button class="link-btn" id="sub-switch">Log out</button></div>' +
@@ -561,6 +561,75 @@
       });
       body.querySelectorAll('[data-bra-unfix]').forEach(function(b) {
         b.addEventListener('click', function() { call({ action: 'brfix', id: b.getAttribute('data-bra-unfix'), ftd: '' }, 'Back to ESPN\'s answer.'); });
+      });
+    }
+
+    // ── 🤖 The Machine (admin only until step 3): the game library + the model's accuracy report ──
+    function adminMachine() {
+      var body = adminScreen('machine', '<div class="loading">Loading the Machine…</div>');
+      Promise.all([picksApi({ pin: SUB.pin, action: 'machine' }), loadAllBets().catch(function() { return []; })]).then(function(res) {
+        drawAdminMachine(body, res[0], res[1]);
+      }).catch(function() { body.innerHTML = '<div class="loading">Couldn\'t reach the script.</div>'; });
+    }
+    function drawAdminMachine(body, r, bets) {
+      if (r.error) { body.innerHTML = '<div class="inj-warn">' + escHtml(r.error) + '</div>'; return; }
+      if (!r.library) { body.innerHTML = '<div class="inj-warn">⚠️ The picks script that\'s live is older. Deploy → Manage deployments → ✏️ → New version → Deploy, then reload.</div>'; return; }
+      var L = r.library, ll = L.last || {}, R = r.report;
+      function pc(x, d) { return (x * 100).toFixed(d == null ? 0 : d) + '%'; }
+      function ago(iso) { if (!iso) return 'never'; var m = Math.round((Date.now() - new Date(iso).getTime()) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' hr ago' : Math.round(m / 1440) + ' days ago'; }
+      var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">Only you can see this. Maria, Danielle and friends see nothing from the Machine until step 3, and even then only after kickoff.</div>';
+      h += '<div class="st-row"><span class="st-ic">' + (!L.on ? '❌' : ll.caught ? '✅' : '⏳') + '</span><div style="flex:1"><div class="st-l">Game library: ' + (ll.total || 0) + ' games</div><div class="st-d">' +
+        (!L.on ? 'Not running. In Apps Script, run setupGameLibrary.' : ll.caught ? 'Every NFL game since 2023, up to date. Checks hourly for new ones.' : 'Still filling in (about ' + L.estimate + ' games total), up to ' + escHtml(ll.cursor || '…') + '.') +
+        '</div></div></div>';
+      h += '<div class="st-row"><span class="st-ic">' + (R ? '🧠' : '⏳') + '</span><div style="flex:1"><div class="st-l">' + (R ? 'Model trained ' + ago(R.at) : 'Model not trained yet') + '</div><div class="st-d">' +
+        (R ? 'On ' + R.games + ' games. It retrains itself when new games come in.' : 'It trains itself once the library is caught up, or press Train now (needs 100+ games).') +
+        '</div><button class="adm-btn" id="mc-train" style="margin-top:8px">' + (R ? 'Retrain now' : 'Train now') + '</button></div></div><div class="submit-msg" id="adm-msg" style="text-align:left"></div>';
+      if (R) {
+        // Their real hit rate in the same format (two picks a game), for comparison
+        function rate(who) {
+          var x = bets.filter(function(b) { return b.picker === who && (b.correct === 'Yes' || b.correct === 'No') && !b.notOffered && R.testSeasons.indexOf(parseInt(b.year, 10)) >= 0; });
+          return x.length ? { r: x.filter(function(b) { return b.correct === 'Yes'; }).length / x.length, n: x.length } : null;
+        }
+        var rm = rate('Maria'), rd = rate('Danielle');
+        h += '<div class="pf-h" style="margin-top:18px">📋 Accuracy report <small>tested on ' + R.tested + ' games it never trained on (' + R.testSeasons.join(' & ') + ')</small></div>';
+        h += '<div class="mc-tiles">' +
+          (R.theirN >= 10
+            ? '<div class="mc-tile big"><div class="mc-k">On their ' + R.theirN + ' games, its picks hit (one per team, like theirs)</div><div class="mc-v">' + pc(R.their, 1) + '</div>' +
+              '<div class="mc-s">' + (rm ? '<b style="color:' + SB_M + '">Maria ' + pc(rm.r) + '</b> · ' : '') + (rd ? '<b style="color:' + SB_D + '">Danielle ' + pc(rd.r) + '</b> · ' : '') + 'every NFL game: ' + pc(R.two, 1) + ' (most-touches pick ' + pc(R.twoBase, 1) + ')</div></div>'
+            : '<div class="mc-tile big"><div class="mc-k">Its picks hit (one per team, like theirs)</div><div class="mc-v">' + pc(R.two, 1) + '</div>' +
+              '<div class="mc-s">' + (rm ? '<b style="color:' + SB_M + '">Maria ' + pc(rm.r) + '</b> · ' : '') + (rd ? '<b style="color:' + SB_D + '">Danielle ' + pc(rd.r) + '</b> · ' : '') + 'most-touches pick ' + pc(R.twoBase, 1) + '</div></div>') +
+          '<div class="mc-tile"><div class="mc-k">Top pick of the game scored first</div><div class="mc-v">' + pc(R.top1, 1) + '</div></div>' +
+          '<div class="mc-tile"><div class="mc-k">Called which team scores first</div><div class="mc-v">' + pc(R.team) + '</div><div class="mc-s">a coin flip is 50%</div></div>' +
+          '<div class="mc-tile"><div class="mc-k">Sharper than guessing</div><div class="mc-v">' + (R.llBase ? Math.round((1 - R.ll / R.llBase) * 100) : 0) + '%</div><div class="mc-s">how much less surprised it is by the real scorer than an even guess</div></div>' +
+        '</div>';
+        // Calibration
+        var top = Math.max.apply(null, R.cal.map(function(c) { return Math.max(c.pred, c.act); }).concat([0.05]));
+        h += '<div class="pf-h">🎯 Are its percentages honest? <small>players grouped by the chance it gave them</small></div><div class="mc-cal">' +
+          R.cal.filter(function(c) { return c.n >= 15; }).map(function(c) {
+            return '<div class="mc-row"><div class="mc-lab">' + Math.round(c.lo * 100) + '–' + (c.hi >= 1 ? '100' : Math.round(c.hi * 100)) + '%<small>' + c.n + ' players</small></div><div class="mc-bars">' +
+              '<div class="mc-bar pred"><i style="width:' + (c.pred / top * 100).toFixed(1) + '%"></i><span>said ' + pc(c.pred, 1) + '</span></div>' +
+              '<div class="mc-bar act"><i style="width:' + (c.act / top * 100).toFixed(1) + '%"></i><span>scored ' + pc(c.act, 1) + '</span></div></div></div>';
+          }).join('') + '</div><div class="mc-note">If the two bars in a row are close, its percentages mean what they say.</div>';
+        // What it learned
+        var W = R.W || {}, wsum = (W.a || 0) + (W.b || 0) + (W.c || 0) || 1;
+        h += '<div class="pf-h">🧠 What it learned</div><ul class="mc-list">' +
+          '<li>A 7-point home favorite scores the first TD <b>' + R.home7 + '%</b> of the time, an even game <b>' + R.homeEven + '%</b> (when a defense or return TD doesn\'t come first).</li>' +
+          '<li><b>' + pc(R.nonoff, 1) + '</b> of first TDs are a defense or special-teams score that nobody can pick.</li>' +
+          '<li>Who scores for his team: <b>' + Math.round((W.b || 0) / wsum * 100) + '%</b> goal-line touches, <b>' + Math.round((W.a || 0) / wsum * 100) + '%</b> recent TD share, <b>' + Math.round((W.c || 0) / wsum * 100) + '%</b> overall touches' + (W.tau > 1 ? ', with extra weight on the team\'s top options' : '') + '.</li>' +
+          '<li>ESPN had a point spread for <b>' + pc(R.spreadShare) + '</b> of games. The rest use each offense\'s recent form.</li></ul>';
+        // Prices
+        var P = R.price || {};
+        h += '<div class="pf-h">💲 Estimated FanDuel prices <small>for picks without real odds</small></div><div class="mc-note" style="margin-bottom:6px">' +
+          (P.n >= 20 ? 'Learned from <b>' + P.n + '</b> real FanDuel prices you typed into the sheets. Typical miss: <b>±' + Math.round(P.err * 100) + '%</b> of the real price.' : 'Not enough real prices matched yet (' + (P.n || 0) + '), so it uses the fair price with a 20% cut for now.') + '</div>' +
+          '<div class="mc-prices"><span>5% chance → <b>+' + P.p05 + '</b></span><span>10% → <b>+' + P.p10 + '</b></span><span>20% → <b>+' + P.p20 + '</b></span></div>';
+      }
+      body.innerHTML = h;
+      document.getElementById('mc-train').addEventListener('click', function() {
+        var b = this; b.disabled = true; b.textContent = 'Training… (about a minute)';
+        picksApi({ pin: SUB.pin, action: 'mtrain' }).then(function(x) {
+          if (x.error) { b.disabled = false; b.textContent = 'Train now'; adminMsg(x.error, false); return; }
+          adminMachine();
+        }).catch(function() { b.disabled = false; b.textContent = 'Train now'; adminMsg('It took too long to answer. Wait a minute and reload: it probably finished.', false); });
       });
     }
 
@@ -1018,6 +1087,7 @@
       if (section === 'theme') adminTheme();
       if (section === 'bracket') adminBracket();
       if (section === 'museum') adminMuseum();
+      if (section === 'machine') adminMachine();
       if (section === 'eggs') adminEggs();
       if (section === 'status') adminStatus();
     }

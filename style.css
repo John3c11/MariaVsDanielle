@@ -1798,3 +1798,29 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 .ck-note { font-size: 11px; color: #8B93A1; line-height: 1.5; }
 .lib-bar { height: 6px; border-radius: 4px; background: rgba(255,255,255,0.08); margin-top: 6px; overflow: hidden; max-width: 260px; }
 .lib-bar i { display: block; height: 100%; background: linear-gradient(90deg, #A78BFA, #60A5FA); }
+/* Admin 🤖 Machine report */
+.mc-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 8px; }
+@media (min-width: 701px) { .mc-tiles { grid-template-columns: 2fr repeat(3, minmax(0, 1fr)); } }
+.mc-tile { padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.08); min-width: 0; }
+.mc-tile.big { grid-column: 1 / -1; background: linear-gradient(135deg, rgba(167,139,250,0.16), rgba(255,255,255,0.04)); border-color: rgba(167,139,250,0.35); }
+@media (min-width: 701px) { .mc-tile.big { grid-column: auto; } }
+.mc-k { font-size: 10.5px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: #9CA3AF; line-height: 1.35; }
+.mc-v { font-size: 26px; font-weight: 800; margin-top: 4px; color: #F3F4F6; }
+.mc-tile.big .mc-v { color: #DDD6FE; }
+.mc-s { font-size: 11.5px; color: #A1A9B6; margin-top: 3px; line-height: 1.4; }
+.mc-cal { display: flex; flex-direction: column; gap: 8px; }
+.mc-row { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 10px; align-items: center; }
+.mc-lab { font-size: 13px; font-weight: 800; color: #E5E7EB; }
+.mc-lab small { display: block; font-size: 10.5px; font-weight: 600; color: #8B93A1; }
+.mc-bars { display: flex; flex-direction: column; gap: 3px; }
+.mc-bar { position: relative; height: 18px; border-radius: 5px; background: rgba(255,255,255,0.05); overflow: hidden; }
+.mc-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; }
+.mc-bar.pred i { background: rgba(167,139,250,0.55); }
+.mc-bar.act i { background: rgba(52,211,153,0.55); }
+.mc-bar span { position: relative; font-size: 11px; font-weight: 700; color: #F3F4F6; padding-left: 7px; line-height: 18px; }
+.mc-note { font-size: 11.5px; color: #8B93A1; line-height: 1.5; margin-top: 6px; }
+.mc-list { margin: 0; padding-left: 18px; font-size: 13px; color: #C4C9D2; line-height: 1.6; }
+.mc-prices { display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; color: #C4C9D2; }
+.mc-prices span { padding: 6px 10px; border-radius: 9px; background: rgba(255,255,255,0.05); }
+.mc-prices b { color: #FBBF24; }
+@media (max-width: 700px) { .mc-tiles .mc-tile:last-child:nth-child(even) { grid-column: 1 / -1; } }

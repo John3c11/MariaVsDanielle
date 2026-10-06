@@ -1293,10 +1293,16 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
   .page-layout { max-width: calc(min(1100px, 100vw - 540px) + 48px); }
   .wrap { max-width: min(1100px, calc(100vw - 540px)); }
   /* Stats: scoreboard left, Live Picks + First TDs right */
-  #tab-stats.active { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); column-gap: 28px; align-items: start; grid-auto-flow: row dense; }
+  /* Both columns end at the same height: the shorter side's last card stretches to match */
+  #tab-stats.active { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); column-gap: 28px; align-items: stretch; }
   #tab-stats > .announce-banner, #tab-stats > .visit-banner { grid-column: 1 / -1; }
-  #tab-stats > #sb-main { grid-column: 1; grid-row: span 6; }
-  #tab-stats > .sb-live { grid-column: 2; }
+  #tab-stats > #sb-main { grid-column: 1; display: flex; flex-direction: column; justify-content: center; } /* extra height splits above and below */
+  #sb-main .sb-grid { grid-template-columns: minmax(0, 1fr); } /* the four stat boxes one per row */
+  #tab-stats > .stats-side { grid-column: 2; display: flex; flex-direction: column; }
+  .stats-side > .sb { flex: 0 0 auto; }
+  .stats-side > #hist-wrap2.on { flex-grow: 1; }
+  .stats-side:not(:has(#hist-wrap2.on)) > #ftd-wrap { flex-grow: 1; }
+  .stats-side:not(:has(#hist-wrap2.on)):has(> #ftd-wrap[style*="none"]) > .sb:first-child { flex-grow: 1; }
   /* Generic two-column split used by All-Time and Profiles */
   .wide-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 28px; align-items: start; }
   /* Season Wrapped cards two across */

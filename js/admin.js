@@ -133,6 +133,7 @@
     function adminFriends() {
       var body = adminScreen('friends', '<div class="loading">Loading…</div>');
       picksApi({ pin: SUB.pin, action: 'friends' }).then(function(res) {
+        if (!document.body.contains(body)) return; // left this tab before it loaded
         ADMIN.friends = res.friends || [];
         var list = ADMIN.friends;
         var h = '<div class="pf-h" style="margin-top:0">🔑 Main PINs <small>no code edits needed</small></div><div id="main-pins"><div class="loading">Loading…</div></div>' +
@@ -334,6 +335,7 @@
       var sheets = fetch('https://sheets.googleapis.com/v4/spreadsheets/' + SHEET_ID + '/values/' + encodeURIComponent('Winnings!A1:A2') + '?key=' + API_KEY + '&_=' + Date.now())
         .then(function(r) { return { ok: r.ok, code: r.status, ms: Date.now() - t1 }; }).catch(function() { return { ok: false }; });
       Promise.all([picksApi({ pin: SUB.pin, action: 'status' }).catch(function(e) { return { error: 'Couldn\'t reach the script.' }; }), browserEspn, sheets]).then(function(res) {
+        if (!document.body.contains(body)) return; // you moved to another admin tab while it was checking
         var s = res[0], be = res[1], sh = res[2];
         var siteV = (document.firstChild && document.firstChild.nodeType === 8) ? document.firstChild.nodeValue.trim() : '?';
         var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:10px">Everything the site depends on, checked right now. <button class="link-btn" id="st-again">Check again</button></div>';
@@ -473,6 +475,7 @@
       }).catch(function() { body.innerHTML = '<div class="loading">Couldn\'t reach the script.</div>'; });
     }
     function drawAdminBracket(body, r) {
+      if (!document.body.contains(body)) return; // left this tab before it loaded
       var B = r.bracket, S = r.seeds, st = B.state;
       var teams = Object.keys(TEAM_ABBR).sort();
       var stateTxt = { off: S ? 'Field saved, not open yet' : 'Not set up', open: 'Open: people can fill out brackets', locked: 'Locked: games are on', done: 'Finished' }[st] || st;
@@ -572,6 +575,7 @@
       }).catch(function() { body.innerHTML = '<div class="loading">Couldn\'t reach the script.</div>'; });
     }
     function drawAdminMachine(body, r, bets) {
+      if (!document.body.contains(body)) return; // left this tab before it loaded
       if (r.error) { body.innerHTML = '<div class="inj-warn">' + escHtml(r.error) + '</div>'; return; }
       if (!r.library) { body.innerHTML = '<div class="inj-warn">⚠️ The picks script that\'s live is older. Deploy → Manage deployments → ✏️ → New version → Deploy, then reload.</div>'; return; }
       var L = r.library, ll = L.last || {}, R = r.report;
@@ -644,6 +648,7 @@
     }
     function muaSaved(id) { return (MUSEUM.saved || []).filter(function(m) { return m.id === id; })[0] || null; }
     function drawAdminMuseum(body) {
+      if (!document.body.contains(body)) return; // left this tab before it loaded
       var E = MUA.edit, auto = E && !E.custom && E.id;
       var years = SEASONS.map(function(s) { return s.year; });
       var weeks = [''].concat(Array.apply(null, Array(18)).map(function(_, i) { return i + 1; })).concat([19, 20, 21, 23]);
@@ -874,6 +879,7 @@
     function adminSeason() {
       var body = adminScreen('season', '<div class="loading">Loading…</div>');
       picksApi({ pin: SUB.pin, action: 'season' }).then(function(r) {
+        if (!document.body.contains(body)) return; // left this tab before it loaded
         if (r.error) { body.innerHTML = '<div class="loading">' + escHtml(r.error) + '</div>'; return; }
         var cur = r.current, pend = r.pending, prev = r.prev;
         var next = String(parseInt(cur.year, 10) + 1);
@@ -966,6 +972,7 @@
       }).catch(function() { body.innerHTML = '<div class="loading">Couldn\'t reach the script.</div>'; });
     }
     function drawGames(body, r) {
+      if (!document.body.contains(body)) return; // left this tab before it loaded
       var teams = Object.keys(TEAM_ABBR).sort();
       function teamSel(id) {
         return '<select class="adm-input" id="' + id + '"><option value="">Pick a team</option>' + teams.map(function(t) { return '<option>' + escHtml(t) + '</option>'; }).join('') + '</select>';
@@ -1100,6 +1107,7 @@
       }).catch(function() { body.innerHTML = '<div class="loading">Couldn\'t reach the script.</div>'; });
     }
     function drawInjuries(body, st) {
+      if (!document.body.contains(body)) return; // left this tab before it loaded
       if (st.error) { body.innerHTML = '<div class="loading">' + escHtml(st.error) + '</div>'; return; }
       if (!st.slots) { body.innerHTML = '<div class="inj-warn">⚠️ The picks script that\'s live is an older version, so this screen can\'t work yet. In Apps Script: <b>Deploy → Manage deployments → ✏️ → Version: New version → Deploy</b>. Then reload this page.</div>'; return; }
       function nick(t) { return t ? resolveTeam(t).split(' ').pop() : ''; }

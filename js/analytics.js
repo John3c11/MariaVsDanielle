@@ -46,7 +46,7 @@
 
     // ── Analytics layout: one season picker + five sub-tabs ──────────────────
     var AN_TABS = [
-      ['highlights', '🔥 Highlights', ['Pick of the Season', 'Streaks', 'Hit Grid', '*Season']],
+      ['highlights', '🔥 Highlights', ['Pick of the Season', 'Hit Grid']],
       ['trends', '📈 Trends', ['Season Race', 'Luck Meter', 'Weekly Units', 'Form', 'Month by Month']],
       ['picking', '🎯 Picking', ['Boldness Meter', 'Pressure Picks', 'Picking vs Reality', 'Who Scores First', 'Correct Picks by Game Type']],
       ['players', '🏈 Players & Teams', ['NFL Team Heat Map', 'Overachievers & Busts', 'TD Scorer Leaderboard', 'Chaos Corner']],
@@ -59,7 +59,7 @@
       'Win Rate by Week': ['Weekly Units', 'list', 'Win rate by week', 'Show the week-by-week list'],
       'Win Rate by Odds Range': ['Boldness Meter', 'list', 'Win rate by odds range', 'Show win rate by odds range'],
       'Odds vs Hits': ['Boldness Meter', 'sub', 'Where the hits come from'],
-      'Best Stretches & Biggest Wins': ['Streaks', 'list', 'Best stretches & biggest wins (all seasons)', 'Show best stretches & biggest wins'],
+      'Best Stretches & Biggest Wins': ['Hit Grid', 'list', 'Best stretches & biggest wins (all seasons)', 'Show best stretches & biggest wins'],
       'Fun Stats': ['Overachievers & Busts', 'list', 'Most picked & cursed picks (all seasons)', 'Show most picked & cursed picks'],
       'Hit Rate by Position': ['Picking vs Reality', 'sub', 'Hit rate by position'],
       'Home vs Away Pick Accuracy': ['Who Scores First', 'sub', 'Their pick accuracy: home vs away players'],
@@ -77,7 +77,7 @@
       // Sections that don't change with the season picker get an "all seasons" tag
       order.forEach(function(t) {
         var s = secs[t], h = s.querySelector('.an-h');
-        if (h && !s.querySelector('.af-bar-season')) h.insertAdjacentHTML('beforeend', '<span class="an-all">all seasons</span>');
+        if (h && !s.querySelector('.af-bar-season')) h.insertAdjacentHTML('beforeend', '<span class="an-all">' + (t === 'Pick of the Season' ? 'this season' : 'all seasons') + '</span>');
       });
       // Merges
       Object.keys(AN_MERGE).forEach(function(src) {
@@ -134,8 +134,15 @@
         top.querySelectorAll('[data-an-season]').forEach(function(b) { b.classList.toggle('active', b.getAttribute('data-an-season') === v); });
         Object.keys(AF).forEach(function(g) {
           if (AF[g].keys.indexOf('season') < 0) return;
-          AF[g].state.season = v;
-          document.querySelectorAll('[data-af-g="' + g + '"][data-af-k="season"]').forEach(function(b) { b.classList.toggle('active', b.getAttribute('data-af-val') === v); });
+          // A section without this option (Season Race has no "All") falls back to its first one: the current season
+          var gv = v;
+          if (!document.querySelector('[data-af-g="' + g + '"][data-af-k="season"][data-af-val="' + v + '"]')) {
+            var first = document.querySelector('[data-af-g="' + g + '"][data-af-k="season"]');
+            if (!first) return;
+            gv = first.getAttribute('data-af-val');
+          }
+          AF[g].state.season = gv;
+          document.querySelectorAll('[data-af-g="' + g + '"][data-af-k="season"]').forEach(function(b) { b.classList.toggle('active', b.getAttribute('data-af-val') === gv); });
           afApply(g);
         });
       }
@@ -361,23 +368,6 @@
         html += '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">A <b>bad beat</b> is when someone\'s pick scored a touchdown in that game, just not the first one.</div>';
         html += '<div id="bad-beats"><div class="loading">Checking every game with ESPN…</div></div>';
 
-        html += section("Streaks");
-        function streaks(personRows) {
-          var maxWin = 0, maxLoss = 0, curWin = 0, curLoss = 0;
-          personRows.forEach(function(r) {
-            if (r.correct === "Yes") { curWin++; curLoss = 0; maxWin = Math.max(maxWin, curWin); }
-            else { curLoss++; curWin = 0; maxLoss = Math.max(maxLoss, curLoss); }
-          });
-          return '<div>' +
-            statRow("Longest win streak", maxWin + " in a row") +
-            statRow("Longest loss streak", maxLoss + " in a row") +
-          '</div>';
-        }
-        html += twoCol(
-          personCard("Maria", streaks(scored.filter(function(r){return r.picker==="Maria" && !isNotOffered(r);}))),
-          personCard("Danielle", streaks(scored.filter(function(r){return r.picker==="Danielle" && !isNotOffered(r);})))
-        );
-
         // ── Hit Grid (chart) ──
         html += section("Hit Grid");
         html += '<div class="ch-intro">Every bet as a square, so hot and cold stretches stand out.</div>';
@@ -417,10 +407,9 @@
             '</div></div>';
         }
 
-        AN_YEARS.forEach(function(yr) {
-          var yrBets = scored.filter(function(r){return r.year===yr;});
-          html += pickCard(getBestPick(yrBets), yr + " Season");
-        });
+        // This season only: every past season's Pick of the Season is on its Season Wrapped card (All-Time)
+        html += pickCard(getBestPick(scored.filter(function(r){return r.year===CURRENT_YEAR;})), CURRENT_YEAR + " Season");
+        if (AN_YEARS.length > 1) html += '<div class="ch-intro" style="margin-top:-2px">Past seasons\' picks are on their Season Wrapped cards on All-Time.</div>';
 
         // ── Performance: Home vs Away ─────────────────────────────────────────
         html += section("Home vs Away Pick Accuracy");
@@ -681,9 +670,10 @@
         // ── Weekly Units (chart) ──
         // ── Season Race (moved from Stats) ──
         html += section("Season Race");
-        html += '<div class="ch-intro">Running units, game by game. Tap a point for the score after that game.</div>';
-        html += '<div class="af-bars">' + afBar('race', 'season', 'Season', SEASON_OPTS, AN_YEARS[0]) + '</div>';
-        SEASON_OPTS.forEach(function(so) { html += afVariant('race', [so[0]], '<div class="ch-box">' + seasonRaceChart(rows, so[0]) + '</div>'); });
+        html += '<div class="ch-intro">Running units, game by game, one season at a time (every season together is the All-Time Race on All-Time). Tap a point for the score after that game.</div>';
+        var RACE_OPTS = AN_YEARS.map(function(y) { return [y, y]; }); // no "All": that's the All-Time Race
+        html += '<div class="af-bars">' + afBar('race', 'season', 'Season', RACE_OPTS, AN_YEARS[0]) + '</div>';
+        RACE_OPTS.forEach(function(so) { html += afVariant('race', [so[0]], '<div class="an-showing">' + so[0] + ' season</div><div class="ch-box">' + seasonRaceChart(rows, so[0]) + '</div>'); });
 
         // ── Luck Meter ──
         html += section("Luck Meter");
@@ -871,42 +861,7 @@
         html += '<div class="af-bars">' + afBar('oddsx', 'season', 'Season', SEASON_OPTS, CUR_SEASON) + '</div>';
         SEASON_OPTS.forEach(function(so) { html += afVariant('oddsx', [so[0]], '<div class="ch-box">' + oddsStripChart(rows, so[0]) + '</div>'); });
 
-        // ── Season Comparison (every season, oldest → newest) ────────────────
-        var compYears = SEASONS.map(function(x) { return x.year; }).slice().reverse();
-        html += section(compYears.length > 1 ? "Season Comparison" : compYears[0] + " Season");
-        var compColors = ['#34D399', '#FBBF24', '#C4B5FD', '#F472B6'];
-        var compData = {};
-        compYears.forEach(function(yr) {
-          var yrRows = scored.filter(function(r){return r.year === yr;});
-          var mRows = yrRows.filter(function(r){return r.picker==="Maria";});
-          var dRows = yrRows.filter(function(r){return r.picker==="Danielle";});
-          var total = yrRows.length;
-          var wins = yrRows.filter(function(r){return r.correct==="Yes";}).length;
-          var avgOdds = total ? Math.round(yrRows.reduce(function(a,r){ return a + (r.homePick ? Math.abs(r.homeOdds) : Math.abs(r.awayOdds)); }, 0) / total * 100) : 0;
-          compData[yr] = {
-            total: total,
-            winRate: total ? Math.round(wins/total*100) : 0,
-            mWinRate: mRows.length ? Math.round(mRows.filter(function(r){return r.correct==="Yes";}).length/mRows.length*100) : 0,
-            dWinRate: dRows.length ? Math.round(dRows.filter(function(r){return r.correct==="Yes";}).length/dRows.length*100) : 0,
-            avgOdds: avgOdds,
-          };
-        });
-        function compColor(yr, i) { return yr === CURRENT_YEAR ? '#60A5FA' : compColors[i % compColors.length]; }
-        var compGrid = 'display:grid;grid-template-columns:1fr repeat(' + compYears.length + ',64px);gap:8px;';
-        html += '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:16px;margin-bottom:12px;overflow-x:auto">';
-        html += '<div style="' + compGrid + 'padding-bottom:8px;border-bottom:0.5px solid rgba(255,255,255,0.10);font-size:10px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em"><span></span>' +
-          compYears.map(function(yr, i) { return '<span style="text-align:center;color:' + compColor(yr, i) + '">' + yr + '</span>'; }).join('') + '</div>';
-        [
-          {label:"Bets played", fn:function(d){return d.total||0;}},
-          {label:"Overall win rate", fn:function(d){return (d.winRate||0)+"%";}},
-          {label:"Maria win rate", fn:function(d){return (d.mWinRate||0)+"%";}},
-          {label:"Danielle win rate", fn:function(d){return (d.dWinRate||0)+"%";}},
-          {label:"Avg odds picked", fn:function(d){return "+"+(d.avgOdds||0);}},
-        ].forEach(function(row) {
-          html += '<div style="' + compGrid + 'padding:8px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:13px"><span style="color:#A1A9B6">' + row.label + '</span>' +
-            compYears.map(function(yr, i) { return '<span style="text-align:center;font-weight:600;color:' + compColor(yr, i) + '">' + row.fn(compData[yr] || {}) + '</span>'; }).join('') + '</div>';
-        });
-        html += '</div>';
+        // (Season Comparison moved to All-Time's 📅 By Season table, history.js)
 
         // ── NFL Team Heat Map ────────────────────────────────────────────────
         html += section("NFL Team Heat Map");

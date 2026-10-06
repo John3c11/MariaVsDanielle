@@ -7,10 +7,8 @@
     var MUSEUM = { filter: 'all', saved: null };
     var MU_TAGS = {
       bighit:  { ic: '💰', t: 'Biggest hit ever' },
-      bigweek: { ic: '📈', t: 'Best week ever' },
       perfect: { ic: '🧹', t: 'Perfect week' },
       double:  { ic: '🤝', t: 'Same longshot' },
-      heater:  { ic: '🔥', t: 'Longest heater' },
       drought: { ic: '🌵', t: 'Drought over' },
       first:   { ic: '🌱', t: 'Where it started' },
       champ:   { ic: '🏆', t: 'Season champion' },
@@ -46,29 +44,24 @@
         if (best && best.x.odds) add({ id: 'auto:bighit:' + who, tag: 'bighit', who: who, season: best.r.year, week: best.r.week, game: game(best.r),
           player: best.x.player, team: best.x.team, odds: best.x.odds,
           title: best.x.player + ' at +' + Math.round(best.x.odds), caption: 'The longest shot ' + who + ' has ever cashed. ' + fmtU(best.r.netUnits) + ' on one pick.' });
-        // Best week ever (units)
+        // Weekly totals (for perfect weeks)
         var W = {};
         mine.forEach(function(r) { var k = r.year + '|' + r.week; (W[k] = W[k] || { year: r.year, week: r.week, u: 0, n: 0, h: 0 }); W[k].u += r.netUnits; W[k].n++; if (r.correct === 'Yes') W[k].h++; });
-        var bw = Object.keys(W).map(function(k) { return W[k]; }).sort(function(a, b) { return b.u - a.u; })[0];
-        if (bw && bw.u > 0) add({ id: 'auto:bigweek:' + who, tag: 'bigweek', who: who, season: bw.year, week: bw.week,
-          title: fmtU(bw.u) + ' in one week', caption: who + ' went ' + bw.h + ' for ' + bw.n + ' and had her best week ever.' });
         // Perfect weeks: 3+ picks, every one hit
         Object.keys(W).forEach(function(k) {
           var w = W[k];
           if (w.n >= 3 && w.h === w.n) add({ id: 'auto:perfect:' + who + ':' + w.year + ':' + w.week, tag: 'perfect', who: who, season: w.year, week: w.week,
             title: who + ' goes ' + w.h + ' for ' + w.n, caption: 'Every single pick hit. ' + fmtU(w.u) + ' for the week.' });
         });
-        // Longest heater and longest drought (snapped by a hit)
-        var run = 0, best2 = { n: 0 }, dry = 0, bestDry = { n: 0 };
+        // Longest drought, snapped by a hit
+        var dry = 0, bestDry = { n: 0 };
         mine.forEach(function(r) {
           if (r.correct === 'Yes') {
-            run++; if (run > best2.n) best2 = { n: run, r: r };
             if (dry > bestDry.n) bestDry = { n: dry, r: r };
             dry = 0;
-          } else { run = 0; dry++; }
+          } else { dry++; }
         });
-        if (best2.n >= 3) add({ id: 'auto:heater:' + who, tag: 'heater', who: who, season: best2.r.year, week: best2.r.week,
-          title: best2.n + ' straight hits', caption: 'The longest run ' + who + ' has ever been on. It reached ' + best2.n + ' with ' + best2.r.firstScorer + '.' });
+        // (Best week and longest heater are records, not moments: they live in the Record Book and on profiles.)
         if (bestDry.n >= 6) { var di = hitInfo(bestDry.r);
           add({ id: 'auto:drought:' + who, tag: 'drought', who: who, season: bestDry.r.year, week: bestDry.r.week, game: game(bestDry.r), player: di.player, team: di.team,
             title: bestDry.n + ' misses, then ' + di.player, caption: 'The longest dry spell ' + who + ' has had, finally snapped' + (di.odds ? ' at +' + Math.round(di.odds) : '') + '.' }); }

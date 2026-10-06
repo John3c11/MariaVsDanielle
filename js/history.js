@@ -395,7 +395,7 @@
         html += '</div>';
 
         // Earnings by season (both of them together). This used to be its own tab.
-        html += secH('💵 Earnings by Season', 'Maria + Danielle combined') + '<div id="legacy-earn"><div class="loading">Loading…</div></div>';
+        html += secH('📅 By Season', 'hit rates, odds and earnings') + '<div id="legacy-earn"><div class="loading">Loading…</div></div>';
 
         html += '</div><div class="wide-col">';
         // Record Book (insights.js): every all-time record and who holds it
@@ -501,8 +501,15 @@
         var noRows = ys.bets.filter(function(b) { return b.notOffered; });
         var units = scored.reduce(function(a, b) { return a + b.netUnits; }, 0);
         var dollars = scored.reduce(function(a, b) { return a + b.netDollars; }, 0);
+        // Hit rate per person (games that counted) and the average odds of everything picked
+        var counted = scored.filter(function(b) { return !b.notOffered; });
+        function rate(who) { var m = counted.filter(function(b) { return b.picker === who; }); return m.length ? Math.round(m.filter(function(b) { return b.correct === 'Yes'; }).length / m.length * 100) : null; }
+        var odds = []; ys.bets.forEach(function(b) { [b.homePick ? b.homeOddsN : 0, b.awayPick ? b.awayOddsN : 0].forEach(function(o) { var n = oddsN(o); if (n > 0) odds.push(n * 100); }); });
         return {
-          year: ys.year, bets: scored.length + noRows.length, notOffered: noRows.length, units: units, dollars: dollars,
+          year: ys.year, rateM: rate('Maria'), rateD: rate('Danielle'), avgOdds: odds.length ? Math.round(odds.reduce(function(a, x) { return a + x; }, 0) / odds.length) : 0,
+          hitsM: counted.filter(function(b) { return b.picker === 'Maria' && b.correct === 'Yes'; }).length, nM: counted.filter(function(b) { return b.picker === 'Maria'; }).length,
+          hitsD: counted.filter(function(b) { return b.picker === 'Danielle' && b.correct === 'Yes'; }).length, nD: counted.filter(function(b) { return b.picker === 'Danielle'; }).length,
+          bets: scored.length + noRows.length, notOffered: noRows.length, units: units, dollars: dollars,
           // Worst case: not offered games count as -2u and -2 x the amount bet
           unitsWorst: units - 2 * noRows.length,
           dollarsWorst: dollars - noRows.reduce(function(a, b) { return a + 2 * (b.amount || 5); }, 0),
@@ -522,17 +529,22 @@
           return '<div class="er-row' + (isTotal ? ' er-total' : '') + '">' +
             '<div class="er-c er-y">' + label + '</div>' +
             '<div class="er-c"><div style="font-weight:700">' + r.bets + '</div>' + (r.notOffered ? '<div class="er-w">' + r.notOffered + ' not<br class="tn-short"> offered</div>' : '') + '</div>' +
+            '<div class="er-c er-rate"><div style="color:' + SB_M + '">' + (r.rateM == null ? '—' : r.rateM + '%') + '</div><div style="color:' + SB_D + '">' + (r.rateD == null ? '—' : r.rateD + '%') + '</div>' +
+              (r.avgOdds ? '<div class="er-w">avg +' + r.avgOdds + '</div>' : '') + '</div>' +
             cell(r.units, r.unitsWorst, fmtUResp) + cell(r.dollars, r.dollarsWorst, fmtDResp) + '</div>';
         }
 
-        var html = '<div class="er-table"><div class="er-row er-head"><div class="er-c er-y">Season</div><div class="er-c">Bets</div><div class="er-c">Units</div><div class="er-c">Money</div></div>';
+        var html = '<div class="er-table"><div class="er-row er-head"><div class="er-c er-y">Season</div><div class="er-c">Bets</div><div class="er-c">Hit rate</div><div class="er-c">Units</div><div class="er-c">Money</div></div>';
         results.slice().sort(function(a, b) { return b.year - a.year; }).forEach(function(r) { html += row(r.year, r, false); });
+        function sum(k) { return results.reduce(function(a, r) { return a + r[k]; }, 0); }
         html += row('Total', {
+          rateM: sum('nM') ? Math.round(sum('hitsM') / sum('nM') * 100) : null, rateD: sum('nD') ? Math.round(sum('hitsD') / sum('nD') * 100) : null,
+          avgOdds: 0,
           bets: totalBets, units: totalUnits, dollars: totalDollars,
           unitsWorst: results.reduce(function(a,r){return a+r.unitsWorst;},0),
           dollarsWorst: results.reduce(function(a,r){return a+r.dollarsWorst;},0),
           notOffered: results.reduce(function(a,r){return a+r.notOffered;},0)
         }, true);
-        html += '</div><div class="er-note">Big numbers skip games where the first TD scorer wasn\'t offered. The smaller numbers under them count those games as losses (worst case).</div>';
+        html += '</div><div class="er-note">Hit rate is <span style="color:' + SB_M + '">Maria</span> then <span style="color:' + SB_D + '">Danielle</span>, with the average odds of everything picked under it. Units and money are both of them combined: big numbers skip games where the first TD scorer wasn\'t offered, and the smaller numbers under them count those games as losses (worst case).</div>';
         box.innerHTML = html;
     }

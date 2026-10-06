@@ -524,8 +524,8 @@
     // ── 📅 This Week in History: the same week number in every past season ──
     var HIST = { week: 0 };
     function renderHistory(rows) {
-      var wrap = document.getElementById('hist-wrap');
-      if (!wrap || typeof loadAllBets !== 'function') return;
+      var w2 = document.getElementById('hist-wrap2');
+      if (!w2 || typeof loadAllBets !== 'function') return;
       // "This week" = the earliest week that still has games to score, else the latest week
       var open = rows.filter(function(b) { return b.home && !b.scorer; }).map(function(b) { return b.weekN; }).filter(Boolean);
       var all = rows.map(function(b) { return b.weekN; }).filter(Boolean);
@@ -540,7 +540,7 @@
           (years[b.year] = years[b.year] || []).push(b);
         });
         var ys = Object.keys(years).sort(function(a, b) { return b - a; });
-        if (!ys.length) { wrap.style.display = 'none'; var w0 = document.getElementById('hist-wrap2'); if (w0) w0.classList.remove('on'); return; }
+        if (!ys.length) { w2.classList.remove('on'); return; }
         function c(n) { return personColor(n); }
         var u = fmtU; // +5.0u, same as everywhere else
         var h = '';
@@ -572,19 +572,10 @@
           h += '<div class="hist-wk">' + (winner ? '<b style="color:' + c(winner) + '">' + winner + '</b> won the week · ' : 'Even week · ') +
             '<span style="color:' + SB_M + '">Maria ' + u(units.Maria) + '</span> · <span style="color:' + SB_D + '">Danielle ' + u(units.Danielle) + '</span></div></div>';
         });
-        document.getElementById('hist-title').textContent = '📅 ' + weekName(week) + ' in History';
-        var list = document.getElementById('hist-list');
-        list.innerHTML = h;
-        fillHeadshots(list);
-        wrap.style.display = '';
-        // Same card on the Stats tab, shown only on big screens (CSS)
-        var w2 = document.getElementById('hist-wrap2');
-        if (w2) {
-          document.getElementById('hist-title2').textContent = '📅 ' + weekName(week) + ' in History';
-          var l2 = document.getElementById('hist-list2');
-          l2.innerHTML = h; fillHeadshots(l2);
-          w2.classList.add('on');
-        }
+        document.getElementById('hist-title2').textContent = '📅 ' + weekName(week) + ' in History';
+        var l2 = document.getElementById('hist-list2');
+        l2.innerHTML = h; fillHeadshots(l2);
+        w2.classList.add('on');
       }).catch(function() {});
     }
 

@@ -66,6 +66,7 @@
 .an-all { display: none; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #6B7280; margin-left: auto; }
 .an-one-season .an-all { display: inline; }
 #analytics-content .an-pane .af-bar-season { display: none; }
+.an-showing { font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #9CA3AF; margin-bottom: 6px; }
 .an-merged { margin-top: 16px; }
 .an-sub { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #A1A9B6; margin: 4px 0 10px; }
 details.an-more { margin-top: 14px; }
@@ -1119,7 +1120,7 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
 
 /* Earnings by season table (inside All-Time) */
 .er-table { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 4px 12px; margin-bottom: 8px; }
-.er-row { display: grid; grid-template-columns: 0.9fr 1.1fr 1.1fr 1.2fr; gap: 8px; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.07); font-size: clamp(13px, 3.9vw, 15px); font-variant-numeric: tabular-nums; }
+.er-row { display: grid; grid-template-columns: 0.75fr 0.85fr 0.7fr 1.1fr 1.2fr; gap: 8px; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.07); font-size: clamp(13px, 3.9vw, 15px); font-variant-numeric: tabular-nums; }
 .er-row:first-child { border-top: 0; }
 .er-head { font-size: 10px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.05em; padding: 8px 0 6px; }
 .er-c { text-align: right; min-width: 0; white-space: nowrap; }
@@ -1128,6 +1129,7 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
 .er-w { font-size: 11px; color: #9CA3AF; white-space: normal; line-height: 1.25; font-weight: 500; margin-top: 2px; }
 .er-total { border-top: 1.5px solid rgba(255,255,255,0.2); }
 .er-total .er-y { color: #FBBF24; }
+.er-rate > div:not(.er-w) { font-weight: 700; line-height: 1.3; }
 .er-note { font-size: 12px; color: #9CA3AF; line-height: 1.5; margin: 0 2px 28px; }
 
 /* Trash Talk: folded post box */
@@ -1187,8 +1189,9 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
 .rb-val span { display: block; font-size: 15px; font-weight: 800; color: #F3F4F6; }
 .rb-shame .rb-val span { color: #FCA5A5; }
 .rb-new { font-size: 9px; font-weight: 800; letter-spacing: 0.06em; color: #111; background: #FBBF24; border-radius: 4px; padding: 1px 5px; vertical-align: 1px; }
-/* Week in History now sits at the top of All-Time */
-#tab-legacy #hist-wrap { margin-bottom: 22px; }
+/* This Week in History lives on Stats only (v108) */
+#hist-wrap2 { display: none; }
+#hist-wrap2.on { display: block; }
 @media (max-width: 700px) { .hm-bar { display: none; } }
 /* Overachievers & Busts */
 .ob-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 16px; }
@@ -1608,7 +1611,6 @@ html.egg-retro .player img, html.egg-retro .vs-row img { image-rendering: pixela
   .an-pane[data-pane="picking"] > [data-sec="Correct Picks by Game Type"] { order: 2; }
   .an-pane[data-pane="picking"] > [data-sec="Picking vs Reality"] { order: 3; }
   .an-pane[data-pane="picking"] > [data-sec="Who Scores First"] { order: 4; }
-  #hist-wrap2.on { display: block !important; }
   /* Rosters: two divisions per row */
   #rosters-content { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 24px; align-items: start; }
   #rosters-content > :not(.division-block) { grid-column: 1 / -1; }

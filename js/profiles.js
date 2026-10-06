@@ -120,6 +120,8 @@
       return S;
     }
 
+    // Trophies whose number is already on a tile above (Longest Heater, Weeks Won, Ride or Die, Jinxes,
+    // Bad Beats) don't repeat it: they just show what it takes, unlocked or with progress.
     function achievementsFor(S) {
       function hitAt(min) { return S.hits.filter(function(h) { return h.odds >= min; })[0]; }
       function hitLabel(h) { return h ? h.r.year + ' ' + wkName(h.r.week) + ' · ' + h.r.firstScorer + ' ' + fmtOdds(h.odds) : ''; }
@@ -129,23 +131,23 @@
       var A = [
         { ic: '🎯', n: 'Sniper', d: 'Hit a pick at +2000 or longer', got: !!sniper, w: hitLabel(sniper), p: [S.best ? Math.min(S.best.odds, 20) : 0, 20], pl: S.best ? 'Best so far ' + fmtOdds(S.best.odds) : '' },
         { ic: '🚀', n: 'Moonshot', d: 'Hit a pick at +3000 or longer', got: !!moon, w: hitLabel(moon), p: [S.best ? Math.min(S.best.odds, 30) : 0, 30], pl: S.best ? 'Best so far ' + fmtOdds(S.best.odds) : '' },
-        { ic: '🔥', n: 'Heater', d: '3 correct picks in a row', got: S.heater.n >= 3, w: S.heater.n >= 3 ? 'Best run: ' + S.heater.n + ' · ' + S.heater.at : '', p: [Math.min(S.heater.n, 3), 3] },
-        { ic: '🌋', n: 'On Fire', d: '5 correct picks in a row', got: S.heater.n >= 5, w: S.heater.n >= 5 ? 'Best run: ' + S.heater.n + ' · ' + S.heater.at : '', p: [Math.min(S.heater.n, 5), 5] },
+        { ic: '🔥', n: 'Heater', d: '3 correct picks in a row', got: S.heater.n >= 3, w: '', p: [Math.min(S.heater.n, 3), 3] },
+        { ic: '🌋', n: 'On Fire', d: '5 correct picks in a row', got: S.heater.n >= 5, w: '', p: [Math.min(S.heater.n, 5), 5] },
         { ic: '🧹', n: 'Clean Sweep', d: 'Go perfect in a week (2+ games)', got: !!S.sweep, w: S.sweep || '' },
-        { ic: '👑', n: 'Weekly Champ', d: 'Win 5 weeks', got: S.weeksWon >= 5, w: S.weeksWon + ' weeks won', p: [Math.min(S.weeksWon, 5), 5] },
+        { ic: '👑', n: 'Weekly Champ', d: 'Win 5 weeks', got: S.weeksWon >= 5, w: '', p: [Math.min(S.weeksWon, 5), 5] },
         { ic: '💰', n: 'Big Payday', d: 'Win $100+ on one bet', got: !!S.payday, w: S.payday ? S.payday.year + ' ' + wkName(S.payday.week) + ' · +$' + S.payday.netDollars : '' },
         { ic: '📈', n: 'In the Black', d: 'Finish a season up in units', got: S.inBlack.length > 0, w: S.inBlack.join(', ') },
         { ic: '🏆', n: 'Champion', d: 'Win a season', got: S.titles.length > 0, w: S.titles.length ? S.titles.join(', ') + ' champ' : '' },
-        { ic: '❤️', n: 'Ride or Die', d: 'Pick the same player 10 times', got: !!(S.fav && S.fav.n >= 10), w: S.fav && S.fav.n >= 10 ? S.fav.name + ' · ' + S.fav.n + 'x' : '', p: [S.fav ? Math.min(S.fav.n, 10) : 0, 10] },
+        { ic: '❤️', n: 'Ride or Die', d: 'Pick the same player 10 times', got: !!(S.fav && S.fav.n >= 10), w: '', p: [S.fav ? Math.min(S.fav.n, 10) : 0, 10] },
         { ic: '🦃', n: 'Holiday Hero', d: 'Hit on Thanksgiving, Black Friday or Christmas', got: !!S.holiday, w: hitLabel(S.holiday) },
         { ic: '🌍', n: 'Globetrotter', d: 'Hit in an International game', got: !!S.intl, w: hitLabel(S.intl) },
         { ic: '💯', n: 'Century', d: 'Make 100 picks', got: S.picks >= 100, w: S.picks + ' picks', p: [Math.min(S.picks, 100), 100] },
         // Hall of Shame
         { shame: true, ic: '🧊', n: 'Ice Cold', d: '5 misses in a row', got: S.drought.n >= 5, w: S.drought.n >= 5 ? 'Worst run: ' + S.drought.n + ' · ' + S.drought.at : '', p: [Math.min(S.drought.n, 5), 5] },
         { shame: true, ic: '💀', n: 'Cursed', d: 'Pick a player 5 times who never hits for you', got: !!(S.cursed && S.cursed.n >= 5), w: S.cursed && S.cursed.n >= 5 ? S.cursed.name + ' · 0 for ' + S.cursed.n : '', p: [S.cursed ? Math.min(S.cursed.n, 5) : 0, 5] },
-        { shame: true, ic: '🪄', n: 'Jinx Master', d: '3 jinxes', got: S.jinxes.length >= 3, w: S.jinxes.length + ' jinxes', p: [Math.min(S.jinxes.length, 3), 3] },
+        { shame: true, ic: '🪄', n: 'Jinx Master', d: '3 jinxes', got: S.jinxes.length >= 3, w: '', p: [Math.min(S.jinxes.length, 3), 3] },
         { shame: true, ic: '💔', n: 'Heartbreaker', d: 'A bad beat within 2 minutes', got: !!heart, w: heart ? heart.year + ' ' + wkName(heart.week) + ' · ' + heart.player : '' },
-        { shame: true, ic: '🐍', n: 'Snakebitten', d: '5 bad beats', got: !!(beats && beats.length >= 5), w: beats ? beats.length + ' bad beats' : '', p: beats ? [Math.min(beats.length, 5), 5] : null },
+        { shame: true, ic: '🐍', n: 'Snakebitten', d: '5 bad beats', got: !!(beats && beats.length >= 5), w: '', p: beats ? [Math.min(beats.length, 5), 5] : null },
       ];
       return A;
     }

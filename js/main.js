@@ -81,6 +81,10 @@
       if (name === 'museum') openMuseum();
       if (name === 'bracket') openBracket();
     }
+    // ⏪ Replay one past game (or a whole week) on the Game Day screen (js/replay.js)
+    function replayGame(year, week, game) {
+      loadScriptOnce('js/replay.js').then(function() { openReplay(year, week, game); }).catch(function() { alert('Couldn\'t load Replay. Check your connection.'); });
+    }
     // 🏆 Playoff Bracket Challenge (js/bracket.js, loaded the first time it opens)
     function openBracket() {
       loadScriptOnce('js/bracket.js').then(function() { loadBracketTab(true); }).catch(function() {

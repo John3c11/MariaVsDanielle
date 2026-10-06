@@ -1746,3 +1746,51 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 .bra-seed { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
 .bra-seed span { width: 14px; font-size: 12px; font-weight: 800; color: #9CA3AF; }
 .bra-seed select { flex: 1; min-width: 0; padding: 6px 8px; font-size: 12.5px; }
+
+/* ── ⏪ Replay (js/replay.js) ── */
+.rp-mini { font-family: inherit; font-size: 10.5px; font-weight: 700; color: #C4B5FD; background: rgba(167,139,250,0.12); border: 1px solid rgba(167,139,250,0.3); border-radius: 6px; padding: 1px 6px; margin-left: 4px; cursor: pointer; vertical-align: middle; }
+.rp-mini:hover { background: rgba(167,139,250,0.22); }
+.rp-ctrl { padding: 0 14px 8px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+.rp-games { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
+.rp-g { flex: 0 0 auto; font-family: inherit; font-size: 11.5px; font-weight: 700; color: #A1A9B6; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; padding: 5px 10px; cursor: pointer; }
+.rp-g.on { color: #111; background: #E5E7EB; border-color: #E5E7EB; }
+.rp-bar { display: flex; align-items: center; gap: 6px; }
+.rp-jumps { margin-top: 6px; flex-wrap: wrap; }
+.rp-btn { font-family: inherit; font-size: 12px; font-weight: 700; color: #E5E7EB; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14); border-radius: 8px; padding: 6px 9px; cursor: pointer; white-space: nowrap; }
+.rp-btn.on { background: #C4B5FD; color: #111; border-color: #C4B5FD; }
+.rp-main { width: 40px; font-size: 15px; padding: 5px 0; }
+.rp-scrub { flex: 1; min-width: 60px; accent-color: #C4B5FD; }
+.rp-tag { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; color: #C4B5FD; }
+.rpc { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 12px; margin-bottom: 28px; }
+.rpc-sel { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.rpc-sel select { width: auto; padding: 8px 10px; }
+.rpc-sel .primary-btn { padding: 8px 16px; }
+.rpc-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
+@media (min-width: 701px) { .rpc-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.rpc-g { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; column-gap: 8px; text-align: left; font-family: inherit; color: #E5E7EB; font-size: 13px; font-weight: 700;
+  background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 8px 10px; cursor: pointer; }
+.rpc-g:hover { border-color: rgba(196,181,253,0.5); }
+.rpc-g > span:first-child { display: flex; align-items: center; gap: 5px; }
+.rpc-g .tlogo { width: 18px; height: 18px; }
+.rpc-g small { grid-row: 2; font-size: 11.5px; font-weight: 500; color: #A1A9B6; margin-top: 2px; }
+.rpc-play { grid-row: 1 / span 2; grid-column: 2; align-self: center; color: #C4B5FD; font-size: 16px; }
+
+/* ── 🔮 The Chalk Team (js/chalk.js) ── */
+.ck-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; margin-bottom: 28px; }
+.ck-verdict { font-size: 14px; color: #E5E7EB; padding: 9px 12px; border-radius: 10px; margin-bottom: 12px; line-height: 1.4; }
+.ck-verdict.up { background: rgba(52,211,153,0.10); border: 1px solid rgba(52,211,153,0.25); }
+.ck-verdict.down { background: rgba(248,113,113,0.10); border: 1px solid rgba(248,113,113,0.25); }
+.ck-vs { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; align-items: center; margin-bottom: 10px; }
+.ck-side { text-align: center; min-width: 0; }
+.ck-k { font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.ck-u { font-size: 24px; font-weight: 800; margin-top: 2px; }
+.ck-s { font-size: 11px; color: #9CA3AF; margin-top: 2px; line-height: 1.4; }
+.ck-mid { font-size: 12px; font-weight: 800; color: #6B7280; }
+.ck-swings { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; margin-bottom: 10px; }
+@media (min-width: 701px) { .ck-swings { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ck-sw { display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; color: #C4C9D2; padding: 8px 10px; border-radius: 10px; background: rgba(0,0,0,0.2); line-height: 1.4; }
+.ck-sw-d { font-weight: 800; font-size: 13px; white-space: nowrap; min-width: 54px; }
+.ck-sw.up .ck-sw-d { color: #34D399; }
+.ck-sw.down .ck-sw-d { color: #F87171; }
+.ck-sw-w { font-size: 10.5px; font-weight: 700; color: #8B93A1; text-transform: uppercase; letter-spacing: 0.04em; }
+.ck-note { font-size: 11px; color: #8B93A1; line-height: 1.5; }

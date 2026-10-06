@@ -558,7 +558,8 @@
           });
           hits.sort(function(a, b) { return b.odds - a.odds; });
           var winner = units.Maria > units.Danielle ? 'Maria' : units.Danielle > units.Maria ? 'Danielle' : '';
-          h += '<div class="hist-yr" data-ctx-year="' + y + '" data-ctx-week="' + week + '"><div class="hist-ago">' + (ago === 1 ? '1 year ago' : ago + ' years ago') + ' · ' + y + ' ' + weekName(week) + '</div>';
+          h += '<div class="hist-yr" data-ctx-year="' + y + '" data-ctx-week="' + week + '"><div class="hist-ago">' + (ago === 1 ? '1 year ago' : ago + ' years ago') + ' · ' + y + ' ' + weekName(week) +
+            ' <button class="rp-mini" onclick="replayGame(\'' + y + '\',' + parseInt(week, 10) + ')" title="Replay that week">⏪ Replay</button></div>';
           if (hits.length) {
             h += hits.slice(0, 3).map(function(x) {
               return '<div class="hist-hit">' + (x.team ? headshot(x.name, x.team, 30) : '') + '<span><b style="color:' + c(x.who) + '">' + x.who + '</b> hit ' +

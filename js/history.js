@@ -52,6 +52,7 @@
         var awayColored = b.awayPick ? coloredText(b.awayPick, b.awayTeam) : '';
         var players = [homeColored, awayColored].filter(Boolean).join('<span style="color:#9CA3AF"> / </span>') || '—';
         var gameDisplay = b.homeTeam && b.awayTeam ? coloredGame(b.homeTeam, b.awayTeam) : (b.game || '—');
+        if (b.firstScorer && b.homeTeam) gameDisplay += ' <button class="rp-mini" title="Replay this game" aria-label="Replay this game" onclick="replayGame(\'' + b.year + '\',' + parseInt(b.week, 10) + ',\'' + escHtml(String(b.game)) + '\')">⏪</button>';
         return '<div class="bh-row" data-ctx-year="' + b.year + '" data-ctx-week="' + b.week + '" style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 110px 50px;gap:8px;padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:12px;align-items:start">' +
           '<span style="font-size:11px;font-weight:600;color:' + (b.year === CURRENT_YEAR ? '#60A5FA' : '#34D399') + '">' + b.year + '</span>' +
           '<span style="color:#9CA3AF;text-align:center">' + (PLAYOFF_SHORT[parseInt(b.week, 10)] || b.week) + '</span>' +
@@ -404,6 +405,8 @@
         // All-time race: running units across every season
         var race = allTimeRaceChart(byYear.slice().reverse().reduce(function(a, ys) { return a.concat(ys.bets); }, []));
         if (race) html += secH('🏁 The All-Time Race') + '<div class="ch-box" style="margin-bottom:28px">' + race + '</div>';
+        // 🔮 The Chalk Team (js/chalk.js) and ⏪ Replay (js/replay.js), filled in once their files load
+        html += '<div id="chalk-slot" class="lazy-slot"></div><div id="replay-slot" class="lazy-slot"></div>';
 
         // Previous seasons: one Season Wrapped card each, newest first
         if (legacyYears.length > 0) {
@@ -420,6 +423,8 @@
         fillCrowdWrapped();
         if (typeof fillWrappedExtras === 'function') fillWrappedExtras();
         loadEarnings(byYear);
+        loadScriptOnce('js/chalk.js').then(function() { renderChalkCard(document.getElementById('chalk-slot')); }).catch(function() {});
+        loadScriptOnce('js/replay.js').then(function() { renderReplayCard(document.getElementById('replay-slot')); }).catch(function() {});
         loadAllBets().then(function(all) { var el = document.getElementById('legacy-records'); if (el) el.innerHTML = recordBookHtml(all) || '<div class="loading">No records yet.</div>'; });
       }).catch(function(e) {
         console.error(e);

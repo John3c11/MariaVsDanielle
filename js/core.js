@@ -94,10 +94,29 @@
     // Google allows about 60 reads a minute. Many tabs read the same sheet, so identical
     // requests made within 30 seconds share one answer, and a "too many requests" reply
     // is retried after a short wait instead of failing.
+    // Finished seasons never change, so their answers are also kept on the phone (localStorage):
+    // the next visit shows them instantly, then quietly re-reads them once in the background
+    // so a fix made in an old sheet still shows up one visit later.
     (function() {
       var realFetch = window.fetch.bind(window);
       var memo = {};
       var TTL = 30000;
+      var refreshed = {}; // once per page load
+      var PAST_KEY = 'mvd-past:', PAST_MAX = 1500000; // skip anything bigger than ~1.5 MB
+      function isPast(url) {
+        if (typeof SEASONS === 'undefined' || !SEASONS.length) return false;
+        return SEASONS.some(function(s, i) { return i > 0 && url.indexOf('/spreadsheets/' + s.sheetId + '/') >= 0; });
+      }
+      function readPast(url) {
+        try { var x = localStorage.getItem(PAST_KEY + url); return x ? { status: 200, body: x } : null; } catch (e) { return null; }
+      }
+      function writePast(url, x) {
+        if (x.status !== 200 || x.body.length > PAST_MAX) return;
+        try { localStorage.setItem(PAST_KEY + url, x.body); } catch (e) {} // phone storage full: just skip it
+      }
+      window.clearPastSeasonCache = function() {
+        try { Object.keys(localStorage).forEach(function(k) { if (k.indexOf(PAST_KEY) === 0) localStorage.removeItem(k); }); } catch (e) {}
+      };
       function getWithRetry(url, n) {
         return realFetch(url).then(function(res) {
           if (res.status === 429 && n < 4) {
@@ -114,9 +133,18 @@
         var url = typeof input === 'string' ? input : (input && input.url) || '';
         if (url.indexOf('sheets.googleapis.com') < 0 || (init && init.method && init.method !== 'GET')) return realFetch(input, init);
         var live = url.indexOf('Trash%20Talk') >= 0; // chat always asks fresh
-        var hit = memo[url];
-        if (!live && hit && Date.now() - hit.t < TTL) return hit.p.then(toResponse);
+        var hit = memo[url], past = !live && isPast(url);
+        if (!live && hit && (hit.keep || Date.now() - hit.t < TTL)) return hit.p.then(toResponse);
+        if (past) {
+          var stored = readPast(url);
+          if (stored) {
+            memo[url] = { t: Date.now(), p: Promise.resolve(stored), keep: true };
+            if (!refreshed[url]) { refreshed[url] = 1; setTimeout(function() { getWithRetry(url, 0).then(function(x) { writePast(url, x); }, function() {}); }, 6000); }
+            return Promise.resolve(toResponse(stored));
+          }
+        }
         var p = getWithRetry(url, 0);
+        if (past) p.then(function(x) { writePast(url, x); }, function() {});
         if (!live) {
           memo[url] = { t: Date.now(), p: p };
           p.then(function(x) { if (x.status !== 200) delete memo[url]; }, function() { delete memo[url]; });

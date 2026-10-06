@@ -633,12 +633,6 @@ details.pf-locked[open] > summary::before { content: '▾ '; }
   background: var(--danielle);
 }
 
-.divider {
-  border: none;
-  border-top: 0.5px solid rgba(255,255,255,0.06);
-  margin: 20px 0;
-}
-
 /* Bet history */
 .section-title {
   font-size: 11px;
@@ -768,7 +762,6 @@ footer {
 .sb .stat-divider { color: rgba(255,255,255,0.25); }
 .sb .bar.maria { background: var(--m); }
 .sb .bar.danielle { background: var(--d); }
-.sb .divider { border-top-color: rgba(255,255,255,0.08); }
 .sb .loading, .sb .no-live { color: rgba(255,255,255,0.55); }
 .sb .section-title { color: rgba(255,255,255,0.55); letter-spacing: 0.18em; font-weight: 700; }
 .sb .sb-glass { background: rgba(255,255,255,0.07); border-radius: 12px; }
@@ -1622,3 +1615,49 @@ html.egg-retro .player img, html.egg-retro .vs-row img { image-rendering: pixela
   /* Tabs that read better narrow stay centered */
   #tab-chat, #tab-submit, #tab-schedule, #tab-crowd { max-width: 720px; margin-left: auto; margin-right: auto; }
 }
+
+/* ── 🏛️ The Museum (js/museum.js) ── */
+.mu-hero { display: flex; align-items: center; gap: 14px; padding: 18px 18px; margin-bottom: 14px; border-radius: 16px;
+  background: linear-gradient(135deg, rgba(251,191,36,0.16), rgba(251,191,36,0.03) 60%), #141519; border: 1px solid rgba(251,191,36,0.28); }
+.mu-hero-ic { font-size: 40px; line-height: 1; }
+.mu-hero-t { font-size: 22px; font-weight: 800; color: #FDE68A; letter-spacing: 0.01em; }
+.mu-hero-s { font-size: 12.5px; color: #A1A9B6; margin-top: 3px; line-height: 1.4; }
+.mu-filters { flex-wrap: wrap; margin-bottom: 4px; }
+.mu-year { display: flex; align-items: center; gap: 10px; margin: 18px 0 10px; font-size: 13px; font-weight: 800; color: #FDE68A; letter-spacing: 0.08em; }
+.mu-year::before, .mu-year::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(251,191,36,0.4), transparent); }
+.mu-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+@media (min-width: 701px) { .mu-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1440px) { .mu-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.mu-card { display: flex; gap: 12px; align-items: flex-start; padding: 13px 14px; border-radius: 14px; background: rgba(255,255,255,0.045);
+  border: 1px solid rgba(255,255,255,0.07); border-left: 3px solid var(--mc); min-width: 0; }
+.mu-card.has-photo { flex-direction: column; padding: 0; overflow: hidden; }
+.mu-card.has-photo .mu-body { padding: 0 14px 13px; }
+.mu-card.mu-star { border-color: rgba(251,191,36,0.45); border-left-color: var(--mc); background: linear-gradient(135deg, rgba(251,191,36,0.10), rgba(255,255,255,0.04)); box-shadow: 0 0 22px rgba(251,191,36,0.08); }
+@media (min-width: 701px) { .mu-card.mu-star.has-photo { grid-column: span 2; } }
+.mu-photo { width: 100%; aspect-ratio: 16 / 9; background: #0B0C0F; }
+.mu-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mu-art { flex: 0 0 auto; width: 64px; height: 64px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.06); box-shadow: 0 0 0 2px var(--mc); }
+.mu-art .hs { border-radius: 50%; }
+.mu-art.mu-ic { font-size: 30px; }
+.mu-face { width: 100%; height: 100%; object-fit: cover; }
+.mu-body { flex: 1; min-width: 0; }
+.mu-tag { font-size: 10.5px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #9CA3AF; }
+.mu-st { color: #FBBF24; margin-left: 4px; }
+.mu-title { font-size: 16px; font-weight: 800; color: #F3F4F6; margin-top: 3px; line-height: 1.25; overflow-wrap: anywhere; }
+.mu-cap { font-size: 12.5px; color: #C4C9D2; margin-top: 4px; line-height: 1.45; }
+.mu-when { font-size: 11px; color: #8B93A1; margin-top: 7px; }
+/* Admin 🏛️ Museum tab */
+.mua-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 0.5px solid rgba(255,255,255,0.07); font-size: 13px; }
+.mua-row.off { opacity: 0.45; }
+.mua-ic { font-size: 18px; width: 24px; text-align: center; flex: 0 0 auto; }
+.mua-mid { flex: 1; min-width: 0; }
+.mua-t { font-weight: 700; color: #F3F4F6; overflow-wrap: anywhere; }
+.mua-s { font-size: 11px; color: #8B93A1; margin-top: 2px; }
+.mua-btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; flex: 0 0 auto; }
+.mua-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 8px; }
+.mua-form label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: #9CA3AF; font-weight: 600; }
+.mua-form .wide { grid-column: 1 / -1; }
+.mua-form textarea { min-height: 64px; resize: vertical; font-family: inherit; }
+.mua-photo { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.mua-thumb { width: 96px; height: 54px; object-fit: cover; border-radius: 6px; background: #0B0C0F; }

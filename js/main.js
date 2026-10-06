@@ -60,7 +60,7 @@
       });
       document.getElementById('tab-' + name).classList.add('active');
       // "More" shows which hidden tab you're on
-      var extra = { crowd: 'Crowd', schedule: 'Schedule', legacy: 'All-Time', bethistory: 'Bet Log', rosters: 'Rosters' }[name];
+      var extra = { crowd: 'Crowd', schedule: 'Schedule', legacy: 'All-Time', museum: 'Museum', bethistory: 'Bet Log', rosters: 'Rosters' }[name];
       if (name === 'analytics' && window.matchMedia('(max-width: 700px)').matches) extra = 'Analytics';
       var more = document.getElementById('tab-more');
       if (more) {
@@ -78,6 +78,14 @@
       if (name === 'schedule') loadScheduleTab();
       if (name === 'crowd') loadCrowdTab();
       if (name === 'rosters') setupPlayerSearch();
+      if (name === 'museum') openMuseum();
+    }
+    // 🏛️ The Museum (js/museum.js, loaded the first time it opens)
+    function openMuseum() {
+      loadScriptOnce('js/museum.js').then(function() { loadMuseumTab(); }).catch(function() {
+        var el = document.getElementById('museum-content');
+        if (el) el.innerHTML = '<div class="loading">Couldn\'t open the Museum. Check your connection. <button class="link-btn" onclick="openMuseum()">Try again</button></div>';
+      });
     }
 
 

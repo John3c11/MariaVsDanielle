@@ -182,7 +182,7 @@
     var ADMIN = { oddsRes: null };
 
     function adminHeader(active) {
-      var tabs = [['odds', '💲 Odds'], ['games', '🏈 Games'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['season', '🆕 Season'], ['theme', '🎨 Theme'], ['eggs', '🥚 Eggs'], ['status', '🩺 Status']];
+      var tabs = [['odds', '💲 Odds'], ['games', '🏈 Games'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['season', '🆕 Season'], ['theme', '🎨 Theme'], ['museum', '🏛️ Museum'], ['eggs', '🥚 Eggs'], ['status', '🩺 Status']];
       return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
         '<div style="font-size:16px;font-weight:700">Hi John</div>' +
         '<button class="link-btn" id="sub-switch">Log out</button></div>' +
@@ -365,6 +365,130 @@
         });
         return loadScriptOnce('js/gameday.js').then(function() { startGameDay(g.home, g.away, { year: g.year, week: g.week, picks: picks }); });
       }).catch(function() { alert('Couldn\'t load the games.'); });
+    }
+
+    // ── 🏛️ Museum: John's notes, photos and moments (js/museum.js draws the page) ──
+    var MUA = { edit: null, list: null };
+    function adminMuseum() {
+      MUA.edit = null;
+      var body = adminScreen('museum', '<div class="loading">Loading the Museum…</div>');
+      loadScriptOnce('js/museum.js').then(function() { return museumData(true); }).then(function(list) {
+        MUA.list = list; drawAdminMuseum(body);
+      }).catch(function() { body.innerHTML = '<div class="loading">Couldn\'t reach the script.</div>'; });
+    }
+    function muaSaved(id) { return (MUSEUM.saved || []).filter(function(m) { return m.id === id; })[0] || null; }
+    function drawAdminMuseum(body) {
+      var E = MUA.edit, auto = E && !E.custom && E.id;
+      var years = SEASONS.map(function(s) { return s.year; });
+      var weeks = [''].concat(Array.apply(null, Array(18)).map(function(_, i) { return i + 1; })).concat([19, 20, 21, 23]);
+      function sel(id, opts, val, dis) {
+        return '<select class="adm-input" id="' + id + '"' + (dis ? ' disabled' : '') + '>' + opts.map(function(o) {
+          var v = Array.isArray(o) ? o[0] : o, t = Array.isArray(o) ? o[1] : o;
+          return '<option value="' + escHtml(String(v)) + '"' + (String(v) === String(val) ? ' selected' : '') + '>' + escHtml(String(t)) + '</option>';
+        }).join('') + '</select>';
+      }
+      var h = '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px">' +
+        '<div style="font-size:12px;color:#A1A9B6">The site finds most moments by itself. Add your own, or give any moment a note, a photo or a ⭐. Hidden ones stay off the page.</div>' +
+        '<button class="link-btn" id="mua-open" style="white-space:nowrap">Open the Museum →</button></div>';
+      h += '<div class="pf-h">' + (E ? '✏️ Edit: ' + escHtml(E.title) : '➕ Add a moment') + '</div>' +
+        '<div class="mua-form">' +
+          '<label>Season' + sel('mua-season', years, E ? E.season : CURRENT_YEAR, auto) + '</label>' +
+          '<label>Week' + sel('mua-week', weeks.map(function(w) { return [w, w ? wkName(w) : '—']; }), E ? (E.week === 99 ? '' : E.week || '') : '', auto) + '</label>' +
+          '<label>Who' + sel('mua-who', [['', '—'], 'Maria', 'Danielle', 'Both'], E ? E.who || '' : '', auto) + '</label>' +
+          '<label class="wide">Title' + '<input class="adm-input" id="mua-title" maxlength="90" placeholder="' + (auto ? escHtml(E.autoTitle || E.title) + ' (leave empty to keep)' : 'e.g. The Thanksgiving miracle') + '" value="' + escHtml(E && (E.custom || E.titleSet) ? E.title : '') + '"></label>' +
+          '<label class="wide">Caption' + '<textarea class="adm-input" id="mua-cap" maxlength="500" placeholder="' + (auto ? escHtml(E.autoCaption || '') : 'What happened?') + '">' + escHtml(E && (E.custom || E.capSet) ? E.caption : '') + '</textarea></label>' +
+          '<label class="wide">Photo (optional)<div class="mua-photo">' +
+            '<input type="file" id="mua-file" accept="image/*" style="display:none"><button class="adm-btn" id="mua-pick" type="button">📷 Upload a photo</button>' +
+            '<input class="adm-input" id="mua-photo" placeholder="or paste an image link (https://…)" style="flex:1;min-width:160px" value="' + escHtml(E && E.photo || '') + '">' +
+            (E && E.photo ? '<img class="mua-thumb" id="mua-thumb" src="' + escHtml(E.photo) + '" alt="">' : '<img class="mua-thumb" id="mua-thumb" alt="" style="display:none">') +
+          '</div></label>' +
+          '<label class="wide" style="flex-direction:row;align-items:center;gap:8px;font-size:13px;color:#E5E7EB"><input type="checkbox" id="mua-star"' + (E && E.star ? ' checked' : '') + '> ⭐ Feature it (gold card, bigger with a photo)</label>' +
+        '</div>' +
+        '<button class="primary-btn" id="mua-save" style="padding:10px 20px">' + (E ? 'Save changes' : 'Add to the Museum') + '</button>' +
+        (E ? ' <button class="link-btn" id="mua-cancel" style="margin-left:10px">Cancel</button>' : '') +
+        '<div class="submit-msg" id="adm-msg" style="text-align:left"></div>';
+
+      var list = MUA.list || [];
+      h += '<div class="pf-h" style="margin-top:18px">🏛️ Everything in the Museum <small>' + list.filter(function(m) { return !m.hidden; }).length + ' showing · ' + list.filter(function(m) { return m.hidden; }).length + ' hidden</small></div>';
+      list.forEach(function(m, i) {
+        var tag = MU_TAGS[m.tag] || MU_TAGS.custom;
+        h += '<div class="mua-row' + (m.hidden ? ' off' : '') + '"><div class="mua-ic">' + tag.ic + '</div><div class="mua-mid">' +
+          '<div class="mua-t">' + (m.star ? '⭐ ' : '') + escHtml(m.title) + (m.photo ? ' 📷' : '') + '</div>' +
+          '<div class="mua-s">' + (m.custom ? 'Yours' : tag.t) + (m.edited ? ' · edited' : '') + ' · ' + museumWhen(m) + (m.hidden ? ' · hidden' : '') + '</div></div>' +
+          '<div class="mua-btns"><button class="adm-btn" data-mua-ed="' + i + '">Edit</button>' +
+          '<button class="adm-btn" data-mua-hide="' + i + '">' + (m.hidden ? 'Show' : 'Hide') + '</button>' +
+          (m.custom ? '<button class="adm-btn red" data-mua-rm="' + i + '">Delete</button>' : m.edited ? '<button class="adm-btn" data-mua-rm="' + i + '" title="Remove your note, photo and ⭐">Reset</button>' : '') +
+          '</div></div>';
+      });
+      body.innerHTML = h;
+
+      function val(id) { var x = document.getElementById(id); return x ? x.value : ''; }
+      function refresh(res, msg) {
+        if (res && res.museum) MUSEUM.saved = res.museum.items;
+        museumData().then(function(l) { MUA.list = l; MUA.edit = null; drawAdminMuseum(body); adminMsg(msg, true); });
+      }
+      // Save one moment: the full row is written every time, so carry over what's already saved
+      function save(m, changes, msg) {
+        var cur = muaSaved(m.id) || {};
+        var q = { pin: SUB.pin, action: 'museumsave', id: m.custom || cur.id ? m.id : (m.id || ''),
+          season: m.season, week: m.week === 99 ? '' : (m.week || ''), who: m.who || '',
+          title: cur.title || (m.custom ? m.title : ''), caption: cur.caption || (m.custom ? m.caption : ''), photo: cur.photo || '', star: cur.star ? '1' : '', hidden: cur.hidden ? '1' : '' };
+        Object.keys(changes).forEach(function(k) { q[k] = changes[k]; });
+        adminMsg('Saving…', true);
+        return picksApi(q).then(function(res) {
+          if (res.error) { adminMsg(res.error, false); return; }
+          refresh(res, msg);
+        }).catch(function() { adminMsg('Couldn\'t reach the script. Try again.', false); });
+      }
+
+      document.getElementById('mua-open').addEventListener('click', function() { switchTab('museum'); });
+      var cancel = document.getElementById('mua-cancel');
+      if (cancel) cancel.addEventListener('click', function() { MUA.edit = null; drawAdminMuseum(body); });
+      var file = document.getElementById('mua-file'), thumb = document.getElementById('mua-thumb'), photo = document.getElementById('mua-photo');
+      document.getElementById('mua-pick').addEventListener('click', function() { file.click(); });
+      function showThumb(u) { if (u && /^https:\/\//.test(u)) { thumb.src = u; thumb.style.display = ''; } else thumb.style.display = 'none'; }
+      photo.addEventListener('input', function() { showThumb(photo.value.trim()); });
+      file.addEventListener('change', function() {
+        if (!file.files || !file.files[0]) return;
+        adminMsg('Uploading the photo…', true);
+        museumUpload(SUB.pin, file.files[0]).then(function(r) {
+          if (!r || r.error || !r.url) { adminMsg((r && r.error) || 'The upload didn\'t work.', false); return; }
+          photo.value = r.url; showThumb(r.url); adminMsg('Photo uploaded. Save to keep it.', true);
+        }).catch(function() { adminMsg('The upload didn\'t work. Make sure Museum.gs is in Apps Script and you ran authorizeMuseumPhotos once.', false); });
+      });
+      document.getElementById('mua-save').addEventListener('click', function() {
+        var title = val('mua-title').trim(), cap = val('mua-cap').trim(), ph = val('mua-photo').trim(), star = document.getElementById('mua-star').checked ? '1' : '';
+        if (ph && !/^https:\/\//.test(ph)) { adminMsg('The photo link has to start with https://', false); return; }
+        if (!E) {
+          if (!title) { adminMsg('Give the moment a title.', false); return; }
+          return save({ id: '', custom: true, season: val('mua-season'), week: val('mua-week'), who: val('mua-who') },
+            { id: '', title: title, caption: cap, photo: ph, star: star, hidden: '' }, 'Added to the Museum. 🏛️');
+        }
+        var ch = { title: title, caption: cap, photo: ph, star: star };
+        if (E.custom) { if (!title) { adminMsg('Give the moment a title.', false); return; } ch.season = val('mua-season'); ch.week = val('mua-week'); ch.who = val('mua-who'); }
+        save(E, ch, 'Saved.');
+      });
+      body.querySelectorAll('[data-mua-ed]').forEach(function(b) {
+        b.addEventListener('click', function() {
+          var m = list[+b.getAttribute('data-mua-ed')], cur = muaSaved(m.id) || {};
+          MUA.edit = Object.assign({}, m, { titleSet: !!cur.title, capSet: !!cur.caption, autoTitle: m.custom ? '' : (cur.title ? '' : m.title), autoCaption: m.custom ? '' : (cur.caption ? '' : m.caption) });
+          drawAdminMuseum(body); window.scrollTo(0, 0);
+        });
+      });
+      body.querySelectorAll('[data-mua-hide]').forEach(function(b) {
+        b.addEventListener('click', function() { var m = list[+b.getAttribute('data-mua-hide')]; save(m, { hidden: m.hidden ? '' : '1' }, m.hidden ? 'Back on display.' : 'Hidden from the Museum.'); });
+      });
+      body.querySelectorAll('[data-mua-rm]').forEach(function(b) {
+        b.addEventListener('click', function() {
+          var m = list[+b.getAttribute('data-mua-rm')];
+          if (!confirm(m.custom ? 'Delete "' + m.title + '" from the Museum?' : 'Remove your note, photo and ⭐ from "' + m.title + '"?')) return;
+          adminMsg('Saving…', true);
+          picksApi({ pin: SUB.pin, action: 'museumrm', id: m.id }).then(function(res) {
+            if (res.error) { adminMsg(res.error, false); return; }
+            refresh(res, m.custom ? 'Deleted.' : 'Back to the automatic version.');
+          }).catch(function() { adminMsg('Couldn\'t reach the script. Try again.', false); });
+        });
+      });
     }
 
     // ── 🥚 Easter eggs: the answer key (js/eggs.js has the actual eggs) ──────
@@ -673,6 +797,7 @@
       if (section === 'chat') adminChat();
       if (section === 'season') adminSeason();
       if (section === 'theme') adminTheme();
+      if (section === 'museum') adminMuseum();
       if (section === 'eggs') adminEggs();
       if (section === 'status') adminStatus();
     }

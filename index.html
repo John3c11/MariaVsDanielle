@@ -1,4 +1,4 @@
-<!-- v103 -->
+<!-- v104 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -45,7 +45,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=103">
+  <link rel="stylesheet" href="style.css?v=104">
 </head>
 <body>
   <div class="page-layout">
@@ -75,6 +75,7 @@
           <button class="tab-btn" onclick="switchTab('crowd')">🏅 Crowd</button>
           <button class="tab-btn" onclick="switchTab('schedule')">🗓️ Schedule</button>
           <button class="tab-btn" onclick="switchTab('legacy')">📜 All-Time</button>
+          <button class="tab-btn" onclick="switchTab('museum')">🏛️ Museum</button>
           <button class="tab-btn" onclick="switchTab('bethistory')">🧾 Bet Log</button>
           <button class="tab-btn" onclick="switchTab('rosters')">📋 Rosters</button>
         </div>
@@ -175,6 +176,10 @@
     </div>
 
 
+    <div id="tab-museum" class="tab-panel">
+      <div id="museum-content"></div>
+    </div>
+
     <div id="tab-analytics" class="tab-panel">
       <div id="analytics-content"><div class="loading">Loading...</div></div>
     </div>
@@ -190,18 +195,18 @@
 
   <script src="config.js"></script>
   <!-- Site code, split by tab. Bump ?v= on every file when any file changes. -->
-  <script src="js/core.js?v=103"></script>
-  <script src="js/stats.js?v=103"></script>
-  <script src="js/players.js?v=103"></script>
-  <script src="js/picks.js?v=103"></script>
-  <script src="js/schedule.js?v=103"></script>
-  <script src="js/profiles.js?v=103"></script>
-  <script src="js/chat.js?v=103"></script>
-  <script src="js/crowd.js?v=103"></script>
-  <script src="js/history.js?v=103"></script>
-  <script src="js/charts.js?v=103"></script>
-  <script src="js/insights.js?v=103"></script>
-  <script src="js/main.js?v=103"></script>
+  <script src="js/core.js?v=104"></script>
+  <script src="js/stats.js?v=104"></script>
+  <script src="js/players.js?v=104"></script>
+  <script src="js/picks.js?v=104"></script>
+  <script src="js/schedule.js?v=104"></script>
+  <script src="js/profiles.js?v=104"></script>
+  <script src="js/chat.js?v=104"></script>
+  <script src="js/crowd.js?v=104"></script>
+  <script src="js/history.js?v=104"></script>
+  <script src="js/charts.js?v=104"></script>
+  <script src="js/insights.js?v=104"></script>
+  <script src="js/main.js?v=104"></script>
   
   </div><!-- end wrap -->
 

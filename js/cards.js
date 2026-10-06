@@ -1,5 +1,6 @@
 // 🃏 Trading cards: every player who scored first for someone (Maria, Danielle or a friend) is a card in their album.
-// Rarity comes from where the player sits on the Rosters tab's depth chart: headliners are common,
+// Rarity: Maria and Danielle's cards go by the best odds the player paid off at (they have odds).
+// Friends' cards go by where the player sits on the Rosters tab's depth chart: headliners are common,
 // deep cuts are legendary. Loaded on demand by Profiles (loadScriptOnce).
 // Part of the MariaVsDanielle site. Shares the global scope with the other js/ files.
 
@@ -10,6 +11,9 @@
       { k: 'common', t: 'Common', d: 'WR1 or RB1' },
     ];
     var TIER_BY_SLOT = { WR1: 'common', RB1: 'common', WR2: 'rare', TE: 'rare', WR3: 'epic', QB: 'epic' };
+    var ODDS_TIERS = [{ k: 'legendary', min: 2500 }, { k: 'epic', min: 1500 }, { k: 'rare', min: 800 }, { k: 'common', min: 0 }]; // best odds paid
+    function oddsTier(best) { for (var i = 0; i < ODDS_TIERS.length; i++) if (best >= ODDS_TIERS[i].min) return tierOf(ODDS_TIERS[i].k); return tierOf('common'); }
+    var CARD_KEY = { odds: 'Common under +800 · Rare +800 · Epic +1500 · Legendary +2500 (best odds he hit at)', depth: 'Common WR1/RB1 · Rare WR2/TE · Epic WR3/QB · Legendary deep cuts' };
     var CARDS = { season: {}, sort: {}, all: {} }; // per album: chosen season / sort / show-all
     function tierOf(k) { return CARD_TIERS.filter(function(t) { return t.k === k; })[0]; }
 
@@ -33,7 +37,7 @@
       return out;
     }
     // Hits -> one card per player
-    function buildCards(hits) {
+    function buildCards(hits, mode) {
       var C = {}, latest = { year: '', week: 0 };
       hits.forEach(function(x) {
         var k = playerKey(x.name);
@@ -46,7 +50,8 @@
       });
       return Object.keys(C).map(function(k) {
         var c = C[k], d = depthOf(c.name);
-        c.slot = d.slot; c.tier = d.tier; c.gone = d.gone;
+        c.slot = d.slot; c.gone = d.gone;
+        c.tier = mode === 'odds' ? oddsTier(c.best) : d.tier;
         c.isNew = c.hits.some(function(h) { return h.year === latest.year && h.week === latest.week && h.year === CURRENT_YEAR; });
         return c;
       });
@@ -57,27 +62,27 @@
     function renderCardAlbum(el, who) {
       if (!el) return;
       Promise.all([loadAllBets(), rostersReady()]).then(function(res) {
-        drawCardAlbum(el, { key: who, who: who, color: personColor(who), hits: mdHits(res[0], who), seasons: true });
+        drawCardAlbum(el, { key: who, who: who, color: personColor(who), hits: mdHits(res[0], who), seasons: true, mode: 'odds' });
       }).catch(function() { el.innerHTML = ''; });
     }
     // A friend's album: hits = [{ name, team, year, week }] from their profile
     function renderFriendCards(el, name, hits, color) {
       if (!el) return;
-      rostersReady().then(function() { drawCardAlbum(el, { key: 'f:' + name, who: name, color: color, hits: hits, seasons: false }); });
+      rostersReady().then(function() { drawCardAlbum(el, { key: 'f:' + name, who: name, color: color, hits: hits, seasons: false, mode: 'depth' }); });
     }
 
     function drawCardAlbum(el, A) {
       var season = A.seasons ? (CARDS.season[A.key] || 'all') : 'all', sort = CARDS.sort[A.key] || 'rarity';
       var years = SEASONS.map(function(s) { return s.year; });
-      var cards = buildCards(A.hits.filter(function(x) { return season === 'all' || x.year === season; }));
+      var cards = buildCards(A.hits.filter(function(x) { return season === 'all' || x.year === season; }), A.mode);
       var order = { legendary: 0, epic: 1, rare: 2, common: 3 };
       cards.sort(sort === 'newest'
         ? function(a, b) { var x = a.hits[a.hits.length - 1], y = b.hits[b.hits.length - 1]; return y.year - x.year || y.week - x.week || order[a.tier.k] - order[b.tier.k]; }
-        : function(a, b) { return order[a.tier.k] - order[b.tier.k] || b.hits.length - a.hits.length || b.best - a.best; });
+        : function(a, b) { return order[a.tier.k] - order[b.tier.k] || (A.mode === 'odds' ? b.best - a.best || b.hits.length - a.hits.length : b.hits.length - a.hits.length || b.best - a.best); });
       var counts = { legendary: 0, epic: 0, rare: 0, common: 0 };
       cards.forEach(function(c) { counts[c.tier.k]++; });
       var showAll = CARDS.all[A.key], LIMIT = 12;
-      var h = '<div class="pf-h">🃏 Card Collection <small>' + cards.length + ' card' + (cards.length === 1 ? '' : 's') + ' · rarity = depth chart spot</small></div>' +
+      var h = '<div class="pf-h">🃏 Card Collection <small>' + cards.length + ' card' + (cards.length === 1 ? '' : 's') + ' · rarity = ' + (A.mode === 'odds' ? 'odds' : 'depth chart spot') + '</small></div>' +
         '<div class="tcd-bar">' + (A.seasons ? '<div class="af-bar"><span class="af-bar-label">Season</span>' + ['all'].concat(years).map(function(y) {
           return '<button class="filter-btn' + (season === y ? ' active' : '') + '" data-tcd-season="' + y + '">' + (y === 'all' ? 'All' : y) + '</button>';
         }).join('') + '</div>' : '') +
@@ -86,7 +91,7 @@
         el.innerHTML = h + '<div class="ch-empty">No cards yet. Every first TD ' + escHtml(A.who) + ' calls becomes one.</div>';
       } else {
         h += '<div class="tcd-tally">' + CARD_TIERS.map(function(t) { return counts[t.k] ? '<span class="tcd-t-' + t.k + '" title="' + t.d + '">' + counts[t.k] + ' ' + t.t + '</span>' : ''; }).join('') +
-          '<span class="tcd-key">Common WR1/RB1 · Rare WR2/TE · Epic WR3/QB · Legendary deep cuts</span></div>';
+          '<span class="tcd-key">' + CARD_KEY[A.mode] + '</span></div>';
         h += '<div class="tcd-grid">' + cards.map(function(c, i) { return cardHtml(c, A, i >= LIMIT && !showAll); }).join('') + '</div>';
         if (cards.length > LIMIT && !showAll) h += '<div style="text-align:center"><button class="link-btn" data-tcd-all="1">Show all ' + cards.length + ' cards</button></div>';
         el.innerHTML = h;
@@ -118,8 +123,9 @@
           '<div class="tcd-art">' + headshot(c.name, t, 78) + '</div>' +
           '<div class="tcd-name">' + escHtml(c.name) + '</div>' +
           '<div class="tcd-team">' + teamLogo(t) + escHtml(t ? t.split(' ').pop() : '') + '</div>' +
-          '<div class="tcd-pos' + (c.slot.length > 4 ? ' long' : '') + '">' + escHtml(c.slot) + '</div>' +
-          (odds ? '<div class="tcd-sub-odds">best +' + Math.round(c.best) + '</div>' : '') +
+          (A.mode === 'odds' && odds
+            ? '<div class="tcd-pos">+' + Math.round(c.best) + '</div><div class="tcd-sub-odds">' + escHtml(c.gone ? 'best odds' : c.slot + ' · best odds') + '</div>'
+            : '<div class="tcd-pos' + (c.slot.length > 4 ? ' long' : '') + '">' + escHtml(c.slot) + '</div>' + (odds ? '<div class="tcd-sub-odds">best +' + Math.round(c.best) + '</div>' : '')) +
           '<div class="tcd-foot"><span style="color:' + A.color + '">' + escHtml(A.who) + '</span> · ' + last.year + ' ' + wkName(last.week) + '</div>' +
         '</div>' +
         '<div class="tcd-back">' +

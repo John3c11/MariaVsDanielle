@@ -521,6 +521,77 @@
       }).catch(function() {});
     }
 
+    // ── Big screens: keep the two Stats columns about the same height ───────
+    // Tries the stat boxes stacked or 2×2, and This Week in History on the right or under the scoreboard,
+    // and keeps whichever leaves the smallest difference. The last card of the shorter column stretches
+    // to cover what's left (its content centered). Phones and laptops are never touched.
+    var BAL = { busy: false, timer: 0, key: '' };
+    function balanceStats() {
+      var tab = document.getElementById('tab-stats'), main = tab && tab.querySelector('.stats-main'), side = tab && tab.querySelector('.stats-side');
+      var hist = document.getElementById('hist-wrap2');
+      if (!main || !side || !hist) return;
+      var wide = window.matchMedia('(min-width: 1440px)').matches;
+      BAL.busy = true;
+      try {
+        if (!wide || !tab.classList.contains('active')) {
+          if (!wide) { // back to the plain layout
+            tab.classList.remove('tiles-2x2', 'measuring');
+            if (hist.parentNode !== side) side.appendChild(hist);
+            tab.querySelectorAll('.sb.grow').forEach(function(x) { x.classList.remove('grow'); });
+          }
+          return;
+        }
+        tab.querySelectorAll('.sb.grow').forEach(function(x) { x.classList.remove('grow'); });
+        tab.classList.add('measuring');
+        var histOn = hist.classList.contains('on');
+        var opts = [];
+        [false, true].forEach(function(grid) {
+          (histOn ? ['right', 'left'] : ['right']).forEach(function(where) {
+            tab.classList.toggle('tiles-2x2', grid);
+            if (where === 'left' && hist.parentNode !== main) main.appendChild(hist);
+            if (where === 'right' && hist.parentNode !== side) side.appendChild(hist);
+            var d = Math.abs(main.getBoundingClientRect().height - side.getBoundingClientRect().height);
+            opts.push({ grid: grid, where: where, d: d, key: grid + where });
+          });
+        });
+        // Best fit, but stay put unless another layout is clearly better (so live updates don't make it jump)
+        opts.sort(function(a, b) { return a.d - b.d; });
+        var pick = opts[0], cur = opts.filter(function(o) { return o.key === BAL.key; })[0];
+        if (cur && cur.d - pick.d < 40) pick = cur;
+        BAL.key = pick.key;
+        tab.classList.toggle('tiles-2x2', pick.grid);
+        if (pick.where === 'left' && hist.parentNode !== main) main.appendChild(hist);
+        if (pick.where === 'right' && hist.parentNode !== side) side.appendChild(hist);
+        var mh = main.getBoundingClientRect().height, sh = side.getBoundingClientRect().height;
+        tab.classList.remove('measuring');
+        var shorter = mh < sh ? main : side;
+        var cards = [].filter.call(shorter.children, function(x) { return x.classList.contains('sb') && x.offsetHeight > 0; });
+        if (cards.length) cards[cards.length - 1].classList.add('grow');
+      } finally {
+        if (BAL.obs) BAL.obs.takeRecords(); // ignore our own changes
+        if (BAL.obs2) BAL.obs2.takeRecords();
+        BAL.busy = false;
+      }
+    }
+    function queueBalance() { clearTimeout(BAL.timer); BAL.timer = setTimeout(balanceStats, 150); }
+    (function() {
+      var tab = document.getElementById('tab-stats');
+      if (!tab || typeof MutationObserver === 'undefined') return;
+      BAL.obs = new MutationObserver(function() { if (!BAL.busy) queueBalance(); });
+      BAL.obs.observe(tab, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['style', 'src'] });
+      // Switching to Stats (it can't be measured while hidden)
+      BAL.wasActive = tab.classList.contains('active');
+      BAL.obs2 = new MutationObserver(function() {
+        var on = tab.classList.contains('active');
+        if (on && !BAL.wasActive) queueBalance();
+        BAL.wasActive = on;
+      });
+      BAL.obs2.observe(tab, { attributes: true, attributeFilter: ['class'] });
+      window.addEventListener('resize', queueBalance);
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(queueBalance);
+      tab.addEventListener('load', queueBalance, true); // headshots finishing can change heights
+    })();
+
     // ── "Since your last visit" ──────────────────────────────────────────────
     // Each phone remembers which games were already scored the last time it opened the site.
     var VISIT = { shown: false, parts: [], chat: 0 };

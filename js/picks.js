@@ -241,7 +241,7 @@
     // Each entry is one thing they can do. More get added here over time.
     var PLAYER_SECTIONS = [['pick', '🏈 Make Pick'], ['change', '✏️ Change Pick'], ['mine', '📋 My Picks'], ['chat', '🗣️ Trash Talk'], ['profile', '👤 My Profile']];
 
-    var FRIEND_SECTIONS = [['fpick', '🏈 Make Picks'], ['fprofile', '👤 My Profile'], ['crowd', '🏅 Crowd']];
+    var FRIEND_SECTIONS = [['fpick', '🏈 Make Picks'], ['market', '📈 Market'], ['fprofile', '👤 My Profile'], ['crowd', '🏅 Crowd']];
     var FRIEND_COLOR = '#2DD4BF';
     var FRIEND_EMOJI = ['🏈','🔥','🐐','🦅','🐻','🦁','🐯','🐺','🦈','🐍','👑','💎','🚀','⚡','🎯','🍀','🌮','🍕','🌭','🍺','😎','🤠','👽','🤡'];
     var FRIEND_COLORS = ['#2DD4BF','#34D399','#A3E635','#FACC15','#FB923C','#F472B6','#E879F9','#A78BFA','#22D3EE','#E5E7EB'];
@@ -379,6 +379,11 @@
       }
       if (section === 'fprofile') openProfile(SUB.name);
       if (section === 'crowd') switchTab('crowd');
+      if (section === 'market') {
+        var mb = playerScreen('market', '<div class="loading">Loading the market…</div>');
+        loadScriptOnce('js/market.js').then(function() { mb.innerHTML = ''; renderMarket(mb, { trade: true, fresh: true }); })
+          .catch(function() { mb.innerHTML = '<div class="loading">Couldn\'t load the market. Check your connection.</div>'; });
+      }
     }
 
     // ✏️ Change Pick: games where the other person hasn't picked yet

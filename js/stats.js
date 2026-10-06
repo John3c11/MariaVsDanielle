@@ -334,7 +334,7 @@
           backgroundColor: '#0B0C10',
           scale: 2,
           useCORS: true,
-          ignoreElements: function(n) { return n.classList && n.classList.contains('share-btn'); },
+          ignoreElements: function(n) { return n.classList && (n.classList.contains('share-btn') || n.classList.contains('no-share')); },
           onclone: function(doc) {
             var c = doc.querySelector('[data-share="' + card.getAttribute('data-share') + '"]');
             if (c && sb) { c.style.backgroundImage = bg; c.style.margin = '0'; }
@@ -893,7 +893,13 @@
             tdHtml = '<div class="ls-td" style="color:rgba(255,255,255,0.55)">🏈 No touchdowns yet</div>';
           }
         }
-        strip.innerHTML = '<div class="ls-row"><div class="ls-score">' + scoreHtml + '</div><div class="ls-status">' + statusHtml + '</div></div>' + tdHtml;
+        // 📺 Game Day for live games both of them picked
+        var gdBtn = '';
+        if (state === 'in' && strip.closest('.live-game') && strip.closest('.live-game').querySelector('.lp-pick')) {
+          var q = function(s) { return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;'); };
+          gdBtn = '<button class="gd-open" onclick="openGameDay(\'' + q(strip.getAttribute('data-home')) + '\', \'' + q(strip.getAttribute('data-away')) + '\')">📺 Watch on Game Day</button>';
+        }
+        strip.innerHTML = '<div class="ls-row"><div class="ls-score">' + scoreHtml + '</div><div class="ls-status">' + statusHtml + '</div></div>' + tdHtml + gdBtn;
       }
       if (nextIn) LIVE.timer = setTimeout(updateLive, nextIn);
     }

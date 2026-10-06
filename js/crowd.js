@@ -129,6 +129,9 @@
             }).join('');
         }
 
+        // 📈 The Market (js/market.js, loaded when this tab opens)
+        h += '<div id="market-slot" style="margin-top:22px"></div>';
+
         // Weekly best
         var weeks = {};
         R.stats.forEach(function(s) {
@@ -167,6 +170,7 @@
           if (gKeys.length > 6) h += '<div style="text-align:center"><button class="link-btn" id="cr-more">Show all ' + gKeys.length + ' games</button></div>';
         }
         el.innerHTML = h;
+        loadScriptOnce('js/market.js').then(function() { renderMarket(document.getElementById('market-slot'), {}); }).catch(function() {});
         var more = document.getElementById('cr-more');
         if (more) more.addEventListener('click', function() { el.querySelectorAll('[data-cg]').forEach(function(d) { d.style.display = ''; }); more.remove(); });
       }).catch(function() { el.innerHTML = '<div class="loading">Couldn\'t load the crowd right now.</div>'; });

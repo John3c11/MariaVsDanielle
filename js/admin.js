@@ -308,7 +308,7 @@
           h += '<div class="pf-h">🏷️ Versions</div>';
           var v = s.versions || {};
           h += row('info', 'Website', siteV + ' · ' + (navigator.serviceWorker && navigator.serviceWorker.controller ? 'offline mode on' : 'offline mode not active yet'));
-          ['PicksAPI', 'FirstTD', 'WeeklyRecap', 'NFLPlayers', 'Injuries'].forEach(function(k) {
+          ['PicksAPI', 'FirstTD', 'WeeklyRecap', 'NFLPlayers', 'Injuries', 'Market'].forEach(function(k) {
             var old = !/^\d{4}-/.test(v[k] || '');
             h += row(old ? 'warn' : 'info', k + '.gs', old ? (v[k] || 'unknown') + ': paste the latest copy into Apps Script' : 'Updated ' + v[k]);
           });

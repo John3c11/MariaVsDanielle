@@ -278,6 +278,7 @@
       var glow = champ === 'Maria' ? 'rgba(239,68,68,0.55)' : champ === 'Danielle' ? 'rgba(59,130,246,0.55)' : 'rgba(255,255,255,0.25)';
       var h = '<div class="wrapped" data-share="' + year + '-wrapped" style="background:' + bg + ';--wr-glow:' + glow + '">';
       h += '<button class="share-btn" onclick="shareCard(this)" title="Share as image">Share</button>';
+      h += '<button class="wr-story no-share" onclick="openStory(\'' + year + '\')">▶ Story</button>';
       h += '<div class="wr-kicker">Season Wrapped</div>';
       h += '<div class="wr-year">' + year + '</div>';
       h += '<div class="wr-champ">' + (champ

@@ -74,6 +74,14 @@
       });
       return SCRIPT_LOADS[path];
     }
+    // 📖 Season Story (js/story.js). year: '2025', or leave it out for this season
+    function openStory(year) {
+      loadScriptOnce('js/story.js').then(function() { startStory(year); }).catch(function() { alert('Couldn\'t load the Season Story. Check your connection.'); });
+    }
+    // 📺 Game Day (js/gameday.js) for one live game
+    function openGameDay(home, away) {
+      loadScriptOnce('js/gameday.js').then(function() { startGameDay(home, away); }).catch(function() { alert('Couldn\'t load Game Day. Check your connection.'); });
+    }
     function openAnalytics() {
       if (typeof loadAnalyticsTab === 'function') return loadAnalyticsTab();
       loadScriptOnce('js/analytics.js').then(function() { loadAnalyticsTab(); }).catch(function() {

@@ -60,7 +60,7 @@
       });
       document.getElementById('tab-' + name).classList.add('active');
       // "More" shows which hidden tab you're on
-      var extra = { crowd: 'Crowd', schedule: 'Schedule', legacy: 'All-Time', museum: 'Museum', bracket: 'Bracket', machine: 'Machine', bethistory: 'Bet Log', rosters: 'Rosters' }[name];
+      var extra = { lab: 'Stat Lab', crowd: 'Crowd', schedule: 'Schedule', legacy: 'All-Time', museum: 'Museum', bracket: 'Bracket', machine: 'Machine', bethistory: 'Bet Log', rosters: 'Rosters' }[name];
       if (name === 'analytics' && window.matchMedia('(max-width: 700px)').matches) extra = 'Analytics';
       var more = document.getElementById('tab-more');
       if (more) {
@@ -79,6 +79,8 @@
       if (name === 'crowd') loadCrowdTab();
       if (name === 'rosters') setupPlayerSearch();
       if (name === 'museum') openMuseum();
+      if (name === 'lab') openLab();
+      else if ((location.hash || '').indexOf('#lab') === 0) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
       if (name === 'bracket') openBracket();
       if (name === 'machine') loadScriptOnce('js/machine.js').then(function() { loadMachineTab(); }).catch(function() {
         var el = document.getElementById('machine-content'); if (el) el.innerHTML = '<div class="loading">Couldn\'t load the Machine. Check your connection.</div>';
@@ -111,6 +113,14 @@
       bn.style.display = '';
       bn.querySelector('.vb-x').addEventListener('click', function() { try { localStorage.setItem('mvd-br-banner', CURRENT_YEAR); } catch (e) {} bn.style.display = 'none'; });
     }
+    // 🧪 Stat Lab (js/lab.js, loaded the first time it opens). A shared link (#lab?…) opens straight to it.
+    function openLab() {
+      loadScriptOnce('js/lab.js').then(function() { loadLabTab(); }).catch(function() {
+        var el = document.getElementById('lab-content');
+        if (el) el.innerHTML = '<div class="loading">Couldn\'t open the Stat Lab. Check your connection. <button class="link-btn" onclick="openLab()">Try again</button></div>';
+      });
+    }
+    if ((location.hash || '').indexOf('#lab') === 0) setTimeout(function() { switchTab('lab'); }, 0);
     // 🏛️ The Museum (js/museum.js, loaded the first time it opens)
     function openMuseum() {
       loadScriptOnce('js/museum.js').then(function() { loadMuseumTab(); }).catch(function() {

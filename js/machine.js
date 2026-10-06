@@ -71,7 +71,8 @@
       var upcoming = {};
       bets.forEach(function(b) { if (b.year === year && !b.firstScorer && b.game) upcoming[b.game] = 1; });
       var seen = {}; games.forEach(function(g) { seen[g.game] = 1; });
-      return { pub: pub, year: year, games: games, gradeMap: gradeMap, sealed: Object.keys(upcoming).filter(function(k) { return !seen[k]; }).length };
+      // Sealed = picks it has already made for games that haven't kicked off (the script only sends the count)
+      return { pub: pub, year: year, games: games, gradeMap: gradeMap, sealed: pub.sealed != null ? pub.sealed : 0, made: pub.made != null ? pub.made : games.length, trained: !!pub.trainedAt };
     }
 
     // Standings for the three of them over the same settled games
@@ -103,73 +104,108 @@
       loadMachine(true).then(function(D) { drawMachineTab(el, D); })
         .catch(function() { el.innerHTML = '<div class="loading">Couldn\'t reach the Machine. Check your connection.</div>'; });
     }
+    // Laid out like the Stats tab: the three of them over the same games, a units race, then a game-by-game log
+    var MC_WHO = ['Maria', 'Danielle', 'Machine'];
+    function mcColor(w) { return w === 'Machine' ? MC_COLOR : personColor(w); }
+    function mcName(w) { return w === 'Machine' ? 'The Machine' : w; }
     function drawMachineTab(el, D) {
-      var pub = D.pub, St = mcStandings(D, MACHINE.realOnly);
-      var h = '<div class="mch-hero"><div class="mch-bot">🤖</div><div><div class="mch-t">The Machine</div>' +
-        '<div class="mch-s">A first-TD model trained on ' + (pub.games ? pub.games.toLocaleString() : 'every') + ' NFL games since 2023. It plays every game Maria and Danielle play: one player per team, from the same list they pick from, sealed until kickoff.</div></div></div>';
+      var pub = D.pub;
+      var h = '';
       if (!D.games.length) {
-        el.innerHTML = h + '<div class="ch-empty">' + (D.sealed ? '🔒 Its picks for ' + D.sealed + ' upcoming game' + (D.sealed === 1 ? '' : 's') + ' are sealed until kickoff.' : 'No picks yet. The Machine is still learning.') + '</div>';
+        el.innerHTML = '<div class="mch-hero"><div class="mch-bot">🤖</div><div><div class="mch-t">The Machine</div>' +
+          '<div class="mch-s">A first-TD model trained on ' + (pub.games ? pub.games.toLocaleString() : 'every') + ' NFL games since 2023. It plays every game Maria and Danielle play, sealed until kickoff.</div></div></div>' +
+          '<div class="ch-empty">' + (!D.trained ? 'The Machine is still learning from every NFL game since 2023. Its picks show up here once it\'s trained.'
+          : !D.made ? 'The Machine is trained but hasn\'t made its picks yet. It makes them on its own within the hour, including the 2026 games already played.'
+          : '🔒 Its picks for ' + D.sealed + ' upcoming game' + (D.sealed === 1 ? '' : 's') + ' are sealed until kickoff.') + '</div>';
         return;
       }
-      // Standings
-      var order = ['Machine', 'Maria', 'Danielle'].sort(function(a, b) { return St[b].u - St[a].u; });
-      h += '<div class="pf-h">🏁 ' + D.year + ' standings <small>the same ' + St.Machine.n + ' games for all three</small></div>' +
-        '<div class="af-bar" style="margin-bottom:8px"><button class="filter-btn' + (!MACHINE.realOnly ? ' active' : '') + '" data-mc-real="0">All games</button><button class="filter-btn' + (MACHINE.realOnly ? ' active' : '') + '" data-mc-real="1">Real odds only</button></div>' +
-        '<div class="mch-stand">' + order.map(function(w, i) {
-          var s = St[w], c = w === 'Machine' ? MC_COLOR : personColor(w);
-          return '<div class="mch-st' + (i === 0 ? ' lead' : '') + '" style="--c:' + c + '"><div class="mch-rank">' + (i + 1) + '</div><div class="mch-who">' + (w === 'Machine' ? '🤖 The Machine' : w) + '</div>' +
-            '<div class="mch-u" style="color:' + (s.u >= 0 ? '#34D399' : '#F87171') + '">' + fmtU(s.u) + (w === 'Machine' && !MACHINE.realOnly ? ' <span class="mc-est">est</span>' : '') + '</div>' +
-            '<div class="mch-r">' + s.h + ' of ' + s.n + ' games hit' + (s.n ? ' (' + Math.round(s.h / s.n * 100) + '%)' : '') + '</div></div>';
-        }).join('') + '</div>' +
-        '<div class="mc-note">' + (MACHINE.realOnly ? 'Leaves out games the Machine hit at an estimated price, so every number here comes from odds you typed in.' : 'When the Machine picks someone Maria or Danielle also picked, it gets the real odds. Otherwise its price is an estimate of what FanDuel would have posted ("est").') + '</div>';
-      // Grades
-      var gm = mcGpa(D, 'Maria'), gd = mcGpa(D, 'Danielle');
-      if (gm || gd) {
-        var allG = [];
-        D.games.forEach(function(g) { ['Maria', 'Danielle'].forEach(function(w) { if (g.grades[w]) g.grades[w].picks.forEach(function(x) { allG.push({ w: w, x: x, g: g }); }); }); });
-        var bestMiss = allG.filter(function(a) { return a.g.settled && !a.x.hit && (a.x.g === 'A+' || a.x.g === 'A'); }).sort(function(a, b) { return b.x.ratio - a.x.ratio; })[0];
-        var luckyHit = allG.filter(function(a) { return a.x.hit && (a.x.g === 'D' || a.x.g === 'F'); }).sort(function(a, b) { return a.x.ratio - b.x.ratio; })[0];
-        function gp(a) { return '<b style="color:' + personColor(a.w) + '">' + a.w + '</b>\'s ' + escHtml(a.x.name) + ' at +' + Math.round(a.x.odds) + ' (' + Math.round(a.x.chance * 100) + '% chance) · ' + D.year + ' ' + wkName(a.g.week); }
-        h += '<div class="pf-h">📝 Pick grades <small>the price they got vs the player\'s real chance</small></div><div class="mch-grades">' +
-          [['Maria', gm], ['Danielle', gd]].filter(function(x) { return x[1]; }).map(function(x) {
-            return '<div class="mch-gr" style="--c:' + personColor(x[0]) + '">' + mcChip(x[1].g) + '<div><div class="mch-who">' + x[0] + '</div><div class="mch-r">' + x[1].n + ' picks graded · ' + x[1].pts.toFixed(2) + ' GPA</div></div></div>';
-          }).join('') + '</div>' +
-          (bestMiss ? '<div class="mch-call">💎 <b>Best value that missed:</b> ' + gp(bestMiss) + ' ' + mcChip(bestMiss.x.g) + '</div>' : '') +
-          (luckyHit ? '<div class="mch-call">🍀 <b>Luckiest hit:</b> ' + gp(luckyHit) + ' ' + mcChip(luckyHit.x.g) + '</div>' : '') +
-          '<div class="mc-note">A grade is about the price, not the result: an A that misses was still a smart bet, and an F that hits was a lucky one. It compares the odds they got with what FanDuel usually charges for a player with the same chance.</div>';
+      // Totals over the same settled games
+      var T = {}; MC_WHO.forEach(function(w) { T[w] = { u: 0, d: 0, h: 0, n: 0 }; });
+      var W = {}, race = [];
+      D.games.slice().reverse().forEach(function(g) {
+        if (!g.settled || g.notOffered) return;
+        var amt = parseFloat((g.rows.Maria || g.rows.Danielle || {}).amount) || 5;
+        var res = { Machine: { u: g.units, h: g.hit ? 1 : 0 } };
+        ['Maria', 'Danielle'].forEach(function(w) { var r = g.rows[w]; if (r) res[w] = { u: r.netUnits, h: r.correct === 'Yes' ? 1 : 0, d: r.netDollars }; });
+        MC_WHO.forEach(function(w) {
+          if (!res[w]) return;
+          T[w].u += res[w].u; T[w].n++; T[w].h += res[w].h; T[w].d += res[w].d != null ? res[w].d : res[w].u * amt;
+          (W[g.week] = W[g.week] || { Maria: 0, Danielle: 0, Machine: 0 })[w] += res[w].h;
+        });
+        race.push({ g: g, Maria: T.Maria.u, Danielle: T.Danielle.u, Machine: T.Machine.u });
+      });
+      // Weeks won (most hits that week; a tie at the top counts as tied)
+      var won = { Maria: 0, Danielle: 0, Machine: 0, tied: 0 };
+      Object.keys(W).forEach(function(k) {
+        var top = Math.max(W[k].Maria, W[k].Danielle, W[k].Machine), at = MC_WHO.filter(function(w) { return W[k][w] === top; });
+        if (at.length === 1) won[at[0]]++; else won.tied++;
+      });
+      var rank = MC_WHO.slice().sort(function(a, b) { return T[b].u - T[a].u; });
+      var lead = rank[0], gap = T[rank[0]].u - T[rank[1]].u;
+      h += '<div class="sb mch-sb ' + (lead === 'Maria' ? 'sb-maria' : lead === 'Danielle' ? 'sb-danielle' : 'sb-machine') + '">' +
+        '<div class="mch-head"><div class="mch-av"><img src="pics/Maria.jpeg" alt="Maria"><span>Maria</span></div><i>vs</i>' +
+        '<div class="mch-av"><img src="pics/Danielle.jpeg" alt="Danielle"><span>Danielle</span></div><i>vs</i>' +
+        '<div class="mch-av mc"><b>🤖</b><span>The Machine</span></div></div>' +
+        '<div class="leader-banner" style="display:block">' + (gap < 0.05 ? 'It\'s <span>tied</span> at the top' : '<span>' + mcName(lead) + '</span> is leading by ' + gap.toFixed(1) + ' units') + '</div>' +
+        '<div class="sb-weeks mch-weeks"><div class="mch-wt">Weeks won</div>' + MC_WHO.map(function(w) {
+          return '<div><div class="n" style="color:' + mcColor(w) + '">' + won[w] + '</div><div class="l">' + w + '</div></div>';
+        }).join('') + (won.tied ? '<div><div class="n" style="color:rgba(255,255,255,0.75)">' + won.tied + '</div><div class="l">Tied</div></div>' : '') + '</div>' +
+        '<div class="sb-grid mch-grid">' +
+          mcBlock('Correct', T, function(t) { return t.h; }, function(t) { return t.h + '/' + t.n; }) +
+          mcBlock('Accuracy', T, function(t) { return t.n ? t.h / t.n : 0; }, function(t) { return t.n ? Math.round(t.h / t.n * 100) + '%' : '—'; }) +
+          mcBlock('Units', T, function(t) { return t.u; }, function(t, w) { return shortU(t.u).replace('u', '') + (w === 'Machine' ? '<sup>est</sup>' : ''); }) +
+          mcBlock('Dollars', T, function(t) { return t.d; }, function(t, w) { return shortD(t.d) + (w === 'Machine' ? '<sup>est</sup>' : ''); }) +
+        '</div>' +
+        '<div class="mch-foot">' + T.Machine.n + ' games, the same ones for all three. "est": when the Machine picks a player neither of them had, its odds are an estimate of FanDuel\'s.</div></div>';
+      // Units race
+      if (race.length >= 2 && typeof chLineChart === 'function') {
+        var tips = [''].concat(race.map(function(x) { return wkName(x.g.week) + ' · Maria ' + chU(x.Maria) + ' · Danielle ' + chU(x.Danielle) + ' · Machine ' + chU(x.Machine); }));
+        h += '<div class="pf-h">📈 Units race <small>game by game, ' + D.year + '</small></div><div class="ch-box mch-race">' +
+          chLineChart({ n: race.length + 1, series: MC_WHO.map(function(w) { return { name: mcName(w), color: mcColor(w), vals: [0].concat(race.map(function(x) { return x[w]; })) }; }),
+            xLabels: [], dividers: [], tips: tips, fmt: function(v, axis) { return axis ? (v > 0 ? '+' : '') + v : chU(v); }, height: 240 }) +
+          '</div>';
       }
-      // Picks, week by week
+      // Bet log: one card per game, one line per person
       var weeks = []; D.games.forEach(function(g) { if (weeks.indexOf(g.week) < 0) weeks.push(g.week); });
-      h += '<div class="pf-h">🗓️ Its picks <small>' + (D.sealed ? '🔒 ' + D.sealed + ' upcoming sealed until kickoff' : 'every game they played') + '</small></div>';
+      h += '<div class="pf-h">🧾 Bet log <small>' + (D.sealed ? '🔒 ' + D.sealed + ' upcoming pick' + (D.sealed === 1 ? '' : 's') + ' sealed until kickoff' : 'newest first') + '</small></div>';
       weeks.forEach(function(w) {
         var list = D.games.filter(function(g) { return g.week === w; });
-        h += '<div class="mch-wk">' + wkName(w) + (list.some(function(g) { return g.retro; }) ? ' <span class="mch-retro" title="Made after the fact, using only what was known before kickoff">made after the fact</span>' : '') + '</div>' + list.map(mcGameHtml).join('');
+        h += '<div class="mch-wk">' + wkName(w) + (list.some(function(g) { return g.retro; }) ? ' <span class="mch-retro" title="The Machine made these picks after the fact, using only what was known before kickoff">Machine picked after the fact</span>' : '') + '</div>' + list.map(mcGameHtml).join('');
       });
-      // How it works
       var R = pub.report;
-      if (R) h += '<div class="pf-h">🧠 How good is it?</div><div class="mc-note" style="margin-bottom:24px">Tested on ' + R.tested + ' games it never trained on, its picks hit ' + Math.round(R.two * 1000) / 10 + '% of the time' +
-        (R.theirN >= 10 ? ' (' + Math.round(R.their * 1000) / 10 + '% on games Maria and Danielle played)' : '') + ', and it called which team scores first ' + Math.round(R.team * 100) + '% of the time. ' +
-        'It works out each player\'s chance from his team\'s odds of scoring first (spread and recent form) times his recent share of the team\'s touchdowns and goal-line touches. Last trained ' + (pub.trainedAt ? new Date(pub.trainedAt).toLocaleDateString() : '—') + '.</div>';
+      if (R) h += '<div class="mc-note" style="margin:14px 0 24px">🧠 How it picks: each player\'s chance = his team\'s chance of scoring first (spread and recent form) × his recent share of the team\'s touchdowns and goal-line touches. Tested on ' + R.tested + ' games it never saw, its picks hit ' + Math.round(R.two * 1000) / 10 + '% of the time.</div>';
       el.innerHTML = h;
       if (typeof fillHeadshots === 'function') fillHeadshots(el);
-      el.querySelectorAll('[data-mc-real]').forEach(function(b) { b.addEventListener('click', function() { MACHINE.realOnly = b.getAttribute('data-mc-real') === '1'; drawMachineTab(el, D); }); });
+    }
+    // One stat with three values and bars (Maria, Danielle, Machine)
+    function mcBlock(label, T, val, show) {
+      var vals = MC_WHO.map(function(w) { return val(T[w]); });
+      var lo = Math.min.apply(null, vals.concat([0])), hi = Math.max.apply(null, vals.concat([0])), span = (hi - lo) || 1;
+      return '<div class="stat-block mch-block"><div class="stat-label">' + label + '</div><div class="mch-vals">' + MC_WHO.map(function(w, i) {
+        return '<div class="mch-val"><b style="color:' + mcColor(w) + '">' + show(T[w], w) + '</b><div class="mch-bar"><i style="width:' + Math.max(4, Math.round((vals[i] - lo) / span * 100)) + '%;background:' + mcColor(w) + '"></i></div></div>';
+      }).join('') + '</div></div>';
     }
     function mcGameHtml(g) {
       function nick(t) { return escHtml(resolveTeam(t).split(' ').pop()); }
-      var h = '<div class="mch-g"><div class="mch-gh"><span>' + teamLogo(g.away) + nick(g.away) + ' @ ' + nick(g.home) + teamLogo(g.home) + '</span>' +
-        '<span class="mch-ftd">' + (g.settled ? '🏈 ' + escHtml(g.scorer) + (g.notOffered ? ' · not offered' : '') : '<span class="ls-dot"></span> live') + '</span></div>';
-      h += '<div class="mch-row mc"><span class="mch-lbl" style="color:' + MC_COLOR + '">🤖</span>' + g.picks.map(function(x) {
-        var hit = g.hit === x;
-        return '<span class="mch-p' + (hit ? ' hit' : g.settled ? ' miss' : '') + '">' + headshot(x.name, x.team, 22) + escHtml(x.name) + ' <small>' + Math.round(x.pct * 100) + '% · ' + mcPrice(x) + '</small>' + (hit ? ' ✅' : '') + '</span>';
-      }).join('') + (g.settled ? '<b class="mch-units" style="color:' + (g.units >= 0 ? '#34D399' : '#F87171') + '">' + fmtU(g.units) + '</b>' : '') + '</div>';
-      ['Maria', 'Danielle'].forEach(function(w) {
-        var gr = g.grades[w], r = g.rows[w];
-        if (!r) return;
-        var picks = gr ? gr.picks : [r.homePick, r.awayPick].filter(Boolean).map(function(n) { return { name: n, g: null }; });
-        h += '<div class="mch-row"><span class="mch-lbl" style="color:' + personColor(w) + '">' + w.charAt(0) + '</span>' + picks.map(function(x) {
-          var hit = g.settled && playerKey(x.name) === playerKey(g.scorer);
-          return '<span class="mch-p' + (hit ? ' hit' : g.settled ? ' miss' : '') + '">' + escHtml(x.name) + (x.chance ? ' <small>' + Math.round(x.chance * 100) + '% · +' + Math.round(x.odds) + '</small>' : '') + (x.g ? ' ' + mcChip(x.g) : '') + (hit ? ' ✅' : '') + '</span>';
-        }).join('') + (g.settled ? '<b class="mch-units" style="color:' + (r.netUnits >= 0 ? '#34D399' : '#F87171') + '">' + fmtU(r.netUnits) + '</b>' : '') + '</div>';
+      function pick(name, odds, est, settled) {
+        var hit = settled && playerKey(name) === playerKey(g.scorer);
+        return '<span class="mch-pk' + (hit ? ' hit' : settled ? ' miss' : '') + '">' + (hit ? '✅ ' : '') + escHtml(name) + (odds ? ' <small>+' + Math.round(odds) + (est ? ' est' : '') + '</small>' : '') + '</span>';
+      }
+      var h = '<div class="mch-g"><div class="mch-gh"><span class="mch-match">' + teamLogo(g.away) + nick(g.away) + ' <i>@</i> ' + nick(g.home) + teamLogo(g.home) + '</span>' +
+        '<span class="mch-ftd">' + (g.settled ? '🏈 ' + escHtml(g.scorer) + (g.notOffered ? ' <small>not offered</small>' : '') : '<span class="ls-dot"></span> in progress') + '</span></div>';
+      MC_WHO.forEach(function(w) {
+        var line, units = null;
+        if (w === 'Machine') {
+          line = g.picks.map(function(x) { return pick(x.name, x.price, !x.real, g.settled); }).join('');
+          if (g.settled) units = g.units;
+        } else {
+          var r = g.rows[w];
+          if (!r) return;
+          line = [[r.homePick, r.homeOdds], [r.awayPick, r.awayOdds]].filter(function(x) { return x[0]; }).map(function(x) { return pick(x[0], oddsN(x[1]) * 100, false, g.settled); }).join('');
+          if (g.settled) units = r.netUnits;
+        }
+        h += '<div class="mch-line"><span class="mch-who" style="color:' + mcColor(w) + '">' + (w === 'Machine' ? '🤖 Machine' : w) + '</span><span class="mch-picks">' + line + '</span>' +
+          (units === null ? '' : '<b class="mch-units" style="color:' + (units > 0 ? '#34D399' : units < 0 ? '#F87171' : '#9CA3AF') + '">' + fmtU(units) + '</b>') + '</div>';
       });
       return h + '</div>';
     }
@@ -179,6 +215,13 @@
       el.innerHTML = profileSwitchHtml('Machine') + '<div class="loading">Loading…</div>';
       bindProfileSwitch(el);
       loadMachine().then(function(D) {
+        if (!D.games.length) {
+          el.innerHTML = profileSwitchHtml('Machine') + '<div class="pf-hero" style="--pc:' + MC_COLOR + ';background:linear-gradient(140deg,#0F0F12 0%,#1E1240 55%,#5B21B6 100%)"><div class="mch-avatar">🤖</div>' +
+            '<div class="pf-name" style="color:' + MC_COLOR + '">The Machine</div><div class="pf-sub">' + (D.made ? '🔒 ' + D.sealed + ' pick' + (D.sealed === 1 ? '' : 's') + ' sealed until kickoff' : D.trained ? 'Trained. Its first picks are on the way.' : 'Still learning.') + '</div></div>' +
+            '<div class="mc-note" style="margin:10px 0 24px;text-align:center">Its record, best hits and cards show up here after its first games kick off.</div>';
+          bindProfileSwitch(el);
+          return;
+        }
         var S = mcStandings(D, false).Machine;
         var hits = D.games.filter(function(g) { return g.hit; });
         var best = hits.slice().sort(function(a, b) { return b.hit.price - a.hit.price; })[0];

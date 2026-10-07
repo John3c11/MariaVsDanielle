@@ -48,7 +48,7 @@
     var AN_TABS = [
       ['highlights', '🔥 Highlights', ['Pick of the Season', 'Hit Grid']],
       ['trends', '📈 Trends', ['Season Race', 'Luck Meter', 'Weekly Units', 'Form', 'Month by Month']],
-      ['picking', '🎯 Picking', ['Boldness Meter', 'Pressure Picks', 'Picking vs Reality', 'Who Scores First', 'Correct Picks by Game Type']],
+      ['picking', '🎯 Picking', ['Splits', 'Boldness Meter', 'Pressure Picks', 'Picking vs Reality', 'Who Scores First']],
       ['players', '🏈 Players & Teams', ['NFL Team Heat Map', 'Overachievers & Busts', 'TD Scorer Leaderboard', 'Chaos Corner']],
       ['pain', '😬 Pain', ['Jinx Tracker', 'Bad Beats']],
     ];
@@ -57,14 +57,11 @@
     var AN_MERGE = {
       'Week-by-Week Results': ['Weekly Units', 'list', 'Week by week', 'Show the week-by-week list'],
       'Win Rate by Week': ['Weekly Units', 'list', 'Win rate by week', 'Show the week-by-week list'],
-      'Win Rate by Odds Range': ['Boldness Meter', 'list', 'Win rate by odds range', 'Show win rate by odds range'],
       'Odds vs Hits': ['Boldness Meter', 'sub', 'Where the hits come from'],
       'Best Stretches & Biggest Wins': ['Hit Grid', 'list', 'Best stretches & biggest wins (all seasons)', 'Show best stretches & biggest wins'],
       'Fun Stats': ['Overachievers & Busts', 'list', 'Most picked & cursed picks (all seasons)', 'Show most picked & cursed picks'],
-      'Hit Rate by Position': ['Picking vs Reality', 'sub', 'Hit rate by position'],
-      'Home vs Away Pick Accuracy': ['Who Scores First', 'sub', 'Their pick accuracy: home vs away players'],
     };
-    var AN_RENAME = { 'Who Scores First': 'Home vs Away', 'Correct Picks by Game Type': 'By Game Type', 'NFL Team Heat Map': 'Team Report Card' };
+    var AN_RENAME = { 'Who Scores First': 'Which Side Scores First', 'NFL Team Heat Map': 'Team Report Card' };
     function anStore(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
 
     function anOrganize(root, seasonOpts) {
@@ -411,29 +408,12 @@
         html += pickCard(getBestPick(scored.filter(function(r){return r.year===CURRENT_YEAR;})), CURRENT_YEAR + " Season");
         if (AN_YEARS.length > 1) html += '<div class="ch-intro" style="margin-top:-2px">Past seasons\' picks are on their Season Wrapped cards on All-Time.</div>';
 
-        // ── Performance: Home vs Away ─────────────────────────────────────────
-        html += section("Home vs Away Pick Accuracy");
-        function homeAwayStats(personRows) {
-          var home = { wins: 0, total: 0 }, away = { wins: 0, total: 0 };
-          personRows.forEach(function(r) {
-            if (r.homePick) { home.total++; if (r.correct === "Yes" && r.homePick === r.firstScorer) home.wins++; }
-            if (r.awayPick) { away.total++; if (r.correct === "Yes" && r.awayPick === r.firstScorer) away.wins++; }
-          });
-          // fallback: if can't determine which pick won, count overall correct
-          if (home.wins === 0 && away.wins === 0) {
-            personRows.forEach(function(r) {
-              if (r.correct === "Yes") { if (r.homePick) home.wins += 0.5; if (r.awayPick) away.wins += 0.5; }
-            });
-          }
-          return '<div>' +
-            statRow("Home picks", pct(Math.round(home.wins), home.total) + " (" + Math.round(home.wins) + "/" + home.total + ")") +
-            statRow("Away picks", pct(Math.round(away.wins), away.total) + " (" + Math.round(away.wins) + "/" + away.total + ")") +
-          '</div>';
-        }
-        html += twoCol(
-          personCard("Maria", homeAwayStats(scored.filter(function(r){return r.picker==="Maria";}))),
-          personCard("Danielle", homeAwayStats(scored.filter(function(r){return r.picker==="Danielle";})))
-        );
+        // ── Splits now live in the 🧪 Stat Lab (v118): home/road, game slot, position and odds range ──
+        html += section("Splits");
+        html += '<div class="ch-intro">Home vs road picks, game slots, positions and odds ranges are now in the Stat Lab, side by side, for any season, and you can tap any row to dig in.</div><div class="lab-jump">' +
+          [['side', '🏠 Home vs road'], ['slot', '🗓️ By game slot'], ['pos', '🏈 By position'], ['odds', '🎲 By odds range'], ['team', '🛡️ By team']].map(function(x) {
+            return '<button class="lab-pre" onclick="openLabQuery(\'split=' + x[0] + '\')">' + x[1] + ' →</button>';
+          }).join('') + '</div>';
 
         // ── Who Scores First: home or away team ──────────────────────────────
         html += section("Who Scores First");
@@ -533,92 +513,14 @@
 
         html += '</div>';
 
-        // ── Game Type Breakdown ──────────────────────────────────────────────
-        html += section("Correct Picks by Game Type");
-        html += '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">Hits and units by game slot: who shows up on Thursday night, who chokes on Monday.</div>';
-        html += '<div class="af-bars">' + afBar('gt', 'season', 'Season', SEASON_OPTS, CUR_SEASON) + '</div>';
-
-        const GAME_TYPE_ORDER = ['TNF','FNF','SNF','MNF','International','Thanksgiving','Black Friday','Saturday','Christmas','WNF'];
-        SEASON_OPTS.forEach(function(so) {
-          var season = so[0];
-          var gameTypeStats = {};
-          rows.forEach(function(r) {
-            if (!inSeason(r, season) || !r.slot || !r.homePick) return;
-            if (r.correct !== 'Yes' && r.correct !== 'No') return;
-            if (r.picker !== 'Maria' && r.picker !== 'Danielle') return;
-            if (!gameTypeStats[r.slot]) gameTypeStats[r.slot] = { Maria: { correct: 0, total: 0, u: 0 }, Danielle: { correct: 0, total: 0, u: 0 } };
-            gameTypeStats[r.slot][r.picker].total++;
-            gameTypeStats[r.slot][r.picker].u += r.netUnits;
-            if (r.correct === 'Yes') gameTypeStats[r.slot][r.picker].correct++;
-          });
-          var slotKeys = Object.keys(gameTypeStats).sort(function(a, b) {
-            var ai = GAME_TYPE_ORDER.indexOf(a), bi = GAME_TYPE_ORDER.indexOf(b);
-            if (ai === -1 && bi === -1) return a.localeCompare(b);
-            if (ai === -1) return 1;
-            if (bi === -1) return -1;
-            return ai - bi;
-          });
-          if (!slotKeys.length) { html += afVariant('gt', [season], EMPTY('No scored games yet.')); return; }
-          var inner = '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:8px 12px">' +
-            '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:8px 0 4px;border-bottom:1px solid rgba(255,255,255,0.10)">' +
-            '<span style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Slot</span>' +
-            '<span style="font-size:11px;color:' + SB_M + ';text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Maria</span>' +
-            '<span style="font-size:11px;color:' + SB_D + ';text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Danielle</span>' +
-            '</div>';
-          slotKeys.forEach(function(slot, i) {
-            var ms = gameTypeStats[slot].Maria, ds = gameTypeStats[slot].Danielle;
-            function cell(st, color) {
-              if (!st.total) return '<span style="text-align:center;font-size:14px;font-weight:700;color:' + color + '">—</span>';
-              return '<span style="text-align:center;font-size:14px;font-weight:700;color:' + color + '">' + st.correct + '/' + st.total +
-                ' <span style="color:#9CA3AF;font-size:11px">(' + Math.round(st.correct / st.total * 100) + '%)</span>' +
-                '<span class="gt-u" style="color:' + (st.u > 0 ? '#34D399' : st.u < 0 ? '#F87171' : '#9CA3AF') + '">' + fmtU(st.u) + '</span></span>';
-            }
-            var border = i < slotKeys.length - 1 ? 'border-bottom:0.5px solid rgba(255,255,255,0.06)' : '';
-            inner += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 0;' + border + ';align-items:center">' +
-              '<span style="font-size:13px;font-weight:600;color:#D1D5DB">' + slot + '</span>' +
-              cell(ms, SB_M) + cell(ds, SB_D) + '</div>';
-          });
-          html += afVariant('gt', [season], inner + '</div>');
-        });
-
-        // ── Hit Rate by Position (positions from the current Rosters tab) ────
+        // ── Positions (used by Picking vs Reality; hit rate by position is in the Stat Lab) ────
         try { await ROSTERS_READY; } catch (e) {}
-        html += section("Hit Rate by Position");
-        html += '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">How often each kind of pick scored first. Positions come from the current Rosters tab; players who aren\'t on it anymore count as Other.</div>';
-        html += '<div class="af-bars">' + afBar('pos', 'season', 'Season', SEASON_OPTS, CUR_SEASON) + '</div>';
         var POS_ORDER = ['WR', 'RB', 'TE', 'QB', 'Other'];
         function posOf(name) {
           var info = ROSTER_INFO[playerKey(name)];
           var p = info && info.pos ? info.pos.replace(/\d+/g, '') : '';
           return POS_ORDER.indexOf(p) >= 0 ? p : 'Other';
         }
-        SEASON_OPTS.forEach(function(so) {
-          var season = so[0];
-          var T = { Maria: {}, Danielle: {} };
-          rows.forEach(function(r) {
-            if (!inSeason(r, season) || (r.picker !== 'Maria' && r.picker !== 'Danielle')) return;
-            if ((r.correct !== 'Yes' && r.correct !== 'No') || !r.firstScorer) return;
-            if (isNotOffered(r)) return; // not-offered games don't count
-            [r.homePick, r.awayPick].filter(Boolean).forEach(function(pk) {
-              var p = posOf(pk);
-              var t = T[r.picker][p] || (T[r.picker][p] = { h: 0, n: 0 });
-              t.n++;
-              if (playerKey(pk) === playerKey(r.firstScorer)) t.h++;
-            });
-          });
-          function card(who) {
-            var c = personColor(who);
-            var rowsHtml = POS_ORDER.filter(function(p) { return T[who][p]; }).map(function(p) {
-              var t = T[who][p], rate = t.n ? t.h / t.n : 0;
-              return '<div style="padding:7px 0">' +
-                '<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span style="font-weight:700">' + p + '</span>' +
-                '<span><b>' + Math.round(rate * 100) + '%</b> <span style="color:#A1A9B6">(' + t.h + '/' + t.n + ')</span></span></div>' +
-                '<div style="height:6px;border-radius:3px;background:rgba(255,255,255,0.08)"><div style="width:' + Math.round(rate * 100) + '%;height:6px;border-radius:3px;background:' + c + '"></div></div></div>';
-            }).join('');
-            return personCard(who, rowsHtml || '<div style="color:#A1A9B6;font-size:13px">No scored picks.</div>');
-          }
-          html += afVariant('pos', [season], twoCol(card('Maria'), card('Danielle')));
-        });
 
         // ── Picking vs Reality: what they pick vs who actually scores first ──
         html += section("Picking vs Reality");
@@ -835,25 +737,6 @@
           }).filter(Boolean).join(' · ');
           html += afVariant('mbm', [season], inner + (notes ? '<div style="font-size:12px;color:#A1A9B6;margin-top:10px">' + notes + '. Months are worked out from the week number.</div>' : ''));
         });
-
-        // ── Performance: Win rate by odds range ───────────────────────────────
-        html += section("Win Rate by Odds Range");
-        var oddsRanges = [
-          { label: "+100–+500 (Favorites)", min: 1, max: 5 },
-          { label: "+500–+1000", min: 5, max: 10 },
-          { label: "+1000–+2000", min: 10, max: 20 },
-          { label: "+2000+ (Longshots)", min: 20, max: Infinity },
-        ];
-        html += '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:16px;margin-bottom:12px">';
-        oddsRanges.forEach(function(range) {
-          var rangeRows = scored.filter(function(r) {
-            var odds = r.homePick ? Math.abs(r.homeOdds) : Math.abs(r.awayOdds);
-            return odds >= range.min && odds < range.max;
-          });
-          var wins = rangeRows.filter(function(r){return r.correct==="Yes";}).length;
-          html += statRow(range.label, pct(wins, rangeRows.length) + " (" + wins + "/" + rangeRows.length + ")");
-        });
-        html += '</div>';
 
         // ── Odds vs Hits (chart) ──
         html += section("Odds vs Hits");

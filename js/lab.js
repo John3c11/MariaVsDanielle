@@ -17,8 +17,13 @@
       { t: '👯 When they picked the same guy', q: { who: 'both', same: 'same' } },
       { t: '🏈 Running backs', q: { who: 'both', pos: ['RB'] } },
       { t: '🤖 The Machine', q: { who: 'Machine' } },
+      { t: '📊 By position', q: { who: 'both', split: 'pos' } },
+      { t: '🗓️ By game slot', q: { who: 'both', split: 'slot' } },
+      { t: '🎲 By odds', q: { who: 'both', split: 'odds' } },
+      { t: '🏠 Home vs road', q: { who: 'both', split: 'side' } },
     ];
-    function labBlank() { return { who: 'both', yr: [], slot: [], pos: [], odds: [], side: '', team: '', player: '', wk1: 0, wk2: 0, same: '', res: '' }; }
+    var LAB_SPLITS = [['', 'None'], ['pos', 'Position'], ['slot', 'Slot'], ['odds', 'Odds'], ['side', 'Home/Road'], ['team', 'Team'], ['yr', 'Season'], ['player', 'Player']];
+    function labBlank() { return { who: 'both', yr: [], slot: [], pos: [], odds: [], side: '', team: '', player: '', wk1: 0, wk2: 0, same: '', res: '', split: '' }; }
 
     // ── Every pick as one record ──
     // Units: a hit pick gets the bet's whole result; a miss splits the bet's loss between its picks.
@@ -216,6 +221,7 @@
       var h = '<div class="lab-hero"><div class="lab-title">🧪 Stat Lab</div><div class="lab-sub">Build a question. The answer comes from every bet since ' + (yrs.slice().sort()[0] || '2023') + '.</div></div>';
       h += '<div class="lab-try"><span class="lab-l">Try</span>' + LAB_PRESETS.map(function(p, i) { return '<button class="lab-pre" data-lab-pre="' + i + '">' + p.t + '</button>'; }).join('') +
         saved.map(function(s, i) { return '<span class="lab-saved"><button class="lab-pre mine" data-lab-saved="' + i + '">⭐ ' + escHtml(s.name) + '</button><button class="lab-unsave" data-lab-unsave="' + i + '" aria-label="Remove">✕</button></span>'; }).join('') + '</div>';
+      h += '<div id="lab-disc"></div>';
       h += '<div class="lab-q">' +
         row('Who', chip('who', 'both', '⚖️ Maria vs Danielle', q.who === 'both') + chip('who', 'Maria', 'Maria', q.who === 'Maria', 'lab-m') + chip('who', 'Danielle', 'Danielle', q.who === 'Danielle', 'lab-d') +
           (PICKS_URL ? chip('who', 'Machine', '🤖 Machine', q.who === 'Machine') : '') +
@@ -223,6 +229,7 @@
         row('Season', chip('yr', '', 'All', !q.yr.length) + yrs.map(function(y) { return chip('yr', y, y, q.yr.indexOf(y) >= 0); }).join('')) +
         row('Slot', chip('slot', '', 'All', !q.slot.length) + slotList.map(function(s) { return chip('slot', s, escHtml(s), q.slot.indexOf(s) >= 0); }).join('')) +
         row('Position', chip('pos', '', 'All', !q.pos.length) + LAB_POS.map(function(p) { return chip('pos', p, p, q.pos.indexOf(p) >= 0); }).join('')) +
+        row('Split by', LAB_SPLITS.map(function(x) { return chip('split', x[0], x[1], q.split === x[0], 'lab-split'); }).join(''), 'lab-row-split') +
         '<button class="link-btn lab-more-btn" data-lab-more="1">' + (LAB.more ? '▴ Fewer filters' : '▾ More filters') + (nMore ? ' (' + nMore + ' on)' : '') + '</button>' +
         (LAB.more ?
           row('Odds', chip('odds', '', 'Any', !q.odds.length) + LAB_ODDS.map(function(b) { return chip('odds', b.k, b.t, q.odds.indexOf(b.k) >= 0); }).join('')) +
@@ -239,6 +246,7 @@
       el.innerHTML = h;
       labBind(el);
       labAnswer();
+      labDiscoveries();
     }
     function labWeekOpts(sel) { var h = ''; for (var w = 1; w <= 23; w++) { if (w === 22) continue; h += '<option value="' + w + '"' + (sel === w ? ' selected' : '') + '>' + weekName(w) + '</option>'; } return h; }
 
@@ -262,15 +270,17 @@
 
     function labAnswerHtml(R) {
       var q = LAB.q, desc = labDescribe(q), side = R.length === 2;
-      var h = '<div class="lab-ans-h"><div class="lab-ask">' + escHtml(labWhoName(q.who)) + ' · ' + desc.map(escHtml).join(' · ') + '</div>' +
-        '<div class="lab-acts"><button class="adm-btn" data-lab-act="save">☆ Save</button><button class="adm-btn" data-lab-act="link">🔗 Share link</button>' +
-        '<button class="adm-btn" data-lab-act="reset">↺ Reset</button></div></div>';
+      var h = '<div class="lab-card" data-share="stat-lab"><div class="lab-ans-h"><div class="lab-ask">🧪 ' + escHtml(labWhoName(q.who)) + ' · ' + desc.map(escHtml).join(' · ') +
+        (q.split ? ' · split by ' + LAB_SPLITS.filter(function(x) { return x[0] === q.split; })[0][1].toLowerCase() : '') + '</div>' +
+        '<div class="lab-acts no-share"><button class="adm-btn" data-lab-act="save">☆ Save</button><button class="adm-btn" data-lab-act="link">🔗 Share link</button>' +
+        '<button class="adm-btn" data-lab-act="img">📷 Share image</button><button class="adm-btn" data-lab-act="reset">↺ Reset</button></div></div>';
       // Headline answer(s)
       h += '<div class="lab-heads' + (side ? ' two' : '') + '">' + R.map(function(x) {
         var c = labWhoColor(x.who);
         return '<div class="lab-head" style="--pc:' + c + '"><div class="lab-head-who" style="color:' + c + '">' + escHtml(labWhoName(x.who)) + '</div><div class="lab-head-v">' + escHtml(labHeadline(x.S)) + '</div></div>';
       }).join('') + '</div>';
-      if (R.every(function(x) { return !x.S.n && !x.S.v; })) return h + '<div class="mc-note" style="text-align:center;margin:20px 0 30px">Nothing matches that. Try taking a filter off.</div>';
+      if (R.every(function(x) { return !x.S.n && !x.S.v; })) return h + '</div><div class="mc-note" style="text-align:center;margin:20px 0 30px">Nothing matches that. Try taking a filter off.</div>';
+      if (q.split) h += labSplitHtml(R, q.split);
       if (side) {
         var A = R[0].S, B = R[1].S;
         var avg = function(S) { return S.oddsN ? S.oddsSum / S.oddsN : 0; };
@@ -310,6 +320,7 @@
         h += '<div class="pf-h">📈 Units, pick by pick <small>' + len + ' pick' + (len === 1 ? '' : 's') + '</small></div><div class="ch-box">' +
           chLineChart({ n: len + 1, series: series, xLabels: [], dividers: dv, tips: labTips(R, series, len), fmt: function(v, axis) { return axis ? (v > 0 ? '+' : '') + v : chU(v); }, height: 210 }) + '</div>';
       }
+      h += '<div class="lab-brand">Maria vs Danielle · Stat Lab</div></div>';
       // The picks
       var all = [];
       R.forEach(function(x) { x.S.list.forEach(function(p) { all.push(p); }); });
@@ -317,6 +328,55 @@
       h += '<div class="pf-h">🧾 The picks <small>newest first</small></div><div class="lab-list">' + all.slice(0, LAB.shown).map(labPickHtml).join('') + '</div>' +
         (all.length > LAB.shown ? '<div class="af-more"><button class="link-btn" data-lab-act="more">Show ' + Math.min(50, all.length - LAB.shown) + ' more (' + (all.length - LAB.shown) + ' left)</button></div>' : '');
       return h;
+    }
+    // ── Split by: one row per position / slot / odds band / … with each person's record ──
+    function labSplitKey(p, key) {
+      if (key === 'pos') return p.pos;
+      if (key === 'slot') return p.slot || '—';
+      if (key === 'odds') { var b = LAB_ODDS.filter(function(x) { return p.odds > 0 && p.odds >= x.lo && p.odds < x.hi; })[0]; return b ? String(b.k) : ''; }
+      if (key === 'side') return p.home ? 'home' : 'away';
+      if (key === 'team') return resolveTeam(p.team);
+      if (key === 'yr') return p.year;
+      if (key === 'player') return p.name;
+      return '';
+    }
+    function labSplitLabel(k, key) {
+      if (key === 'odds') return LAB_ODDS[+k].t;
+      if (key === 'side') return k === 'home' ? '🏠 Home team' : '✈️ Road team';
+      if (key === 'team') return teamLogo(k) + ' ' + escHtml(teamNick(k));
+      return escHtml(k);
+    }
+    function labSplitHtml(R, key) {
+      var G = {};
+      R.forEach(function(x, wi) {
+        x.S.list.forEach(function(p) {
+          var k = labSplitKey(p, key); if (k === '') return;
+          var g = G[k] || (G[k] = { k: k, by: R.map(function() { return { n: 0, h: 0, u: 0, money: true }; }), tot: 0 });
+          var b = g.by[wi];
+          if (p.units === null) b.money = false; else b.u += p.units;
+          if (!p.void) { b.n++; g.tot++; if (p.hit) b.h++; }
+        });
+      });
+      var keys = Object.keys(G);
+      var order = { pos: LAB_POS, odds: ['0', '1', '2', '3', '4'], side: ['home', 'away'] }[key];
+      if (order) keys.sort(function(a, b) { return order.indexOf(a) - order.indexOf(b); });
+      else if (key === 'yr') keys.sort();
+      else keys.sort(function(a, b) { return G[b].tot - G[a].tot; });
+      var cut = key === 'player' || key === 'team' ? 15 : 99, more = keys.length - cut;
+      var cols = 'grid-template-columns:minmax(0,1.3fr) repeat(' + R.length + ',minmax(0,1fr))';
+      keys = keys.slice(0, cut);
+      var h = '<div class="pf-h">📊 Split by ' + LAB_SPLITS.filter(function(x) { return x[0] === key; })[0][1].toLowerCase() + ' <small>tap a row to dig in</small></div><div class="lab-split-t">' +
+        '<div class="lab-st-r lab-st-h" style="' + cols + '"><span></span>' + R.map(function(x) { return '<span style="color:' + labWhoColor(x.who) + '">' + escHtml(labWhoName(x.who)) + '</span>'; }).join('') + '</div>';
+      keys.forEach(function(k) {
+        var g = G[k], best = -1, bi = -1;
+        g.by.forEach(function(b, i) { var rt = b.n ? b.h / b.n : -1; if (b.n >= 3 && rt > best) { best = rt; bi = i; } });
+        h += '<button class="lab-st-r" style="' + cols + '" data-lab-split="' + escHtml(k) + '"><span class="lab-st-l">' + labSplitLabel(k, key) + '</span>' + g.by.map(function(b, i) {
+          if (!b.n) return '<span class="lab-st-c dim">—</span>';
+          return '<span class="lab-st-c' + (R.length > 1 && i === bi ? ' lead' : '') + '"><b>' + b.h + '/' + b.n + '</b> <i>' + Math.round(b.h / b.n * 100) + '%</i>' +
+            (b.money ? '<em style="color:' + (b.u > 0 ? '#34D399' : b.u < 0 ? '#F87171' : '#9CA3AF') + '">' + fmtU(b.u) + '</em>' : '') + '</span>';
+        }).join('') + '</button>';
+      });
+      return h + '</div>' + (more > 0 ? '<div class="mc-note" style="margin:-2px 0 12px">Top ' + cut + ' by picks. ' + more + ' more aren\'t shown.</div>' : '');
     }
     function labTips(R, series, len) {
       var t = [''];
@@ -345,7 +405,7 @@
       el.querySelectorAll('[data-lab]').forEach(function(b) {
         b.addEventListener('click', function() {
           var g = b.getAttribute('data-lab'), v = b.getAttribute('data-v'), q = LAB.q;
-          if (g === 'who' || g === 'side' || g === 'same' || g === 'res') { var c = {}; c[g] = q[g] === v && g !== 'who' ? '' : v; labSet(c); }
+          if (g === 'who' || g === 'side' || g === 'same' || g === 'res' || g === 'split') { var c = {}; c[g] = q[g] === v && g !== 'who' && g !== 'split' ? '' : v; labSet(c); }
           else { // multi-pick rows: "All" clears, others toggle
             var arr = q[g].slice(), val = g === 'odds' ? (v === '' ? '' : parseInt(v, 10)) : v;
             if (val === '') arr = []; else { var i = arr.indexOf(val); if (i >= 0) arr.splice(i, 1); else arr.push(val); }
@@ -395,6 +455,17 @@
             var s = labSaved(); s.unshift({ name: name.slice(0, 40), q: JSON.parse(JSON.stringify(LAB.q)) }); labSaveList(s.slice(0, 12)); labDraw();
           }
           if (a === 'link') labShare(b);
+          if (a === 'img' && typeof shareCard === 'function') shareCard(b);
+        });
+      });
+      box.querySelectorAll('[data-lab-split]').forEach(function(b) {
+        b.addEventListener('click', function() {
+          var k = b.getAttribute('data-lab-split'), key = LAB.q.split, c = { split: '' };
+          if (key === 'pos' || key === 'slot' || key === 'yr') c[key] = [k];
+          else if (key === 'odds') c.odds = [parseInt(k, 10)];
+          else c[key] = k;
+          labSet(c); labDraw();
+          var a = document.getElementById('lab-ans'); if (a) a.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
       });
       box.querySelectorAll('[data-lab-rp]').forEach(function(b) {
@@ -411,7 +482,7 @@
       var p = [];
       if (q.who !== 'both') p.push('who=' + encodeURIComponent(q.who));
       ['yr', 'slot', 'pos', 'odds'].forEach(function(k) { if (q[k].length) p.push(k + '=' + encodeURIComponent(q[k].join(','))); });
-      ['side', 'team', 'player', 'same', 'res'].forEach(function(k) { if (q[k]) p.push(k + '=' + encodeURIComponent(q[k])); });
+      ['side', 'team', 'player', 'same', 'res', 'split'].forEach(function(k) { if (q[k]) p.push(k + '=' + encodeURIComponent(q[k])); });
       if (q.wk1) p.push('wk1=' + q.wk1); if (q.wk2) p.push('wk2=' + q.wk2);
       return p.join('&');
     }
@@ -441,4 +512,102 @@
       if (navigator.share && /Mobi|iPhone|Android/i.test(navigator.userAgent)) { navigator.share({ title: title, url: url }).catch(function() {}); return; }
       if (navigator.clipboard) navigator.clipboard.writeText(url).then(function() { done('✓ Link copied'); }).catch(function() { prompt('Copy this link', url); });
       else prompt('Copy this link', url);
+    }
+
+    // ── 💡 Discoveries: the Lab checks thousands of questions on its own and keeps the surprising ones ──
+    // "Surprising" = far from what the odds said. Each pick's chance comes from its odds (+900 -> 10%),
+    // so a group's expected hits and spread are known, and only big gaps count (a z-score of 2+, stricter
+    // for two-filter combos). Needs 6+ picks; cold streaks need 2.5+ hits more expected than they got.
+    var LAB_DIMS = {
+      pos: function(p) { return p.pos === 'Other' ? '' : p.pos; }, slot: function(p) { return p.slot; }, side: function(p) { return p.home ? 'home' : 'away'; },
+      odds: function(p) { return labSplitKey(p, 'odds'); }, team: function(p) { return resolveTeam(p.team); }, yr: function(p) { return p.year; },
+      player: function(p) { return p.name; }, same: function(p) { return p.same ? 'same' : ''; },
+    };
+    var LAB_PAIRS = [['slot', 'side'], ['pos', 'side'], ['pos', 'slot'], ['pos', 'odds'], ['slot', 'odds'], ['pos', 'yr'], ['side', 'odds'], ['slot', 'yr'], ['team', 'side']];
+    function labDiscFind() {
+      if (LAB.disc) return LAB.disc;
+      var found = [];
+      ['Maria', 'Danielle'].forEach(function(who) {
+        var groups = {};
+        LAB.picks.forEach(function(p) {
+          if (p.who !== who || p.void) return;
+          function add(key, f) {
+            var g = groups[key] || (groups[key] = { f: f, n: 0, h: 0, e: 0, v: 0, u: 0, noOdds: false });
+            g.n++; if (p.hit) g.h++; g.u += p.units;
+            if (p.odds > 0) { var c = 1 / (p.odds + 1); g.e += c; g.v += c * (1 - c); } else g.noOdds = true;
+          }
+          Object.keys(LAB_DIMS).forEach(function(d) { var k = LAB_DIMS[d](p); if (k) add(d + '=' + k, [[d, k]]); });
+          LAB_PAIRS.forEach(function(pr) { var a = LAB_DIMS[pr[0]](p), b = LAB_DIMS[pr[1]](p); if (a && b) add(pr[0] + '=' + a + '|' + pr[1] + '=' + b, [[pr[0], a], [pr[1], b]]); });
+        });
+        Object.keys(groups).forEach(function(key) {
+          var g = groups[key];
+          if (g.n < 6 || g.noOdds || g.v <= 0) return;
+          var z = (g.h - g.e) / Math.sqrt(g.v), pair = g.f.length > 1;
+          var hot = z >= (pair ? 2.6 : 2.0) && g.h >= 3;
+          var cold = !hot && g.e - g.h >= (pair ? 3 : 2.5) && z <= -1.5;
+          if (!hot && !cold) return;
+          found.push({ who: who, key: who + '|' + key + '|' + (hot ? 'h' : 'c'), f: g.f, n: g.n, h: g.h, e: g.e, u: g.u, hot: hot, score: Math.abs(z) - (pair ? 0.5 : 0) + (hot ? 0.2 : 0) });
+        });
+      });
+      found.sort(function(a, b) { return b.score - a.score; });
+      // Skip near-repeats: a combo whose part is already on the list (same person, same direction)
+      var keep = [];
+      found.forEach(function(d) {
+        var dup = keep.some(function(k) {
+          if (k.who !== d.who || k.hot !== d.hot) return false;
+          if (k.n === d.n && k.h === d.h && Math.abs(k.u - d.u) < 0.01) return true; // the very same picks, said two ways
+          var a = k.f.map(function(x) { return x.join('='); }), b = d.f.map(function(x) { return x.join('='); });
+          return a.every(function(x) { return b.indexOf(x) >= 0; }) || b.every(function(x) { return a.indexOf(x) >= 0; });
+        });
+        if (!dup && keep.length < 12) keep.push(d);
+      });
+      return (LAB.disc = keep);
+    }
+    function labDiscText(d) {
+      var f = {}; d.f.forEach(function(x) { f[x[0]] = x[1]; });
+      var subject = f.player ? 'picking ' + escHtml(f.player) :
+        'on ' + (f.side ? (f.side === 'home' ? 'home ' : 'road ') : '') + (f.pos ? f.pos + ' ' : '') + (f.team && !f.player ? escHtml(teamNick(f.team)) + ' ' : '') + 'picks';
+      var q = [];
+      if (f.slot) q.push('on ' + escHtml(f.slot));
+      if (f.odds) q.push('at ' + LAB_ODDS[+f.odds].t);
+      if (f.yr) q.push('in ' + f.yr);
+      if (f.same) q.push('when they both had the same guy');
+      return '<b style="color:' + personColor(d.who) + '">' + d.who + '</b> is <b>' + d.h + ' for ' + d.n + '</b> ' + subject + (q.length ? ' ' + q.join(' ') : '') + '.';
+    }
+    function labDiscQuery(d) {
+      var q = labBlank(); q.who = d.who;
+      d.f.forEach(function(x) {
+        var k = x[0], v = x[1];
+        if (k === 'pos' || k === 'slot' || k === 'yr') q[k] = [v];
+        else if (k === 'odds') q.odds = [+v];
+        else q[k] = v;
+      });
+      return q;
+    }
+    function labDiscoveries() {
+      var el = document.getElementById('lab-disc');
+      if (!el || !LAB.picks) return;
+      var D = labDiscFind();
+      if (!D.length) { el.innerHTML = ''; return; }
+      // What this phone had seen before this visit (read once, so NEW tags last the whole visit)
+      if (!LAB.discSeen) { LAB.discSeen = {}; try { (JSON.parse(localStorage.getItem('mvd-lab-disc-seen') || '[]') || []).forEach(function(k) { LAB.discSeen[k] = 1; }); } catch (e) {} }
+      var seen = LAB.discSeen;
+      var first = !Object.keys(seen).length; // first visit: nothing is "new" yet
+      var show = LAB.discAll ? D : D.slice(0, 4);
+      el.innerHTML = '<div class="pf-h">💡 Discoveries <small>patterns the odds didn\'t see coming · tap one to open it</small></div><div class="lab-disc">' +
+        show.map(function(d, i) {
+          return '<button class="lab-dc ' + (d.hot ? 'hot' : 'cold') + '" style="--pc:' + personColor(d.who) + '" data-lab-disc="' + i + '">' +
+            '<span class="lab-dc-ic">' + (d.hot ? '🔥' : '🧊') + '</span><span class="lab-dc-m"><span class="lab-dc-t">' + labDiscText(d) + (!first && !seen[d.key] ? ' <span class="lab-new">NEW</span>' : '') + '</span>' +
+            '<span class="lab-dc-s">The odds said about ' + d.e.toFixed(1) + ' hit' + (Math.abs(d.e - 1) < 0.05 ? '' : 's') + ' · ' + fmtU(d.u) + '</span></span></button>';
+        }).join('') + '</div>' +
+        (D.length > 4 ? '<div class="af-more" style="padding-top:0"><button class="link-btn" id="lab-disc-all">' + (LAB.discAll ? 'Show fewer' : 'Show all ' + D.length) + '</button></div>' : '');
+      el.querySelectorAll('[data-lab-disc]').forEach(function(b) {
+        b.addEventListener('click', function() {
+          LAB.q = labDiscQuery(show[+b.getAttribute('data-lab-disc')]); LAB.shown = 25; labDraw();
+          var a = document.getElementById('lab-ans'); if (a) a.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
+      var all = document.getElementById('lab-disc-all');
+      if (all) all.addEventListener('click', function() { LAB.discAll = !LAB.discAll; labDiscoveries(); });
+      setTimeout(function() { try { localStorage.setItem('mvd-lab-disc-seen', JSON.stringify(D.map(function(d) { return d.key; }).concat(Object.keys(seen)).slice(0, 400))); } catch (e) {} }, 4000);
     }

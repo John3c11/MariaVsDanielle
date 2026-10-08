@@ -91,7 +91,7 @@
         return '<div class="ck-sw ' + (s.d > 0 ? 'up' : 'down') + '"><div class="ck-sw-d">' + (s.d > 0 ? '+' : '') + s.d.toFixed(1) + 'u</div><div><div class="ck-sw-w">' + when + '</div><div>' + txt + '</div></div></div>';
       }
       var h = '<div class="pf-h">🔮 The Chalk Team <small>what if they\'d always taken the favorite?</small></div>' +
-        '<div class="af-bar" style="margin-bottom:10px"><span class="af-bar-label">Season</span>' + ['all'].concat(years).map(function(y) {
+        '<div class="u-mb-10px af-bar"><span class="af-bar-label">Season</span>' + ['all'].concat(years).map(function(y) {
           return '<button class="filter-btn' + (CHALK.season === y ? ' active' : '') + '" data-ck="' + y + '">' + (y === 'all' ? 'All' : y) + '</button>';
         }).join('') + '</div>' +
         '<div class="ck-card">' +

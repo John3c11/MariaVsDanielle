@@ -35,7 +35,7 @@
       var shown = SCHED.showAll ? games : upcoming.filter(function(g) { return SCHED.later || upWeeks.indexOf(g.week) < 2; });
       var hiddenWeeks = SCHED.showAll || SCHED.later ? 0 : Math.max(0, upWeeks.length - 2);
 
-      var h = '<div class="af-bar" style="justify-content:center;margin-bottom:6px"><span class="af-bar-label">Show</span>' +
+      var h = '<div class="u-jc-center u-mb-6px af-bar"><span class="af-bar-label">Show</span>' +
         '<button class="filter-btn' + (!SCHED.showAll ? ' active' : '') + '" data-sch="0">Upcoming</button>' +
         '<button class="filter-btn' + (SCHED.showAll ? ' active' : '') + '" data-sch="1">Whole season</button></div>';
       if (!shown.length) h += '<div class="loading">All games are finished. 🎉</div>';

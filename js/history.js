@@ -165,12 +165,6 @@
       return t;
     }
 
-    function legacyStatCard(label, mVal, dVal) {
-      return '<div class="lg-tile"><div class="lg-label">' + label + '</div>' +
-        '<div class="lg-row"><span class="lg-val" style="color:' + SB_M + '">' + mVal + '</span><span class="lg-who">Maria</span></div>' +
-        '<div class="lg-row"><span class="lg-val" style="color:' + SB_D + '">' + dVal + '</span><span class="lg-who">Danielle</span></div>' +
-        '</div>';
-    }
     function secH(title, note) { return '<div class="pf-h">' + title + (note ? ' <small>' + note + '</small>' : '') + '</div>'; }
 
 
@@ -346,7 +340,7 @@
       if (hi === lo) hi = lo + 1;
       function x(i) { return L + i * (W - L - R) / games.length; }
       function y(v) { return T + (hi - v) / (hi - lo) * (H - T - B); }
-      var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block" font-family="Inter,sans-serif">';
+      var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="u-w-100 u-h-auto u-d-block" font-family="Inter,sans-serif">';
       svg += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(0) + '" y2="' + y(0) + '" stroke="rgba(255,255,255,0.25)" stroke-dasharray="4 3"/>';
       // first game of each week, label every few
       var lastWk = null, n = 0;
@@ -483,7 +477,7 @@
       h += '<button class="share-btn" onclick="shareCard(this)" title="Share as image">Share</button>';
       h += '<div class="wr-kicker">Crowd Wrapped</div><div class="wr-year">' + year + '</div>';
       h += '<div class="wr-champ">👑 ' + nm(champ.name) + ' wins the Crowd at ' + pctTxt(champ.pct) + ' (' + champ.w + '–' + (champ.n - champ.w) + ')</div>';
-      h += '<div class="wr-chart" style="padding:10px 14px">' + board.slice(0, 5).map(function(s, i) {
+      h += '<div class="u-p-10px-14px wr-chart">' + board.slice(0, 5).map(function(s, i) {
         return '<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:14px' + (i ? ';border-top:1px solid rgba(255,255,255,0.08)' : '') + '"><span>' + (i === 0 ? '👑' : i + 1) + '&nbsp; ' + nm(s.name) + '</span><span class="u-o85">' + s.w + '–' + (s.n - s.w) + ' · <b>' + pctTxt(s.pct) + '</b></span></div>';
       }).join('') +
         '<div style="display:flex;justify-content:space-between;padding:6px 0 2px;font-size:12px;opacity:0.7;border-top:1px dashed rgba(255,255,255,0.15)"><span>For reference: <span style="color:' + SB_M + '">Maria ' + pctTxt(m.pct) + '</span> · <span style="color:' + SB_D + '">Danielle ' + pctTxt(d.pct) + '</span></span><span>' + all.length + ' friends played</span></div></div>';

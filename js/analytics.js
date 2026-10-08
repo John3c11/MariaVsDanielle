@@ -26,7 +26,7 @@
     function afVariant(g, vals, inner) {
       var id = 'afv' + (++AF_SEQ);
       AF_HTML[id] = inner;
-      return '<div class="af-v" data-g="' + g + '" data-v="' + vals.join('|') + '" data-lazy="' + id + '" style="display:none"></div>';
+      return '<div class="af-v" style="display:none" data-g="' + g + '" data-v="' + vals.join('|') + '" data-lazy="' + id + '"></div>';
     }
 
     // rowsHtml: array of row strings. Rows past `limit` hide behind a "Show all" button.
@@ -198,18 +198,6 @@
         const medals = ["🥇", "🥈", "🥉"];
         const medalColors = ["#FBBF24", "#888", "#8B4513"];
 
-        function podium(title, items) {
-          var html = '<div style="margin-bottom:28px"><div style="font-size:11px;font-weight:600;color:#A1A9B6;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">' + title + '</div>';
-          items.slice(0, 3).forEach(function(item, i) {
-            html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,0.06)">' +
-              '<span style="font-size:20px">' + medals[i] + '</span>' +
-              '<span style="flex:1;font-weight:600;color:#F3F4F6">' + item.name + '</span>' +
-              '<span style="font-size:13px;color:#A1A9B6">' + item.count + '</span>' +
-            '</div>';
-          });
-          html += '</div>';
-          return html;
-        }
 
         // Each section becomes its own block so anOrganize() can sort it into a sub-tab
         function section(title) {
@@ -217,18 +205,18 @@
         }
 
         function statRow(label, val) {
-          return '<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:13px"><span style="color:#A1A9B6">' + label + '</span><span style="font-weight:600;color:#F3F4F6">' + val + '</span></div>';
+          return '<div class="u-d-flex u-jc-space-between u-p-10px-0 u-bb-0-5px-solid-rgba-255-255-255-0-06 u-fs-13px"><span class="u-muted">' + label + '</span><span class="u-fw-600 u-c-t1">' + val + '</span></div>';
         }
 
         function pct(n, d) { return d ? Math.round(n/d*100) + "%" : "—"; }
 
         function twoCol(leftHtml, rightHtml) {
-          return '<div class="two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px">' + leftHtml + rightHtml + '</div>';
+          return '<div class="ui-cols2 two-col">' + leftHtml + rightHtml + '</div>';
         }
 
         function personCard(name, contentHtml) {
           var color = personColor(name);
-          return '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:16px">' +
+          return '<div class="u-bg-rgba-255-255-255-0-05 u-r-10px u-p-16px">' +
             '<div style="font-size:14px;font-weight:700;color:' + color + ';margin-bottom:12px">' + name + '</div>' +
             contentHtml + '</div>';
         }
@@ -245,20 +233,20 @@
         var PICKER_OPTS = [['all', 'Both'], ['Maria', 'Maria', 'maria-btn'], ['Danielle', 'Danielle', 'danielle-btn']];
         function inSeason(r, season) { return season === 'all' || r.year === season; }
         function byPicker(r, picker) { return picker === 'all' ? (r.picker === 'Maria' || r.picker === 'Danielle') : r.picker === picker; }
-        var EMPTY = function(t) { return '<div style="color:#A1A9B6;font-size:13px;text-align:center;padding:16px">' + t + '</div>'; };
+        var EMPTY = function(t) { return '<div class="u-c-muted u-fs-13px u-ta-center u-p-16px">' + t + '</div>'; };
 
         // (v121: "Most picked & cursed picks" cut. Each Profile has Ride or Die + the Hall of Shame, and the Stat Lab splits by player.)
 
         // ── Fun Stats from Legacy ─────────────────────────────────────────────
         function legFun(label, val, cls) {
           var color = cls === 'maria' ? SB_M : cls === 'danielle' ? SB_D : cls === 'red' ? '#F87171' : '#F3F4F6';
-          return '<div style="display:flex;justify-content:space-between;padding:11px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:13px;gap:16px"><span style="color:#A1A9B6">' + label + '</span><span style="font-weight:600;text-align:right;color:' + color + '">' + val + '</span></div>';
+          return '<div class="u-d-flex u-jc-space-between u-p-11px-0 u-bb-0-5px-solid-rgba-255-255-255-0-06 u-fs-13px u-gap-16px"><span class="u-muted">' + label + '</span><span style="font-weight:600;text-align:right;color:' + color + '">' + val + '</span></div>';
         }
 
         // ── Streaks ───────────────────────────────────────────────────────────
         // ── Jinx Tracker ──────────────────────────────────────────────────────
         html += section("Jinx Tracker");
-        html += '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">A <b>jinx</b> is when someone picks a player, skips him the next time his team comes up, and he scores the first TD. <b>Loyalty</b> is how often they stick with a player when his team comes back around.</div>';
+        html += '<div class="ui-note u-mb">A <b>jinx</b> is when someone picks a player, skips him the next time his team comes up, and he scores the first TD. <b>Loyalty</b> is how often they stick with a player when his team comes back around.</div>';
 
         var JX = computeJinxes(rows), jinxes = JX.jinxes, loyalty = JX.loyalty;
 
@@ -291,9 +279,9 @@
         var worst = allJinx.filter(function(j) { return j.cashed; })
           .sort(function(a, b) { return b.cashed.units - a.cashed.units; })[0];
         if (worst) {
-          html += '<div style="background:rgba(251,191,36,0.15);border-radius:10px;padding:14px 16px;margin:8px 0 12px">' +
-            '<div style="font-size:11px;font-weight:600;color:#FCD34D;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Worst Jinx</div>' +
-            '<div style="font-size:13px;color:#D1D5DB;line-height:1.6">' + jinxSentence(worst) + '</div></div>';
+          html += '<div class="u-bg-rgba-251-191-36-0-15 u-r-10px u-p-14px-16px u-m-8px-0-12px">' +
+            '<div class="u-fs-11px u-fw-600 u-c-warn u-tt-uppercase u-ls-0-06em u-mb-6px">Worst Jinx</div>' +
+            '<div class="u-fs-13px u-c-soft u-lh-1-6">' + jinxSentence(worst) + '</div></div>';
         }
 
         allJinx.sort(function(a, b) {
@@ -307,15 +295,15 @@
           ['all', 'Maria', 'Danielle'].forEach(function(p) {
             var list = allJinx.filter(function(j) { return p === 'all' || j.picker === p; });
             var inner = list.length ? afList(list.map(function(j) {
-              return '<div style="padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:13px;color:#D1D5DB;line-height:1.5">' + jinxSentence(j) + '</div>';
+              return '<div class="u-p-10px-0 u-bb-0-5px-solid-rgba-255-255-255-0-06 u-fs-13px u-c-soft u-lh-1-5">' + jinxSentence(j) + '</div>';
             }), 5) : EMPTY('No jinxes for ' + p + ' yet.');
-            html += afVariant('jinx', [p], '<div style="margin-bottom:8px">' + inner + '</div>');
+            html += afVariant('jinx', [p], '<div class="u-mb-s">' + inner + '</div>');
           });
         }
 
         // ── Bad Beats (filled in after ESPN is checked) ─────────────────────
         html += section("Bad Beats");
-        html += '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">A <b>bad beat</b> is when someone\'s pick scored a touchdown in that game, just not the first one.</div>';
+        html += '<div class="ui-note u-mb">A <b>bad beat</b> is when someone\'s pick scored a touchdown in that game, just not the first one.</div>';
         html += '<div id="bad-beats"><div class="loading">Checking every game with ESPN…</div></div>';
 
         // ── Hit Grid (chart) ──
@@ -335,7 +323,7 @@
 
         // ── Who Scores First: home or away team ──────────────────────────────
         html += section("Who Scores First");
-        html += '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">Which team scored the first touchdown in every game they bet on, from the Which Side Scored column.</div>';
+        html += '<div class="ui-note u-mb">Which team scored the first touchdown in every game they bet on, from the Which Side Scored column.</div>';
         html += '<div class="af-bars">' + afBar('wsf', 'season', 'Season', SEASON_OPTS, CUR_SEASON) + '</div>';
         SEASON_OPTS.forEach(function(so) {
           var season = so[0], seen = {}, all = { Home: 0, Away: 0 }, bySlot = {};
@@ -356,23 +344,23 @@
             return '<div style="display:flex;justify-content:space-between;gap:8px;white-space:nowrap;font-size:' + (big ? 14 : 12) + 'px;margin-bottom:5px">' +
               '<span>🏠 Home <b>' + hp + '%</b></span><span><b>' + (100 - hp) + '%</b> Away ✈️</span></div>' +
               '<div style="display:flex;height:' + (big ? 12 : 7) + 'px;border-radius:999px;overflow:hidden;gap:2px">' +
-              '<div style="width:' + hp + '%;background:#FBBF24"></div><div style="flex:1;background:#A78BFA"></div></div>';
+              '<div style="width:' + hp + '%;background:#FBBF24"></div><div class="u-f-1 u-bg-a78bfa"></div></div>';
           }
           var hp = all.Home / tot;
           var lean = Math.abs(hp - 0.5) < 0.04 ? 'Basically a coin flip.' :
             (hp > 0.5 ? 'Home teams' : 'Road teams') + ' have scored first in ' + Math.round(Math.max(hp, 1 - hp) * 100) + '% of games.';
           lean += ' (' + all.Home + ' home, ' + all.Away + ' away)';
-          var inner = '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:14px 16px">' + split(all.Home, all.Away, true) +
-            '<div style="font-size:12px;color:#D1D5DB;margin:10px 0 4px">' + lean + '</div>';
+          var inner = '<div class="u-bg-rgba-255-255-255-0-05 u-r-10px u-p-14px-16px">' + split(all.Home, all.Away, true) +
+            '<div class="u-fs-12px u-c-soft u-m-10px-0-4px">' + lean + '</div>';
           var slots = Object.keys(bySlot).sort(function(a, b) {
             var ORD = ['TNF','FNF','SNF','MNF','International','Thanksgiving','Black Friday','Saturday','Christmas','WNF'];
             var ai = ORD.indexOf(a), bi = ORD.indexOf(b);
             return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi) || a.localeCompare(b);
           });
           if (slots.length > 1) {
-            inner += '<div style="margin-top:12px;border-top:1px solid rgba(255,255,255,0.08);padding-top:6px">' + slots.map(function(sl) {
+            inner += '<div class="u-mt-12px u-bt-1px-solid-rgba-255-255-255-0-08 u-pt-6px">' + slots.map(function(sl) {
               var x = bySlot[sl];
-              return '<div style="padding:7px 0"><div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#A1A9B6;margin-bottom:4px">' + escHtml(sl) + ' · ' + x.Home + ' home, ' + x.Away + ' away</div>' + split(x.Home, x.Away) + '</div>';
+              return '<div class="u-p-7px-0"><div class="u-fs-11px u-fw-700 u-ls-0-06em u-tt-uppercase u-c-muted u-mb-4px">' + escHtml(sl) + ' · ' + x.Home + ' home, ' + x.Away + ' away</div>' + split(x.Home, x.Away) + '</div>';
             }).join('') + '</div>';
           }
           html += afVariant('wsf', [season], inner + '</div>');
@@ -380,7 +368,7 @@
 
         // ── Best Stretch & Biggest Wins (from all-time data) ───────────────────
         html += section("Best Stretches & Biggest Wins");
-        html += '<div style="margin-bottom:16px">';
+        html += '<div class="u-mb-16px">';
 
         // Best 10-game stretch by money
         function bestStretchAll(betsArr) {
@@ -442,7 +430,7 @@
 
         // ── Picking vs Reality: what they pick vs who actually scores first ──
         html += section("Picking vs Reality");
-        html += '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">How often each of them picks each position, next to how often that position actually scores the first touchdown. Defense, special teams and players not on the Rosters tab count as Other.</div>';
+        html += '<div class="ui-note u-mb">How often each of them picks each position, next to how often that position actually scores the first touchdown. Defense, special teams and players not on the Rosters tab count as Other.</div>';
         html += '<div class="af-bars">' + afBar('pvr', 'season', 'Season', SEASON_OPTS, CUR_SEASON) + '</div>';
         SEASON_OPTS.forEach(function(so) {
           var season = so[0], P = { Maria: {}, Danielle: {} }, PN = { Maria: 0, Danielle: 0 }, R = {}, RN = 0, seen = {};
@@ -457,17 +445,17 @@
           if (!RN || !(PN.Maria + PN.Danielle)) { html += afVariant('pvr', [season], EMPTY('Not enough games yet.')); return; }
           function share(map, n, q) { return n ? (map[q] || 0) / n : 0; }
           function bar(label, v, c) {
-            return '<div style="display:grid;grid-template-columns:62px 1fr 38px;gap:8px;align-items:center;font-size:11px;padding:2px 0">' +
+            return '<div class="u-d-grid u-gtc-62px-1fr-38px u-gap-8px u-ai-center u-fs-11px u-p-2px-0">' +
               '<span style="color:' + c + ';font-weight:700">' + label + '</span>' +
-              '<div style="height:7px;border-radius:4px;background:rgba(255,255,255,0.06)"><div style="width:' + Math.round(v * 100) + '%;height:7px;border-radius:4px;background:' + c + '"></div></div>' +
-              '<span style="text-align:right;font-weight:700">' + Math.round(v * 100) + '%</span></div>';
+              '<div class="u-h-7px u-r-4px u-bg-rgba-255-255-255-0-06"><div style="width:' + Math.round(v * 100) + '%;height:7px;border-radius:4px;background:' + c + '"></div></div>' +
+              '<span class="u-ta-right u-fw-700">' + Math.round(v * 100) + '%</span></div>';
           }
-          var inner = '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:8px 14px">';
+          var inner = '<div class="u-bg-rgba-255-255-255-0-05 u-r-10px u-p-8px-14px">';
           POS_ORDER.forEach(function(q, i) {
             var real = share(R, RN, q), m = share(P.Maria, PN.Maria, q), d = share(P.Danielle, PN.Danielle, q);
             if (!real && !m && !d) return;
             inner += '<div style="padding:9px 0;' + (i ? 'border-top:0.5px solid rgba(255,255,255,0.06)' : '') + '">' +
-              '<div style="font-size:13px;font-weight:800;margin-bottom:5px">' + q + '</div>' +
+              '<div class="u-fs-13px u-fw-800 u-mb-5px">' + q + '</div>' +
               bar('Scores', real, '#E5E7EB') + bar('Maria', m, SB_M) + bar('Danielle', d, SB_D) + '</div>';
           });
           inner += '</div>';
@@ -480,11 +468,11 @@
               var gap = share(P[who], PN[who], q) - share(R, RN, q);
               if (!worst || Math.abs(gap) > Math.abs(worst.gap)) worst = { q: q, gap: gap };
             });
-            if (!worst || Math.abs(worst.gap) < 0.05) return '<div style="font-size:12px;padding:3px 0"><b style="color:' + (personColor(who)) + '">' + who + '</b> picks pretty much in line with reality.</div>';
-            return '<div style="font-size:12px;padding:3px 0"><b style="color:' + (personColor(who)) + '">' + who + '</b> ' +
+            if (!worst || Math.abs(worst.gap) < 0.05) return '<div class="ui-note-plain"><b style="color:' + (personColor(who)) + '">' + who + '</b> picks pretty much in line with reality.</div>';
+            return '<div class="ui-note-plain"><b style="color:' + (personColor(who)) + '">' + who + '</b> ' +
               (worst.gap > 0 ? 'over-picks' : 'under-picks') + ' ' + worst.q + 's: ' + Math.round(share(P[who], PN[who], worst.q) * 100) + '% of her picks, but they score first ' + Math.round(share(R, RN, worst.q) * 100) + '% of the time.</div>';
           }).join('');
-          html += afVariant('pvr', [season], inner + '<div style="margin-top:10px">' + notes + '</div>');
+          html += afVariant('pvr', [season], inner + '<div class="u-mt-10px">' + notes + '</div>');
         });
 
         // ── Weekly Units (chart) ──
@@ -533,17 +521,17 @@
             var mW = wk.Maria.w, mL = wk.Maria.l, dW = wk.Danielle.w, dL = wk.Danielle.l;
             var winnerColor = mW > dW ? SB_M : dW > mW ? SB_D : '#6B7280';
             var winnerLabel = mW > dW ? 'Maria' : dW > mW ? 'Danielle' : 'Tied';
-            return '<div style="display:grid;grid-template-columns:80px 1fr 80px;gap:8px;align-items:center;padding:8px 0;border-bottom:0.5px solid rgba(255,255,255,0.06)">' +
-              '<span style="font-size:11px;color:#A1A9B6">' + wkLabel(wk.year, wk.week) + '</span>' +
-              '<div style="display:flex;align-items:center;gap:6px">' +
+            return '<div class="u-d-grid u-gtc-80px-1fr-80px u-gap-8px u-ai-center u-p-8px-0 u-bb-0-5px-solid-rgba-255-255-255-0-06">' +
+              '<span class="u-fs-11px u-c-muted">' + wkLabel(wk.year, wk.week) + '</span>' +
+              '<div class="u-d-flex u-ai-center u-gap-6px">' +
                 '<span style="font-size:12px;color:' + SB_M + ';font-weight:600">M: ' + mW + '/' + (mW + mL) + '</span>' +
-                '<span style="color:#4B5563;font-size:10px">·</span>' +
+                '<span class="u-c-faint u-fs-10px">·</span>' +
                 '<span style="font-size:12px;color:' + SB_D + ';font-weight:600">D: ' + dW + '/' + (dW + dL) + '</span>' +
               '</div>' +
               '<span style="font-size:12px;font-weight:700;color:' + winnerColor + ';text-align:right">' + winnerLabel + '</span>' +
             '</div>';
           });
-          html += afVariant('wbw', [season], '<div style="margin-bottom:16px">' +
+          html += afVariant('wbw', [season], '<div class="u-mb-16px">' +
             (rowsHtml.length ? afList(rowsHtml, 6) : EMPTY('No scored weeks yet.')) + '</div>');
         });
 
@@ -552,7 +540,7 @@
         html += '<div class="af-bars">' +
           afBar('wrw', 'season', 'Season', SEASON_OPTS, CUR_SEASON) +
           afBar('wrw', 'picker', 'Picker', PICKER_OPTS, 'all') + '</div>';
-        html += '<div style="font-size:12px;color:#A1A9B6;margin-bottom:10px">A game counts as a win if any selected pick was right. Newest weeks first.</div>';
+        html += '<div class="u-fs-12px u-c-muted u-mb-10px">A game counts as a win if any selected pick was right. Newest weeks first.</div>';
         SEASON_OPTS.forEach(function(so) {
           PICKER_OPTS.forEach(function(po) {
             var season = so[0], picker = po[0];
@@ -584,15 +572,15 @@
             });
             var bars = weeks.map(function(d) {
               var barColor = d.rate > 0.5 ? "#34D399" : d.rate > 0.25 ? "#FBBF24" : "#F87171";
-              return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">' +
-                '<span style="font-size:11px;color:#A1A9B6;width:72px;flex-shrink:0">' + wkLabel(d.year, d.week) + '</span>' +
-                '<div style="flex:1;background:rgba(255,255,255,0.12);border-radius:4px;height:10px">' +
+              return '<div class="u-d-flex u-ai-center u-gap-10px u-mb-6px">' +
+                '<span class="u-fs-11px u-c-muted u-w-72px u-fshrink-0">' + wkLabel(d.year, d.week) + '</span>' +
+                '<div class="u-f-1 u-bg-rgba-255-255-255-0-12 u-r-4px u-h-10px">' +
                   '<div style="width:' + Math.round(d.rate * 100) + '%;background:' + barColor + ';height:10px;border-radius:4px"></div>' +
                 '</div>' +
-                '<span style="font-size:11px;color:#A1A9B6;width:62px;text-align:right;flex-shrink:0">' + pct(d.wins, d.total) + ' (' + d.wins + '/' + d.total + ')</span>' +
+                '<span class="u-fs-11px u-c-muted u-w-62px u-ta-right u-fshrink-0">' + pct(d.wins, d.total) + ' (' + d.wins + '/' + d.total + ')</span>' +
               '</div>';
             });
-            var inner = afList(bars, 8, '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:16px;margin-bottom:12px">', '</div>');
+            var inner = afList(bars, 8, '<div class="u-bg-rgba-255-255-255-0-05 u-r-10px u-p-16px u-mb-12px">', '</div>');
             inner += statRow("Best week", wkLabel(best.year, best.week) + " — " + pct(best.wins, best.total));
             inner += statRow("Worst week", wkLabel(worst.year, worst.week) + " — " + pct(worst.wins, worst.total));
             html += afVariant('wrw', [season, picker], inner);
@@ -627,19 +615,19 @@
           var keys = Object.keys(M).sort(function(a, b) { return M[a].order - M[b].order; });
           if (!keys.length) { html += afVariant('mbm', [season], EMPTY('No scored games yet.')); return; }
           function cell(p, c) {
-            if (!p.n) return '<span style="text-align:center;color:#6B7280">—</span>';
+            if (!p.n) return '<span class="u-ta-center u-c-faint">—</span>';
             var u = Math.round(p.u * 10) / 10;
-            return '<span style="text-align:center"><b style="color:' + c + ';font-size:14px">' + p.w + '/' + p.n + '</b> <span style="color:#A1A9B6;font-size:11px">' + Math.round(p.w / p.n * 100) + '%</span>' +
+            return '<span class="u-center"><b style="color:' + c + ';font-size:14px">' + p.w + '/' + p.n + '</b> <span class="u-c-muted u-fs-11px">' + Math.round(p.w / p.n * 100) + '%</span>' +
               '<div style="font-size:11px;font-weight:700;color:' + (u > 0 ? '#34D399' : u < 0 ? '#F87171' : '#A1A9B6') + '">' + (u > 0 ? '+' : '') + u + 'u</div></span>';
           }
-          var inner = '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:8px 12px">' +
-            '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:8px 0 4px;border-bottom:1px solid rgba(255,255,255,0.10)">' +
-            '<span style="font-size:11px;color:#A1A9B6;text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Month</span>' +
+          var inner = '<div class="u-bg-rgba-255-255-255-0-05 u-r-10px u-p-8px-12px">' +
+            '<div class="u-d-grid u-gtc-1fr-1fr-1fr u-gap-8px u-p-8px-0-4px u-bb-1px-solid-rgba-255-255-255-0-10">' +
+            '<span class="u-fs-11px u-c-muted u-tt-uppercase u-ls-0-05em u-fw-600">Month</span>' +
             '<span style="font-size:11px;color:' + SB_M + ';text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Maria</span>' +
             '<span style="font-size:11px;color:' + SB_D + ';text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Danielle</span></div>';
           keys.forEach(function(k, i) {
             inner += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 0;align-items:center;' + (i < keys.length - 1 ? 'border-bottom:0.5px solid rgba(255,255,255,0.06)' : '') + '">' +
-              '<span style="font-size:13px;font-weight:600;color:#D1D5DB">' + MONTHS_LONG[k] + '</span>' + cell(M[k].Maria, SB_M) + cell(M[k].Danielle, SB_D) + '</div>';
+              '<span class="u-fs-13px u-fw-600 u-c-soft">' + MONTHS_LONG[k] + '</span>' + cell(M[k].Maria, SB_M) + cell(M[k].Danielle, SB_D) + '</div>';
           });
           inner += '</div>';
           // Best month for each
@@ -648,7 +636,7 @@
             if (!best) return '';
             return '<span><b style="color:' + (personColor(who)) + '">' + who + '</b> is best in ' + MONTHS_LONG[best] + ' (' + Math.round(M[best][who].w / M[best][who].n * 100) + '%)</span>';
           }).filter(Boolean).join(' · ');
-          html += afVariant('mbm', [season], inner + (notes ? '<div style="font-size:12px;color:#A1A9B6;margin-top:10px">' + notes + '. Months are worked out from the week number.</div>' : ''));
+          html += afVariant('mbm', [season], inner + (notes ? '<div class="u-fs-12px u-c-muted u-mt-10px">' + notes + '. Months are worked out from the week number.</div>' : ''));
         });
 
         // ── Odds vs Hits (chart) ──
@@ -684,7 +672,7 @@
 
         // ── TD Scorers ──────────────────────────────────────────────────────────
         html += section("TD Scorer Leaderboard");
-        html += '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">Every player who has scored a first TD. <b>Picked</b> = how many of those TDs someone actually had them picked for that game.</div>';
+        html += '<div class="ui-note u-mb">Every player who has scored a first TD. <b>Picked</b> = how many of those TDs someone actually had them picked for that game.</div>';
         html += '<div class="af-bars">' +
           afBar('td', 'season', 'Season', SEASON_OPTS, CUR_SEASON) +
           afBar('td', 'who', 'Picked by', [['all', 'Anyone'], ['Maria', 'Maria', 'maria-btn'], ['Danielle', 'Danielle', 'danielle-btn']], 'all') + '</div>';
@@ -699,17 +687,17 @@
         });
 
         function tdTag(pickedBy) {
-          if (pickedBy.has('Maria') && pickedBy.has('Danielle')) return '<span style="font-size:10px;font-weight:600;color:#C4B5FD;background:rgba(167,139,250,0.18);border-radius:4px;padding:2px 6px">Both</span>';
+          if (pickedBy.has('Maria') && pickedBy.has('Danielle')) return '<span class="u-fs-10px u-fw-600 u-c-violet u-bg-rgba-167-139-250-0-18 u-r-4px u-p-2px-6px">Both</span>';
           if (pickedBy.has('Maria')) return '<span style="font-size:10px;font-weight:600;color:' + SB_M + ';background:' + hexA(SB_M, 0.15) + ';border-radius:4px;padding:2px 6px">Maria</span>';
           if (pickedBy.has('Danielle')) return '<span style="font-size:10px;font-weight:600;color:' + SB_D + ';background:' + hexA(SB_D, 0.16) + ';border-radius:4px;padding:2px 6px">Danielle</span>';
-          return '<span style="font-size:10px;color:#A1A9B6">—</span>';
+          return '<span class="ui-tiny">—</span>';
         }
 
-        var tdHead = '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:8px 12px">' +
-          '<div style="display:grid;grid-template-columns:1fr 90px 80px;gap:8px;padding:8px 0 4px;border-bottom:1px solid rgba(255,255,255,0.10)">' +
-          '<span style="font-size:11px;color:#A1A9B6;text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Player</span>' +
-          '<span style="font-size:11px;color:#A1A9B6;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">TDs (picked)</span>' +
-          '<span style="font-size:11px;color:#A1A9B6;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Picked By</span>' +
+        var tdHead = '<div class="u-bg-rgba-255-255-255-0-05 u-r-10px u-p-8px-12px">' +
+          '<div class="u-d-grid u-gtc-1fr-90px-80px u-gap-8px u-p-8px-0-4px u-bb-1px-solid-rgba-255-255-255-0-10">' +
+          '<span class="u-fs-11px u-c-muted u-tt-uppercase u-ls-0-05em u-fw-600">Player</span>' +
+          '<span class="u-fs-11px u-c-muted u-tt-uppercase u-ls-0-05em u-fw-600 u-ta-center">TDs (picked)</span>' +
+          '<span class="u-fs-11px u-c-muted u-tt-uppercase u-ls-0-05em u-fw-600 u-ta-center">Picked By</span>' +
           '</div>';
 
         SEASON_OPTS.forEach(function(so) {
@@ -744,12 +732,12 @@
             }
             var divs = list.map(function(entry) {
               var data = entry[1];
-              var tdDisplay = '<span style="font-size:14px;font-weight:700;color:#D1D5DB">' + data.total + '</span>' +
-                (data.picked > 0 && data.picked < data.total ? '<span style="font-size:11px;color:#A1A9B6;margin-left:3px">(' + data.picked + ' picked)</span>' : '');
-              return '<div style="display:grid;grid-template-columns:1fr 90px 80px;gap:8px;padding:9px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);align-items:center">' +
-                '<span style="font-size:13px;font-weight:600;color:#F3F4F6">' + entry[0] + '</span>' +
-                '<span style="text-align:center">' + tdDisplay + '</span>' +
-                '<span style="text-align:center">' + tdTag(data.pickedBy) + '</span>' +
+              var tdDisplay = '<span class="u-fs-14px u-fw-700 u-c-soft">' + data.total + '</span>' +
+                (data.picked > 0 && data.picked < data.total ? '<span class="u-fs-11px u-c-muted u-ml-3px">(' + data.picked + ' picked)</span>' : '');
+              return '<div class="u-d-grid u-gtc-1fr-90px-80px u-gap-8px u-p-9px-0 u-bb-0-5px-solid-rgba-255-255-255-0-06 u-ai-center">' +
+                '<span class="u-fs-13px u-fw-600 u-c-t1">' + entry[0] + '</span>' +
+                '<span class="u-center">' + tdDisplay + '</span>' +
+                '<span class="u-center">' + tdTag(data.pickedBy) + '</span>' +
               '</div>';
             });
             // Show everyone with 2+ first TDs; "Show all" adds the one-timers
@@ -792,9 +780,9 @@
           );
           var worst = beats.slice().sort(function(a, b) { return a.gap - b.gap; })[0];
           if (worst) {
-            out += '<div style="background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.3);border-radius:10px;padding:14px 16px;margin:8px 0 12px">' +
-              '<div style="font-size:11px;font-weight:700;color:#FCA5A5;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">💔 Most Painful</div>' +
-              '<div style="font-size:13px;color:#D1D5DB;line-height:1.6">' + line(worst) + '</div></div>';
+            out += '<div class="u-bg-rgba-248-113-113-0-12 u-bd-1px-solid-rgba-248-113-113-0-3 u-r-10px u-p-14px-16px u-m-8px-0-12px">' +
+              '<div class="u-fs-11px u-fw-700 u-c-bad2 u-tt-uppercase u-ls-0-08em u-mb-6px">💔 Most Painful</div>' +
+              '<div class="u-fs-13px u-c-soft u-lh-1-6">' + line(worst) + '</div></div>';
           }
           beats.sort(function(a, b) { return a.year !== b.year ? parseInt(b.year) - parseInt(a.year) : b.week - a.week; });
           if (beats.length) {
@@ -802,13 +790,13 @@
             PICKER_OPTS.forEach(function(po) {
               var list = beats.filter(function(b) { return po[0] === 'all' || b.who === po[0]; });
               out += afVariant('bb', [po[0]], list.length ? afList(list.map(function(b) {
-                return '<div style="padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:13px;color:#D1D5DB;line-height:1.5">' + line(b) + '</div>';
+                return '<div class="u-p-10px-0 u-bb-0-5px-solid-rgba-255-255-255-0-06 u-fs-13px u-c-soft u-lh-1-5">' + line(b) + '</div>';
               }), 5) : EMPTY('No bad beats for ' + po[1] + '.'));
             });
           } else {
             out += EMPTY('No bad beats yet. Every picked player who scored was first.');
           }
-          if (failed) out += '<div style="font-size:11px;color:#A1A9B6;margin-top:6px">' + failed + ' game' + (failed > 1 ? 's' : '') + ' couldn\'t be matched on ESPN and were skipped.</div>';
+          if (failed) out += '<div class="u-fs-11px u-c-muted u-mt-6px">' + failed + ' game' + (failed > 1 ? 's' : '') + ' couldn\'t be matched on ESPN and were skipped.</div>';
           box.innerHTML = out;
           if (AF.bb) afApply('bb');
         }

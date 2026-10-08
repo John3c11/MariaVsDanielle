@@ -133,7 +133,7 @@
       var sub = open ? 'Pick the winner and the first TD scorer of all 13 playoff games. Locks at Wild Card kickoff' + (B.lockAt ? ': <b>' + brWhen(B.lockAt) + '</b> <span class="br-left">' + brLeft(B.lockAt) + '</span>' : '.')
         : B.state === 'done' ? 'Final. ' + (sb ? escHtml(brNick(sb.winner)) + ' won the Super Bowl.' : '')
         : 'Locked. ' + played + ' of 13 games played.';
-      var h = '<div class="br-hero"><div class="br-hero-ic">🏆</div><div style="min-width:0"><div class="br-hero-t">Playoff Bracket Challenge <span class="br-yr">' + escHtml(B.season) + '</span></div>' +
+      var h = '<div class="br-hero"><div class="br-hero-ic">🏆</div><div class="u-minw-0"><div class="br-hero-t">Playoff Bracket Challenge <span class="br-yr">' + escHtml(B.season) + '</span></div>' +
         '<div class="br-hero-s">' + sub + '</div>' +
         '<button class="link-btn br-rules-btn" id="br-rules">' + (BR.rules ? 'Hide scoring' : 'How scoring works') + '</button></div></div>';
       if (BR.rules) h += brRulesHtml();
@@ -142,7 +142,7 @@
         h += '<div class="pf-h">✍️ Your bracket' + (BR.name ? ' <small>' + escHtml(BR.name) + ' · <button class="link-btn" id="br-out">not you?</button></small>' : '') + '</div>';
         h += BR.pin && BR.picks ? '<div id="br-edit"></div>' : brPinHtml();
         var E = B.entries || [];
-        h += '<div class="pf-h" style="margin-top:20px">👥 Who\'s in <small>' + E.length + ' bracket' + (E.length === 1 ? '' : 's') + ' · secret until kickoff</small></div>' +
+        h += '<div class="u-mt-20px pf-h">👥 Who\'s in <small>' + E.length + ' bracket' + (E.length === 1 ? '' : 's') + ' · secret until kickoff</small></div>' +
           (E.length ? '<div class="br-in">' + E.map(function(e) {
             var full = e.filled === 13 && e.scorers === 13;
             return '<span class="br-chip">' + brWhoName(e.who) + ' <small>' + (full ? '✓ done' : e.filled + '/13') + '</small></span>';
@@ -163,7 +163,7 @@
         var v = (B.entries || []).filter(function(e) { return e.who === BR.view; })[0];
         if (v) {
           var vs = brScore(games, v.picks || {});
-          h += '<div class="pf-h" style="margin-top:20px"><span>' + brWhoName(v.who) + '\'s bracket</span> <small>' + vs.pts + ' pts · ' + vs.max + ' max' + (v.tb ? ' · tiebreaker ' + v.tb : '') + '</small></div>';
+          h += '<div class="u-mt-20px pf-h"><span>' + brWhoName(v.who) + '\'s bracket</span> <small>' + vs.pts + ' pts · ' + vs.max + ' max' + (v.tb ? ' · tiebreaker ' + v.tb : '') + '</small></div>';
           h += brBoardHtml(B.seeds, v.picks || {}, false, vs, games);
         }
       }
@@ -185,8 +185,8 @@
     }
     function brPinHtml() {
       return '<div class="br-pin"><div style="font-size:13px;color:#C4C9D2;margin-bottom:8px">Maria, Danielle and every friend can play. Enter your PIN to fill yours out.</div>' +
-        '<div style="display:flex;gap:8px"><input class="adm-input" id="br-pin" type="password" inputmode="numeric" maxlength="4" placeholder="PIN" style="width:110px;text-align:center;letter-spacing:0.3em">' +
-        '<button class="primary-btn" id="br-go" style="padding:9px 18px">Open my bracket</button></div><div class="submit-msg" id="br-pin-msg" style="text-align:left"></div></div>';
+        '<div class="u-d-flex u-gap-8px"><input class="u-w-110px u-ta-center u-ls-0-3em adm-input" id="br-pin" type="password" inputmode="numeric" maxlength="4" placeholder="PIN">' +
+        '<button class="u-p-9px-18px primary-btn" id="br-go">Open my bracket</button></div><div class="u-ta-left submit-msg" id="br-pin-msg"></div></div>';
     }
     function bindBrPin(el) {
       var go = document.getElementById('br-go'), inp = document.getElementById('br-pin');
@@ -265,8 +265,8 @@
       var nW = BR_ORDER.filter(function(k) { return picks[k] && picks[k].w; }).length, nS = BR_ORDER.filter(function(k) { return picks[k] && picks[k].s; }).length;
       var h = brBoardHtml(B.seeds, picks, true, null, B.games || []);
       h += '<label class="br-tb">🎯 Tiebreaker: total points scored in the Super Bowl <input class="adm-input" id="br-tb" type="number" min="0" max="150" inputmode="numeric" value="' + escHtml(String(BR.tb || '')) + '" placeholder="e.g. 47"></label>';
-      h += '<div class="br-save"><div class="br-prog">' + nW + '/13 winners · ' + nS + '/13 first TDs' + (BR.dirty ? '<br><b style="color:#FCD34D">Not saved yet</b>' : '') + '</div>' +
-        '<button class="primary-btn" id="br-save">Save</button></div><div class="submit-msg" id="br-msg" style="text-align:left"></div>';
+      h += '<div class="br-save"><div class="br-prog">' + nW + '/13 winners · ' + nS + '/13 first TDs' + (BR.dirty ? '<br><b class="u-warn">Not saved yet</b>' : '') + '</div>' +
+        '<button class="primary-btn" id="br-save">Save</button></div><div class="u-ta-left submit-msg" id="br-msg"></div>';
       box.innerHTML = h;
       box.querySelectorAll('[data-br-w]').forEach(function(b) {
         b.addEventListener('click', function() {
@@ -283,7 +283,7 @@
           if (v) { picks[k].st = v.split('|')[0]; picks[k].s = v.slice(v.indexOf('|') + 1); } else { delete picks[k].s; delete picks[k].st; }
           BR.dirty = true;
           var pr = box.querySelector('.br-prog');
-          if (pr) pr.innerHTML = BR_ORDER.filter(function(x) { return picks[x] && picks[x].w; }).length + '/13 winners · ' + BR_ORDER.filter(function(x) { return picks[x] && picks[x].s; }).length + '/13 first TDs<br><b style="color:#FCD34D">Not saved yet</b>';
+          if (pr) pr.innerHTML = BR_ORDER.filter(function(x) { return picks[x] && picks[x].w; }).length + '/13 winners · ' + BR_ORDER.filter(function(x) { return picks[x] && picks[x].s; }).length + '/13 first TDs<br><b class="u-warn">Not saved yet</b>';
         });
       });
       document.getElementById('br-tb').addEventListener('input', function() { BR.tb = this.value; BR.dirty = true; });

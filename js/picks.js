@@ -54,7 +54,7 @@
           '<div class="ui-intro u-mb-m">Enter your PIN to see what you can do</div>' +
           '<input id="pin-input" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off">' +
           '<div class="u-mt"><button class="primary-btn" id="pin-go">Enter</button></div>' +
-          '<div class="u-bad submit-msg" id="pin-msg">' + (msg || '') + '</div>' +
+          '<div class="submit-msg" id="pin-msg" style="color:#F87171">' + (msg || '') + '</div>' +
         '</div>';
       var input = document.getElementById('pin-input');
       if (!successHtml) input.focus();

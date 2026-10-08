@@ -7,10 +7,10 @@
       ADMIN.oddsRes = res;
       var el = document.getElementById('submit-content');
       var html = adminHeader('odds') +
-        '<div style="font-size:12px;color:#A1A9B6;margin-bottom:18px">Enter odds for picks that don\'t have them yet. Type them the way you do in the sheet (15, 4.7) or as American odds (+1500, +470). Leave a box blank to skip it.</div>';
+        '<div class="u-fs-12px u-c-muted u-mb-18px">Enter odds for picks that don\'t have them yet. Type them the way you do in the sheet (15, 4.7) or as American odds (+1500, +470). Leave a box blank to skip it.</div>';
 
       if (!res.rows.length) {
-        html += '<div style="text-align:center;padding:32px 0;color:#A1A9B6;font-size:14px">🎉 All odds are filled in.</div>';
+        html += '<div class="ui-empty">🎉 All odds are filled in.</div>';
         el.innerHTML = html;
         bindSwitch(); bindAdminNav();
         return;
@@ -31,20 +31,20 @@
       }
 
       games.forEach(function(g) {
-        html += '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:14px 16px;margin-bottom:14px">' +
-          '<div style="font-size:11px;font-weight:600;color:#A1A9B6;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">' + weekName(g.week) + ' · ' + g.slot + '</div>' +
-          '<div style="font-size:15px;font-weight:700;margin-bottom:10px">' + coloredGame(g.home, g.away) + '</div>';
+        html += '<div class="u-bg-rgba-255-255-255-0-05 u-r-10px u-p-14px-16px u-mb-14px">' +
+          '<div class="u-fs-11px u-fw-600 u-c-muted u-tt-uppercase u-ls-0-06em u-mb-4px">' + weekName(g.week) + ' · ' + g.slot + '</div>' +
+          '<div class="u-fs-15px u-fw-700 u-mb-10px">' + coloredGame(g.home, g.away) + '</div>';
         g.rows.forEach(function(r) {
-          html += '<div style="margin-top:8px">' +
+          html += '<div class="u-mt-8px">' +
             '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:' + personColor(r.picker) + ';margin-bottom:4px">' + r.picker + '</div>' +
-            '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:14px">' + coloredText(r.homePick, r.home) + oddsInput(r.row, 'home', r.homeOdds, r.homePick) + '</div>' +
-            '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:14px">' + coloredText(r.awayPick, r.away) + oddsInput(r.row, 'away', r.awayOdds, r.awayPick) + '</div>' +
+            '<div class="u-d-flex u-jc-space-between u-ai-center u-p-4px-0 u-fs-14px">' + coloredText(r.homePick, r.home) + oddsInput(r.row, 'home', r.homeOdds, r.homePick) + '</div>' +
+            '<div class="u-d-flex u-jc-space-between u-ai-center u-p-4px-0 u-fs-14px">' + coloredText(r.awayPick, r.away) + oddsInput(r.row, 'away', r.awayOdds, r.awayPick) + '</div>' +
             '</div>';
         });
         html += '</div>';
       });
 
-      html += '<div style="text-align:center;margin-top:8px">' +
+      html += '<div class="u-center u-mt-s">' +
         '<button class="primary-btn" id="odds-go">Save Odds</button>' +
         '<div class="submit-msg" id="odds-msg"></div></div>';
 
@@ -113,7 +113,7 @@
             msg.textContent = res.error || ('Couldn\'t read: ' + res.bad.join(', ') + '. Everything else was saved.');
             return;
           }
-          var done = '<div style="background:rgba(52,211,153,0.15);border-radius:10px;padding:14px 16px;font-size:13px;color:#34D399">' +
+          var done = '<div class="u-bg-rgba-52-211-153-0-15 u-r-10px u-p-14px-16px u-fs-13px u-c-good">' +
             '✅ Saved ' + res.saved + ' odds. You\'ve been logged out.</div>';
           renderPinScreen('', done);
           clearSheetCache();
@@ -136,22 +136,22 @@
         if (!document.body.contains(body)) return; // left this tab before it loaded
         ADMIN.friends = res.friends || [];
         var list = ADMIN.friends;
-        var h = '<div class="pf-h" style="margin-top:0">🔑 Main PINs <small>no code edits needed</small></div><div id="main-pins"><div class="loading">Loading…</div></div>' +
+        var h = '<div class="u-mt-0 pf-h">🔑 Main PINs <small>no code edits needed</small></div><div id="main-pins"><div class="loading">Loading…</div></div>' +
           '<div class="pf-h">👥 Friends</div>' +
-          '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">Friends log in with their PIN to make their own picks. PINs are stored in the script, not the sheet. Text each friend their PIN.</div>' +
-          '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">' +
-            '<input class="adm-input" id="fr-name" placeholder="Name" maxlength="24" style="flex:2;min-width:140px">' +
-            '<input class="adm-input" id="fr-pin" placeholder="PIN" maxlength="4" inputmode="numeric" style="width:90px;letter-spacing:0.2em;text-align:center">' +
+          '<div class="ui-note u-mb">Friends log in with their PIN to make their own picks. PINs are stored in the script, not the sheet. Text each friend their PIN.</div>' +
+          '<div class="u-d-flex u-gap-8px u-fwrap-wrap u-mb-6px">' +
+            '<input class="u-f-2 u-minw-140px adm-input" id="fr-name" placeholder="Name" maxlength="24">' +
+            '<input class="u-w-90px u-ls-0-2em u-ta-center adm-input" id="fr-pin" placeholder="PIN" maxlength="4" inputmode="numeric">' +
             '<button class="adm-btn" id="fr-rand" title="Random PIN">🎲</button>' +
-            '<button class="primary-btn" id="fr-add" style="padding:9px 18px">Add Friend</button>' +
-          '</div><div class="submit-msg" id="adm-msg" style="text-align:left"></div>' +
-          '<div style="font-size:11px;font-weight:800;letter-spacing:0.12em;color:#A1A9B6;margin:14px 0 4px">FRIENDS (' + list.length + ')</div>';
+            '<button class="u-p-9px-18px primary-btn" id="fr-add">Add Friend</button>' +
+          '</div><div class="u-ta-left submit-msg" id="adm-msg"></div>' +
+          '<div class="u-fs-11px u-fw-800 u-ls-0-12em u-c-muted u-m-14px-0-4px">FRIENDS (' + list.length + ')</div>';
         h += list.length ? list.map(function(f) {
-          return '<div class="adm-row"><div><b style="color:' + fStyle(f.name).color + '">' + (fStyle(f.name).emoji ? fStyle(f.name).emoji + ' ' : '') + escHtml(f.name) + '</b> <span style="color:#A1A9B6;letter-spacing:0.15em;margin-left:6px">' + f.pin + '</span></div>' +
-            '<div style="display:flex;gap:6px"><button class="adm-btn" data-fprof="' + escHtml(f.name) + '">Profile</button>' +
+          return '<div class="adm-row"><div><b style="color:' + fStyle(f.name).color + '">' + (fStyle(f.name).emoji ? fStyle(f.name).emoji + ' ' : '') + escHtml(f.name) + '</b> <span class="u-c-muted u-ls-0-15em u-ml-6px">' + f.pin + '</span></div>' +
+            '<div class="u-d-flex u-gap-6px"><button class="adm-btn" data-fprof="' + escHtml(f.name) + '">Profile</button>' +
             '<button class="adm-btn" data-fpin="' + escHtml(f.name) + '">PIN</button>' +
             '<button class="adm-btn red" data-frm="' + escHtml(f.name) + '">Remove</button></div></div>';
-        }).join('') : '<div style="color:#A1A9B6;font-size:13px;padding:10px 0">No friends yet.</div>';
+        }).join('') : '<div class="u-c-muted u-fs-13px u-p-10px-0">No friends yet.</div>';
         body.innerHTML = h;
         document.getElementById('fr-rand').addEventListener('click', function() {
           var taken = list.map(function(f) { return f.pin; }), pin;
@@ -200,11 +200,11 @@
       var box = document.getElementById('main-pins');
       if (!box) return;
       picksApi({ pin: SUB.pin, action: 'pins' }).then(function(r) {
-        if (!r.pins) { box.innerHTML = '<div class="inj-warn" style="margin:0">Changing these needs the newest PicksAPI.gs (Deploy → Manage deployments → ✏️ → New version → Deploy).</div>'; return; }
+        if (!r.pins) { box.innerHTML = '<div class="u-m-0 inj-warn">Changing these needs the newest PicksAPI.gs (Deploy → Manage deployments → ✏️ → New version → Deploy).</div>'; return; }
         var who = [['Maria', SB_M], ['Danielle', SB_D], ['ADMIN', '#E5E7EB']];
         box.innerHTML = who.map(function(w) {
-          return '<div class="adm-row"><div><b style="color:' + w[1] + '">' + (w[0] === 'ADMIN' ? 'You (admin)' : w[0]) + '</b> <span class="mp-pin" style="color:#A1A9B6;letter-spacing:0.15em;margin-left:6px">••••</span></div>' +
-            '<div style="display:flex;gap:6px"><button class="adm-btn" data-mp-show="' + w[0] + '">Show</button><button class="adm-btn" data-mp-set="' + w[0] + '">Change</button></div></div>';
+          return '<div class="adm-row"><div><b style="color:' + w[1] + '">' + (w[0] === 'ADMIN' ? 'You (admin)' : w[0]) + '</b> <span class="u-c-muted u-ls-0-15em u-ml-6px mp-pin">••••</span></div>' +
+            '<div class="u-d-flex u-gap-6px"><button class="adm-btn" data-mp-show="' + w[0] + '">Show</button><button class="adm-btn" data-mp-set="' + w[0] + '">Change</button></div></div>';
         }).join('');
         box.querySelectorAll('[data-mp-show]').forEach(function(b) {
           b.addEventListener('click', function() {
@@ -258,8 +258,8 @@
 
     function adminHeader(active) {
       var tabs = [['check', '✅ Checklist'], ['odds', '💲 Odds'], ['games', '🏈 Games'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['season', '🆕 Season'], ['bracket', '🏆 Bracket'], ['theme', '🎨 Theme'], ['museum', '🏛️ Museum'], ['machine', '🤖 Machine'], ['mlines', '🎯 Machine Lines'], ['eggs', '🥚 Eggs'], ['status', '🩺 Status']];
-      return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
-        '<div style="font-size:16px;font-weight:700">Hi John</div>' +
+      return '<div class="u-between u-mb-xs">' +
+        '<div class="ui-title">Hi John</div>' +
         '<button class="link-btn" id="sub-switch">Log out</button></div>' +
         '<div class="adm-nav">' + tabs.map(function(t) {
           return '<button data-adm="' + t[0] + '" class="' + (t[0] === active ? 'on' : '') + '">' + t[1] + '</button>';
@@ -286,7 +286,7 @@
       if (a.errs) parts.push('📱 <b>' + a.errs + ' new error' + (a.errs > 1 ? 's' : '') + '</b> from phones');
       if (a.jobs) parts.push('⏱️ <b>' + a.jobs + ' background job' + (a.jobs > 1 ? 's' : '') + ' not working</b>');
       return '<div class="adm-alert" id="adm-alert"><span>⚠️ ' + parts.join(' · ') + '</span>' +
-        '<span style="white-space:nowrap">' + (a.issues || a.errs || a.jobs || (a.scripts && a.scripts.length) ? '<button class="adm-btn" data-adm="status">Open Status</button> ' : '') + '<button class="link-btn" id="adm-alert-x" aria-label="Hide">✕</button></span></div>';
+        '<span class="u-ws-nowrap">' + (a.issues || a.errs || a.jobs || (a.scripts && a.scripts.length) ? '<button class="adm-btn" data-adm="status">Open Status</button> ' : '') + '<button class="link-btn" id="adm-alert-x" aria-label="Hide">✕</button></span></div>';
     }
     function adminLoginCheck() {
       ADMIN.alert = null; ADMIN.alertHidden = false;
@@ -337,24 +337,24 @@
         var next = last && j.triggers ? new Date(new Date(last.at).getTime() + j.mins * 60000) : null;
         var sub = !j.triggers ? 'No timer, so it never runs on its own. Press 🔧 Fix timers below.' :
           (j.running ? '⏳ Running now (started ' + ago(j.running) + ')<br>' : '') +
-          (last ? 'Last run ' + ago(last.at) + ' · ' + (last.ok ? 'worked' : '<b style="color:#F87171">failed</b>') + (last.ms != null ? ' · took ' + dur(last.ms) : '') + (last.calls ? ' · ' + last.calls + ' outside calls' : '') : 'No runs logged yet (logging starts with this version).') +
-          (j.fails ? '<br><b style="color:#F87171">' + j.fails + ' failure' + (j.fails > 1 ? 's' : '') + ' in a row</b>' + (j.fails >= 2 ? ' · you were emailed' : '') : '') +
+          (last ? 'Last run ' + ago(last.at) + ' · ' + (last.ok ? 'worked' : '<b class="u-bad">failed</b>') + (last.ms != null ? ' · took ' + dur(last.ms) : '') + (last.calls ? ' · ' + last.calls + ' outside calls' : '') : 'No runs logged yet (logging starts with this version).') +
+          (j.fails ? '<br><b class="u-bad">' + j.fails + ' failure' + (j.fails > 1 ? 's' : '') + ' in a row</b>' + (j.fails >= 2 ? ' · you were emailed' : '') : '') +
           (last && !last.ok ? '<div class="st-log">' + escHtml(last.err || '') + '</div>' : '') +
           (j.triggers > 1 ? '<br>⚠️ ' + j.triggers + ' timers for this job (it runs ' + j.triggers + '× too often). Press 🔧 Fix timers.' : '') +
           (stale && j.triggers ? '<br>⚠️ Hasn\'t run for a while (expected ' + j.every + ').' : '') +
-          (next && !j.running ? '<br><span style="color:#6B7280">Next: about ' + next.toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + ' (' + j.every + ')</span>' : '');
+          (next && !j.running ? '<br><span class="u-c-faint">Next: about ' + next.toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + ' (' + j.every + ')</span>' : '');
         var hist = j.runs.length > 1 ? '<details class="jb-hist"><summary>Last ' + j.runs.length + ' runs</summary>' + j.runs.map(function(r) {
           return '<div class="jb-run' + (r.ok ? '' : ' bad') + '"><span>' + (r.ok ? '✅' : '❌') + ' ' + new Date(r.at).toLocaleString([], { weekday: 'short', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + '</span><span>' + dur(r.ms) + (r.calls ? ' · ' + r.calls + ' calls' : '') + '</span>' +
             (r.ok ? (r.note ? '<em>' + escHtml(r.note) + '</em>' : '') : '<em>' + escHtml(r.err || '') + '</em>') + '</div>';
         }).join('') + '</details>' : '';
-        return '<div class="st-row"><span class="st-ic">' + ic + '</span><div style="flex:1;min-width:0"><div class="st-l">' + escHtml(j.name) + '</div><div class="st-d">' + sub + '</div>' + hist + '</div></div>';
+        return '<div class="st-row"><span class="st-ic">' + ic + '</span><div class="u-f-1 u-minw-0"><div class="st-l">' + escHtml(j.name) + '</div><div class="st-d">' + sub + '</div>' + hist + '</div></div>';
       }).join('');
       var q = J.quota;
       return '<div class="pf-h">⏱️ Background jobs <small>' + (bad ? bad + ' need' + (bad === 1 ? 's' : '') + ' a look' : 'all healthy') + '</small></div>' + rows +
         (J.orphans && J.orphans.length ? '<div class="st-row"><span class="st-ic">⚠️</span><div><div class="st-l">Leftover timers</div><div class="st-d">' + J.orphans.map(escHtml).join(', ') + ' (those jobs don\'t exist anymore). 🔧 Fix timers removes them.</div></div></div>' : '') +
-        '<div class="jb-qs"><div class="st-l" style="margin-bottom:6px">📊 Today\'s Google limits</div>' + bar('Calls to outside sites (ESPN…)', q.fetch, q.limits.fetch, '') + bar('Timed-job run time', q.runMin, q.limits.runMin, ' min') +
-        '<div class="st-d" style="margin-top:4px">Counted by the scripts themselves (Google doesn\'t show this). Resets at midnight.</div></div>' +
-        '<div style="margin:10px 0 18px"><button class="adm-btn" id="jb-fix">🔧 Fix timers</button> <span style="font-size:11.5px;color:#6B7280">One timer per job, missing ones added, leftovers removed.</span><div class="submit-msg" id="jb-msg" style="text-align:left"></div></div>';
+        '<div class="jb-qs"><div class="u-mb-6px st-l">📊 Today\'s Google limits</div>' + bar('Calls to outside sites (ESPN…)', q.fetch, q.limits.fetch, '') + bar('Timed-job run time', q.runMin, q.limits.runMin, ' min') +
+        '<div class="u-mt-xs st-d">Counted by the scripts themselves (Google doesn\'t show this). Resets at midnight.</div></div>' +
+        '<div class="u-m-10px-0-18px"><button class="adm-btn" id="jb-fix">🔧 Fix timers</button> <span class="u-fs-11-5px u-c-faint">One timer per job, missing ones added, leftovers removed.</span><div class="u-ta-left submit-msg" id="jb-msg"></div></div>';
     }
     function bindJobs(body) {
       var b = document.getElementById('jb-fix');
@@ -376,7 +376,7 @@
         if (!iso) return 'never';
         var m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
         var when = m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' hr ago' : Math.round(m / 1440) + ' days ago';
-        return when + ' <span style="color:#6B7280">(' + new Date(iso).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + ')</span>';
+        return when + ' <span class="u-c-faint">(' + new Date(iso).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + ')</span>';
       }
       function row(state, label, detail) {
         var ic = state === 'ok' ? '✅' : state === 'warn' ? '⚠️' : state === 'bad' ? '❌' : 'ℹ️';
@@ -391,12 +391,12 @@
         if (!document.body.contains(body)) return; // you moved to another admin tab while it was checking
         var s = res[0], be = res[1], sh = res[2];
         var siteV = (document.firstChild && document.firstChild.nodeType === 8) ? document.firstChild.nodeValue.trim() : '?';
-        var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:10px">Everything the site depends on, checked right now. <button class="link-btn" id="st-again">Check again</button></div>';
+        var h = '<div class="u-fs-12px u-c-muted u-mb-10px">Everything the site depends on, checked right now. <button class="link-btn" id="st-again">Check again</button></div>';
         var dataSlot = '<div class="pf-h">🔍 Data check <small>every season, every row</small></div><div id="st-data"><div class="loading">Checking every row in every season…</div></div>';
         if (s.jobs) h += jobsHtml(s.jobs, ago);
         h += '<div class="pf-h">🔌 Connections</div>';
         h += row('info', '📺 Game Day', 'Only shows up while a game they both picked is live. <button class="adm-btn" id="gd-test">Test it on the last game</button>' +
-          '<br><span style="color:#6B7280">Opens the most recent finished game they both picked, with the final box score, plays and the touchdown moment.</span>');
+          '<br><span class="u-c-faint">Opens the most recent finished game they both picked, with the final box score, plays and the touchdown moment.</span>');
         h += row(sh.ok ? 'ok' : 'bad', 'Google Sheets (from this browser)', sh.ok ? 'Reachable · ' + sh.ms + ' ms' : 'Not reachable' + (sh.code ? ' (HTTP ' + sh.code + (sh.code === 429 ? ', too many requests: wait a minute' : sh.code === 403 ? ', check the API key limits' : '') + ')' : ''));
         h += row(s.error ? 'bad' : 'ok', 'Picks script (PicksAPI)', s.error ? s.error : 'Reachable · season ' + s.season + ' · ' + s.friends + ' friend' + (s.friends === 1 ? '' : 's'));
         h += row(be.ok ? 'ok' : 'warn', 'ESPN (from this browser)', be.ok ? 'Reachable · ' + be.ms + ' ms · used for Live Picks scores and kickoff times' : 'Not reachable right now. Live scores and kickoff times won\'t show; nothing else is affected.');
@@ -432,14 +432,14 @@
           var gp = s.gaps || { noScorer: [], noSide: [], noOdds: [] };
           h += '<div class="pf-h">📋 Sheet check</div>';
           function gapRow(list, label, fix) {
-            return row(list.length ? 'warn' : 'ok', label + (list.length ? ': ' + list.length : ''), list.length ? list.slice(0, 8).join(' · ') + (list.length > 8 ? ' · +' + (list.length - 8) + ' more' : '') + '<br><span style="color:#6B7280">' + fix + '</span>' : 'None');
+            return row(list.length ? 'warn' : 'ok', label + (list.length ? ': ' + list.length : ''), list.length ? list.slice(0, 8).join(' · ') + (list.length > 8 ? ' · +' + (list.length - 8) + ' more' : '') + '<br><span class="u-c-faint">' + fix + '</span>' : 'None');
           }
           h += gapRow(gp.noScorer, 'Finished games with no first scorer', 'FirstTD fills these on its next run. If it\'s been hours, type it into column L.');
           h += gapRow(gp.noSide, 'Scored games missing Home/Away', 'FirstTD fills column N on its next run, or type Home/Away yourself.');
           h += gapRow(gp.noOdds, 'Scored games missing odds', 'Enter them on the 💲 Odds screen.');
           h += gapRow(gp.noPlayers || [], 'Games with no players to pick', 'Run fixGameRows in Apps Script (it fills in the hidden player lists). If one still shows after that, its team name doesn\'t match the Rosters tab.');
           var no = gp.notOffered || [];
-          h += row('info', 'Games where the scorer wasn\'t offered' + (no.length ? ': ' + no.length : ''), no.length ? no.join(' · ') + '<br><span style="color:#6B7280">These count 0 units. If one is wrong, clear that game\'s column O cells and FirstTD re-checks it on its next run.</span>' : 'None');
+          h += row('info', 'Games where the scorer wasn\'t offered' + (no.length ? ': ' + no.length : ''), no.length ? no.join(' · ') + '<br><span class="u-c-faint">These count 0 units. If one is wrong, clear that game\'s column O cells and FirstTD re-checks it on its next run.</span>' : 'None');
           h += dataSlot;
           var errs = s.errors || [], seen = errSeen();
           h += '<div class="pf-h">📱 Errors from phones <small>last 15 kept</small></div>';
@@ -447,11 +447,11 @@
           else {
             h += errs.slice(0, 10).map(function(e) {
               var isNew = e.at > seen;
-              return '<div class="err-item">' + row(isNew ? 'warn' : 'info', escHtml(e.msg) + (e.n > 1 ? ' <span style="color:#A1A9B6">×' + e.n + '</span>' : '') + (isNew ? ' <span class="err-new">new</span>' : ''),
+              return '<div class="err-item">' + row(isNew ? 'warn' : 'info', escHtml(e.msg) + (e.n > 1 ? ' <span class="u-muted">×' + e.n + '</span>' : '') + (isNew ? ' <span class="err-new">new</span>' : ''),
                 escHtml(e.who) + ' · ' + escHtml(e.device) + ' · ' + escHtml(e.tab || '?') + ' tab' + (e.where ? ' · ' + escHtml(e.where) : '') + (e.v ? ' · ' + escHtml(e.v) : '') + '<br>' + ago(e.at) +
                 ' · <button class="link-btn" data-errdel="' + escHtml(e.at) + '" data-errmsg="' + escHtml(e.msg) + '">Dismiss</button>') + '</div>';
-            }).join('') + (errs.length > 10 ? '<div style="font-size:11px;color:#6B7280;margin:4px 0">+ ' + (errs.length - 10) + ' older</div>' : '') +
-              '<div style="margin:8px 0 4px"><button class="adm-btn" id="err-clear">Clear the list</button> <span style="font-size:11px;color:#6B7280">Fixed? Clear it so new ones stand out.</span></div>';
+            }).join('') + (errs.length > 10 ? '<div class="u-fs-11px u-c-faint u-m-4px-0">+ ' + (errs.length - 10) + ' older</div>' : '') +
+              '<div class="u-m-8px-0-4px"><button class="adm-btn" id="err-clear">Clear the list</button> <span class="u-fs-11px u-c-faint">Fixed? Clear it so new ones stand out.</span></div>';
           }
           markErrSeen(errs);
           if (ADMIN.alert) ADMIN.alert.errs = 0;
@@ -534,39 +534,39 @@
       var B = r.bracket, S = r.seeds, st = B.state;
       var teams = Object.keys(TEAM_ABBR).sort();
       var stateTxt = { off: S ? 'Field saved, not open yet' : 'Not set up', open: 'Open: people can fill out brackets', locked: 'Locked: games are on', done: 'Finished' }[st] || st;
-      var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">Everyone picks the winner and first TD of all 13 playoff games before Wild Card kickoff. It locks by itself at the first kickoff, and results come from ESPN. Set the field right after Week 18.</div>';
-      h += '<div class="st-row"><span class="st-ic">' + (st === 'open' ? '🟢' : st === 'locked' ? '🔒' : st === 'done' ? '🏁' : '⚪') + '</span><div style="flex:1"><div class="st-l">' + stateTxt + '</div>' +
+      var h = '<div class="ui-note u-mb">Everyone picks the winner and first TD of all 13 playoff games before Wild Card kickoff. It locks by itself at the first kickoff, and results come from ESPN. Set the field right after Week 18.</div>';
+      h += '<div class="st-row"><span class="st-ic">' + (st === 'open' ? '🟢' : st === 'locked' ? '🔒' : st === 'done' ? '🏁' : '⚪') + '</span><div class="u-grow"><div class="st-l">' + stateTxt + '</div>' +
         '<div class="st-d">' + (B.lockAt ? 'Locks ' + new Date(B.lockAt).toLocaleString() : 'Lock time: the first Wild Card kickoff, once ESPN lists the games') + ' · ' + (r.entries || []).length + ' brackets</div>' +
-        '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">' +
+        '<div class="u-d-flex u-gap-6px u-fwrap-wrap u-mt-8px">' +
           (S ? '<button class="adm-btn ' + (S.opened ? '' : 'green') + '" id="bra-open">' + (S.opened ? 'Close it (hide from the site)' : 'Open it') + '</button>' : '') +
           (S && S.opened && st === 'open' ? '<button class="adm-btn" id="bra-lock">Lock now</button>' : '') +
           (S && S.lockAt ? '<button class="adm-btn" id="bra-unlock">Undo manual lock</button>' : '') +
           (st !== 'off' ? '<button class="adm-btn" id="bra-see">See the page →</button>' : '') +
         '</div></div></div>';
-      h += '<div class="pf-h" style="margin-top:16px">🏈 The field <small>seed 1 gets the bye</small></div>' +
-        '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px"><button class="adm-btn" id="bra-pull">Fill from ESPN standings</button></div>' +
+      h += '<div class="u-mt pf-h">🏈 The field <small>seed 1 gets the bye</small></div>' +
+        '<div class="u-d-flex u-gap-8px u-fwrap-wrap u-mb-8px"><button class="adm-btn" id="bra-pull">Fill from ESPN standings</button></div>' +
         '<div class="bra-seeds">' + ['AFC', 'NFC'].map(function(c) {
           return '<div><div class="bra-conf">' + c + '</div>' + BRA.seeds[c].map(function(t, i) {
             return '<label class="bra-seed"><span>' + (i + 1) + '</span><select class="adm-input" data-bra="' + c + '|' + i + '"><option value="">—</option>' + teams.map(function(x) {
               return '<option value="' + escHtml(x) + '"' + (resolveTeam(t) === x ? ' selected' : '') + '>' + escHtml(x.split(' ').pop()) + '</option>'; }).join('') + '</select></label>';
           }).join('') + '</div>';
         }).join('') + '</div>' +
-        '<button class="primary-btn" id="bra-save" style="padding:10px 20px">' + (S && S.opened ? 'Save the field' : 'Save and open the bracket') + '</button>' +
-        (S && !S.opened ? ' <button class="link-btn" id="bra-save-only" style="margin-left:8px">Save without opening</button>' : '') +
-        '<div class="submit-msg" id="adm-msg" style="text-align:left"></div>';
+        '<button class="u-p-10px-20px primary-btn" id="bra-save">' + (S && S.opened ? 'Save the field' : 'Save and open the bracket') + '</button>' +
+        (S && !S.opened ? ' <button class="u-ml-8px link-btn" id="bra-save-only">Save without opening</button>' : '') +
+        '<div class="u-ta-left submit-msg" id="adm-msg"></div>';
       var E = r.entries || [];
-      h += '<div class="pf-h" style="margin-top:18px">👥 Brackets <small>' + E.length + '</small></div>' + (E.length ? E.map(function(e) {
+      h += '<div class="u-mt-18px pf-h">👥 Brackets <small>' + E.length + '</small></div>' + (E.length ? E.map(function(e) {
         var n = BR_ORDER.filter(function(k) { return e.picks[k] && e.picks[k].w; }).length, ns = BR_ORDER.filter(function(k) { return e.picks[k] && e.picks[k].s; }).length;
-        return '<div class="adm-row"><div><b>' + escHtml(e.who) + '</b> <span style="color:#A1A9B6">· ' + n + '/13 winners · ' + ns + '/13 first TDs' + (e.at && !isNaN(new Date(e.at)) ? ' · ' + new Date(e.at).toLocaleDateString() : '') + '</span></div>' +
+        return '<div class="adm-row"><div><b>' + escHtml(e.who) + '</b> <span class="u-muted">· ' + n + '/13 winners · ' + ns + '/13 first TDs' + (e.at && !isNaN(new Date(e.at)) ? ' · ' + new Date(e.at).toLocaleDateString() : '') + '</span></div>' +
           '<button class="adm-btn red" data-bra-rm="' + escHtml(e.who) + '">Remove</button></div>';
-      }).join('') : '<div style="font-size:13px;color:#A1A9B6">None yet.</div>');
+      }).join('') : '<div class="u-fs-13px u-c-muted">None yet.</div>');
       var G = B.games || [];
       if (G.length) {
-        h += '<div class="pf-h" style="margin-top:18px">📋 Results from ESPN <small>fix a first TD if ESPN\'s name doesn\'t match</small></div>';
+        h += '<div class="u-mt-18px pf-h">📋 Results from ESPN <small>fix a first TD if ESPN\'s name doesn\'t match</small></div>';
         G.forEach(function(g) {
-          h += '<div class="adm-row"><div style="min-width:0"><b>' + escHtml(brNick(g.teams[0])) + ' vs ' + escHtml(brNick(g.teams[1])) + '</b> <span style="color:#A1A9B6">· ' + BR_ROUNDS[g.round].t + ' · ' + (g.state === 'post' ? 'final' + (g.winner ? ', ' + escHtml(brNick(g.winner)) + ' won' : '') : g.state === 'in' ? 'live' : 'not started') + '</span>' +
-            '<div style="font-size:12px;margin-top:3px">First TD: <b>' + escHtml(g.ftd || '—') + '</b>' + (g.fixed ? ' (fixed by you)' : '') + '</div></div>' +
-            '<span style="white-space:nowrap"><button class="adm-btn" data-bra-fix="' + escHtml(g.id) + '">Fix</button>' + (g.fixed ? ' <button class="adm-btn" data-bra-unfix="' + escHtml(g.id) + '">Use ESPN</button>' : '') + '</span></div>';
+          h += '<div class="adm-row"><div class="u-minw-0"><b>' + escHtml(brNick(g.teams[0])) + ' vs ' + escHtml(brNick(g.teams[1])) + '</b> <span class="u-muted">· ' + BR_ROUNDS[g.round].t + ' · ' + (g.state === 'post' ? 'final' + (g.winner ? ', ' + escHtml(brNick(g.winner)) + ' won' : '') : g.state === 'in' ? 'live' : 'not started') + '</span>' +
+            '<div class="u-fs-12px u-mt-3px">First TD: <b>' + escHtml(g.ftd || '—') + '</b>' + (g.fixed ? ' (fixed by you)' : '') + '</div></div>' +
+            '<span class="u-ws-nowrap"><button class="adm-btn" data-bra-fix="' + escHtml(g.id) + '">Fix</button>' + (g.fixed ? ' <button class="adm-btn" data-bra-unfix="' + escHtml(g.id) + '">Use ESPN</button>' : '') + '</span></div>';
         });
       }
       body.innerHTML = h;
@@ -636,15 +636,15 @@
       var L = r.library, ll = L.last || {}, R = r.report;
       function pc(x, d) { return (x * 100).toFixed(d == null ? 0 : d) + '%'; }
       function ago(iso) { if (!iso) return 'never'; var m = Math.round((Date.now() - new Date(iso).getTime()) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' hr ago' : Math.round(m / 1440) + ' days ago'; }
-      var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">Only you can see this report. Everyone else sees the 🤖 Machine tab, where its picks only show up after kickoff.</div>';
-      h += '<div class="st-row"><span class="st-ic">' + (!L.on ? '❌' : ll.caught ? '✅' : '⏳') + '</span><div style="flex:1"><div class="st-l">Game library: ' + (ll.total || 0) + ' games</div><div class="st-d">' +
+      var h = '<div class="ui-note u-mb">Only you can see this report. Everyone else sees the 🤖 Machine tab, where its picks only show up after kickoff.</div>';
+      h += '<div class="st-row"><span class="st-ic">' + (!L.on ? '❌' : ll.caught ? '✅' : '⏳') + '</span><div class="u-grow"><div class="st-l">Game library: ' + (ll.total || 0) + ' games</div><div class="st-d">' +
         (!L.on ? 'Not running. In Apps Script, run setupGameLibrary.' : ll.caught ? 'Every NFL game since 2023, up to date. Checks hourly for new ones.' : 'Still filling in (about ' + L.estimate + ' games total), up to ' + escHtml(ll.cursor || '…') + '.') +
         '</div></div></div>';
-      h += '<div class="st-row"><span class="st-ic">' + (R ? '🧠' : '⏳') + '</span><div style="flex:1"><div class="st-l">' + (R ? 'Model trained ' + ago(R.at) : 'Model not trained yet') + '</div><div class="st-d">' +
+      h += '<div class="st-row"><span class="st-ic">' + (R ? '🧠' : '⏳') + '</span><div class="u-grow"><div class="st-l">' + (R ? 'Model trained ' + ago(R.at) : 'Model not trained yet') + '</div><div class="st-d">' +
         (R ? 'On ' + R.games + ' games. It retrains itself when new games come in.' : 'It trains itself once the library is caught up, or press Train now (needs 100+ games).') +
-        '</div><button class="adm-btn" id="mc-train" style="margin-top:8px">' + (R ? 'Retrain now' : 'Train now') + '</button>' +
-        (R ? ' <button class="adm-btn" id="mc-picks" style="margin-top:8px">Make its picks now</button>' : '') + '</div></div><div class="submit-msg" id="adm-msg" style="text-align:left"></div>' +
-        (R ? '<div class="mc-note" style="margin:-4px 0 6px">Its picks for upcoming games refresh every hour on their own and lock at kickoff. The 2026 games already played got "after the fact" picks once, and those never change. <button class="link-btn" onclick="switchTab(\'machine\')">See the 🤖 Machine tab →</button></div>' : '');
+        '</div><button class="u-mt-8px adm-btn" id="mc-train">' + (R ? 'Retrain now' : 'Train now') + '</button>' +
+        (R ? ' <button class="u-mt-8px adm-btn" id="mc-picks">Make its picks now</button>' : '') + '</div></div><div class="u-ta-left submit-msg" id="adm-msg"></div>' +
+        (R ? '<div class="u-m-4px-0-6px mc-note">Its picks for upcoming games refresh every hour on their own and lock at kickoff. The 2026 games already played got "after the fact" picks once, and those never change. <button class="link-btn" onclick="switchTab(\'machine\')">See the 🤖 Machine tab →</button></div>' : '');
       if (R) {
         // Their real hit rate in the same format (two picks a game), for comparison
         function rate(who) {
@@ -652,7 +652,7 @@
           return x.length ? { r: x.filter(function(b) { return b.correct === 'Yes'; }).length / x.length, n: x.length } : null;
         }
         var rm = rate('Maria'), rd = rate('Danielle');
-        h += '<div class="pf-h" style="margin-top:18px">📋 Accuracy report <small>tested on ' + R.tested + ' games it never trained on (' + R.testSeasons.join(' & ') + ')</small></div>';
+        h += '<div class="u-mt-18px pf-h">📋 Accuracy report <small>tested on ' + R.tested + ' games it never trained on (' + R.testSeasons.join(' & ') + ')</small></div>';
         h += '<div class="mc-tiles">' +
           (R.theirN >= 10
             ? '<div class="mc-tile big"><div class="mc-k">On their ' + R.theirN + ' games, its picks hit (one per team, like theirs)</div><div class="mc-v">' + pc(R.their, 1) + '</div>' +
@@ -680,7 +680,7 @@
           '<li>ESPN had a point spread for <b>' + pc(R.spreadShare) + '</b> of games. The rest use each offense\'s recent form.</li></ul>';
         // Prices
         var P = R.price || {};
-        h += '<div class="pf-h">💲 Estimated FanDuel prices <small>for picks without real odds</small></div><div class="mc-note" style="margin-bottom:6px">' +
+        h += '<div class="pf-h">💲 Estimated FanDuel prices <small>for picks without real odds</small></div><div class="u-mb-6px mc-note">' +
           (P.n >= 20 ? 'Learned from <b>' + P.n + '</b> real FanDuel prices you typed into the sheets. Typical miss: <b>±' + Math.round(P.err * 100) + '%</b> of the real price.' : 'Not enough real prices matched yet (' + (P.n || 0) + '), so it uses the fair price with a 20% cut for now.') + '</div>' +
           '<div class="mc-prices"><span>5% chance → <b>+' + P.p05 + '</b></span><span>10% → <b>+' + P.p10 + '</b></span><span>20% → <b>+' + P.p20 + '</b></span>' +
             (P.margin != null ? '<span>FanDuel\'s cut: <b>' + Math.round(P.margin * 100) + '%</b></span>' : '') + '</div>';
@@ -692,7 +692,7 @@
               var off = r.est && r.real ? Math.round((r.est - r.real) / r.real * 100) : 0;
               return '<div class="mc-pc-r"><span>' + r.label + '</span><span>' + r.n + '</span><span>+' + r.real + '</span><span>+' + r.est + ' <small style="color:' + (Math.abs(off) <= 20 ? '#6EE7B7' : '#FCA5A5') + '">' + (off > 0 ? '+' : '') + off + '%</small></span></div>';
             }).join('') + '</div>';
-          if (P.check && P.check.length) h += '<details class="an-more" style="margin-top:8px"><summary>Biggest misses (' + P.check.length + ')</summary>' +
+          if (P.check && P.check.length) h += '<details class="u-mt-8px an-more"><summary>Biggest misses (' + P.check.length + ')</summary>' +
             '<div class="mc-pc">' + P.check.map(function(c) {
               return '<div class="mc-pc-r"><span>' + escHtml(c.n) + ' <small>' + c.y + ' ' + wkName(c.w) + '</small></span><span>' + c.p + '%</span><span>+' + c.real + '</span><span>+' + c.est + '</span></div>';
             }).join('') + '</div><div class="mc-note">Its chance, the real price, and its estimate. If the misses are mostly stars it rates too low (a low chance with a short real price), the chance is off, not the pricing.</div></details>';
@@ -739,9 +739,9 @@
           return '<option value="' + escHtml(String(v)) + '"' + (String(v) === String(val) ? ' selected' : '') + '>' + escHtml(String(t)) + '</option>';
         }).join('') + '</select>';
       }
-      var h = '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px">' +
-        '<div style="font-size:12px;color:#A1A9B6">The site finds most moments by itself. Add your own, or give any moment a note, a photo or a ⭐. Hidden ones stay off the page.</div>' +
-        '<button class="link-btn" id="mua-open" style="white-space:nowrap">Open the Museum →</button></div>';
+      var h = '<div class="u-d-flex u-jc-space-between u-ai-baseline u-gap-10px u-mb-10px">' +
+        '<div class="u-fs-12px u-c-muted">The site finds most moments by itself. Add your own, or give any moment a note, a photo or a ⭐. Hidden ones stay off the page.</div>' +
+        '<button class="u-ws-nowrap link-btn" id="mua-open">Open the Museum →</button></div>';
       h += '<div class="pf-h">' + (E ? '✏️ Edit: ' + escHtml(E.title) : '➕ Add a moment') + '</div>' +
         '<div class="mua-form">' +
           '<label>Season' + sel('mua-season', years, E ? E.season : CURRENT_YEAR, auto) + '</label>' +
@@ -751,17 +751,17 @@
           '<label class="wide">Caption' + '<textarea class="adm-input" id="mua-cap" maxlength="500" placeholder="' + (auto ? escHtml(E.autoCaption || '') : 'What happened?') + '">' + escHtml(E && (E.custom || E.capSet) ? E.caption : '') + '</textarea></label>' +
           '<label class="wide">Photo (optional)<div class="mua-photo">' +
             '<input type="file" id="mua-file" accept="image/*" style="display:none"><button class="adm-btn" id="mua-pick" type="button">📷 Upload a photo</button>' +
-            '<input class="adm-input" id="mua-photo" placeholder="or paste an image link (https://…)" style="flex:1;min-width:160px" value="' + escHtml(E && E.photo || '') + '">' +
-            (E && E.photo ? '<img class="mua-thumb" id="mua-thumb" src="' + escHtml(E.photo) + '" alt="">' : '<img class="mua-thumb" id="mua-thumb" alt="" style="display:none">') +
+            '<input class="u-f-1 u-minw-160px adm-input" id="mua-photo" placeholder="or paste an image link (https://…)" value="' + escHtml(E && E.photo || '') + '">' +
+            (E && E.photo ? '<img class="mua-thumb" id="mua-thumb" src="' + escHtml(E.photo) + '" alt="">' : '<img class="mua-thumb" style="display:none" id="mua-thumb" alt="">') +
           '</div></label>' +
-          '<label class="wide" style="flex-direction:row;align-items:center;gap:8px;font-size:13px;color:#E5E7EB"><input type="checkbox" id="mua-star"' + (E && E.star ? ' checked' : '') + '> ⭐ Feature it (gold card, bigger with a photo)</label>' +
+          '<label class="u-fd-row u-ai-center u-gap-8px u-fs-13px u-c-t1 wide"><input type="checkbox" id="mua-star"' + (E && E.star ? ' checked' : '') + '> ⭐ Feature it (gold card, bigger with a photo)</label>' +
         '</div>' +
-        '<button class="primary-btn" id="mua-save" style="padding:10px 20px">' + (E ? 'Save changes' : 'Add to the Museum') + '</button>' +
-        (E ? ' <button class="link-btn" id="mua-cancel" style="margin-left:10px">Cancel</button>' : '') +
-        '<div class="submit-msg" id="adm-msg" style="text-align:left"></div>';
+        '<button class="u-p-10px-20px primary-btn" id="mua-save">' + (E ? 'Save changes' : 'Add to the Museum') + '</button>' +
+        (E ? ' <button class="u-ml-s link-btn" id="mua-cancel">Cancel</button>' : '') +
+        '<div class="u-ta-left submit-msg" id="adm-msg"></div>';
 
       var list = MUA.list || [];
-      h += '<div class="pf-h" style="margin-top:18px">🏛️ Everything in the Museum <small>' + list.filter(function(m) { return !m.hidden; }).length + ' showing · ' + list.filter(function(m) { return m.hidden; }).length + ' hidden</small></div>';
+      h += '<div class="u-mt-18px pf-h">🏛️ Everything in the Museum <small>' + list.filter(function(m) { return !m.hidden; }).length + ' showing · ' + list.filter(function(m) { return m.hidden; }).length + ' hidden</small></div>';
       list.forEach(function(m, i) {
         var tag = MU_TAGS[m.tag] || MU_TAGS.custom;
         h += '<div class="mua-row' + (m.hidden ? ' off' : '') + '"><div class="mua-ic">' + tag.ic + '</div><div class="mua-mid">' +
@@ -855,13 +855,13 @@
       var got = {};
       try { got = JSON.parse(localStorage.getItem('mvd-eggs') || '{}'); } catch (e) {}
       var n = EGG_GUIDE.filter(function(e) { return got[e.k]; }).length;
-      var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:14px">The hidden extras, and how to set each one off. Nobody else sees this list. Finding one shows "🥚 Easter egg N of ' + EGG_GUIDE.length + ' found!", counted per phone.</div>' +
+      var h = '<div class="u-fs-12px u-c-muted u-mb-14px">The hidden extras, and how to set each one off. Nobody else sees this list. Finding one shows "🥚 Easter egg N of ' + EGG_GUIDE.length + ' found!", counted per phone.</div>' +
         '<div class="pf-h">🥚 Easter eggs <small>' + n + ' of ' + EGG_GUIDE.length + ' found on this device</small></div>' +
         EGG_GUIDE.map(function(e) {
           return '<div class="egg-row' + (got[e.k] ? ' got' : '') + '"><div class="egg-ic">' + e.ic + '</div><div><div class="egg-t">' + e.t + (got[e.k] ? ' <span class="egg-got">✓ found</span>' : '') + '</div>' +
             '<div class="egg-how"><b>How:</b> ' + e.how + '</div><div class="egg-what"><b>What happens:</b> ' + e.what + '</div></div></div>';
         }).join('') +
-        '<div style="margin-top:14px"><button class="adm-btn" id="egg-reset">Reset found eggs on this device</button></div><div class="submit-msg" id="adm-msg" style="text-align:left"></div>';
+        '<div class="u-mt-14px"><button class="adm-btn" id="egg-reset">Reset found eggs on this device</button></div><div class="u-ta-left submit-msg" id="adm-msg"></div>';
       var body = adminScreen('eggs', h);
       document.getElementById('egg-reset').addEventListener('click', function() {
         try { localStorage.removeItem('mvd-eggs'); } catch (e) {}
@@ -874,17 +874,17 @@
     function adminTheme() {
       var forced = ''; try { forced = localStorage.getItem('mvd-theme-force') || ''; } catch (e) {}
       var auto = window.HOLIDAY_AUTO ? THEME_NAMES[window.HOLIDAY_AUTO] : 'no theme';
-      var h = '<div class="pf-h" style="margin-top:4px">🎨 Theme preview <small>only on this device</small></div>' +
-        '<div style="font-size:12px;color:#A1A9B6;margin-bottom:10px">Force any theme here to check how it looks, whatever the date. Nobody else sees it. Everyone else gets the date-based theme, which today is <b style="color:#F3F4F6">' + auto + '</b>.</div>' +
+      var h = '<div class="u-mt-xs pf-h">🎨 Theme preview <small>only on this device</small></div>' +
+        '<div class="u-fs-12px u-c-muted u-mb-10px">Force any theme here to check how it looks, whatever the date. Nobody else sees it. Everyone else gets the date-based theme, which today is <b class="u-c-t1">' + auto + '</b>.</div>' +
         '<div class="theme-grid">' + Object.keys(THEME_NAMES).map(function(k) {
           var on = forced === k;
           return '<button class="theme-opt' + (on ? ' on' : '') + '" data-theme-opt="' + k + '">' + THEME_NAMES[k] + (on ? ' ✓' : '') + '</button>';
         }).join('') + '</div>' +
-        '<div style="font-size:11px;color:#6B7280;margin:8px 0 22px">The page reloads to apply it. A small "Theme preview" button stays at the bottom of the screen until you go back to Auto.</div>' +
+        '<div class="u-fs-11px u-c-faint u-m-8px-0-22px">The page reloads to apply it. A small "Theme preview" button stays at the bottom of the screen until you go back to Auto.</div>' +
         '<div class="pf-h">👤 Themes for people <small>they can\'t change it</small></div>' +
-        '<div style="font-size:12px;color:#A1A9B6;margin-bottom:10px">Give someone their own theme. It shows on any phone where they\'ve logged in at least once, and it beats the date-based theme until you set them back to Auto.</div>' +
+        '<div class="u-fs-12px u-c-muted u-mb-10px">Give someone their own theme. It shows on any phone where they\'ve logged in at least once, and it beats the date-based theme until you set them back to Auto.</div>' +
         '<div id="pt-box"><div class="loading">Loading…</div></div>' +
-        '<div class="pf-h" style="margin-top:22px">📣 Announcement <small>everyone sees it on Stats</small></div><div id="ann-box"><div class="loading">Loading…</div></div>';
+        '<div class="u-mt-l pf-h">📣 Announcement <small>everyone sees it on Stats</small></div><div id="ann-box"><div class="loading">Loading…</div></div>';
       var body = adminScreen('theme', h);
       body.querySelectorAll('[data-theme-opt]').forEach(function(b) {
         b.addEventListener('click', function() {
@@ -903,9 +903,9 @@
       if (!box) return;
       box.innerHTML = people.map(function(n) {
         var c = n === 'Maria' ? SB_M : n === 'Danielle' ? SB_D : (typeof fStyle === 'function' ? fStyle(n).color : FRIEND_COLOR);
-        return '<div class="adm-row"><b style="color:' + c + '">' + escHtml(n) + '</b><select class="adm-input pt-sel" data-pt="' + escHtml(n) + '" style="padding:6px 10px;width:auto">' +
+        return '<div class="adm-row"><b style="color:' + c + '">' + escHtml(n) + '</b><select class="u-p-6px-10px u-w-auto adm-input pt-sel" data-pt="' + escHtml(n) + '">' +
           Object.keys(THEME_NAMES).map(function(k) { return '<option value="' + k + '"' + ((themes[n] || '') === k ? ' selected' : '') + '>' + THEME_NAMES[k] + '</option>'; }).join('') + '</select></div>';
-      }).join('') + '<div class="submit-msg" id="pt-msg" style="text-align:left"></div>';
+      }).join('') + '<div class="u-ta-left submit-msg" id="pt-msg"></div>';
       box.querySelectorAll('[data-pt]').forEach(function(sel) {
         sel.addEventListener('change', function() {
           var m = document.getElementById('pt-msg'); m.style.color = '#A1A9B6'; m.textContent = 'Saving…';
@@ -919,13 +919,13 @@
     function drawAnnounceAdmin(a) {
       var box = document.getElementById('ann-box');
       if (!box) return;
-      var cur = a ? '<div class="announce-banner" style="display:block;margin-bottom:12px">📣 ' + escHtml(a.text) + '<div style="font-size:11px;color:#A1A9B6;margin-top:4px">' + (a.until ? 'Showing through ' + new Date(a.until + 'T12:00').toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) : 'Showing until you remove it') + '</div></div>' +
-        '<button class="adm-btn red" id="ann-rm" style="margin-bottom:16px">Remove it</button>' : '<div style="font-size:12px;color:#A1A9B6;margin-bottom:10px">Nothing posted right now.</div>';
+      var cur = a ? '<div class="u-d-block u-mb-12px announce-banner">📣 ' + escHtml(a.text) + '<div class="u-fs-11px u-c-muted u-mt-4px">' + (a.until ? 'Showing through ' + new Date(a.until + 'T12:00').toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) : 'Showing until you remove it') + '</div></div>' +
+        '<button class="u-mb-16px adm-btn red" id="ann-rm">Remove it</button>' : '<div class="u-fs-12px u-c-muted u-mb-10px">Nothing posted right now.</div>';
       box.innerHTML = cur +
-        '<textarea class="adm-input" id="ann-text" maxlength="160" rows="2" placeholder="e.g. Happy birthday Danielle 🎂" style="width:100%;box-sizing:border-box;resize:vertical"></textarea>' +
-        '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px"><label style="font-size:12px;color:#A1A9B6">Show through <input type="date" class="adm-input" id="ann-until" style="padding:6px 8px"></label>' +
-        '<span style="font-size:11px;color:#6B7280">(leave blank to keep it up)</span><button class="primary-btn" id="ann-post" style="padding:9px 18px;margin-left:auto">' + (a ? 'Replace' : 'Post') + '</button></div>' +
-        '<div class="submit-msg" id="adm-msg" style="text-align:left"></div>';
+        '<textarea class="u-w-100 u-bs-border-box u-rs-vertical adm-input" id="ann-text" maxlength="160" rows="2" placeholder="e.g. Happy birthday Danielle 🎂"></textarea>' +
+        '<div class="u-d-flex u-gap-8px u-ai-center u-fwrap-wrap u-mt-8px"><label class="u-fs-12px u-c-muted">Show through <input type="date" class="u-p-6px-8px adm-input" id="ann-until"></label>' +
+        '<span class="u-fs-11px u-c-faint">(leave blank to keep it up)</span><button class="u-p-9px-18px u-ml-auto primary-btn" id="ann-post">' + (a ? 'Replace' : 'Post') + '</button></div>' +
+        '<div class="u-ta-left submit-msg" id="adm-msg"></div>';
       document.getElementById('ann-post').addEventListener('click', function() {
         var text = document.getElementById('ann-text').value.trim(), until = document.getElementById('ann-until').value;
         if (!text) return adminMsg('Type a message.');
@@ -965,22 +965,22 @@
         var cur = r.current, pend = r.pending, prev = r.prev;
         var next = String(parseInt(cur.year, 10) + 1);
         var siteYear = CURRENT_YEAR;
-        function link(x) { return '<a href="' + x.url + '" target="_blank" rel="noopener" style="color:#93C5FD">Open sheet ↗</a>'; }
+        function link(x) { return '<a href="' + x.url + '" target="_blank" rel="noopener" class="u-c-blue">Open sheet ↗</a>'; }
         function step(n, title, state, inner) {
-          return '<div class="ns-step ' + state + '"><div class="ns-num">' + (state === 'done' ? '✓' : n) + '</div><div style="flex:1;min-width:0"><div class="ns-title">' + title + '</div>' + (inner || '') + '</div></div>';
+          return '<div class="ns-step ' + state + '"><div class="ns-num">' + (state === 'done' ? '✓' : n) + '</div><div class="u-f-1 u-minw-0"><div class="ns-title">' + title + '</div>' + (inner || '') + '</div></div>';
         }
-        var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:14px">Picks, odds, Trash Talk, first TDs and the Tuesday email all use the <b style="color:#F3F4F6">' + cur.year + '</b> sheet right now. ' + link(cur) + '</div>';
+        var h = '<div class="u-fs-12px u-c-muted u-mb-14px">Picks, odds, Trash Talk, first TDs and the Tuesday email all use the <b class="u-c-t1">' + cur.year + '</b> sheet right now. ' + link(cur) + '</div>';
         var configFor = pend || (prev ? cur : null);
         var needConfig = configFor && SEASONS.map(function(x) { return x.year; }).indexOf(configFor.year) < 0;
 
         h += step(1, 'Make the ' + (pend ? pend.year : prev ? cur.year : next) + ' sheet', (pend || prev) ? 'done' : 'now',
           (pend || prev) ? '<div class="ns-sub">Copied from ' + (pend ? cur.year : prev.year) + ' with the formulas, tabs and team colors. Game rows, Trash Talk and Injured were blanked. ' + link(pend || cur) + '</div>'
             : '<div class="ns-sub">Copies the ' + cur.year + ' sheet into a new "' + next + '" sheet in the same Drive folder, keeping every formula, tab, dropdown and the team-color script, then blanks the game rows, Trash Talk and Injured list. The ' + cur.year + ' sheet is not changed. Nothing switches yet.</div>' +
-              '<button class="primary-btn" id="ns-make" style="margin-top:10px">Make ' + next + ' sheet</button>');
+              '<button class="u-mt-10px primary-btn" id="ns-make">Make ' + next + ' sheet</button>');
         h += step(2, 'Fill it in', pend ? 'now' : prev ? 'done' : 'later',
           '<div class="ns-sub">Pre-fill the game rows like you always do (or add them on the 🏈 Games screen, which only works after step 3), and update the Rosters and QBs tabs for the new year. The site and scripts keep using ' + (pend ? cur.year : 'the old sheet') + ' until step 3.</div>');
         h += step(3, 'Switch over', pend ? 'now' : prev ? 'done' : 'later',
-          pend ? '<div class="ns-sub">Do this before ' + pend.year + ' Week 1. Picks, odds, chat, first TDs and the Tuesday email move to the ' + pend.year + ' sheet. Friends and their old picks stay.</div><button class="adm-btn green" id="ns-switch" style="margin-top:10px;padding:9px 16px;font-size:13px">Switch to ' + pend.year + '</button>'
+          pend ? '<div class="ns-sub">Do this before ' + pend.year + ' Week 1. Picks, odds, chat, first TDs and the Tuesday email move to the ' + pend.year + ' sheet. Friends and their old picks stay.</div><button class="u-mt-10px u-p-9px-16px u-fs-13px adm-btn green" id="ns-switch">Switch to ' + pend.year + '</button>'
             : prev ? '<div class="ns-sub">Switched from ' + prev.year + ' to ' + cur.year + '. <button class="link-btn" id="ns-undo">Undo, go back to ' + prev.year + '</button></div>' : '');
         h += step(4, 'Upload the new config.js', needConfig ? (prev ? 'now' : 'later') : (configFor ? 'done' : 'later'),
           configFor ? (needConfig
@@ -989,9 +989,9 @@
               '<button class="adm-btn" id="ns-copy">Copy</button>'
             : '<div class="ns-sub">The site already lists ' + configFor.year + ' (it shows ' + siteYear + ' as the current season).</div>')
           : '<div class="ns-sub">You\'ll get the exact file to paste here.</div>');
-        h += '<div class="submit-msg" id="adm-msg" style="text-align:left"></div>';
-        h += '<div class="pf-h" style="margin-top:18px">✅ Ready for ' + (pend ? pend.year : cur.year) + '? <small><button class="link-btn" id="ns-recheck">Check again</button></small></div><div id="ns-check"><div class="loading">Checking…</div></div>';
-        h += '<div style="font-size:11px;color:#6B7280;margin-top:14px">Keep editing the scripts in the 2026 sheet\'s Apps Script. The new sheet gets a copy of them only so the team colors keep working there.</div>';
+        h += '<div class="u-ta-left submit-msg" id="adm-msg"></div>';
+        h += '<div class="u-mt-18px pf-h">✅ Ready for ' + (pend ? pend.year : cur.year) + '? <small><button class="link-btn" id="ns-recheck">Check again</button></small></div><div id="ns-check"><div class="loading">Checking…</div></div>';
+        h += '<div class="u-fs-11px u-c-faint u-mt-14px">Keep editing the scripts in the 2026 sheet\'s Apps Script. The new sheet gets a copy of them only so the team colors keep working there.</div>';
         body.innerHTML = h;
 
         function run(action, btn, label) {
@@ -1060,7 +1060,7 @@
       }
       function nick(t) { return escHtml(resolveTeam(t).split(' ').pop()); }
       var E = GAMES.edit;
-      var h = '<div class="pf-h" style="margin-top:4px">' + (E ? '✏️ Edit ' + weekName(E.week) + ': ' + nick(E.home) + ' vs ' + nick(E.away) : '➕ Add a game') + ' <small>' + CURRENT_YEAR + ' sheet</small></div>' +
+      var h = '<div class="u-mt-xs pf-h">' + (E ? '✏️ Edit ' + weekName(E.week) + ': ' + nick(E.home) + ' vs ' + nick(E.away) : '➕ Add a game') + ' <small>' + CURRENT_YEAR + ' sheet</small></div>' +
         '<div class="ag-form">' +
           '<label>Week <span class="ag-hint">playoffs: 19 WC · 20 DIV · 21 CONF · 23 SB</span><input class="adm-input" id="ag-week" type="number" min="1" max="30" value="' + (r.lastWeek || 1) + '"></label>' +
           '<label>Time<input class="adm-input" id="ag-slot" list="ag-slots" placeholder="TNF, SNF…"><datalist id="ag-slots">' + (r.slots || []).map(function(x) { return '<option value="' + escHtml(x) + '">'; }).join('') + '</datalist></label>' +
@@ -1069,10 +1069,10 @@
           '<label>Amount bet<input class="adm-input" id="ag-amt" type="number" min="1" step="any" value="' + escHtml(r.amount || '5') + '"></label>' +
         '</div>' +
         '<div class="ag-note" id="ag-note"></div>' +
-        '<button class="primary-btn" id="ag-add" style="padding:10px 20px">' + (E ? 'Save changes' : 'Add game') + '</button>' +
-        (E ? ' <button class="link-btn" id="ag-cancel" style="margin-left:10px">Cancel</button>' : '') +
-        '<div class="submit-msg" id="adm-msg" style="text-align:left"></div>' +
-        '<div style="font-size:11px;color:#6B7280;margin:8px 0 20px">' + (E
+        '<button class="u-p-10px-20px primary-btn" id="ag-add">' + (E ? 'Save changes' : 'Add game') + '</button>' +
+        (E ? ' <button class="u-ml-s link-btn" id="ag-cancel">Cancel</button>' : '') +
+        '<div class="u-ta-left submit-msg" id="adm-msg"></div>' +
+        '<div class="u-fs-11px u-c-faint u-m-8px-0-20px">' + (E
           ? 'Changes both rows (' + E.rows.join(' and ') + '), Maria\'s and Danielle\'s. Only works while nobody has picked in it. If friends already picked it, only the time can change.'
           : 'Adds two rows right below the last game (game ' + r.nextGame + '), one for Maria and one for Danielle, with the formulas, dropdowns and team colors. Odds start as "+" like always.') + '</div>';
       // Game list: the latest two weeks, the rest behind a button
@@ -1081,17 +1081,17 @@
       weeks.sort(function(a, b) { return b - a; });
       var shown = GAMES.showAll ? weeks : weeks.slice(0, 2);
       h += '<div class="pf-h">📋 Games in the sheet <small>' + r.games.length + ' games</small></div>';
-      if (!weeks.length) h += '<div style="font-size:13px;color:#A1A9B6">No games yet.</div>';
+      if (!weeks.length) h += '<div class="u-fs-13px u-c-muted">No games yet.</div>';
       shown.forEach(function(w) {
         h += '<div class="ag-wk">' + weekName(w) + '</div>';
         byWeek[w].forEach(function(g) {
           var state = g.scorer ? '<span class="ag-st">🏈 ' + escHtml(g.scorer) + '</span>' : g.picked ? '<span class="ag-st">picked</span>' : '';
-          h += '<div class="adm-row"><div style="min-width:0"><b>' + nick(g.home) + '</b> vs <b>' + nick(g.away) + '</b> <span style="color:#A1A9B6">· ' + escHtml(g.slot || '—') + ' · game ' + escHtml(g.game) + ' · rows ' + g.rows.join(', ') + '</span></div>' +
-            (g.picked || g.scorer ? state : '<span style="white-space:nowrap"><button class="adm-btn" data-edg="' + g.week + '|' + escHtml(g.game) + '">Edit</button> ' +
+          h += '<div class="adm-row"><div class="u-minw-0"><b>' + nick(g.home) + '</b> vs <b>' + nick(g.away) + '</b> <span class="u-muted">· ' + escHtml(g.slot || '—') + ' · game ' + escHtml(g.game) + ' · rows ' + g.rows.join(', ') + '</span></div>' +
+            (g.picked || g.scorer ? state : '<span class="u-ws-nowrap"><button class="adm-btn" data-edg="' + g.week + '|' + escHtml(g.game) + '">Edit</button> ' +
               '<button class="adm-btn red" data-rmg="' + g.week + '|' + escHtml(g.game) + '|' + nick(g.home) + ' vs ' + nick(g.away) + '">Remove</button></span>') + '</div>';
         });
       });
-      if (weeks.length > 2) h += '<button class="link-btn" id="ag-all" style="margin-top:10px">' + (GAMES.showAll ? 'Show only the latest weeks' : 'Show all ' + weeks.length + ' weeks') + '</button>';
+      if (weeks.length > 2) h += '<button class="u-mt-10px link-btn" id="ag-all">' + (GAMES.showAll ? 'Show only the latest weeks' : 'Show all ' + weeks.length + ' weeks') + '</button>';
       body.innerHTML = h;
 
       var wk = document.getElementById('ag-week'), note = document.getElementById('ag-note');
@@ -1168,19 +1168,19 @@
       if (r.error) { body.innerHTML = '<div class="inj-warn">' + escHtml(r.error) + '</div>'; return; }
       if (!r.lines) { body.innerHTML = '<div class="inj-warn">⚠️ The picks script that\'s live is older. Deploy → Manage deployments → ✏️ → New version → Deploy, then reload.</div>'; return; }
       var need = r.lines.filter(function(x) { return !x.real && !x.mine; }).length;
-      var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">The Machine\'s correct picks in ' + escHtml(r.season) + '. A miss costs 1 unit at any price, so only these need real odds. ' +
+      var h = '<div class="ui-note u-mb">The Machine\'s correct picks in ' + escHtml(r.season) + '. A miss costs 1 unit at any price, so only these need real odds. ' +
         'Type FanDuel\'s price to replace its estimate. Clear the box to go back to the estimate.</div>';
       if (!r.lines.length) {
-        body.innerHTML = h + '<div class="mc-note" style="text-align:center;margin:18px 0">No correct picks yet this season.</div>';
+        body.innerHTML = h + '<div class="u-ta-center u-m-18px-0 mc-note">No correct picks yet this season.</div>';
         return;
       }
-      h += '<div class="mll-sum">' + (need ? '⚠️ <b>' + need + '</b> still on an estimate' : '✅ Every correct pick has real odds') + '</div><div class="submit-msg" id="adm-msg" style="text-align:left"></div>';
+      h += '<div class="mll-sum">' + (need ? '⚠️ <b>' + need + '</b> still on an estimate' : '✅ Every correct pick has real odds') + '</div><div class="u-ta-left submit-msg" id="adm-msg"></div>';
       r.lines.forEach(function(x, i) {
         var src = x.real ? '<span class="mll-src">Real · same pick as Maria/Danielle</span>' : x.mine ? '<span class="mll-src ok">Real · you entered it</span>' : '<span class="mll-src est">Estimate +' + x.est + '</span>';
         h += '<div class="mll-row"><div class="mll-l"><div class="mll-p">✅ ' + escHtml(x.player) + ' <small>' + escHtml(x.team) + '</small></div>' +
           '<div class="mll-g">' + wkName(parseInt(x.week, 10)) + ' · ' + escHtml(x.away) + ' @ ' + escHtml(x.home) + (x.retro ? ' · after the fact' : '') + '</div>' + src + '</div>' +
           (x.real ? '<b class="mll-odds">+' + x.real + '</b>' :
-            '<div class="mll-in"><input class="adm-input" data-mll="' + i + '" inputmode="decimal" autocomplete="off" placeholder="+' + x.est + ' est" value="' + (x.mine ? '+' + x.mine : '') + '" style="width:96px;text-align:center">' +
+            '<div class="mll-in"><input class="u-w-96px u-ta-center adm-input" data-mll="' + i + '" inputmode="decimal" autocomplete="off" placeholder="+' + x.est + ' est" value="' + (x.mine ? '+' + x.mine : '') + '">' +
             '<button class="adm-btn green" data-mll-save="' + i + '">Save</button></div>') + '</div>';
       });
       body.innerHTML = h;
@@ -1220,8 +1220,8 @@
             var ko = new Date(p.kickoff);
             return '<label class="ck-prop"><input type="checkbox" data-ck-p="' + k + '" checked><span class="ck-slot">' + escHtml(p.slot) + '</span><span class="ck-match">' + teamLogo(p.away) + escHtml(teamNick(p.away)) + ' <i>@</i> ' + escHtml(teamNick(p.home)) + teamLogo(p.home) + '</span>' +
               '<span class="ck-ko">' + ko.toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + '</span></label>';
-          }).join('') + '<div class="ck-add"><label>$ per unit <input class="adm-input" id="ck-amt" value="' + escHtml(it.amount || '5') + '" inputmode="decimal" style="width:64px;text-align:center"></label>' +
-            '<button class="adm-btn green" id="ck-addbtn" data-ck-i="' + i + '">Add these to the sheet</button></div><div class="submit-msg" id="ck-msg" style="text-align:left"></div></div>' : '') +
+          }).join('') + '<div class="ck-add"><label>$ per unit <input class="u-w-64px u-ta-center adm-input" id="ck-amt" value="' + escHtml(it.amount || '5') + '" inputmode="decimal"></label>' +
+            '<button class="adm-btn green" id="ck-addbtn" data-ck-i="' + i + '">Add these to the sheet</button></div><div class="u-ta-left submit-msg" id="ck-msg"></div></div>' : '') +
           (it.state === 'todo' && go[it.key] ? '<button class="link-btn ck-go" data-adm="' + go[it.key] + '">Open ' + { status: '🩺 Status', odds: '💲 Odds', mlines: '🎯 Machine Lines' }[go[it.key]] + ' →</button>' : '') +
           '</div></div>';
       }).join('');
@@ -1290,16 +1290,16 @@
       function when(iso) { return iso ? new Date(iso).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : 'never'; }
       var names = Object.keys(ROSTER_INFO).map(function(k) { return ROSTER_INFO[k].name; }).filter(Boolean).sort();
       var h = '<div class="inj-auto"><div><b>🤖 Auto from ESPN</b><div class="st-d">Players ESPN lists as Out, IR, Suspended or PUP are marked out every 2 hours and come back when ESPN clears them. Last check: ' + when(st.last && st.last.at) + '</div></div>' +
-        '<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end"><span class="inj-state ' + (st.auto ? 'on' : 'off') + '">' + (st.auto ? '● Currently ON' : '● Currently OFF') + '</span>' +
+        '<div class="u-d-flex u-fd-column u-gap-6px u-ai-flex-end"><span class="inj-state ' + (st.auto ? 'on' : 'off') + '">' + (st.auto ? '● Currently ON' : '● Currently OFF') + '</span>' +
           '<button class="adm-btn" id="inj-auto">' + (st.auto ? 'Turn off' : 'Turn on') + '</button><button class="adm-btn" id="inj-sync">Check ESPN now</button></div></div>';
-      h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 6px">' +
-          '<input class="adm-input" id="inj-name" list="inj-players" placeholder="Mark someone out by hand" style="flex:2;min-width:160px">' +
-          '<input class="adm-input" id="inj-note" placeholder="Note (optional)" style="flex:1.4;min-width:120px">' +
-          '<button class="primary-btn" id="inj-add" style="padding:9px 18px">Mark OUT</button>' +
+      h += '<div class="u-d-flex u-gap-8px u-fwrap-wrap u-m-12px-0-6px">' +
+          '<input class="u-f-2 u-minw-160px adm-input" id="inj-name" list="inj-players" placeholder="Mark someone out by hand">' +
+          '<input class="u-f-1-4 u-minw-120px adm-input" id="inj-note" placeholder="Note (optional)">' +
+          '<button class="u-p-9px-18px primary-btn" id="inj-add">Mark OUT</button>' +
         '</div><datalist id="inj-players">' + names.map(function(n) { return '<option value="' + escHtml(n) + '">'; }).join('') + '</datalist>' +
-        '<div class="submit-msg" id="adm-msg" style="text-align:left"></div>';
+        '<div class="u-ta-left submit-msg" id="adm-msg"></div>';
       if (st.needFill && st.needFill.length) h += '<div class="inj-warn">⚠️ No fill-in found for: <b>' + st.needFill.map(escHtml).join(', ') + '</b>. Pick one below, or leave the slot empty.</div>';
-      if (st.pending && st.pending.length) h += '<div class="inj-warn" style="border-color:rgba(147,197,253,0.4);background:rgba(96,165,250,0.08)">⏳ Waiting for the game to finish before shifting: <b>' + st.pending.map(nick).join(', ') + '</b></div>';
+      if (st.pending && st.pending.length) h += '<div class="u-bc-rgba-147-197-253-0-4 u-bg-rgba-96-165-250-0-08 inj-warn">⏳ Waiting for the game to finish before shifting: <b>' + st.pending.map(nick).join(', ') + '</b></div>';
 
       h += '<div class="inj-h">🚑 Currently out (' + st.rows.length + ')</div>';
       h += st.rows.length ? st.rows.map(function(r) {
@@ -1317,13 +1317,13 @@
           '<option value="-"' + (cur === '-' ? ' selected' : '') + '>No fill-in, leave it empty</option>' +
           opts.map(function(n) { return '<option value="' + escHtml(n.name) + '"' + (cur === n.name ? ' selected' : '') + '>' + escHtml(n.name) + (n.inj ? ' (' + escHtml(n.inj) + ')' : '') + '</option>'; }).join('') +
           (cur && cur !== '-' && !opts.some(function(n) { return n.name === cur; }) ? '<option selected value="' + escHtml(cur) + '">' + escHtml(cur) + '</option>' : '') + '</select>';
-        return '<div class="inj-row"><div class="inj-top"><div><b>' + escHtml(r.name) + '</b> <span style="color:#A1A9B6">· ' + nick(team) + (pos ? ' ' + escHtml(pos) : '') + '</span>' +
+        return '<div class="inj-row"><div class="inj-top"><div><b>' + escHtml(r.name) + '</b> <span class="u-muted">· ' + nick(team) + (pos ? ' ' + escHtml(pos) : '') + '</span>' +
             '<div class="inj-tags">' + (auto ? '<span class="pc-tag inj">🤖 ESPN: ' + escHtml(r.espn || 'Out') + '</span>' : '<span class="pc-tag">✋ Added by you</span>') +
             (r.note && !/^ESPN:/.test(r.note) ? '<span class="st-d">' + escHtml(r.note) + '</span>' : '') + '</div></div>' +
             (auto ? '<button class="adm-btn" data-keep="' + escHtml(r.name) + '" title="Ignore ESPN for him until his status changes">Keep him in</button>'
                   : '<button class="adm-btn green" data-heal="' + escHtml(r.name) + '">Healthy ✓</button>') + '</div>' +
           '<div class="inj-fillrow"><span>Fill-in:</span>' + sel + '</div></div>';
-      }).join('') : '<div style="color:#A1A9B6;font-size:13px;padding:10px 0">Nobody is out.</div>';
+      }).join('') : '<div class="u-c-muted u-fs-13px u-p-10px-0">Nobody is out.</div>';
 
       if (st.shifted && st.shifted.length) {
         h += '<div class="inj-h">🔒 Shifted teams <small>don\'t hand-edit these columns until they\'re back to normal</small></div>';
@@ -1337,7 +1337,7 @@
         '<div class="st-d">' + st.tagged.map(function(t) { return escHtml(t.name) + ' (' + nick(t.team) + ', ' + escHtml(t.espn) + ')'; }).join(' · ') + '</div>';
       if (st.unmatched && st.unmatched.length) h += '<div class="inj-h">✏️ Not found on ESPN <small>usually a spelling difference, so these can\'t be auto-tracked</small></div>' +
         '<div class="st-d">' + st.unmatched.map(escHtml).join(' · ') + '</div>';
-      if (st.log && st.log.length) h += '<div class="inj-h">🕘 Recent activity</div><div class="st-log">' + st.log.map(function(l) { return '<span style="color:#6B7280">' + when(l.at) + '</span> ' + escHtml(l.text); }).join('<br>') + '</div>';
+      if (st.log && st.log.length) h += '<div class="inj-h">🕘 Recent activity</div><div class="st-log">' + st.log.map(function(l) { return '<span class="u-c-faint">' + when(l.at) + '</span> ' + escHtml(l.text); }).join('<br>') + '</div>';
       body.innerHTML = h;
 
       function act(params, btn) {
@@ -1373,15 +1373,15 @@
         var msgs = [];
         rows.forEach(function(r, i) { if (i && (r[2] || '').trim()) msgs.push({ row: i + 1, who: r[1], text: r[2], pinned: /pin/i.test(r[3] || '') }); });
         msgs.reverse();
-        body.innerHTML = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">Pin the best ones to the top of the wall, or delete anything that should go.</div>' +
-          '<div class="submit-msg" id="adm-msg" style="text-align:left"></div>' +
+        body.innerHTML = '<div class="ui-note u-mb">Pin the best ones to the top of the wall, or delete anything that should go.</div>' +
+          '<div class="u-ta-left submit-msg" id="adm-msg"></div>' +
           (msgs.length ? msgs.slice(0, 60).map(function(m) {
             var c = personColor(m.who);
-            return '<div class="adm-row"><div style="flex:1;min-width:0"><b style="color:' + c + '">' + escHtml(m.who) + '</b> ' + (m.pinned ? '📌 ' : '') +
-              '<span style="color:#D1D5DB">' + escHtml(m.text) + '</span></div>' +
-              '<div style="display:flex;gap:6px"><button class="adm-btn" data-pin="' + m.row + '">' + (m.pinned ? 'Unpin' : 'Pin') + '</button>' +
+            return '<div class="adm-row"><div class="u-f-1 u-minw-0"><b style="color:' + c + '">' + escHtml(m.who) + '</b> ' + (m.pinned ? '📌 ' : '') +
+              '<span class="u-c-soft">' + escHtml(m.text) + '</span></div>' +
+              '<div class="u-d-flex u-gap-6px"><button class="adm-btn" data-pin="' + m.row + '">' + (m.pinned ? 'Unpin' : 'Pin') + '</button>' +
               '<button class="adm-btn red" data-del="' + m.row + '" data-text="' + escHtml(m.text) + '">Delete</button></div></div>';
-          }).join('') : '<div style="color:#A1A9B6;font-size:13px">No messages yet.</div>');
+          }).join('') : '<div class="u-c-muted u-fs-13px">No messages yet.</div>');
         body.querySelectorAll('[data-pin]').forEach(function(b) {
           b.addEventListener('click', function() {
             b.disabled = true;
@@ -1402,7 +1402,7 @@
           });
         });
       }).catch(function() {
-        body.innerHTML = '<div style="color:#A1A9B6;font-size:13px">No Trash Talk tab yet. It appears after the first post.</div>';
+        body.innerHTML = '<div class="u-c-muted u-fs-13px">No Trash Talk tab yet. It appears after the first post.</div>';
       });
     }
 
@@ -1537,17 +1537,17 @@
         var bad = issues.filter(function(x) { return x.level === 'bad'; }).length;
         var h = '';
         var fineHtml = fine.length ? '<details class="chk-more dc-fine"><summary class="link-btn">✓ ' + fine.length + ' marked as fine</summary>' + fine.map(function(x) {
-          return '<div class="dc-fine-row"><div><b>' + x.title + '</b> <span style="color:#A1A9B6">' + escHtml(x.where) + '</span><div>' + escHtml(x.text) + '</div></div>' +
+          return '<div class="dc-fine-row"><div><b>' + x.title + '</b> <span class="u-muted">' + escHtml(x.where) + '</span><div>' + escHtml(x.text) + '</div></div>' +
             '<button class="adm-btn" data-dcundo="' + x.key + '">Undo</button></div>';
         }).join('') + '</details>' : '';
         if (!issues.length) {
           h += '<div class="st-row"><span class="st-ic">✅</span><div><div class="st-l">Every season checks out</div><div class="st-d">No spelling mismatches, wrong sides, odd-looking odds or mismatched game rows' + (fine.length ? ', apart from what you marked as fine' : '') + '.</div></div></div>';
         } else {
-          h += '<div style="font-size:13px;font-weight:700;margin-bottom:12px">' + issues.length + ' thing' + (issues.length > 1 ? 's' : '') + ' to look at' + (bad ? ' · ' + bad + ' affect the totals' : '') + '</div>';
+          h += '<div class="u-fs-13px u-fw-700 u-mb-12px">' + issues.length + ' thing' + (issues.length > 1 ? 's' : '') + ' to look at' + (bad ? ' · ' + bad + ' affect the totals' : '') + '</div>';
           issues.sort(function(a, b) { return (a.level === 'bad' ? 0 : 1) - (b.level === 'bad' ? 0 : 1); });
           var card = function(x) {
             return '<div class="adm-issue ' + (x.level === 'bad' ? 'bad' : '') + '"><div class="t" style="color:' + (x.level === 'bad' ? '#FCA5A5' : '#FCD34D') + '">' + x.title + '</div>' +
-              (x.where ? '<div style="font-size:11px;color:#A1A9B6;margin-bottom:3px">' + x.where + '</div>' : '') +
+              (x.where ? '<div class="u-fs-11px u-c-muted u-mb-3px">' + x.where + '</div>' : '') +
               '<div>' + escHtml(x.text) + '</div><div class="fix">→ ' + escHtml(x.fix) + '</div>' +
               '<div class="dc-act"><button class="adm-btn green" data-dcok="' + x.key + '" data-dclabel="' + escHtml((x.title + ': ' + x.text).slice(0, 90)) + '">✓ It\'s fine</button>' +
               '<span>Hides it until something in that row changes.</span></div></div>';

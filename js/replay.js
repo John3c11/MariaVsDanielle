@@ -227,7 +227,7 @@
       var top = Math.max.apply(null, heats.concat([0]));
       h += '<div class="gd-cols">' + ['Maria', 'Danielle'].map(function(n) {
         var mine = cards.filter(function(c) { return c.who === n; });
-        if (!mine.length) return '<div class="gd-col"><div class="gd-col-h" style="color:' + personColor(n) + '">' + n + '</div><div class="gd-pk-s" style="padding:6px 2px">Didn\'t pick this one</div></div>';
+        if (!mine.length) return '<div class="gd-col"><div class="gd-col-h" style="color:' + personColor(n) + '">' + n + '</div><div class="u-p-6px-2px gd-pk-s">Didn\'t pick this one</div></div>';
         return '<div class="gd-col"><div class="gd-col-h" style="color:' + personColor(n) + '">' + n + '</div>' +
           mine.map(function(c) { return c.html.replace('class="gd-pick"', 'class="gd-pick' + (!first && top > 0 && c.heat === top ? ' hot' : '') + '"'); }).join('') + '</div>';
       }).join('') + '</div>';

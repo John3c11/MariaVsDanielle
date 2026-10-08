@@ -45,7 +45,7 @@
       var box = document.getElementById('chat-seasons');
       if (!box) return;
       if (CHAT.seasons.length < 2) { box.innerHTML = ''; return; }
-      box.innerHTML = '<div class="af-bar" style="justify-content:center;margin-bottom:14px"><span class="af-bar-label">Season</span>' +
+      box.innerHTML = '<div class="u-jc-center u-mb-14px af-bar"><span class="af-bar-label">Season</span>' +
         CHAT.seasons.map(function(y) {
           return '<button class="filter-btn' + (y === CHAT.season ? ' active' : '') + '" data-chat-season="' + y + '">' + y + '</button>';
         }).join('') + '</div>';
@@ -66,9 +66,9 @@
       var el = document.getElementById('chat-content');
       if (el.querySelector('#chat-feed')) { renderComposer(); return; }
       el.innerHTML =
-        '<div style="text-align:center;margin-bottom:18px">' +
-          '<div style="font-size:22px;font-weight:800;letter-spacing:-0.3px">Trash Talk 🗣️</div>' +
-          '<div style="font-size:12px;color:#A1A9B6;margin-top:4px">Everyone can read. Only <span style="color:' + SB_M + ';font-weight:700">Maria</span> and <span style="color:' + SB_D + ';font-weight:700">Danielle</span> can post. Tap a message to react.</div>' +
+        '<div class="u-center u-mb-m">' +
+          '<div class="u-fs-22px u-fw-800 u-ls-0-3px">Trash Talk 🗣️</div>' +
+          '<div class="ui-note u-mt-xs">Everyone can read. Only <span style="color:' + SB_M + ';font-weight:700">Maria</span> and <span style="color:' + SB_D + ';font-weight:700">Danielle</span> can post. Tap a message to react.</div>' +
         '</div>' +
         '<div id="chat-seasons"></div>' +
         '<div id="chat-compose"></div>' +
@@ -83,7 +83,7 @@
       var box = document.getElementById('chat-compose');
       if (!PICKS_URL) { box.innerHTML = ''; return; }
       if (!isCurrentChat()) {
-        box.innerHTML = '<div style="text-align:center;font-size:12px;color:#A1A9B6;margin-bottom:16px">📜 ' + CHAT.season + ' archive. Read only.</div>';
+        box.innerHTML = '<div class="u-ta-center u-fs-12px u-c-muted u-mb-16px">📜 ' + CHAT.season + ' archive. Read only.</div>';
         return;
       }
       // Everyone else just reads, so the box stays folded behind a button
@@ -100,11 +100,11 @@
         '<textarea class="chat-input" id="chat-text" maxlength="280" placeholder="' + (CHAT.name ? 'Talk your trash, ' + CHAT.name + '…' : 'Say something…') + '"></textarea>' +
         '<div class="chat-row">' +
           (CHAT.pin
-            ? '<div style="font-size:12px;color:#A1A9B6">Posting as <b style="color:' + c + '">' + CHAT.name + '</b> · <button class="link-btn" id="chat-forget">Not you?</button></div>'
-            : '<div style="display:flex;align-items:center;gap:8px"><input class="chat-pin" id="chat-pin" type="password" inputmode="numeric" maxlength="4" placeholder="PIN" autocomplete="off">' +
-              '<label style="font-size:11px;color:#A1A9B6;display:flex;align-items:center;gap:5px"><input type="checkbox" id="chat-remember" checked> Remember me</label></div>') +
-          '<div style="display:flex;align-items:center;gap:10px"><span id="chat-count" style="font-size:11px;color:rgba(255,255,255,0.4)">280</span>' +
-          '<button class="primary-btn" id="chat-send" style="padding:10px 22px">Post</button></div>' +
+            ? '<div class="u-fs-12px u-c-muted">Posting as <b style="color:' + c + '">' + CHAT.name + '</b> · <button class="link-btn" id="chat-forget">Not you?</button></div>'
+            : '<div class="u-d-flex u-ai-center u-gap-8px"><input class="chat-pin" id="chat-pin" type="password" inputmode="numeric" maxlength="4" placeholder="PIN" autocomplete="off">' +
+              '<label class="u-fs-11px u-c-muted u-d-flex u-ai-center u-gap-5px"><input type="checkbox" id="chat-remember" checked> Remember me</label></div>') +
+          '<div class="u-d-flex u-ai-center u-gap-10px"><span id="chat-count" style="font-size:11px;color:rgba(255,255,255,0.4)">280</span>' +
+          '<button class="u-p-10px-22px primary-btn" id="chat-send">Post</button></div>' +
         '</div>' +
         '<div class="submit-msg" id="chat-msg"></div></div>';
       var ta = document.getElementById('chat-text');
@@ -310,7 +310,7 @@
         return '<div class="chat-pinned">📌 <b style="color:' + (personColor(m.who)) + '">' + m.who + ':</b> ' + escHtml(m.text) + '</div>';
       }).join('');
       if (!msgs.length) {
-        feed.innerHTML = '<div class="chat-empty" style="text-align:center;color:#A1A9B6;padding:28px 0">' +
+        feed.innerHTML = '<div class="u-ta-center u-c-muted u-p-28px-0 chat-empty">' +
           (isCurrentChat() ? 'No trash talk yet. Somebody start it. 👀' : 'No trash talk saved for ' + CHAT.season + '.') + '</div>';
         return;
       }

@@ -266,7 +266,7 @@
           '<div class="pf-big"><div><b>' + S.w + '–' + (S.n - S.w) + '</b><span>Record</span></div>' +
           '<div><b class="u-good">' + pctTxt(S.pct) + '</b><span>Win %</span></div>' +
           '<div><b>' + streakTxt(S.cur) + '</b><span>Streak</span></div></div></div>';
-        if (owner) h += '<div id="fr-style" class="u-hide"></div>';
+        if (owner) h += '<div id="fr-style" style="display:none"></div>';
 
         function tile(l, v, sub) { return '<div class="pf-tile"><div class="l">' + l + '</div><div class="v">' + v + '</div>' + (sub ? '<div class="s">' + sub + '</div>' : '') + '</div>'; }
         var last = S.hits[S.hits.length - 1];
@@ -294,7 +294,7 @@
         if ((owner || admin) && S.upcoming.length) {
           h += '<div class="pf-h">⏳ Upcoming Picks <small>🔒 only ' + (owner ? 'you' : escHtml(name)) + ' and admin can see these</small></div>' + S.upcoming.map(function(x) {
             return '<div class="adm-row"><span class="u-muted">' + wkName(x.g.week) + ' · ' + escHtml(x.g.slot) + '</span><span>' + coloredText(x.r.homePick, x.g.home) + ' / ' + coloredText(x.r.awayPick, x.g.away) + '</span></div>';
-          }).join('') + '<div style="height:18px"></div>';
+          }).join('') + '<div class="u-h-18px"></div>';
         }
 
         // 📜 Pick history (kicked-off games, newest first)
@@ -306,13 +306,13 @@
             function pk(p, team) { var hit = g.scorer && playerKey(p) === sk; return '<span class="' + (hit ? 'hist-hit' : '') + '">' + coloredText(p, team) + (hit ? ' ✅' : '') + '</span>'; }
             var tag = x.status === 'hit' ? '<span class="hist-tag hit">HIT</span>' : x.status === 'miss' ? '<span class="hist-tag miss">MISS</span>' :
               x.status === 'void' ? '<span class="hist-tag">NOT OFFERED</span>' : '<span class="hist-tag live">LIVE</span>';
-            h += '<div class="u-hide hist-row"' + (i >= 8 ? ' data-hist' : '') + '>' +
+            h += '<div class="hist-row" style="display:none"' + (i >= 8 ? ' data-hist' : '') + '>' +
               '<div class="hist-l"><div class="hist-wk">' + wkName(g.week) + ' · ' + escHtml(g.slot) + '</div>' +
               '<div>' + pk(x.r.homePick, g.home) + ' <span class="u-faint">/</span> ' + pk(x.r.awayPick, g.away) + '</div>' +
               (g.scorer ? '<div class="hist-sc">🏈 ' + escHtml(g.scorer) + '</div>' : '') + '</div>' + tag + '</div>';
           });
           if (hist.length > 8) h += '<div class="u-center u-mt-s"><button class="link-btn" id="hist-more">Show all ' + hist.length + '</button></div>';
-          h += '<div style="height:18px"></div>';
+          h += '<div class="u-h-18px"></div>';
         }
 
         var A = [

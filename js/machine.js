@@ -86,15 +86,6 @@
       });
       return S;
     }
-    function mcGpa(D, who) {
-      var all = [];
-      D.games.forEach(function(g) { if (g.grades[who]) all = all.concat(g.grades[who].picks); });
-      if (!all.length) return null;
-      var pts = all.reduce(function(a, x) { return a + GRADE_PTS[x.g]; }, 0) / all.length;
-      return { g: mcGradeFromPts(pts), pts: pts, n: all.length, picks: all };
-    }
-    function mcPrice(x) { return '+' + Math.round(x.price) + (x.real ? '' : ' <span class="mc-est">est</span>'); }
-    function mcChip(g) { return '<span class="mc-grade g-' + g.replace('+', 'p') + '">' + g + '</span>'; }
 
     // ── The 🤖 Machine tab ──
     function loadMachineTab() {
@@ -146,10 +137,10 @@
         '<div class="mch-head"><div class="mch-av"><img src="pics/Maria.jpeg" alt="Maria"><span>Maria</span></div><i>vs</i>' +
         '<div class="mch-av"><img src="pics/Danielle.jpeg" alt="Danielle"><span>Danielle</span></div><i>vs</i>' +
         '<div class="mch-av mc"><b>🤖</b><span>The Machine</span></div></div>' +
-        '<div class="leader-banner" style="display:block">' + (gap < 0.05 ? 'It\'s <span>tied</span> at the top' : '<span>' + mcName(lead) + '</span> is leading by ' + gap.toFixed(1) + ' units') + '</div>' +
+        '<div class="u-d-block leader-banner">' + (gap < 0.05 ? 'It\'s <span>tied</span> at the top' : '<span>' + mcName(lead) + '</span> is leading by ' + gap.toFixed(1) + ' units') + '</div>' +
         '<div class="sb-weeks mch-weeks"><div class="mch-wt">Weeks won</div>' + MC_WHO.map(function(w) {
           return '<div><div class="n" style="color:' + mcColor(w) + '">' + won[w] + '</div><div class="l">' + w + '</div></div>';
-        }).join('') + (won.tied ? '<div><div class="n" style="color:rgba(255,255,255,0.75)">' + won.tied + '</div><div class="l">Tied</div></div>' : '') + '</div>' +
+        }).join('') + (won.tied ? '<div><div class="u-c-soft n">' + won.tied + '</div><div class="l">Tied</div></div>' : '') + '</div>' +
         '<div class="sb-grid mch-grid">' +
           mcBlock('Correct', T, function(t) { return t.h; }, function(t) { return t.h + '/' + t.n; }) +
           mcBlock('Accuracy', T, function(t) { return t.n ? t.h / t.n : 0; }, function(t) { return t.n ? Math.round(t.h / t.n * 100) + '%' : '—'; }) +
@@ -173,7 +164,7 @@
         h += '<div class="mch-wk">' + wkName(w) + (list.some(function(g) { return g.retro; }) ? ' <span class="mch-retro" title="The Machine made these picks after the fact, using only what was known before kickoff">Machine picked after the fact</span>' : '') + '</div>' + list.map(mcGameHtml).join('');
       });
       var R = pub.report;
-      if (R) h += '<div class="mc-note" style="margin:14px 0 24px">🧠 How it picks: each player\'s chance = his team\'s chance of scoring first (spread and recent form) × his recent share of the team\'s touchdowns and goal-line touches. Tested on ' + R.tested + ' games it never saw, its picks hit ' + Math.round(R.two * 1000) / 10 + '% of the time.</div>';
+      if (R) h += '<div class="u-m-14px-0-24px mc-note">🧠 How it picks: each player\'s chance = his team\'s chance of scoring first (spread and recent form) × his recent share of the team\'s touchdowns and goal-line touches. Tested on ' + R.tested + ' games it never saw, its picks hit ' + Math.round(R.two * 1000) / 10 + '% of the time.</div>';
       el.innerHTML = h;
       if (typeof fillHeadshots === 'function') fillHeadshots(el);
     }
@@ -218,7 +209,7 @@
         if (!D.games.length) {
           el.innerHTML = profileSwitchHtml('Machine') + '<div class="pf-hero" style="--pc:' + MC_COLOR + ';background:linear-gradient(140deg,#0F0F12 0%,#1E1240 55%,#5B21B6 100%)"><div class="mch-avatar">🤖</div>' +
             '<div class="pf-name" style="color:' + MC_COLOR + '">The Machine</div><div class="pf-sub">' + (D.made ? '🔒 ' + D.sealed + ' pick' + (D.sealed === 1 ? '' : 's') + ' sealed until kickoff' : D.trained ? 'Trained. Its first picks are on the way.' : 'Still learning.') + '</div></div>' +
-            '<div class="mc-note" style="margin:10px 0 24px;text-align:center">Its record, best hits and cards show up here after its first games kick off.</div>';
+            '<div class="u-m-10px-0-24px u-ta-center mc-note">Its record, best hits and cards show up here after its first games kick off.</div>';
           bindProfileSwitch(el);
           return;
         }
@@ -237,7 +228,7 @@
             '<div class="pf-tile"><div class="l">Best hit</div><div class="v">' + (best ? escHtml(best.hit.name) + ' +' + Math.round(best.hit.price) : '—') + '</div><div class="s">' + (best ? wkName(best.week) + (best.hit.real ? '' : ' · est price') : '') + '</div></div>' +
             '<div class="pf-tile"><div class="l">Favorite pick</div><div class="v">' + (favN ? escHtml(favN) : '—') + '</div><div class="s">' + (favN ? 'picked ' + fav[favN] + 'x' : '') + '</div></div>' +
           '</div>' +
-          '<div class="mc-note" style="margin:6px 0 14px">It doesn\'t have opinions, just numbers: every pick is the offered player with the best chance on his side. <button class="link-btn" onclick="switchTab(\'machine\')">See every pick →</button></div>' +
+          '<div class="u-m-6px-0-14px mc-note">It doesn\'t have opinions, just numbers: every pick is the offered player with the best chance on his side. <button class="link-btn" onclick="switchTab(\'machine\')">See every pick →</button></div>' +
           '<div class="tcd-slot" id="mc-cards"></div>';
         el.innerHTML = h;
         bindProfileSwitch(el);

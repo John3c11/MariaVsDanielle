@@ -279,7 +279,7 @@
         var c = labWhoColor(x.who);
         return '<div class="lab-head" style="--pc:' + c + '"><div class="lab-head-who" style="color:' + c + '">' + escHtml(labWhoName(x.who)) + '</div><div class="lab-head-v">' + escHtml(labHeadline(x.S)) + '</div></div>';
       }).join('') + '</div>';
-      if (R.every(function(x) { return !x.S.n && !x.S.v; })) return h + '</div><div class="mc-note" style="text-align:center;margin:20px 0 30px">Nothing matches that. Try taking a filter off.</div>';
+      if (R.every(function(x) { return !x.S.n && !x.S.v; })) return h + '</div><div class="u-ta-center u-m-20px-0-30px mc-note">Nothing matches that. Try taking a filter off.</div>';
       if (q.split) h += labSplitHtml(R, q.split);
       if (side) {
         var A = R[0].S, B = R[1].S;
@@ -376,7 +376,7 @@
             (b.money ? '<em style="color:' + (b.u > 0 ? '#34D399' : b.u < 0 ? '#F87171' : '#A1A9B6') + '">' + fmtU(b.u) + '</em>' : '') + '</span>';
         }).join('') + '</button>';
       });
-      return h + '</div>' + (more > 0 ? '<div class="mc-note" style="margin:-2px 0 12px">Top ' + cut + ' by picks. ' + more + ' more aren\'t shown.</div>' : '');
+      return h + '</div>' + (more > 0 ? '<div class="u-m-2px-0-12px mc-note">Top ' + cut + ' by picks. ' + more + ' more aren\'t shown.</div>' : '');
     }
     function labTips(R, series, len) {
       var t = [''];
@@ -600,7 +600,7 @@
             '<span class="lab-dc-ic">' + (d.hot ? '🔥' : '🧊') + '</span><span class="lab-dc-m"><span class="lab-dc-t">' + labDiscText(d) + (!first && !seen[d.key] ? ' <span class="lab-new">NEW</span>' : '') + '</span>' +
             '<span class="lab-dc-s">The odds said about ' + d.e.toFixed(1) + ' hit' + (Math.abs(d.e - 1) < 0.05 ? '' : 's') + ' · ' + fmtU(d.u) + '</span></span></button>';
         }).join('') + '</div>' +
-        (D.length > 4 ? '<div class="af-more" style="padding-top:0"><button class="link-btn" id="lab-disc-all">' + (LAB.discAll ? 'Show fewer' : 'Show all ' + D.length) + '</button></div>' : '');
+        (D.length > 4 ? '<div class="u-pt-0 af-more"><button class="link-btn" id="lab-disc-all">' + (LAB.discAll ? 'Show fewer' : 'Show all ' + D.length) + '</button></div>' : '');
       el.querySelectorAll('[data-lab-disc]').forEach(function(b) {
         b.addEventListener('click', function() {
           LAB.q = labDiscQuery(show[+b.getAttribute('data-lab-disc')]); LAB.shown = 25; labDraw();

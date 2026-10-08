@@ -68,7 +68,7 @@
           '<div class="mk-q"><span>' + weekName(wk.week) + ': who wins the week?</span>' + (wk.closes ? '<span class="mk-close">Closes ' + mkUntil(wk.closes) + '</span>' : '<span class="mk-close">Open until kickoff</span>') + '</div>' +
           '<div class="mk-bar"><i style="width:' + (p * 100).toFixed(1) + '%;background:' + SB_M + '"></i><i style="width:' + ((1 - p) * 100).toFixed(1) + '%;background:' + SB_D + '"></i></div>' +
           '<div class="mk-odds"><div><b style="color:' + SB_M + '">Maria ' + mkPct(p) + '</b><small>pays ' + (1 / p).toFixed(2) + '×</small></div>' +
-          '<div style="text-align:right"><b style="color:' + SB_D + '">Danielle ' + mkPct(1 - p) + '</b><small>pays ' + (1 / (1 - p)).toFixed(2) + '×</small></div></div>' +
+          '<div class="u-right"><b style="color:' + SB_D + '">Danielle ' + mkPct(1 - p) + '</b><small>pays ' + (1 / (1 - p)).toFixed(2) + '×</small></div></div>' +
           (wk.trades.length ? mkSpark(wk) : '') +
           '<div class="mk-meta">' + mkCoins(wk.volume) + ' coins traded · ' + wk.trades.length + ' trade' + (wk.trades.length === 1 ? '' : 's') + '</div>';
         if (me) {
@@ -78,7 +78,7 @@
             '<div class="mk-chips">' + [25, 50, 100, 250].map(function(c) { return '<button data-mk-c="' + c + '">' + c + '</button>'; }).join('') + '<button data-mk-c="all">All in</button></div>' +
             '<div class="mk-amt"><input class="adm-input" id="mk-coins" type="number" min="' + M.min + '" step="1" inputmode="numeric" value="' + Math.min(MKT.coins, Math.max(M.min, Math.floor(me.cash))) + '"><span>coins</span></div>' +
             '<div class="mk-prev" id="mk-prev"></div>' +
-            '<button class="primary-btn" id="mk-buy" style="width:100%">Buy</button><div class="submit-msg" id="mk-msg"></div></div>';
+            '<button class="u-w-100 primary-btn" id="mk-buy">Buy</button><div class="submit-msg" id="mk-msg"></div></div>';
         } else if (opts.trade) {
           h += '<div class="mk-meta">Only friends can trade. Maria and Danielle get to watch.</div>';
         }
@@ -89,7 +89,7 @@
         }
         h += '</div>';
       } else {
-        h += '<div class="mk-card"><div class="mk-meta" style="margin:0">No market is open right now. The next week opens once there are games left to play.</div></div>';
+        h += '<div class="mk-card"><div class="u-m-0 mk-meta">No market is open right now. The next week opens once there are games left to play.</div></div>';
       }
 
       // Weeks in play (trading closed, waiting on first TDs) and finished ones

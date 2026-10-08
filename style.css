@@ -2131,3 +2131,25 @@ button.lab-st-r:hover { background: rgba(255,255,255,0.08); }
 .jb-ql { display: flex; justify-content: space-between; font-size: 12.5px; color: #D1D5DB; margin-bottom: 4px; }
 .jb-bar { height: 7px; border-radius: 4px; background: rgba(255,255,255,0.08); overflow: hidden; }
 .jb-bar i { display: block; height: 100%; border-radius: 4px; }
+/* v125: ✅ Checklist */
+.ck-head { margin-bottom: 12px; }
+.ck-big { font-size: 20px; font-weight: 800; color: #F3F4F6; }
+.ck-item { display: flex; gap: 12px; padding: 12px 14px; border-radius: 12px; margin: 8px 0; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+.ck-item.todo { border-color: rgba(252,211,77,0.4); background: rgba(252,211,77,0.05); }
+.ck-ic { font-size: 18px; line-height: 1.2; }
+.ck-m { flex: 1; min-width: 0; }
+.ck-t { font-size: 14px; font-weight: 700; color: #F3F4F6; }
+.ck-d { font-size: 12.5px; color: #A1A9B6; margin-top: 3px; line-height: 1.45; }
+.ck-go { margin-top: 6px; font-size: 12.5px; }
+.ck-props { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+.ck-prop { display: grid; grid-template-columns: 20px 92px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,0.05); font-size: 13px; color: #E5E7EB; cursor: pointer; }
+.ck-slot { font-size: 10.5px; font-weight: 800; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.05em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ck-match { font-weight: 700; display: flex; align-items: center; gap: 5px; white-space: nowrap; overflow: hidden; }
+.ck-match i { font-style: normal; color: rgba(255,255,255,0.4); }
+.ck-match img { width: 18px; height: 18px; }
+.ck-ko { font-size: 11.5px; color: #9CA3AF; white-space: nowrap; }
+.ck-add { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 4px; font-size: 12.5px; color: #A1A9B6; }
+@media (max-width: 520px) {
+  .ck-prop { grid-template-columns: 20px minmax(0, 1fr) auto; grid-template-areas: "cb slot ko" "cb match match"; row-gap: 2px; }
+  .ck-prop input { grid-area: cb; } .ck-slot { grid-area: slot; } .ck-match { grid-area: match; } .ck-ko { grid-area: ko; }
+}

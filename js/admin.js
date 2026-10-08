@@ -236,7 +236,7 @@
     // ── 📜 Which copy of each Apps Script file the website expects ─────────────
     // Bump these whenever a delivery includes that file. Status and the admin alert compare them
     // with what the live script says, so a file that didn't get pasted (or deployed) shows up.
-    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-18', Features: '2026-10-10', Automation: '2026-10-18', WeeklyRecap: '2026-10-06', Machine: '2026-10-18' };
+    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-19', Features: '2026-10-10', Automation: '2026-10-18', WeeklyRecap: '2026-10-06', Machine: '2026-10-18' };
     var OLD_SCRIPT_FILES = { Features: 'Market.gs, Museum.gs and Bracket.gs', Automation: 'FirstTD.gs, NFLPlayers.gs, Injuries.gs and Playoffs.gs' };
     var DEPLOY_STEPS = 'Deploy → Manage deployments → ✏️ → New version → Deploy';
     function scriptIssues(v) {
@@ -257,7 +257,7 @@
     var ADMIN = { oddsRes: null };
 
     function adminHeader(active) {
-      var tabs = [['odds', '💲 Odds'], ['games', '🏈 Games'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['season', '🆕 Season'], ['bracket', '🏆 Bracket'], ['theme', '🎨 Theme'], ['museum', '🏛️ Museum'], ['machine', '🤖 Machine'], ['mlines', '🎯 Machine Lines'], ['eggs', '🥚 Eggs'], ['status', '🩺 Status']];
+      var tabs = [['check', '✅ Checklist'], ['odds', '💲 Odds'], ['games', '🏈 Games'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['season', '🆕 Season'], ['bracket', '🏆 Bracket'], ['theme', '🎨 Theme'], ['museum', '🏛️ Museum'], ['machine', '🤖 Machine'], ['mlines', '🎯 Machine Lines'], ['eggs', '🥚 Eggs'], ['status', '🩺 Status']];
       return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
         '<div style="font-size:16px;font-weight:700">Hi John</div>' +
         '<button class="link-btn" id="sub-switch">Log out</button></div>' +
@@ -1200,6 +1200,56 @@
       });
     }
 
+    // ── ✅ Checklist: what's left this week (opens first on Tuesdays) ──
+    function adminChecklist() {
+      var body = adminScreen('check', '<div class="loading">Checking the sheet and ESPN…</div>');
+      picksApi({ pin: SUB.pin, action: 'checklist' }).then(function(r) { drawChecklist(body, r); })
+        .catch(function() { if (document.body.contains(body)) body.innerHTML = '<div class="loading">Couldn\'t reach the script.</div>'; });
+    }
+    function drawChecklist(body, r) {
+      if (!document.body.contains(body)) return;
+      if (r.error) { body.innerHTML = '<div class="inj-warn">' + escHtml(r.error) + '</div>'; return; }
+      if (!r.items) { body.innerHTML = '<div class="inj-warn">⚠️ The picks script that\'s live is older. Paste the new PicksAPI.gs, then Deploy → Manage deployments → ✏️ → New version → Deploy.</div>'; return; }
+      var go = { graded: 'status', odds: 'odds', mlines: 'mlines', jobs: 'status' };
+      var h = '<div class="ck-head"><div class="ck-big">' + (r.todo ? r.todo + ' thing' + (r.todo === 1 ? '' : 's') + ' to do' : 'All done ✅') + '</div>' +
+        '<div class="st-d">' + (r.lastWeek ? weekName(r.lastWeek) + ' is done, ' + weekName(r.nextWeek) + ' is next.' : 'Before Week 1.') + ' <button class="link-btn" id="ck-again">Check again</button></div></div>';
+      h += r.items.map(function(it, i) {
+        var props = it.proposals || [];
+        return '<div class="ck-item ' + it.state + '"><span class="ck-ic">' + (it.state === 'ok' ? '✅' : '⬜') + '</span><div class="ck-m"><div class="ck-t">' + escHtml(it.title) + '</div><div class="ck-d">' + escHtml(it.detail) + '</div>' +
+          (props.length ? '<div class="ck-props">' + props.map(function(p, k) {
+            var ko = new Date(p.kickoff);
+            return '<label class="ck-prop"><input type="checkbox" data-ck-p="' + k + '" checked><span class="ck-slot">' + escHtml(p.slot) + '</span><span class="ck-match">' + teamLogo(p.away) + escHtml(teamNick(p.away)) + ' <i>@</i> ' + escHtml(teamNick(p.home)) + teamLogo(p.home) + '</span>' +
+              '<span class="ck-ko">' + ko.toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + '</span></label>';
+          }).join('') + '<div class="ck-add"><label>$ per unit <input class="adm-input" id="ck-amt" value="' + escHtml(it.amount || '5') + '" inputmode="decimal" style="width:64px;text-align:center"></label>' +
+            '<button class="adm-btn green" id="ck-addbtn" data-ck-i="' + i + '">Add these to the sheet</button></div><div class="submit-msg" id="ck-msg" style="text-align:left"></div></div>' : '') +
+          (it.state === 'todo' && go[it.key] ? '<button class="link-btn ck-go" data-adm="' + go[it.key] + '">Open ' + { status: '🩺 Status', odds: '💲 Odds', mlines: '🎯 Machine Lines' }[go[it.key]] + ' →</button>' : '') +
+          '</div></div>';
+      }).join('');
+      body.innerHTML = h;
+      bindAdminNav();
+      document.getElementById('ck-again').addEventListener('click', adminChecklist);
+      var add = document.getElementById('ck-addbtn');
+      if (add) add.addEventListener('click', function() {
+        var it = r.items[+add.getAttribute('data-ck-i')], amt = document.getElementById('ck-amt').value.trim(), msg = document.getElementById('ck-msg');
+        var picked = it.proposals.filter(function(p, k) { var c = body.querySelector('[data-ck-p="' + k + '"]'); return c && c.checked; });
+        if (!picked.length) { msg.style.color = '#F87171'; msg.textContent = 'Tick at least one game.'; return; }
+        add.disabled = true; add.textContent = 'Adding…';
+        var done = [], fail = [];
+        picked.reduce(function(chain, p) {
+          return chain.then(function() {
+            return picksApi({ pin: SUB.pin, action: 'addgame', week: p.week, slot: p.slot, home: p.home, away: p.away, amount: amt }).then(function(res) {
+              if (res.error) fail.push(teamNick(p.away) + ' @ ' + teamNick(p.home) + ': ' + res.error); else done.push(teamNick(p.away) + ' @ ' + teamNick(p.home));
+            }).catch(function() { fail.push(teamNick(p.away) + ' @ ' + teamNick(p.home) + ': couldn\'t reach the script'); });
+          });
+        }, Promise.resolve()).then(function() {
+          msg.style.color = fail.length ? '#FCD34D' : '#6EE7B7';
+          msg.innerHTML = (done.length ? '✅ Added ' + done.map(escHtml).join(', ') + '.' : '') + (fail.length ? '<br>⚠️ ' + fail.map(escHtml).join('<br>⚠️ ') : '');
+          add.textContent = 'Done';
+          if (done.length) setTimeout(adminChecklist, 2500);
+        });
+      });
+    }
+
     function adminMsg(text, ok) {
       var m = document.getElementById('adm-msg');
       if (m) { m.style.color = ok ? '#6EE7B7' : '#F87171'; m.textContent = text; }
@@ -1220,6 +1270,7 @@
       if (section === 'museum') adminMuseum();
       if (section === 'machine') adminMachine();
       if (section === 'mlines') adminMachineLines();
+      if (section === 'check') adminChecklist();
       if (section === 'eggs') adminEggs();
       if (section === 'status') adminStatus();
     }

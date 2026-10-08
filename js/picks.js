@@ -82,6 +82,7 @@
         if (res.admin) {
           loadAdmin().then(function() {
             renderOdds(res);
+            if (new Date().getDay() === 2 && typeof adminChecklist === 'function') adminChecklist(); // Tuesday: start on ✅ Checklist
             picksApi({ pin: SUB.pin, action: 'friends' }).then(function(r) { if (r.friends) ADMIN.friends = r.friends; }).catch(function() {});
             if (typeof adminLoginCheck === 'function') adminLoginCheck();
           }).catch(function() { renderPinScreen('Couldn\'t load the admin screens. Check your connection and try again.'); });

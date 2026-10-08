@@ -19,7 +19,7 @@
         var k = b.week + '_' + b.game;
         if (!(k in idx)) {
           idx[k] = games.length;
-          games.push({ week: b.weekN, slot: b.slot, home: resolveTeam(b.home), away: resolveTeam(b.away), scorer: '', picked: {}, hit: {} });
+          games.push({ week: b.weekN, game: b.game, slot: b.slot, home: resolveTeam(b.home), away: resolveTeam(b.away), scorer: '', picked: {}, hit: {} });
         }
         var g = games[idx[k]];
         if (b.scorer) g.scorer = b.scorer;
@@ -64,7 +64,7 @@
         }
         h += '<div class="sch-game"' + (g.scorer ? ' style="opacity:0.75"' : '') + '><div class="sch-top"><span class="sch-slot">' + escHtml(g.slot) + '</span><span class="sch-ko">' + koText + '</span></div>' +
           '<div class="sch-teams">' + teamPill(g.home, g.home) + ' <span style="color:rgba(255,255,255,0.45)">vs</span> ' + teamPill(g.away, g.away) + '</div>' +
-          '<div class="sch-status">' + status + '</div></div>';
+          '<div class="sch-status">' + status + (g.scorer && g.game && typeof gameLinkAttr === 'function' ? ' <span ' + gameLinkAttr(CURRENT_YEAR, g.game) + '>Game ›</span>' : '') + '</div></div>';
       });
       if (hiddenWeeks) h += '<div style="text-align:center;margin-top:8px"><button class="adm-btn" id="sch-later">Show ' + hiddenWeeks + ' later week' + (hiddenWeeks > 1 ? 's' : '') + '</button></div>';
       el.innerHTML = h;

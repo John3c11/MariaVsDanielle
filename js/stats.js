@@ -405,7 +405,7 @@
       order.forEach(function(k) {
         var g = G[k];
         var ab = function(t) { return (TEAM_ABBR[resolveTeam(t)] || resolveTeam(t).split(' ').pop()).toUpperCase(); };
-        h += '<div class="ftd-row" data-ftd="' + escHtml(k) + '" data-ctx-year="' + CURRENT_YEAR + '" data-ctx-week="' + week + '"><div class="ftd-top"><span class="ftd-slot">' + escHtml(g.slot) + '</span>' +
+        h += '<div class="ftd-row" data-ftd="' + escHtml(k) + '" data-ctx-year="' + CURRENT_YEAR + '" data-ctx-week="' + week + '"><div class="ftd-top"><span class="ftd-slot">' + escHtml(g.slot) + (g.scorer && typeof gameLinkAttr === 'function' ? ' <span ' + gameLinkAttr(CURRENT_YEAR, k) + ' title="Open this game">Game ›</span>' : '') + '</span>' +
           '<span class="ftd-teams">' + tmTag(g.home, teamLogo(g.home) + ab(g.home)) + ' <span style="color:rgba(255,255,255,0.4)">vs</span> ' + tmTag(g.away, teamLogo(g.away) + ab(g.away)) + '</span></div>';
         if (g.scorer) {
           var team = /^home$/i.test(g.side) ? g.home : /^away$/i.test(g.side) ? g.away : '';

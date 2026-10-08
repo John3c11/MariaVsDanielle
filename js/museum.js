@@ -36,12 +36,12 @@
         if (!hits.length) return;
         // Where it started: her first hit ever
         var f = hits[0], fi = hitInfo(f);
-        add({ id: 'auto:first:' + who, tag: 'first', who: who, season: f.year, week: f.week, game: game(f), player: fi.player, team: fi.team,
+        add({ id: 'auto:first:' + who, tag: 'first', who: who, season: f.year, week: f.week, game: game(f), gameNo: f.game, player: fi.player, team: fi.team,
           title: who + '\'s first hit', caption: fi.player + (fi.odds ? ' at +' + Math.round(fi.odds) : '') + '. The one that started it all.' });
         // Biggest hit ever
         var best = null;
         hits.forEach(function(r) { var x = hitInfo(r); if (!best || x.odds > best.x.odds) best = { r: r, x: x }; });
-        if (best && best.x.odds) add({ id: 'auto:bighit:' + who, tag: 'bighit', who: who, season: best.r.year, week: best.r.week, game: game(best.r),
+        if (best && best.x.odds) add({ id: 'auto:bighit:' + who, tag: 'bighit', who: who, season: best.r.year, week: best.r.week, game: game(best.r), gameNo: best.r.game,
           player: best.x.player, team: best.x.team, odds: best.x.odds,
           title: best.x.player + ' at +' + Math.round(best.x.odds), caption: 'The longest shot ' + who + ' has ever cashed. ' + fmtU(best.r.netUnits) + ' on one pick.' });
         // Weekly totals (for perfect weeks)
@@ -63,13 +63,13 @@
         });
         // (Best week and longest heater are records, not moments: they live in the Record Book and on profiles.)
         if (bestDry.n >= 6) { var di = hitInfo(bestDry.r);
-          add({ id: 'auto:drought:' + who, tag: 'drought', who: who, season: bestDry.r.year, week: bestDry.r.week, game: game(bestDry.r), player: di.player, team: di.team,
+          add({ id: 'auto:drought:' + who, tag: 'drought', who: who, season: bestDry.r.year, week: bestDry.r.week, game: game(bestDry.r), gameNo: bestDry.r.game, player: di.player, team: di.team,
             title: bestDry.n + ' misses, then ' + di.player, caption: 'The longest dry spell ' + who + ' has had, finally snapped' + (di.odds ? ' at +' + Math.round(di.odds) : '') + '.' }); }
         // Milestones: her 25th, 50th, 100th... hit
         MU_MILESTONES.forEach(function(n) {
           var r = hits[n - 1]; if (!r) return;
           var x = hitInfo(r);
-          add({ id: 'auto:mile:' + who + ':' + n, tag: 'mile', who: who, season: r.year, week: r.week, game: game(r), player: x.player, team: x.team,
+          add({ id: 'auto:mile:' + who + ':' + n, tag: 'mile', who: who, season: r.year, week: r.week, game: game(r), gameNo: r.game, player: x.player, team: x.team,
             title: 'Hit No. ' + n, caption: who + '\'s ' + n + 'th first-TD hit, courtesy of ' + x.player + '.' });
         });
       });
@@ -86,7 +86,7 @@
       });
       Object.keys(doubles).forEach(function(y) {
         doubles[y].sort(function(a, b) { return b.x.odds - a.x.odds; }).slice(0, 3).forEach(function(d) {
-          add({ id: 'auto:double:' + y + ':' + d.r.game, tag: 'double', who: 'Both', season: y, week: d.r.week, game: game(d.r), player: d.x.player, team: d.x.team,
+          add({ id: 'auto:double:' + y + ':' + d.r.game, tag: 'double', who: 'Both', season: y, week: d.r.week, game: game(d.r), gameNo: d.r.game, player: d.x.player, team: d.x.team,
             title: 'Both of them on ' + d.x.player, caption: 'Same game, same longshot, both cashed at +' + Math.round(d.x.odds) + '.' });
         });
       });
@@ -160,7 +160,7 @@
           '<div class="mu-tag">' + tag.ic + ' ' + tag.t + (m.star ? ' <span class="mu-st">★ Featured</span>' : '') + '</div>' +
           '<div class="mu-title">' + escHtml(m.title) + '</div>' +
           (m.caption ? '<div class="mu-cap">' + escHtml(m.caption) + '</div>' : '') +
-          '<div class="mu-when">' + (m.who ? '<b style="color:' + col + '">' + escHtml(m.who) + '</b> · ' : '') + museumWhen(m) + '</div>' +
+          '<div class="mu-when">' + (m.who ? '<b style="color:' + col + '">' + escHtml(m.who) + '</b> · ' : '') + (m.gameNo && typeof gameLinkAttr === 'function' ? '<span ' + gameLinkAttr(m.season, m.gameNo) + '>' + museumWhen(m) + ' ›</span>' : museumWhen(m)) + '</div>' +
         '</div></div>';
     }
 

@@ -36,13 +36,13 @@
     var HUBS = {
       home:    [['stats', 'Home']],
       picks:   [['submit', ''], ['schedule', '🗓️ Schedule'], ['rosters', '📋 Rosters'], ['crowd', '🏅 Crowd'], ['bracket', '🏆 Bracket']],
-      rivalry: [['profiles', '⭐ Profiles'], ['legacy', '📜 All-Time'], ['bethistory', '🧾 Bet Log'], ['museum', '🏛️ Museum']],
+      rivalry: [['profiles', '⭐ Profiles'], ['legacy', '📜 All-Time'], ['bethistory', '🧾 Bet Log'], ['museum', '🏛️ Museum'], ['game', '🏈 Game']],
       numbers: [['analytics', '📊 Analytics'], ['lab', '🧪 Stat Lab'], ['machine', '🤖 Machine']],
       chat:    [['chat', 'Trash Talk']],
     };
     var HUB_OF = {}, HUB_LAST = {};
     Object.keys(HUBS).forEach(function(h) { HUBS[h].forEach(function(t) { HUB_OF[t[0]] = h; }); });
-    function hubTabs(h) { return HUBS[h].filter(function(t) { return t[0] !== 'bracket' || BRACKET_ON; }); }
+    function hubTabs(h, cur) { return HUBS[h].filter(function(t) { return (t[0] !== 'bracket' || BRACKET_ON) && (t[0] !== 'game' || cur === 'game' || HUB_LAST.rivalry === 'game'); }); }
     function openHub(h) {
       var last = HUB_LAST[h];
       if (!last || !hubTabs(h).some(function(t) { return t[0] === last; })) last = h === 'picks' ? (SUB.pin ? 'submit' : 'schedule') : hubTabs(h)[0][0];
@@ -52,7 +52,7 @@
     function drawHubSub(name) {
       var el = document.getElementById('hub-sub'), h = HUB_OF[name];
       if (!el) return;
-      var tabs = h ? hubTabs(h) : [];
+      var tabs = h ? hubTabs(h, name) : [];
       document.body.classList.toggle('has-sub', tabs.length >= 2);
       if (tabs.length < 2) { el.style.display = 'none'; el.innerHTML = ''; return; }
       var mini = document.getElementById('acct-mini');
@@ -99,7 +99,10 @@
       if (name === 'rosters') setupPlayerSearch();
       if (name === 'museum') openMuseum();
       if (name === 'lab') openLab();
-      else if ((location.hash || '').indexOf('#lab') === 0) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
+      if (name === 'game') openGamePage();
+      // A shared link's #lab?… / #game/… only stays in the address bar while that page is open
+      var hh = location.hash || '';
+      if ((hh.indexOf('#lab') === 0 && name !== 'lab') || (hh.indexOf('#game/') === 0 && name !== 'game')) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
       if (name === 'bracket') openBracket();
       if (name === 'machine') loadScriptOnce('js/machine.js').then(function() { loadMachineTab(); }).catch(function() {
         var el = document.getElementById('machine-content'); if (el) el.innerHTML = '<div class="loading">Couldn\'t load the Machine. Check your connection.</div>';
@@ -129,6 +132,30 @@
       });
     }
     if ((location.hash || '').indexOf('#lab') === 0) setTimeout(function() { switchTab('lab'); }, 0);
+    // Open Analytics on one of its sub-tabs (Profiles' Bad Beats / Jinxes tiles -> 😬 Pain)
+    function openAnalyticsPane(pane) {
+      try { localStorage.setItem('mvd-an-tab', pane); } catch (e) {}
+      switchTab('analytics');
+      var tries = 0;
+      (function go() { var b = document.querySelector('[data-an-tab="' + pane + '"]'); if (b) b.click(); else if (++tries < 40) setTimeout(go, 150); })();
+    }
+    // 🏈 Game Pages (js/gamepage.js): one page per game, at #game/2026-14 (season-game number)
+    var GAME_FROM = 'stats';
+    function openGame(year, game) {
+      var cur = document.querySelector('.tab-panel.active');
+      if (cur && cur.id !== 'tab-game') GAME_FROM = cur.id.replace('tab-', '');
+      try { history.replaceState(null, '', location.pathname + location.search + '#game/' + year + '-' + game); } catch (e) {}
+      switchTab('game');
+    }
+    function openGamePage() {
+      loadScriptOnce('js/gamepage.js').then(function() { renderGamePage(); }).catch(function() {
+        var el = document.getElementById('game-content');
+        if (el) el.innerHTML = '<div class="loading">Couldn\'t open the game. Check your connection. <button class="link-btn" onclick="openGamePage()">Try again</button></div>';
+      });
+    }
+    // Any game, anywhere: <span ' + gameLinkAttr(year, game) + '>…</span> makes it open its Game Page
+    function gameLinkAttr(year, game) { return 'role="link" tabindex="0" class="game-link" onclick="event.stopPropagation();openGame(\'' + year + '\',\'' + String(game).replace(/[^0-9A-Za-z]/g, '') + '\')"'; }
+    if ((location.hash || '').indexOf('#game/') === 0) setTimeout(function() { switchTab('game'); }, 0);
     // 🏛️ The Museum (js/museum.js, loaded the first time it opens)
     function openMuseum() {
       loadScriptOnce('js/museum.js').then(function() { loadMuseumTab(); }).catch(function() {

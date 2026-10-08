@@ -46,10 +46,10 @@
 
     // ── Analytics layout: one season picker + five sub-tabs ──────────────────
     var AN_TABS = [
-      ['highlights', '🔥 Highlights', ['Pick of the Season', 'Hit Grid']],
-      ['trends', '📈 Trends', ['Season Race', 'Luck Meter', 'Weekly Units', 'Form', 'Month by Month']],
+      ['highlights', '🔥 Highlights', ['Hit Grid']],
+      ['trends', '📈 Trends', ['Luck Meter', 'Weekly Units', 'Form', 'Month by Month']],
       ['picking', '🎯 Picking', ['Splits', 'Boldness Meter', 'Pressure Picks', 'Picking vs Reality', 'Who Scores First']],
-      ['players', '🏈 Players & Teams', ['NFL Team Heat Map', 'Overachievers & Busts', 'TD Scorer Leaderboard', 'Chaos Corner']],
+      ['players', '🏈 Players & Teams', ['Overachievers & Busts', 'TD Scorer Leaderboard', 'Chaos Corner']],
       ['pain', '😬 Pain', ['Jinx Tracker', 'Bad Beats']],
     ];
     // Sections folded into another one: [target, 'sub' (shown) or 'list' (behind a button), subheading, button label]
@@ -59,9 +59,8 @@
       'Win Rate by Week': ['Weekly Units', 'list', 'Win rate by week', 'Show the week-by-week list'],
       'Odds vs Hits': ['Boldness Meter', 'sub', 'Where the hits come from'],
       'Best Stretches & Biggest Wins': ['Hit Grid', 'list', 'Best stretches & biggest wins (all seasons)', 'Show best stretches & biggest wins'],
-      'Fun Stats': ['Overachievers & Busts', 'list', 'Most picked & cursed picks (all seasons)', 'Show most picked & cursed picks'],
     };
-    var AN_RENAME = { 'Who Scores First': 'Which Side Scores First', 'NFL Team Heat Map': 'Team Report Card' };
+    var AN_RENAME = { 'Who Scores First': 'Which Side Scores First' };
     function anStore(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
 
     function anOrganize(root, seasonOpts) {
@@ -248,53 +247,7 @@
         function byPicker(r, picker) { return picker === 'all' ? (r.picker === 'Maria' || r.picker === 'Danielle') : r.picker === picker; }
         var EMPTY = function(t) { return '<div style="color:#9CA3AF;font-size:13px;text-align:center;padding:16px">' + t + '</div>'; };
 
-        // ── Fun Stats ─────────────────────────────────────────────────────────
-        html += section("Fun Stats");
-
-                // Most picked players per person
-        ["Maria", "Danielle"].forEach(function(name) {
-          var pickCount = {};
-          rows.filter(function(r){return r.picker===name;}).forEach(function(r) {
-            if (r.homePick) pickCount[r.homePick] = (pickCount[r.homePick] || 0) + 1;
-            if (r.awayPick) pickCount[r.awayPick] = (pickCount[r.awayPick] || 0) + 1;
-          });
-          var top = Object.entries(pickCount).sort(function(a,b){return b[1]-a[1];}).map(function(e){return {name:e[0],count:e[1]+"x"};});
-          html += podium(name + "'s Most Picked Players", top);
-        });
-
-        // Combined most picked players (both together)
-        var combinedPickCount = {};
-        rows.filter(function(r){return r.picker==="Maria"||r.picker==="Danielle";}).forEach(function(r) {
-          if (r.homePick) combinedPickCount[r.homePick] = (combinedPickCount[r.homePick] || 0) + 1;
-          if (r.awayPick) combinedPickCount[r.awayPick] = (combinedPickCount[r.awayPick] || 0) + 1;
-        });
-        var combinedTop = Object.entries(combinedPickCount).sort(function(a,b){return b[1]-a[1];}).map(function(e){return {name:e[0],count:e[1]+"x"};});
-        html += podium("Most Picked Overall (Both)", combinedTop);
-
-        // Most picked player who never scored
-        ["Maria", "Danielle"].forEach(function(name) {
-          var pickCount = {};
-          var scored2 = new Set();
-          rows.filter(function(r){return r.picker===name;}).forEach(function(r) {
-            if (r.homePick) pickCount[r.homePick] = (pickCount[r.homePick] || 0) + 1;
-            if (r.awayPick) pickCount[r.awayPick] = (pickCount[r.awayPick] || 0) + 1;
-            if (r.correct === "Yes") {
-              if (r.homePick && r.firstScorer === r.homePick) scored2.add(r.homePick);
-              if (r.awayPick && r.firstScorer === r.awayPick) scored2.add(r.awayPick);
-            }
-          });
-          var cursed = Object.entries(pickCount)
-            .filter(function(e){ return !scored2.has(e[0]) && e[1] > 1; })
-            .sort(function(a,b){return b[1]-a[1];});
-          if (cursed.length > 0) {
-            var color = personColor(name);
-          html += '<div style="margin-bottom:16px"><div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">' + name + "'s Cursed Pick</div>" +
-              '<div style="background:rgba(255,255,255,0.05);border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between">' +
-              '<span style="font-weight:600;color:' + color + '">' + cursed[0][0] + '</span>' +
-              '<span style="font-size:12px;color:#9CA3AF">picked ' + cursed[0][1] + 'x, never scored</span>' +
-              '</div></div>';
-          }
-        });
+        // (v121: "Most picked & cursed picks" cut. Each Profile has Ride or Die + the Hall of Shame, and the Stat Lab splits by player.)
 
         // ── Fun Stats from Legacy ─────────────────────────────────────────────
         function legFun(label, val, cls) {
@@ -371,42 +324,7 @@
         html += '<div class="af-bars">' + afBar('hgrid', 'season', 'Season', SEASON_OPTS, CUR_SEASON) + '</div>';
         SEASON_OPTS.forEach(function(so) { html += afVariant('hgrid', [so[0]], '<div class="ch-box">' + hitGridChart(rows, so[0]) + '</div>'); });
 
-        // ── Pick of the Season ───────────────────────────────────────────────
-        html += section("Pick of the Season");
-
-        function getBestPick(betsArr) {
-          var best = null;
-          betsArr.filter(function(r){return r.correct==="Yes";}).forEach(function(r) {
-            var rawOdds = r.homePick && r.firstScorer === r.homePick ? Math.abs(r.homeOdds) :
-                         r.awayPick && r.firstScorer === r.awayPick ? Math.abs(r.awayOdds) :
-                         Math.max(Math.abs(r.homeOdds), Math.abs(r.awayOdds));
-            var odds = rawOdds < 100 ? rawOdds * 100 : rawOdds;
-            if (!best || odds > best.odds) {
-              best = { picker: r.picker, player: r.firstScorer || (r.homePick || r.awayPick),
-                odds: odds, homeTeam: r.homeTeam, awayTeam: r.awayTeam, week: r.week, year: r.year };
-            }
-          });
-          return best;
-        }
-
-        function pickCard(pick, yearLabel) {
-          if (!pick) return '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:16px;margin-bottom:10px;color:#9CA3AF;font-size:13px">' + yearLabel + ' — No winning picks yet.</div>';
-          var pColor = personColor(pick.picker);
-          var gameDisplay = pick.homeTeam && pick.awayTeam ? pick.homeTeam + ' vs ' + pick.awayTeam : 'Game';
-          var oddsDisplay = pick.odds >= 100 ? '+' + Math.round(pick.odds) : '+' + Math.round(pick.odds * 100);
-          return '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:16px;margin-bottom:10px">' +
-            '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">' + yearLabel + '</div>' +
-            '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">' +
-              '<div><div style="font-size:20px;font-weight:700;color:#F3F4F6">' + pick.player + '</div>' +
-              '<div style="font-size:12px;color:#A1A9B6;margin-top:2px">' + gameDisplay + ' · ' + wkLabel(pick.year, pick.week) + '</div></div>' +
-              '<div style="text-align:right"><div style="font-size:18px;font-weight:700;color:#34D399">' + oddsDisplay + '</div>' +
-              '<div style="font-size:12px;font-weight:600;color:' + pColor + ';margin-top:2px">' + pick.picker + '</div></div>' +
-            '</div></div>';
-        }
-
-        // This season only: every past season's Pick of the Season is on its Season Wrapped card (All-Time)
-        html += pickCard(getBestPick(scored.filter(function(r){return r.year===CURRENT_YEAR;})), CURRENT_YEAR + " Season");
-        if (AN_YEARS.length > 1) html += '<div class="ch-intro" style="margin-top:-2px">Past seasons\' picks are on their Season Wrapped cards on All-Time.</div>';
+        // (v121: Pick of the Season cut. The Museum's big hits and each Profile's Best Hit show it.)
 
         // ── Splits now live in the 🧪 Stat Lab (v118): home/road, game slot, position and odds range ──
         html += section("Splits");
@@ -570,12 +488,7 @@
         });
 
         // ── Weekly Units (chart) ──
-        // ── Season Race (moved from Stats) ──
-        html += section("Season Race");
-        html += '<div class="ch-intro">Running units, game by game, one season at a time (every season together is the All-Time Race on All-Time). Tap a point for the score after that game.</div>';
-        var RACE_OPTS = AN_YEARS.map(function(y) { return [y, y]; }); // no "All": that's the All-Time Race
-        html += '<div class="af-bars">' + afBar('race', 'season', 'Season', RACE_OPTS, AN_YEARS[0]) + '</div>';
-        RACE_OPTS.forEach(function(so) { html += afVariant('race', [so[0]], '<div class="an-showing">' + so[0] + ' season</div><div class="ch-box">' + seasonRaceChart(rows, so[0]) + '</div>'); });
+        // (v121: Season Race moved to All-Time's race chart, which now has season chips.)
 
         // ── Luck Meter ──
         html += section("Luck Meter");
@@ -746,66 +659,7 @@
 
         // (Season Comparison moved to All-Time's 📅 By Season table, history.js)
 
-        // ── NFL Team Heat Map ────────────────────────────────────────────────
-        html += section("NFL Team Heat Map");
-        html += '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">Every team they pick from: how often, how often it paid, and the units won or lost. A hit counts for the scorer\'s team; a miss costs each picked team 1 unit.</div>';
-        html += '<div class="af-bars">' +
-          afBar('heat', 'season', 'Season', SEASON_OPTS, CUR_SEASON) +
-          afBar('heat', 'picker', 'Picker', PICKER_OPTS, 'all') + '</div>';
-        var thStyle = 'padding:6px 8px;color:#9CA3AF;font-size:10px;text-transform:uppercase;letter-spacing:0.05em';
-        var heatHead = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">' +
-          '<tr style="border-bottom:1.5px solid rgba(255,255,255,0.16)"><th style="text-align:left;' + thStyle + '">Team</th><th style="text-align:center;' + thStyle + '">Picked</th><th style="text-align:center;' + thStyle + '">Paid</th><th style="text-align:center;' + thStyle + '">Rate</th><th style="text-align:right;' + thStyle + '">Units</th></tr>';
-        SEASON_OPTS.forEach(function(so) {
-          PICKER_OPTS.forEach(function(po) {
-            var season = so[0], picker = po[0];
-            var teamPicks = {}, teamScored = {};
-            rows.forEach(function(r) {
-              if (!inSeason(r, season) || !byPicker(r, picker)) return;
-              if (r.homePick) teamPicks[r.homeTeam] = (teamPicks[r.homeTeam] || 0) + 1;
-              if (r.awayPick) teamPicks[r.awayTeam] = (teamPicks[r.awayTeam] || 0) + 1;
-              if (r.firstScorer && r.homeTeam && r.correct === 'Yes') {
-                var scorerTeam = r.homePick && r.firstScorer === r.homePick ? r.homeTeam :
-                                 r.awayPick && r.firstScorer === r.awayPick ? r.awayTeam : null;
-                if (scorerTeam) teamScored[scorerTeam] = (teamScored[scorerTeam] || 0) + 1;
-              }
-            });
-            var TU = teamUnits(rows, season, picker);
-            var allTeams = Object.keys(teamPicks).filter(function(t) { return t && t !== 'undefined'; });
-            allTeams.sort(function(a, b) {
-              return (teamPicks[b] || 0) - (teamPicks[a] || 0) || (teamScored[b] || 0) - (teamScored[a] || 0);
-            });
-            if (!allTeams.length) { html += afVariant('heat', [season, picker], EMPTY('No picks yet.')); return; }
-            var trs = allTeams.map(function(team, i) {
-              var picks = teamPicks[team] || 0;
-              var sc = teamScored[team] || 0;
-              var rate = picks > 0 ? sc / picks : 0;
-              var tc = TEAM_COLORS[resolveTeam(team)];
-              var bgColor = tc ? 'linear-gradient(90deg,' + hexA(tc.bg === '#FFFFFF' ? tc.primary : tc.bg, 0.35) + ',rgba(255,255,255,0.02) 70%)' : 'transparent';
-              var rateColor = rate >= 0.3 ? '#34D399' : rate >= 0.15 ? '#FBBF24' : '#F87171';
-              return '<tr style="background:' + bgColor + ';border-bottom:0.5px solid rgba(255,255,255,0.06)">' +
-                '<td style="padding:7px 8px;font-weight:600;color:' + (tc ? tc.dark : '#F3F4F6') + '">' + teamName2(team) + '</td>' +
-                '<td style="text-align:center;padding:7px 8px">' + picks + '</td>' +
-                '<td style="text-align:center;padding:7px 8px">' + sc + '</td>' +
-                '<td style="padding:7px 8px"><div style="display:flex;align-items:center;gap:6px">' +
-                  '<div class="hm-bar" style="flex:1;background:rgba(255,255,255,0.12);border-radius:3px;height:8px"><div style="width:' + Math.round(rate * 100) + '%;background:' + rateColor + ';height:8px;border-radius:3px"></div></div>' +
-                  '<span style="font-size:11px;color:' + rateColor + ';font-weight:600;min-width:30px">' + Math.round(rate * 100) + '%</span>' +
-                '</div></td>' +
-                '<td style="text-align:right;padding:7px 8px;font-weight:700;white-space:nowrap;color:' + ((TU[team] || 0) > 0 ? '#34D399' : (TU[team] || 0) < 0 ? '#F87171' : '#9CA3AF') + '">' + fmtU(TU[team] || 0) + '</td>' +
-              '</tr>';
-            });
-            // Best and worst team to bet on (at least 3 picks)
-            var ranked = allTeams.filter(function(t) { return (teamPicks[t] || 0) >= 3 && t in TU; }).sort(function(a, b) { return TU[b] - TU[a]; });
-            var call = '';
-            if (ranked.length >= 2) {
-              var best = ranked[0], worst = ranked[ranked.length - 1];
-              call = '<div class="tr-call">' +
-                (TU[best] > 0 ? '<div>💸 Best team to bet on: ' + coloredText('<b>' + resolveTeam(best).split(' ').pop() + '</b>', best) + ' ' + fmtU(TU[best]) + '</div>' : '') +
-                (TU[worst] < 0 ? '<div>🔥 The team that keeps burning ' + (picker === 'all' ? 'them' : picker) + ': ' + coloredText('<b>' + resolveTeam(worst).split(' ').pop() + '</b>', worst) + ' ' + fmtU(TU[worst]) + '</div>' : '') + '</div>';
-            }
-            html += afVariant('heat', [season, picker], call + afList(trs, 10, heatHead, '</table></div>'));
-          });
-        });
-        html += '<div style="font-size:11px;color:#9CA3AF;margin-top:8px">Rate = times a pick from that team scored first ÷ times they picked from that team.</div>';
+        // (v121: Team Report Card cut. The Stat Lab's "Split by team" has the same records and units per team.)
 
         // ── Overachievers & Busts / Boldness Meter / Pressure Picks (insights.js) ──
         html += section("Overachievers & Busts");

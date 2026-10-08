@@ -185,14 +185,14 @@
             '<div title="' + fmtD(S.dollars) + '"><b style="color:' + (S.dollars >= 0 ? '#34D399' : '#F87171') + '">' + shortD(S.dollars) + '</b><span>Money</span></div>' +
           '</div></div>';
 
-        function tile(l, v, sub) { return '<div class="pf-tile"><div class="l">' + l + '</div><div class="v">' + v + '</div>' + (sub ? '<div class="s">' + sub + '</div>' : '') + '</div>'; }
+        function tile(l, v, sub, pane) { return '<div class="pf-tile' + (pane ? ' pf-tile-go" role="button" tabindex="0" title="See the full list in Analytics" onclick="openAnalyticsPane(\'' + pane + '\')' : '') + '"><div class="l">' + l + (pane ? ' ›' : '') + '</div><div class="v">' + v + '</div>' + (sub ? '<div class="s">' + sub + '</div>' : '') + '</div>'; }
         h += '<div class="pf-tiles">' +
           tile('Best Hit', S.best ? S.best.r.firstScorer + ' ' + fmtOdds(S.best.odds) : '—', S.best ? S.best.r.year + ' ' + wkName(S.best.r.week) : '') +
           tile('Weeks Won', S.weeksWon, 'Most correct that week') +
           tile('Longest Heater', S.heater.n + ' straight', S.heater.at || '') +
           tile('Ride or Die', S.fav ? S.fav.name : '—', S.fav ? 'picked ' + S.fav.n + 'x' : '') +
-          tile('Bad Beats', S.beats ? S.beats.length : (S.beatsState === 'down' ? '—' : '…'), S.closest ? 'Closest: ' + S.closest.player + ' (' + S.closest.gap + ' min)' : (S.beats ? 'None yet' : S.beatsState === 'down' ? 'Couldn\'t reach ESPN' : 'Checking ESPN…')) +
-          tile('Jinxes', S.jinxes.length, 'Loyalty ' + S.loyalty) +
+          tile('Bad Beats', S.beats ? S.beats.length : (S.beatsState === 'down' ? '—' : '…'), S.closest ? 'Closest: ' + S.closest.player + ' (' + S.closest.gap + ' min)' : (S.beats ? 'None yet' : S.beatsState === 'down' ? 'Couldn\'t reach ESPN' : 'Checking ESPN…'), 'pain') +
+          tile('Jinxes', S.jinxes.length, 'Loyalty ' + S.loyalty, 'pain') +
           '</div>';
         if (typeof scoutingReportHtml === 'function') h += '<div class="sr-wrap">' + scoutingReportHtml(who, rows) + '</div>';
         h += '</div><div class="wide-col">';

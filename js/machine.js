@@ -191,7 +191,7 @@
         var hit = settled && playerKey(name) === playerKey(g.scorer);
         return '<span class="mch-pk' + (hit ? ' hit' : settled ? ' miss' : '') + '">' + (hit ? '✅ ' : '') + escHtml(name) + (odds ? ' <small>+' + Math.round(odds) + (est ? ' est' : '') + '</small>' : '') + '</span>';
       }
-      var h = '<div class="mch-g"><div class="mch-gh"><span class="mch-match">' + teamLogo(g.away) + nick(g.away) + ' <i>@</i> ' + nick(g.home) + teamLogo(g.home) + '</span>' +
+      var h = '<div class="mch-g"><div class="mch-gh"><span class="mch-match"' + (typeof gameLinkAttr === 'function' ? ' ' + gameLinkAttr(MACHINE.data ? MACHINE.data.year : CURRENT_YEAR, g.game) + ' title="Open this game"' : '') + '>' + teamLogo(g.away) + nick(g.away) + ' <i>@</i> ' + nick(g.home) + teamLogo(g.home) + '</span>' +
         '<span class="mch-ftd">' + (g.settled ? '🏈 ' + escHtml(g.scorer) + (g.notOffered ? ' <small>not offered</small>' : '') : '<span class="ls-dot"></span> in progress') + '</span></div>';
       MC_WHO.forEach(function(w) {
         var line, units = null;

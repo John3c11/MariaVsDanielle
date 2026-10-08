@@ -51,7 +51,7 @@
         var homeColored = b.homePick ? coloredText(b.homePick, b.homeTeam) : '';
         var awayColored = b.awayPick ? coloredText(b.awayPick, b.awayTeam) : '';
         var players = [homeColored, awayColored].filter(Boolean).join('<span style="color:#9CA3AF"> / </span>') || '—';
-        var gameDisplay = b.homeTeam && b.awayTeam ? coloredGame(b.homeTeam, b.awayTeam) : (b.game || '—');
+        var gameDisplay = b.homeTeam && b.awayTeam ? (b.gameNo && typeof gameLinkAttr === 'function' ? '<span ' + gameLinkAttr(b.year, b.gameNo) + ' title="Open this game">' + coloredGame(b.homeTeam, b.awayTeam) + '</span>' : coloredGame(b.homeTeam, b.awayTeam)) : (b.game || '—');
         if (b.firstScorer && b.homeTeam) gameDisplay += ' <button class="rp-mini" title="Replay this game" aria-label="Replay this game" onclick="replayGame(\'' + b.year + '\',' + parseInt(b.week, 10) + ',\'' + escHtml(String(b.gameNo)) + '\')">⏪</button>';
         return '<div class="bh-row" data-ctx-year="' + b.year + '" data-ctx-week="' + b.week + '" style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 110px 50px;gap:8px;padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:12px;align-items:start">' +
           '<span style="font-size:11px;font-weight:600;color:' + (b.year === CURRENT_YEAR ? '#60A5FA' : '#34D399') + '">' + b.year + '</span>' +
@@ -389,15 +389,7 @@
 
         // Big screens: totals + earnings on the left, Record Book on the right (no effect elsewhere)
         html += '<div class="wide-cols"><div class="wide-col">';
-        // All-time stats
-        html += secH('📊 All-Time Totals');
-        html += '<div class="lg-grid">';
-        html += legacyStatCard('Units', fmtU(s.mUnits), fmtU(s.dUnits));
-        html += legacyStatCard('Dollars', fmtDResp(s.mDollars), fmtDResp(s.dDollars));
-        html += legacyStatCard('Correct', s.mCorrect+'/'+s.mTotal, s.dCorrect+'/'+s.dTotal);
-        html += legacyStatCard('Accuracy', (s.mTotal?Math.round(s.mCorrect/s.mTotal*100):0)+'%', (s.dTotal?Math.round(s.dCorrect/s.dTotal*100):0)+'%');
-        html += '</div>';
-
+        // (v121: the All-Time Totals block was cut: the By Season table's Total row has the same numbers)
         // Earnings by season (both of them together). This used to be its own tab.
         html += secH('📅 By Season', 'hit rates, odds and earnings') + '<div id="legacy-earn"><div class="loading">Loading…</div></div>';
 
@@ -407,8 +399,13 @@
         html += '</div></div>';
 
         // All-time race: running units across every season
-        var race = allTimeRaceChart(byYear.slice().reverse().reduce(function(a, ys) { return a.concat(ys.bets); }, []));
-        if (race) html += secH('🏁 The All-Time Race') + '<div class="ch-box" style="margin-bottom:28px">' + race + '</div>';
+        var raceBets = byYear.slice().reverse().reduce(function(a, ys) { return a.concat(ys.bets); }, []);
+        var race = allTimeRaceChart(raceBets);
+        var raceYears = byYear.map(function(ys) { return ys.year; }).filter(Boolean);
+        // One race chart for everything: every season together, or one season at a time (Analytics' Season Race lived here from v121)
+        if (race) html += secH('🏁 The Race') + '<div class="af-bar" style="margin-bottom:8px"><span class="af-bar-label">Season</span><button class="filter-btn active" data-race-y="all">All-time</button>' +
+          raceYears.map(function(y) { return '<button class="filter-btn" data-race-y="' + y + '">' + y + '</button>'; }).join('') + '</div>' +
+          '<div class="ch-box" id="lg-race" style="margin-bottom:28px">' + race + '</div>';
         // 🔮 The Chalk Team (js/chalk.js) and ⏪ Replay (js/replay.js), filled in once their files load
         html += '<div id="chalk-slot" class="lazy-slot"></div><div id="replay-slot" class="lazy-slot"></div>';
 
@@ -424,6 +421,13 @@
         html += '<div style="font-size:12px;color:#9CA3AF;text-align:center;margin:-8px 0 20px">' + CURRENT_YEAR + ' Wrapped unlocks when the season is over.</div>';
 
         document.getElementById('legacy-content').innerHTML = html;
+        document.querySelectorAll('[data-race-y]').forEach(function(b) {
+          b.addEventListener('click', function() {
+            var y = b.getAttribute('data-race-y'), box = document.getElementById('lg-race');
+            document.querySelectorAll('[data-race-y]').forEach(function(x) { x.classList.toggle('active', x === b); });
+            if (box) box.innerHTML = y === 'all' ? race : (seasonRaceChart(raceBets, y) || '<div class="ch-empty">Not enough games yet.</div>');
+          });
+        });
         fillCrowdWrapped();
         if (typeof fillWrappedExtras === 'function') fillWrappedExtras();
         loadEarnings(byYear);

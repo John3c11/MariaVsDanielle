@@ -68,3 +68,6 @@
 .u-r-4px { border-radius:4px !important; }
 .u-w-62px { width:62px !important; }
 .u-w-72px { width:72px !important; }
+.an-x-row { display: flex; justify-content: flex-end; margin: 10px 0 4px; }
+.an-x { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; color: #E5E7EB; background: rgba(167,139,250,0.10); border: 1px solid rgba(167,139,250,0.35); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.an-x:hover { background: rgba(167,139,250,0.2); }

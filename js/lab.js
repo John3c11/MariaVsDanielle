@@ -218,7 +218,7 @@
       var saved = labSaved();
       var nMore = (q.side ? 1 : 0) + (q.team ? 1 : 0) + (q.player ? 1 : 0) + q.odds.length + (q.same ? 1 : 0) + (q.res ? 1 : 0) + (q.wk1 || q.wk2 ? 1 : 0);
       var players = {}; LAB.picks.forEach(function(p) { players[p.name] = 1; });
-      var h = '<div class="lab-hero"><div class="lab-title">🧪 Stat Lab</div><div class="lab-sub">Build a question. The answer comes from every bet since ' + (yrs.slice().sort()[0] || '2023') + '.</div></div>';
+      var h = '<div class="lab-hero"><div class="lab-title">🧪 Explore</div><div class="lab-sub">Ask your own question. The answer comes from every bet since ' + (yrs.slice().sort()[0] || '2023') + '.</div></div>';
       h += '<div class="lab-try"><span class="lab-l">Try</span>' + LAB_PRESETS.map(function(p, i) { return '<button class="lab-pre" data-lab-pre="' + i + '">' + p.t + '</button>'; }).join('') +
         saved.map(function(s, i) { return '<span class="lab-saved"><button class="lab-pre mine" data-lab-saved="' + i + '">⭐ ' + escHtml(s.name) + '</button><button class="lab-unsave" data-lab-unsave="' + i + '" aria-label="Remove">✕</button></span>'; }).join('') + '</div>';
       h += '<div id="lab-disc"></div>';
@@ -320,7 +320,7 @@
         h += '<div class="pf-h">📈 Units, pick by pick <small>' + len + ' pick' + (len === 1 ? '' : 's') + '</small></div><div class="ch-box">' +
           chLineChart({ n: len + 1, series: series, xLabels: [], dividers: dv, tips: labTips(R, series, len), fmt: function(v, axis) { return axis ? (v > 0 ? '+' : '') + v : chU(v); }, height: 210 }) + '</div>';
       }
-      h += '<div class="lab-brand">Maria vs Danielle · Stat Lab</div></div>';
+      h += '<div class="lab-brand">Maria vs Danielle · Numbers</div></div>';
       // The picks
       var all = [];
       R.forEach(function(x) { x.S.list.forEach(function(p) { all.push(p); }); });

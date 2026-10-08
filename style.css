@@ -1669,7 +1669,7 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 }
 
 /* ── v129: 📨 invite / sign-up, friend home summary ── */
-:root { --css-v: "133"; } /* main.js compares this with the page version to catch an old style.css */
+:root { --css-v: "134"; } /* main.js compares this with the page version to catch an old style.css */
 .join-box { max-width: 340px; margin-left: auto; margin-right: auto; }
 .join-l { display: block; text-align: left; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t3); margin: 14px 0 6px; }
 .join-in { width: 100%; box-sizing: border-box; }
@@ -1713,3 +1713,9 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 @media (max-width: 520px) { .pf-fav { width: 74px; height: 74px; font-size: 40px; } .pf-fav.txt { font-size: 36px; } }
 
 /* ── v131: admin in 5 sections ── */
+
+/* ── v134: 📊 Numbers = 📖 Stories + 🧪 Explore ── */
+.nm-mode { display: flex; gap: 4px; padding: 4px; margin: 0 0 16px; border-radius: 14px; background: var(--s1); border: 1px solid var(--line); }
+.nm-mode button { flex: 1 1 0; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; color: var(--t3); background: none; border: 0; border-radius: 10px; padding: 10px 8px; cursor: pointer; }
+.nm-mode button:hover { color: var(--t1); }
+.nm-mode button.on { color: #0B0B0E; background: #F3F4F6; }

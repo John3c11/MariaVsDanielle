@@ -37,15 +37,16 @@
       home:    [['stats', 'Home']],
       picks:   [['submit', ''], ['schedule', '🗓️ Schedule'], ['rosters', '📋 Rosters'], ['crowd', '🏅 Crowd'], ['bracket', '🏆 Bracket']],
       rivalry: [['profiles', '⭐ Profiles'], ['legacy', '📜 All-Time'], ['bethistory', '🧾 Bet Log'], ['museum', '🏛️ Museum'], ['game', '🏈 Games']],
-      numbers: [['analytics', '📊 Analytics'], ['lab', '🧪 Stat Lab'], ['machine', '🤖 Machine']],
+      numbers: [['analytics', '📊 Numbers'], ['machine', '🤖 Machine']], // 📊 Numbers = Stories (analytics) + Explore (lab), v134
       chat:    [['chat', 'Trash Talk']],
     };
     var HUB_OF = {}, HUB_LAST = {};
     Object.keys(HUBS).forEach(function(h) { HUBS[h].forEach(function(t) { HUB_OF[t[0]] = h; }); });
+    HUB_OF.lab = 'numbers'; // 🧪 Explore: the second half of 📊 Numbers
     function hubTabs(h) { return HUBS[h].filter(function(t) { return t[0] !== 'bracket' || BRACKET_ON; }); }
     function openHub(h) {
       var last = HUB_LAST[h];
-      if (!last || !hubTabs(h).some(function(t) { return t[0] === last; })) last = h === 'picks' ? (SUB.pin ? 'submit' : 'schedule') : hubTabs(h)[0][0];
+      if (!last || (last !== 'lab' && !hubTabs(h).some(function(t) { return t[0] === last; }))) last = h === 'picks' ? (SUB.pin ? 'submit' : 'schedule') : hubTabs(h)[0][0];
       switchTab(last);
     }
     function loginLabel() { return !SUB.pin ? '👤 Log In' : SUB.role === 'admin' ? '🔧 Admin' : '✍️ My Picks'; }
@@ -57,7 +58,7 @@
       if (tabs.length < 2) { el.style.display = 'none'; el.innerHTML = ''; return; }
       var mini = document.getElementById('acct-mini');
       el.innerHTML = '<div class="hub-sub-row">' + tabs.map(function(t) {
-        return '<button class="hub-sub-btn' + (t[0] === name ? ' on' : '') + '" onclick="switchTab(\'' + t[0] + '\')">' + (t[0] === 'submit' ? loginLabel() : t[1]) + '</button>';
+        return '<button class="hub-sub-btn' + (t[0] === name || (name === 'lab' && t[0] === 'analytics') ? ' on' : '') + '" onclick="switchTab(\'' + t[0] + '\')">' + (t[0] === 'submit' ? loginLabel() : t[1]) + '</button>';
       }).join('') + '</div>' + (h !== 'picks' ? '<button class="hub-acct" onclick="switchTab(\'submit\')" aria-label="' + (mini ? mini.getAttribute('aria-label') : 'Log in') + '">' + (mini ? mini.textContent.split(' ')[0] : '👤') + '</button>' : '');
       el.style.display = '';
       var row = el.querySelector('.hub-sub-row'), on = el.querySelector('.on');
@@ -142,7 +143,7 @@
     function openLab() {
       loadScriptOnce('js/lab.js').then(function() { loadLabTab(); }).catch(function() {
         var el = document.getElementById('lab-content');
-        if (el) el.innerHTML = '<div class="loading">Couldn\'t open the Stat Lab. Check your connection. <button class="link-btn" onclick="openLab()">Try again</button></div>';
+        if (el) el.innerHTML = '<div class="loading">Couldn\'t open Explore. Check your connection. <button class="link-btn" onclick="openLab()">Try again</button></div>';
       });
     }
     if ((location.hash || '').indexOf('#lab') === 0) setTimeout(function() { switchTab('lab'); }, 0);

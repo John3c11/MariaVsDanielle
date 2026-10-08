@@ -225,7 +225,7 @@
     function profilePane(who, S, Y, rows) {
       var h = '';
       if (PROFILE_TAB === 'overview') {
-        function tile(l, v, sub, pane) { return '<div class="pf-tile' + (pane ? ' pf-tile-go" role="button" tabindex="0" title="See the full list in Analytics" onclick="openAnalyticsPane(\'' + pane + '\')' : '') + '"><div class="l">' + l + (pane ? ' ›' : '') + '</div><div class="v">' + v + '</div>' + (sub ? '<div class="s">' + sub + '</div>' : '') + '</div>'; }
+        function tile(l, v, sub, pane) { return '<div class="pf-tile' + (pane ? ' pf-tile-go" role="button" tabindex="0" title="See the full list in Numbers" onclick="openAnalyticsPane(\'' + pane + '\')' : '') + '"><div class="l">' + l + (pane ? ' ›' : '') + '</div><div class="v">' + v + '</div>' + (sub ? '<div class="s">' + sub + '</div>' : '') + '</div>'; }
         h += '<div class="pf-tiles">' +
           tile('Best Hit', S.best ? S.best.r.firstScorer + ' ' + fmtOdds(S.best.odds) : '—', S.best ? '<span ' + gameLinkAttr(S.best.r.year, S.best.r.game) + '>' + S.best.r.year + ' ' + wkName(S.best.r.week) + ' ›</span>' : '') +
           tile('Weeks Won', S.weeksWon, 'Most correct that week') +

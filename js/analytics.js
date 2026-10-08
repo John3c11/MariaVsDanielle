@@ -46,8 +46,8 @@
 
     // ── Analytics layout: one season picker + four sub-tabs ──────────────────
     var AN_TABS = [
-      ['trends', '📈 Trends', ['Hit Grid', 'Luck Meter', 'Weekly Units', 'Form', 'Month by Month']],
-      ['picking', '🎯 Picking', ['Splits', 'Boldness Meter', 'Pressure Picks', 'Picking vs Reality', 'Who Scores First']],
+      ['trends', '📈 Trends', ['Hit Grid', 'Luck Meter', 'Weekly Units', 'Form']],
+      ['picking', '🎯 Picking', ['Boldness Meter', 'Pressure Picks', 'Picking vs Reality', 'Who Scores First']],
       ['players', '🏈 Players & Teams', ['Overachievers & Busts', 'TD Scorer Leaderboard', 'Chaos Corner']],
       ['pain', '😬 Pain', ['Jinx Tracker', 'Bad Beats']],
     ];
@@ -60,6 +60,13 @@
       'Best Stretches & Biggest Wins': ['Hit Grid', 'list', 'Best stretches & biggest wins (all seasons)', 'Show best stretches & biggest wins'],
     };
     var AN_RENAME = { 'Who Scores First': 'Which Side Scores First' };
+    // "Explore this →" on each story (v134): the same question in 🧪 Explore, already set up.
+    // The season picked on Stories carries over (yr=…) unless it's All.
+    var AN_EXPLORE = {
+      'Hit Grid': 'who=both', 'Luck Meter': 'who=both&split=odds', 'Weekly Units': 'who=both&split=yr', 'Form': 'who=both&split=yr',
+      'Boldness Meter': 'who=both&split=odds', 'Picking vs Reality': 'who=both&split=pos', 'Which Side Scores First': 'who=both&split=side', 'Who Scores First': 'who=both&split=side',
+      'Overachievers & Busts': 'who=both&split=player', 'TD Scorer Leaderboard': 'who=both&res=hit&split=player', 'Chaos Corner': 'who=both&res=hit&odds=4',
+    };
     function anStore(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
 
     function anOrganize(root, seasonOpts) {
@@ -92,6 +99,15 @@
       Object.keys(AN_RENAME).forEach(function(t) {
         var h = secs[t] && secs[t].querySelector('.an-h');
         if (h) h.firstChild.textContent = AN_RENAME[t];
+      });
+      // 🧪 "Explore this →" at the foot of each story that has a matching question
+      Object.keys(secs).forEach(function(t) {
+        if (!AN_EXPLORE[t]) return;
+        secs[t].insertAdjacentHTML('beforeend', '<div class="an-x-row"><button class="an-x" data-an-x="' + AN_EXPLORE[t] + '">🧪 Explore this →</button></div>');
+      });
+      root.addEventListener('click', function(e) {
+        var x = e.target.closest('[data-an-x]');
+        if (x) openLabQuery(x.getAttribute('data-an-x') + (seasonNow !== 'all' ? '&yr=' + seasonNow : ''));
       });
       // Controls + panes
       var seasonNow = anStore('mvd-an-season') || 'all';
@@ -313,12 +329,7 @@
 
         // (v121: Pick of the Season cut. The Museum's big hits and each Profile's Best Hit show it.)
 
-        // ── Splits now live in the 🧪 Stat Lab (v118): home/road, game slot, position and odds range ──
-        html += section("Splits");
-        html += '<div class="ch-intro">Home vs road picks, game slots, positions and odds ranges are now in the Stat Lab, side by side, for any season, and you can tap any row to dig in.</div><div class="lab-jump">' +
-          [['side', '🏠 Home vs road'], ['slot', '🗓️ By game slot'], ['pos', '🏈 By position'], ['odds', '🎲 By odds range'], ['team', '🛡️ By team']].map(function(x) {
-            return '<button class="lab-pre" onclick="openLabQuery(\'split=' + x[0] + '\')">' + x[1] + ' →</button>';
-          }).join('') + '</div>';
+        // (v134: the Splits links are gone. 🧪 Explore sits right next to Stories now, and each story has its own "Explore this" button.)
 
         // ── Who Scores First: home or away team ──────────────────────────────
         html += section("Who Scores First");
@@ -586,57 +597,7 @@
           });
         });
 
-        // ── Month by Month ────────────────────────────────────────────────────
-        // Dates come from the week number: Week 1 starts the Thursday after Labor Day.
-        function gameDate(year, week, slot) {
-          var y = parseInt(year, 10), sep1 = new Date(y, 8, 1);
-          var labor = new Date(y, 8, 1 + ((8 - sep1.getDay()) % 7));
-          if (/christmas/i.test(slot)) return new Date(y, 11, 25);
-          var off = /wnf|wed/i.test(slot) ? -1 : /black friday|fri|fnf/i.test(slot) ? 1 : /sat/i.test(slot) ? 2 : /mnf|mon/i.test(slot) ? 4 : /tnf|thanksgiving|thu/i.test(slot) ? 0 : 3;
-          return new Date(y, 8, labor.getDate() + 3 + (week - 1) * 7 + off);
-        }
-        var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        var MONTHS_LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-        html += section("Month by Month");
-        html += '<div class="af-bars">' + afBar('mbm', 'season', 'Season', SEASON_OPTS, CUR_SEASON) + '</div>';
-        SEASON_OPTS.forEach(function(so) {
-          var season = so[0], M = {};
-          scored.forEach(function(r) {
-            if (!inSeason(r, season) || (r.picker !== 'Maria' && r.picker !== 'Danielle')) return;
-            var dt = gameDate(r.year, r.week, r.slot), mi = dt.getMonth();
-            var order = mi >= 6 ? mi - 8 : mi + 4; // Sep=0 … Feb=5
-            var x = M[mi] || (M[mi] = { order: order, Maria: { w: 0, n: 0, u: 0 }, Danielle: { w: 0, n: 0, u: 0 } });
-            var p = x[r.picker];
-            p.u += r.netUnits;
-            if (isNotOffered(r)) return; // not offered: no win or loss
-            p.n++; if (r.correct === 'Yes') p.w++;
-          });
-          var keys = Object.keys(M).sort(function(a, b) { return M[a].order - M[b].order; });
-          if (!keys.length) { html += afVariant('mbm', [season], EMPTY('No scored games yet.')); return; }
-          function cell(p, c) {
-            if (!p.n) return '<span class="u-ta-center u-c-faint">—</span>';
-            var u = Math.round(p.u * 10) / 10;
-            return '<span class="u-center"><b style="color:' + c + ';font-size:14px">' + p.w + '/' + p.n + '</b> <span class="u-c-muted u-fs-11px">' + Math.round(p.w / p.n * 100) + '%</span>' +
-              '<div style="font-size:11px;font-weight:700;color:' + (u > 0 ? '#34D399' : u < 0 ? '#F87171' : '#A1A9B6') + '">' + (u > 0 ? '+' : '') + u + 'u</div></span>';
-          }
-          var inner = '<div class="u-bg-rgba-255-255-255-0-05 u-r-10px u-p-8px-12px">' +
-            '<div class="u-d-grid u-gtc-1fr-1fr-1fr u-gap-8px u-p-8px-0-4px u-bb-1px-solid-rgba-255-255-255-0-10">' +
-            '<span class="u-fs-11px u-c-muted u-tt-uppercase u-ls-0-05em u-fw-600">Month</span>' +
-            '<span style="font-size:11px;color:' + SB_M + ';text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Maria</span>' +
-            '<span style="font-size:11px;color:' + SB_D + ';text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Danielle</span></div>';
-          keys.forEach(function(k, i) {
-            inner += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 0;align-items:center;' + (i < keys.length - 1 ? 'border-bottom:0.5px solid rgba(255,255,255,0.06)' : '') + '">' +
-              '<span class="u-fs-13px u-fw-600 u-c-soft">' + MONTHS_LONG[k] + '</span>' + cell(M[k].Maria, SB_M) + cell(M[k].Danielle, SB_D) + '</div>';
-          });
-          inner += '</div>';
-          // Best month for each
-          var notes = ['Maria', 'Danielle'].map(function(who) {
-            var best = keys.filter(function(k) { return M[k][who].n >= 5; }).sort(function(a, b) { return M[b][who].w / M[b][who].n - M[a][who].w / M[a][who].n; })[0];
-            if (!best) return '';
-            return '<span><b style="color:' + (personColor(who)) + '">' + who + '</b> is best in ' + MONTHS_LONG[best] + ' (' + Math.round(M[best][who].w / M[best][who].n * 100) + '%)</span>';
-          }).filter(Boolean).join(' · ');
-          html += afVariant('mbm', [season], inner + (notes ? '<div class="u-fs-12px u-c-muted u-mt-10px">' + notes + '. Months are worked out from the week number.</div>' : ''));
-        });
+        // (v134: Month by Month cut. Weekly Units shows the same run of form week by week, and Explore filters any stretch of weeks.)
 
         // ── Odds vs Hits (chart) ──
         html += section("Odds vs Hits");

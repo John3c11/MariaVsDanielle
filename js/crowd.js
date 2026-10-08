@@ -23,8 +23,9 @@
         if (picker === 'Maria' || picker === 'Danielle') {
           g.md[picker] = [b.homePick, b.awayPick];
           g.mdCorrect[picker] = b.correct;
-          if (b.homeOdds > 0) g.odds[playerKey(b.homePick)] = b.homeOdds; // real prices from their picks (best-hit odds for friends)
-          if (b.awayOdds > 0) g.odds[playerKey(b.awayPick)] = b.awayOdds;
+          var ho = oddsN(b.homeOdds), ao = oddsN(b.awayOdds); // real prices from their picks (best-hit odds for friends)
+          if (ho > 0) g.odds[playerKey(b.homePick)] = ho;
+          if (ao > 0) g.odds[playerKey(b.awayPick)] = ao;
         }
       });
       return G;
@@ -100,26 +101,52 @@
       return { stats: stats, ranked: ranked, unranked: unranked };
     }
 
+    // ── 🏅 Every season's Crowd (v130): standings, champions, friend careers ──
+    // Finished seasons come from the script once per visit (every pick is public after the season).
+    function pastCrowds() {
+      if (!PICKS_URL) return Promise.resolve([]);
+      if (!CROWD.past) CROWD.past = Promise.all(SEASONS.filter(function(s) { return s.year !== CURRENT_YEAR; }).map(function(s) {
+        return picksApi({ action: 'crowd', season: s.year }).then(function(d) { return { year: s.year, crowd: d && !d.error ? d : {} }; }).catch(function() { return { year: s.year, crowd: {} }; });
+      })).then(function(list) { return list.filter(function(x) { return (x.crowd.friends || []).length && (x.crowd.picks || []).length; }); });
+      return CROWD.past;
+    }
+    // [{ year, crowd, G, R, final, champ, leader }] newest first, only seasons friends played in
+    function crowdSeasons() {
+      return Promise.all([getCrowd(), fetchSheet('Winnings', 'A1:Q400'), pastCrowds(), loadAllBets()]).then(function(r) {
+        var list = [{ year: CURRENT_YEAR, crowd: r[0] || {}, raw: r[1] }].concat(r[2].map(function(x) { return { year: x.year, crowd: x.crowd, raw: SEASON_RAW[x.year] || [] }; }));
+        return list.filter(function(x) { return (x.crowd.friends || []).length; }).map(function(x) {
+          var G = crowdGames(x.raw), R = rankFriends({ friends: x.crowd.friends || [], picks: x.crowd.picks || [] }, G), fin = x.year !== CURRENT_YEAR;
+          return { year: x.year, crowd: x.crowd, G: G, R: R, final: fin, champ: fin && R.ranked[0] ? R.ranked[0] : null, leader: R.ranked[0] || null };
+        }).sort(function(a, b) { return b.year - a.year; });
+      });
+    }
+
     // ── 🏅 Crowd tab ────────────────────────────────────────────────────────
     function loadCrowdTab() {
       var el = document.getElementById('crowd-content');
       if (!el.innerHTML) el.innerHTML = '<div class="loading">Loading the crowd…</div>';
-      Promise.all([getCrowd(), fetchSheet('Winnings', 'A1:Q400')]).then(function(res) {
+      var yr = CROWD.view || CURRENT_YEAR, past = yr !== CURRENT_YEAR;
+      var src = past
+        ? Promise.all([pastCrowds(), loadAllBets()]).then(function(r) { var x = r[0].filter(function(c) { return c.year === yr; })[0]; return [x ? x.crowd : { friends: [], picks: [] }, SEASON_RAW[yr] || []]; })
+        : Promise.all([getCrowd(), fetchSheet('Winnings', 'A1:Q400')]);
+      src.then(function(res) {
         var crowd = res[0], G = crowdGames(res[1]);
-        var h = '<div class="u-center u-mb-m"><div class="ui-big">🏅 The Crowd</div>' +
-          '<div class="ui-note u-mt-xs">Friends make their own picks each game. Ranked by win % (' + CROWD_MIN + '+ games to qualify). Picks show at kickoff.</div></div>';
-        if (!crowd.friends || !crowd.friends.length) { el.innerHTML = h + '<div class="loading">No friends have joined yet.</div>'; return; }
+        var h = '<div class="u-center u-mb-m"><div class="ui-big">🏅 The Crowd' + (past ? ' · ' + yr : '') + '</div>' +
+          '<div class="ui-note u-mt-xs">' + (past ? 'Final standings. Ranked by win % (' + CROWD_MIN + '+ games to qualify).' : 'Friends make their own picks each game. Ranked by win % (' + CROWD_MIN + '+ games to qualify). Picks show at kickoff.') + '</div></div>' +
+          '<div id="cr-seasons"></div>';
+        if (!crowd.friends || !crowd.friends.length) { el.innerHTML = h + '<div class="loading">No friends have joined yet.</div>'; crowdSeasonChips(yr); return; }
         var R = rankFriends(crowd, G);
         var ref = ['Maria', 'Danielle'].map(function(n) { var s = mdStats(n, G); s.ref = true; return s; });
 
         // Leaderboard, with Maria and Danielle slotted in as reference rows
         var board = R.ranked.concat(ref).sort(function(a, b) { return b.pct - a.pct || b.n - a.n; });
         var rank = 0;
+        if (past && R.ranked[0]) h += '<div class="cr-champ" style="--pc:' + fStyle(R.ranked[0].name).color + '">🏅 <span>' + yr + ' Crowd Champion</span> <b>' + fName(R.ranked[0].name) + '</b> <small>' + R.ranked[0].w + '–' + (R.ranked[0].n - R.ranked[0].w) + ' · ' + pctTxt(R.ranked[0].pct) + '</small></div>';
         h += '<div class="ui-small u-right u-mb-xs">Tap a name to see their profile</div><table class="cr-table"><tr><th>#</th><th>Name</th><th>Record</th><th>Win %</th><th>Streak</th></tr>';
         board.forEach(function(s) {
           var c = s.ref ? (personColor(s.name)) : FRIEND_COLOR;
           if (!s.ref) rank++;
-          h += '<tr class="' + (s.ref ? 'ref' : '') + '"><td>' + (s.ref ? '' : (rank === 1 ? '👑' : rank)) + '</td>' +
+          h += '<tr class="' + (s.ref ? 'ref' : '') + '"><td>' + (s.ref ? '' : (rank === 1 ? (past ? '🏅' : '👑') : rank)) + '</td>' +
             '<td style="font-weight:700;color:' + c + '">' + (s.ref ? '<a class="fr-link" data-fname="' + s.name + '" style="color:' + c + '">' + s.name + '</a> <span class="ui-tiny">(for reference)</span>' : fName(s.name)) + '</td>' +
             '<td>' + s.w + '–' + (s.n - s.w) + '</td><td class="u-xbold">' + pctTxt(s.pct) + '</td><td>' + streakTxt(s.cur) + '</td></tr>';
         });
@@ -132,7 +159,7 @@
         }
 
         // 📈 The Market (js/market.js, loaded when this tab opens)
-        h += '<div id="market-slot" class="u-mt-l"></div>';
+        if (!past) h += '<div id="market-slot" class="u-mt-l"></div>';
 
         // Weekly best
         var weeks = {};
@@ -172,10 +199,45 @@
           if (gKeys.length > 6) h += '<div class="u-center"><button class="link-btn" id="cr-more">Show all ' + gKeys.length + ' games</button></div>';
         }
         el.innerHTML = h;
-        loadScriptOnce('js/market.js').then(function() { renderMarket(document.getElementById('market-slot'), {}); }).catch(function() {});
+        crowdSeasonChips(yr);
+        if (!past) loadScriptOnce('js/market.js').then(function() { renderMarket(document.getElementById('market-slot'), {}); }).catch(function() {});
         var more = document.getElementById('cr-more');
         if (more) more.addEventListener('click', function() { el.querySelectorAll('[data-cg]').forEach(function(d) { d.style.display = ''; }); more.remove(); });
       }).catch(function() { el.innerHTML = '<div class="loading">Couldn\'t load the crowd right now.</div>'; });
+    }
+
+    // Season chips on the Crowd tab, only once there's a finished season friends played in
+    function crowdSeasonChips(yr) {
+      pastCrowds().then(function(list) {
+        var box = document.getElementById('cr-seasons');
+        if (!box || !list.length) return;
+        var years = [CURRENT_YEAR].concat(list.map(function(x) { return x.year; }).sort().reverse());
+        box.innerHTML = '<div class="af-bar u-mb"><span class="af-bar-label">Season</span>' + years.map(function(y) {
+          return '<button class="filter-btn' + (y === yr ? ' active' : '') + '" data-cr-y="' + y + '">' + y + '</button>';
+        }).join('') + '</div>';
+        box.querySelectorAll('[data-cr-y]').forEach(function(b) { b.addEventListener('click', function() { CROWD.view = b.getAttribute('data-cr-y'); loadCrowdTab(); }); });
+      }).catch(function() {});
+    }
+
+    // 🏠 Home: how the Crowd's picks are doing next to Maria's and Danielle's on the same games (v130)
+    function renderCrowdLine() {
+      var el = document.getElementById('crowd-line');
+      if (!el || !PICKS_URL) return;
+      Promise.all([getCrowd(), fetchSheet('Winnings', 'A1:Q400')]).then(function(r) {
+        var crowd = r[0] || {}, G = crowdGames(r[1]), c = { w: 0, n: 0 }, games = {};
+        (crowd.picks || []).forEach(function(p) {
+          var g = G[p.week + '_' + p.game]; if (!g || !g.scorer || g.notOffered) return;
+          var k = playerKey(g.scorer);
+          c.n++; if (playerKey(p.homePick) === k || playerKey(p.awayPick) === k) c.w++;
+          games[g.key] = g;
+        });
+        if (!c.n) { el.style.display = 'none'; return; }
+        function md(who) { var w = 0, n = 0; Object.keys(games).forEach(function(k) { var x = games[k].mdCorrect[who]; if (x === 'Yes' || x === 'No') { n++; if (x === 'Yes') w++; } }); return n ? pctTxt(w / n) : '—'; }
+        var R = rankFriends({ friends: crowd.friends || [], picks: crowd.picks || [] }, G), top = R.ranked[0];
+        el.innerHTML = '🏅 <b class="u-c-warn">The Crowd</b> hits ' + pctTxt(c.w / c.n) + ' <span class="u-c-muted">(' + c.w + ' of ' + c.n + ')</span> · ' +
+          '<button class="link-btn" onclick="switchTab(\'crowd\')">vs Maria ' + md('Maria') + ' & Danielle ' + md('Danielle') + ' on the same games' + (top ? ' · 👑 ' + escHtml(top.name) : '') + ' →</button>';
+        el.style.display = '';
+      }).catch(function() {});
     }
 
     // Live Picks: "👥 N friends have picked"

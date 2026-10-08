@@ -2417,7 +2417,7 @@ button.lab-st-r:hover { background: rgba(255,255,255,0.08); }
 @media (max-width: 520px) { .pf-bot { width: 74px; height: 74px; font-size: 42px; } }
 
 /* ── v129: 📨 invite / sign-up, friend home summary ── */
-:root { --css-v: "129"; } /* main.js compares this with the page version to catch an old style.css */
+:root { --css-v: "130"; } /* main.js compares this with the page version to catch an old style.css */
 .inv-box { background: var(--s1); border: 1px solid var(--line-2); border-radius: var(--r-s); padding: 9px 11px; margin-bottom: 8px; overflow-x: auto; }
 .inv-box code { font-size: 12px; color: var(--t2); white-space: nowrap; }
 .inv-pend { border-left: 3px solid var(--warn); padding-left: 10px; }
@@ -2449,3 +2449,24 @@ button.lab-st-r:hover { background: rgba(255,255,255,0.08); }
   .fh-vs { gap: 10px 8px; }
   .fh-lead { display: none; } /* the bar colours already say who leads */
 }
+
+/* ── v130: friend profiles 2.0, Crowd champions, Crowd line on Home ── */
+.pf-fav { width: 92px; height: 92px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 50px; flex: 0 0 auto;
+  background: color-mix(in srgb, var(--pc) 16%, transparent); border: 3px solid var(--pc); box-shadow: 0 0 26px -6px var(--pc); }
+.pf-fav.txt { font-size: 44px; font-weight: 800; color: var(--pc); }
+.pf-card .fr-cust { z-index: 1; }
+.fpf-seas-r { grid-template-columns: 76px 50px 84px 82px minmax(110px, 1fr) 52px 46px; min-width: 520px; }
+.cr-champ { display: flex; align-items: baseline; justify-content: center; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; padding: 12px 14px; border-radius: var(--r);
+  background: color-mix(in srgb, var(--pc) 12%, transparent); border: 1px solid color-mix(in srgb, var(--pc) 40%, transparent); font-size: 14px; }
+.cr-champ span { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t3); }
+.cr-champ b { font-size: 17px; }
+.cr-champ small { color: var(--t3); }
+.mu-champs { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin-bottom: 18px; }
+.mu-champ { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: var(--r); background: linear-gradient(135deg, var(--s1), color-mix(in srgb, var(--pc) 16%, transparent));
+  border: 1px solid color-mix(in srgb, var(--pc) 45%, transparent); }
+.mu-champ.live { border-style: dashed; }
+.mu-champ-ic { font-size: 30px; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--s2); flex: 0 0 auto; }
+.mu-champ-y { font-size: 10.5px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t3); }
+.mu-champ-n { font-size: 17px; font-weight: 800; }
+.mu-champ-s { font-size: 12px; color: var(--t3); }
+@media (max-width: 520px) { .pf-fav { width: 74px; height: 74px; font-size: 40px; } .pf-fav.txt { font-size: 36px; } }

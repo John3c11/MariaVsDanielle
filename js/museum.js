@@ -164,6 +164,21 @@
         '</div></div>';
     }
 
+    // 🏅 The Crowd's champion of every finished season, plus who's leading this one (v130)
+    function museumChamps() {
+      if (typeof crowdSeasons !== 'function' || !PICKS_URL) return;
+      crowdSeasons().then(function(list) {
+        var box = document.getElementById('mu-champs'), rows = list.filter(function(y) { return y.leader; });
+        if (!box || !rows.length) return;
+        box.innerHTML = '<div class="mu-year"><span>🏅 Crowd Champions</span></div><div class="mu-champs">' + rows.map(function(y) {
+          var s = y.leader, st = fStyle(s.name);
+          return '<div class="mu-champ' + (y.final ? '' : ' live') + '" style="--pc:' + (st.color || FRIEND_COLOR) + '"><div class="mu-champ-ic">' + (y.final ? '🏅' : '👑') + '</div>' +
+            '<div><div class="mu-champ-y">' + y.year + (y.final ? ' Champion' : ' · leading so far') + '</div><div class="mu-champ-n">' + fName(s.name) + '</div>' +
+            '<div class="mu-champ-s">' + s.w + '–' + (s.n - s.w) + ' · ' + pctTxt(s.pct) + ' · ' + y.R.ranked.length + ' ranked</div></div></div>';
+        }).join('') + '</div>';
+      }).catch(function() {});
+    }
+
     function drawMuseum(el, list) {
       var shown = list.filter(function(m) { return !m.hidden; });
       var years = []; shown.forEach(function(m) { if (years.indexOf(m.season) < 0) years.push(m.season); });
@@ -177,6 +192,7 @@
       var stars = shown.filter(function(m) { return m.star; });
       var h = '<div class="mu-hero"><div class="mu-hero-ic">🏛️</div><div><div class="mu-hero-t">The Museum</div>' +
         '<div class="mu-hero-s">The rivalry\'s greatest moments, every season. ' + shown.length + ' on display.</div></div></div>';
+      if (f === 'all') h += '<div id="mu-champs"></div>'; // 🏅 Crowd champions (filled in below)
       h += '<div class="af-bar mu-filters">' + [['all', 'All'], ['Maria', 'Maria'], ['Danielle', 'Danielle']].concat(stars.length ? [['star', '★ Featured']] : []).concat(years.map(function(y) { return [y, y]; })).map(function(b) {
         return '<button class="filter-btn' + (f === b[0] ? ' active' : '') + '" data-mu-f="' + b[0] + '">' + b[1] + '</button>';
       }).join('') + '</div>';
@@ -196,6 +212,7 @@
       });
       el.innerHTML = h;
       if (typeof fillHeadshots === 'function') fillHeadshots(el);
+      museumChamps();
       el.querySelectorAll('[data-mu-f]').forEach(function(b) {
         b.addEventListener('click', function() { MUSEUM.filter = b.getAttribute('data-mu-f'); drawMuseum(el, list); });
       });

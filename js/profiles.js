@@ -353,131 +353,216 @@
       });
     }
 
-    // ── Friend profiles (only that friend, or admin) ────────────────────────
+    // ── Friend profiles 2.0 (v130): the same trading-card layout as Maria's and Danielle's, every season ──
+    // Public view: picks from games that have kicked off. The friend themself and admin also see upcoming ones.
     function renderFriendProfile(name) {
       var el = document.getElementById('profiles-content');
       var owner = SUB.role === 'friend' && SUB.name === name, admin = SUB.role === 'admin';
       el.innerHTML = profileSwitchHtml(name) + '<div class="loading">Loading profile…</div>';
       bindProfileSwitch(el);
       var priv = owner ? picksApi({ pin: SUB.pin, action: 'fmine' }) : admin ? picksApi({ pin: SUB.pin, action: 'fall' }) : Promise.resolve(null);
-      Promise.all([priv, getCrowd(), fetchSheet('Winnings', 'A1:Q400')]).then(function(res) {
-        var crowd = res[1], G = crowdGames(res[2]);
+      Promise.all([priv, crowdSeasons()]).then(function(res) {
+        if (PROFILE_WHO !== name) return;
         if (res[0] && res[0].error) { PROFILE_WHO = 'Maria'; renderProfile('Maria'); return; }
-        if ((crowd.friends || []).indexOf(name) < 0 && !owner) { PROFILE_WHO = 'Maria'; renderProfile('Maria'); return; }
-        // Public view: only picks for games that have kicked off. Owner and admin also see upcoming ones.
-        var rows = res[0]
-          ? (res[0].rows || []).filter(function(r) { return r.friend === name && String(r.season) === String(CURRENT_YEAR); })
-          : crowd.picks.filter(function(p) { return p.friend === name; });
-        if (res[0]) rows.forEach(function(r) {
-          r.revealed = crowd.picks.some(function(p) { return p.friend === r.friend && String(p.week) === String(r.week) && String(p.game) === String(r.game); });
+        var SY = []; // one entry per season they played, newest first
+        res[1].forEach(function(x) {
+          var rows;
+          if (x.year === CURRENT_YEAR && res[0]) {
+            rows = (res[0].rows || []).filter(function(r) { return r.friend === name && String(r.season) === String(x.year); });
+            rows.forEach(function(r) { r.revealed = (x.crowd.picks || []).some(function(p) { return p.friend === r.friend && String(p.week) === String(r.week) && String(p.game) === String(r.game); }); });
+          } else rows = (x.crowd.picks || []).filter(function(p) { return p.friend === name; });
+          if ((x.crowd.friends || []).indexOf(name) < 0 && !rows.length) return;
+          var S = friendStats(name, rows, x.G, x.crowd.picks || []), rank = x.R.ranked.map(function(s) { return s.name; }).indexOf(name) + 1;
+          var md = { Maria: mdStats('Maria', x.G), Danielle: mdStats('Danielle', x.G) };
+          SY.push({ year: x.year, S: S, G: x.G, x: x, rank: rank, of: x.R.ranked.length, final: x.final, champ: x.final && rank === 1, md: md });
         });
-        var S = friendStats(name, rows, G, crowd.picks);
-        var R = rankFriends(crowd, G);
-        var rank = R.ranked.map(function(s) { return s.name; }).indexOf(name) + 1;
-        var st = fStyle(name), col = st.color;
-        var favs = Object.keys(S.players).sort(function(a, b) { return S.players[b] - S.players[a]; });
-        var fav = favs[0];
-        var cursed = favs.filter(function(p) { return !S.playerHits[p] && S.players[p] >= 5; })[0];
-        var sweep = Object.keys(S.weeks).filter(function(w) { return S.weeks[w].n >= 2 && S.weeks[w].w === S.weeks[w].n; })[0];
-        var holiday = S.hits.filter(function(x) { return /thanksgiving|black friday|christmas/i.test(x.g.slot); })[0];
-        var intl = S.hits.filter(function(x) { return /international/i.test(x.g.slot); })[0];
-        var playerPicks = Object.keys(S.players).reduce(function(a, p) { return a + S.players[p]; }, 0);
-        function hitW(x) { return x ? wkName(x.g.week) + ' · ' + x.g.scorer : ''; }
+        if (!SY.length) { PROFILE_WHO = 'Maria'; renderProfile('Maria'); return; }
+        var C = friendCareer(name, SY);
+        draw();
+        function draw() {
+          if (PROFILE_WHO !== name) return;
+          var st = fStyle(name), col = st.color || FRIEND_COLOR, cur = SY[0].year === CURRENT_YEAR ? SY[0] : null;
+          var h = profileSwitchHtml(name);
+          h += '<div class="pf-card" style="--pc:' + col + '">' + (owner ? '<button class="fr-cust" id="fr-style-btn">🎨 Customize</button>' : '') +
+            '<div class="pf-card-top"><div class="pf-fav' + (st.emoji ? '' : ' txt') + '">' + (st.emoji || escHtml(name.charAt(0).toUpperCase())) + '</div><div class="pf-card-id">' +
+            '<div class="pf-name" style="color:' + col + '">' + escHtml(name) + '</div>' +
+            '<div class="pf-sub">The Crowd · ' + SY.length + ' season' + (SY.length === 1 ? '' : 's') + ' · ' + C.picks + ' games' + (C.titles.length ? ' · 🏅 ' + C.titles.join(', ') : '') + (admin ? ' · 🔒 Admin view' : '') + '</div>' +
+            (C.sig ? '<div class="pf-sig">✍️ Signature pick: <b>' + escHtml(C.sig.name) + '</b> <span>' + C.sig.n + ' hit' + (C.sig.n === 1 ? '' : 's') + '</span></div>' : '') + '</div></div>' +
+            '<div class="pf-big">' +
+              '<div><b>' + C.w + '–' + (C.n - C.w) + '</b><span>Record · ' + pctTxt(C.pct) + '</span></div>' +
+              '<div><b>' + (cur && cur.rank ? (cur.rank === 1 ? '👑 #1' : '#' + cur.rank) : '—') + '</b><span>' + (cur ? (cur.rank ? 'of ' + cur.of + ' in ' + cur.year : cur.S.n + '/' + CROWD_MIN + ' to rank') : 'Not this season') + '</span></div>' +
+              '<div><b>' + streakTxt(cur ? cur.S.cur : { n: 0 }) + '</b><span>Streak</span></div>' +
+            '</div></div>';
+          if (owner) h += '<div id="fr-style" style="display:none"></div>';
+          h += '<div class="pf-tabs">' + PF_TABS.map(function(t) { return '<button class="hub-sub-btn' + (PROFILE_TAB === t[0] ? ' on' : '') + '" data-pf-tab="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div>';
+          h += '<div class="pf-pane">' + friendPane(name, C, SY, owner, admin) + '</div>';
+          el.innerHTML = h;
+          bindProfileSwitch(el);
+          el.querySelectorAll('[data-pf-tab]').forEach(function(b) { b.addEventListener('click', function() { PROFILE_TAB = b.getAttribute('data-pf-tab'); draw(); }); });
+          if (owner) document.getElementById('fr-style-btn').addEventListener('click', function() { openStylePicker(name); });
+          var more = document.getElementById('hist-more');
+          if (more) more.addEventListener('click', function() { el.querySelectorAll('[data-hist]').forEach(function(d) { d.style.display = ''; }); more.remove(); });
+          var slot = el.querySelector('.tcd-slot');
+          if (slot) loadScriptOnce('js/cards.js').then(function() { return rostersReady(); }).then(function() {
+            drawCardAlbum(slot, { key: 'f:' + name, who: name, color: col, seasons: SY.length > 1, mode: 'depth',
+              hits: C.hits.map(function(x) { return { name: x.g.scorer, team: playerKey(x.g.scorer) === playerKey(x.r.homePick) ? x.g.home : x.g.away, year: x.year, week: x.g.week }; }) });
+          }).catch(function() {});
+          var mch = document.getElementById('fpf-mch');
+          if (mch && cur) loadScriptOnce('js/machine.js').then(function() { return loadMachine(); }).then(function(M) {
+            if (String(M.year) !== String(CURRENT_YEAR) || !document.body.contains(mch)) return;
+            var byGame = {}; M.games.forEach(function(g) { if (g.settled && !g.notOffered) byGame[g.week + '_' + g.game] = g; });
+            var b = { me: 0, them: 0, both: 0, n: 0 };
+            cur.S.history.forEach(function(e) {
+              if (e.status !== 'hit' && e.status !== 'miss') return;
+              var mg = byGame[e.g.week + '_' + e.g.game]; if (!mg) return;
+              var me = e.status === 'hit', it = !!mg.hit; b.n++;
+              if (me && !it) b.me++; else if (it && !me) b.them++; else if (me) b.both++;
+            });
+            if (b.n) mch.outerHTML = fpfLine('vs 🤖 The Machine', '#A78BFA', b, CURRENT_YEAR);
+            else mch.remove();
+          }).catch(function() { mch.remove(); });
+        }
+      }).catch(function() { el.innerHTML = profileSwitchHtml('Maria') + '<div class="loading">Couldn\'t load this profile.</div>'; bindProfileSwitch(el); });
+    }
 
-        var h = profileSwitchHtml(name);
-        h += '<div class="pf-hero" style="--pc:' + col + ';background:linear-gradient(140deg,#0F0F12 0%,' + hexA(col, 0.16) + ' 55%,' + hexA(col, 0.45) + ' 100%)">' +
-          (owner ? '<button class="fr-cust" id="fr-style-btn">🎨 Customize</button>' : '') +
-          '<div class="fr-avatar" style="border-color:' + col + ';box-shadow:0 0 30px -4px ' + col + ';' + (st.emoji ? 'font-size:46px' : 'color:' + col) + '">' + (st.emoji || escHtml(name.charAt(0).toUpperCase())) + '</div>' +
-          '<div class="pf-name" style="color:' + col + '">' + escHtml(name) + '</div>' +
-          '<div class="pf-sub">' + CURRENT_YEAR + ' Crowd · ' + (rank ? 'Ranked #' + rank + ' of ' + R.ranked.length : 'Unranked (' + S.n + '/' + CROWD_MIN + ' games)') + (admin ? ' · 🔒 Admin view' : '') + '</div>' +
-          '<div class="pf-big"><div><b>' + S.w + '–' + (S.n - S.w) + '</b><span>Record</span></div>' +
-          '<div><b class="u-good">' + pctTxt(S.pct) + '</b><span>Win %</span></div>' +
-          '<div><b>' + streakTxt(S.cur) + '</b><span>Streak</span></div></div></div>';
-        if (owner) h += '<div id="fr-style" style="display:none"></div>';
+    // Every season added up: record, hits (with the price Maria/Danielle had on that player), head to head
+    function friendCareer(name, SY) {
+      var C = { w: 0, n: 0, picks: 0, hits: [], lone: [], heater: { n: 0 }, drought: { n: 0 }, players: {}, playerHits: {}, history: [], weeks: [], titles: [], vs: {},
+        h2h: { Maria: { me: 0, them: 0, both: 0, n: 0 }, Danielle: { me: 0, them: 0, both: 0, n: 0 } }, upcoming: SY[0].year === CURRENT_YEAR ? SY[0].S.upcoming : [] };
+      SY.slice().reverse().forEach(function(y) {
+        var S = y.S;
+        C.w += S.w; C.n += S.n; C.picks += S.picks;
+        S.hits.forEach(function(x) { C.hits.push({ r: x.r, g: x.g, year: y.year, o: x.g.odds[playerKey(x.g.scorer)] || 0 }); });
+        S.lone.forEach(function(x) { C.lone.push({ r: x.r, g: x.g, year: y.year }); });
+        if (S.heater.n > C.heater.n) C.heater = { n: S.heater.n, at: y.year + ' ' + wkName(S.heater.at) };
+        if (S.drought.n > C.drought.n) C.drought = { n: S.drought.n, at: y.year + ' ' + wkName(S.drought.at) };
+        Object.keys(S.players).forEach(function(p) { C.players[p] = (C.players[p] || 0) + S.players[p]; });
+        Object.keys(S.playerHits).forEach(function(p) { C.playerHits[p] = true; });
+        ['Maria', 'Danielle'].forEach(function(w) { var a = C.h2h[w], b = S.h2h[w]; a.me += b.me; a.them += b.them; a.both += b.both; a.n += b.n; });
+        S.history.forEach(function(e) { C.history.push({ r: e.r, g: e.g, status: e.status, year: y.year }); });
+        Object.keys(S.weeks).forEach(function(w) { C.weeks.push({ year: y.year, week: w, w: S.weeks[w].w, n: S.weeks[w].n }); });
+        if (y.champ) C.titles.push(y.year);
+        // vs every other friend, on games you both picked
+        var mine = {}; S.history.forEach(function(e) { if (e.status === 'hit' || e.status === 'miss') mine[e.g.key] = e.status === 'hit'; });
+        (y.x.crowd.picks || []).forEach(function(p) {
+          if (p.friend === name) return;
+          var g = y.G[p.week + '_' + p.game]; if (!g || !(g.key in mine)) return;
+          var k = playerKey(g.scorer), them = playerKey(p.homePick) === k || playerKey(p.awayPick) === k, me = mine[g.key];
+          var v = C.vs[p.friend] || (C.vs[p.friend] = { me: 0, them: 0, both: 0, n: 0 });
+          v.n++; if (me && !them) v.me++; else if (them && !me) v.them++; else if (me) v.both++;
+        });
+      });
+      C.pct = C.n ? C.w / C.n : 0;
+      C.best = C.hits.slice().sort(function(a, b) { return b.o - a.o; })[0] || null;
+      var sig = {}; C.hits.forEach(function(x) { var s = sig[x.g.scorer] || (sig[x.g.scorer] = { name: x.g.scorer, n: 0, o: 0 }); s.n++; s.o = Math.max(s.o, x.o); });
+      C.sig = Object.keys(sig).map(function(k) { return sig[k]; }).sort(function(a, b) { return b.n - a.n || b.o - a.o; })[0] || null;
+      var favs = Object.keys(C.players).sort(function(a, b) { return C.players[b] - C.players[a]; });
+      C.fav = favs[0] ? { name: favs[0], n: C.players[favs[0]] } : null;
+      C.cursed = favs.filter(function(p) { return !C.playerHits[p] && C.players[p] >= 5; })[0] || '';
+      C.bestWeek = C.weeks.slice().sort(function(a, b) { return b.w - a.w || b.year - a.year; })[0];
+      C.sweep = C.weeks.filter(function(w) { return w.n >= 2 && w.w === w.n; })[0];
+      return C;
+    }
 
+    function fpfLine(label, color, f, note) {
+      var lead = f.me > f.them ? 'lead' : f.me < f.them ? 'trail' : '';
+      return '<div class="pf-led-r ' + lead + '"><span class="pf-led-w" style="color:' + color + '">' + label + '</span><span class="pf-led-s"><b>' + f.me + '</b>–<b>' + f.them + '</b></span>' +
+        '<span class="pf-led-n">' + (f.both ? f.both + ' both hit · ' : '') + f.n + ' game' + (f.n === 1 ? '' : 's') + (note ? ' · ' + note : '') + '</span></div>';
+    }
+
+    function friendPane(name, C, SY, owner, admin) {
+      var h = '', multi = SY.length > 1;
+      function hitAt(x) { return x ? (multi ? x.year + ' ' : '') + wkName(x.g.week) : ''; }
+      if (PROFILE_TAB === 'overview') {
         function tile(l, v, sub) { return '<div class="pf-tile"><div class="l">' + l + '</div><div class="v">' + v + '</div>' + (sub ? '<div class="s">' + sub + '</div>' : '') + '</div>'; }
-        var last = S.hits[S.hits.length - 1];
+        var b = C.best;
         h += '<div class="pf-tiles">' +
-          tile('Latest Hit', last ? escHtml(last.g.scorer) : '—', last ? weekName(last.g.week) : '') +
-          tile('Lone Wolves', S.lone.length, 'Hits nobody else had') +
-          tile('Longest Heater', S.heater.n + ' straight', S.heater.n ? 'through ' + wkName(S.heater.at) : '') +
-          tile('Ride or Die', fav ? escHtml(fav) : '—', fav ? 'picked ' + S.players[fav] + 'x' : '') +
-          tile('Games Picked', S.picks, (owner || admin) ? S.upcoming.length + ' still to play' : 'that have kicked off') +
-          tile('Best Week', (function() { var b = Object.keys(S.weeks).sort(function(a, c) { return S.weeks[c].w - S.weeks[a].w; })[0]; return b && S.weeks[b].w ? S.weeks[b].w + ' hit' + (S.weeks[b].w > 1 ? 's' : '') : '—'; })(),
-            (function() { var b = Object.keys(S.weeks).sort(function(a, c) { return S.weeks[c].w - S.weeks[a].w; })[0]; return b && S.weeks[b].w ? weekName(b) : ''; })()) +
+          tile('Best Hit', b ? escHtml(b.g.scorer) + (b.o ? ' ' + fmtOdds(b.o) : '') : '—', b ? '<span ' + gameLinkAttr(b.year, b.g.game) + '>' + b.year + ' ' + wkName(b.g.week) + ' ›</span>' : '') +
+          tile('Lone Wolves', C.lone.length, 'Hits nobody else had') +
+          tile('Longest Heater', C.heater.n + ' straight', C.heater.n ? C.heater.at : '') +
+          tile('Ride or Die', C.fav ? escHtml(C.fav.name) : '—', C.fav ? 'picked ' + C.fav.n + 'x' : '') +
+          tile('Games Picked', C.picks, (owner || admin) ? C.upcoming.length + ' still to play' : 'that have kicked off') +
+          tile('Best Week', C.bestWeek && C.bestWeek.w ? C.bestWeek.w + ' hit' + (C.bestWeek.w > 1 ? 's' : '') : '—', C.bestWeek && C.bestWeek.w ? (multi ? C.bestWeek.year + ' ' : '') + weekName(C.bestWeek.week) : '') +
           '</div>';
-
-        // ⚔️ Head to head vs Maria and Danielle: games where only one of them hit
-        h += '<div class="pf-h">⚔️ Head to Head <small>games where only one side hit</small></div>';
-        ['Maria', 'Danielle'].forEach(function(who) {
-          var x = S.h2h[who], c2 = personColor(who), tot = x.me + x.them;
-          var verdict = !tot ? 'No decided games yet' : x.me > x.them ? escHtml(name) + ' leads' : x.them > x.me ? who + ' leads' : 'All square';
-          h += '<div class="h2h"><div class="h2h-top"><span><b style="color:' + col + '">' + escHtml(name) + ' ' + x.me + '</b></span>' +
-            '<span class="h2h-mid">vs ' + who + ' · ' + verdict + '</span><span><b style="color:' + c2 + '">' + x.them + ' ' + who + '</b></span></div>' +
-            '<div class="h2h-bar"><i style="width:' + (tot ? x.me / tot * 100 : 50) + '%;background:' + col + '"></i><i style="flex:1;background:' + c2 + '"></i></div>' +
-            '<div class="h2h-foot">Both hit ' + x.both + ' · Both missed ' + x.neither + ' · ' + escHtml(name) + ' ' + pctTxt(x.n ? (x.me + x.both) / x.n : 0) + ' vs ' + who + ' ' + pctTxt(x.n ? x.theirW / x.n : 0) + ' on the same games</div></div>';
-        });
-
-        if ((owner || admin) && S.upcoming.length) {
-          h += '<div class="pf-h">⏳ Upcoming Picks <small>🔒 only ' + (owner ? 'you' : escHtml(name)) + ' and admin can see these</small></div>' + S.upcoming.map(function(x) {
+        h += '<div class="pf-h">⚔️ Head to head <small>games where only one side hit</small></div><div class="pf-ledger">' +
+          ['Maria', 'Danielle'].map(function(w) { return fpfLine('vs ' + w, personColor(w), C.h2h[w]); }).join('') +
+          '<div id="fpf-mch"></div>' +
+          Object.keys(C.vs).sort(function(a, b) { return C.vs[b].n - C.vs[a].n; }).map(function(n) { var s = fStyle(n); return fpfLine('vs ' + (s.emoji ? s.emoji + ' ' : '') + escHtml(n), s.color || FRIEND_COLOR, C.vs[n]); }).join('') +
+          '</div>';
+        if ((owner || admin) && C.upcoming.length) {
+          h += '<div class="pf-h">⏳ Upcoming picks <small>🔒 only ' + (owner ? 'you' : escHtml(name)) + ' and admin can see these</small></div>' + C.upcoming.map(function(x) {
             return '<div class="adm-row"><span class="u-muted">' + wkName(x.g.week) + ' · ' + escHtml(x.g.slot) + '</span><span>' + coloredText(x.r.homePick, x.g.home) + ' / ' + coloredText(x.r.awayPick, x.g.away) + '</span></div>';
           }).join('') + '<div class="u-h-18px"></div>';
         }
-
-        // 📜 Pick history (kicked-off games, newest first)
-        var hist = S.history.slice().reverse();
+        var hist = C.history.slice().reverse();
         if (hist.length) {
-          h += '<div class="pf-h">📜 Pick History <small>' + hist.length + ' game' + (hist.length > 1 ? 's' : '') + '</small></div>';
+          h += '<div class="pf-h">📜 Pick history <small>' + hist.length + ' game' + (hist.length > 1 ? 's' : '') + '</small></div>';
           hist.forEach(function(x, i) {
             var g = x.g, sk = playerKey(g.scorer);
             function pk(p, team) { var hit = g.scorer && playerKey(p) === sk; return '<span class="' + (hit ? 'hist-hit' : '') + '">' + coloredText(p, team) + (hit ? ' ✅' : '') + '</span>'; }
             var tag = x.status === 'hit' ? '<span class="hist-tag hit">HIT</span>' : x.status === 'miss' ? '<span class="hist-tag miss">MISS</span>' :
               x.status === 'void' ? '<span class="hist-tag">NOT OFFERED</span>' : '<span class="hist-tag live">LIVE</span>';
-            h += '<div class="hist-row" style="display:none"' + (i >= 8 ? ' data-hist' : '') + '>' +
-              '<div class="hist-l"><div class="hist-wk">' + wkName(g.week) + ' · ' + escHtml(g.slot) + '</div>' +
+            h += '<div class="hist-row"' + (i >= 8 ? ' style="display:none" data-hist' : '') + '>' +
+              '<div class="hist-l"><div class="hist-wk"><span ' + gameLinkAttr(x.year, g.game) + '>' + (multi ? x.year + ' · ' : '') + wkName(g.week) + ' · ' + escHtml(g.slot) + ' ›</span></div>' +
               '<div>' + pk(x.r.homePick, g.home) + ' <span class="u-faint">/</span> ' + pk(x.r.awayPick, g.away) + '</div>' +
               (g.scorer ? '<div class="hist-sc">🏈 ' + escHtml(g.scorer) + '</div>' : '') + '</div>' + tag + '</div>';
           });
           if (hist.length > 8) h += '<div class="u-center u-mt-s"><button class="link-btn" id="hist-more">Show all ' + hist.length + '</button></div>';
-          h += '<div class="u-h-18px"></div>';
         }
-
+      }
+      if (PROFILE_TAB === 'seasons') {
+        h += '<div class="pf-h">📅 Season by season <small>the back of the card</small></div><div class="pf-seas"><div class="pf-seas-r fpf-seas-r pf-seas-head"><span>Season</span><span>Games</span><span>Hit %</span><span>Finish</span><span>Best hit</span><span>Heater</span><span>Lone</span></div>' +
+          SY.map(function(y) {
+            var S = y.S, best = null;
+            S.hits.forEach(function(x) { var o = x.g.odds[playerKey(x.g.scorer)] || 0; if (!best || o > best.o) best = { x: x, o: o }; });
+            var fin = y.rank ? (y.champ ? '🏅 Champ' : '#' + y.rank + ' <small>of ' + y.of + '</small>') : '<small>unranked</small>';
+            return '<div class="pf-seas-r fpf-seas-r"><span class="pf-seas-y">' + y.year + (y.final ? '' : ' <small>so far</small>') + '</span><span>' + S.n + '</span>' +
+              '<span>' + (S.n ? pctTxt(S.pct) : '—') + ' <small>' + S.w + '/' + S.n + '</small></span><span>' + fin + '</span>' +
+              '<span>' + (best ? '<span ' + gameLinkAttr(y.year, best.x.g.game) + '>' + escHtml(best.x.g.scorer) + (best.o ? ' ' + fmtOdds(best.o) : '') + '</span>' : '—') + '</span>' +
+              '<span>' + S.heater.n + '</span><span>' + S.lone.length + '</span></div>';
+          }).join('') +
+          '<div class="pf-seas-r fpf-seas-r pf-seas-tot"><span>Career</span><span>' + C.n + '</span><span>' + pctTxt(C.pct) + ' <small>' + C.w + '/' + C.n + '</small></span><span>' + (C.titles.length ? '🏅 ×' + C.titles.length : '—') + '</span>' +
+          '<span>' + (C.best ? escHtml(C.best.g.scorer) + (C.best.o ? ' ' + fmtOdds(C.best.o) : '') : '—') + '</span><span>' + C.heater.n + '</span><span>' + C.lone.length + '</span></div></div>' +
+          '<div class="ui-note u-mt-s">Games counts graded games, leaving out ones where the first TD scorer wasn\'t offered. Finish is their Crowd rank (' + CROWD_MIN + '+ games to be ranked). Best hit uses the price Maria or Danielle had on that player.</div>';
+      }
+      if (PROFILE_TAB === 'cards') h += '<div class="tcd-slot"></div>';
+      if (PROFILE_TAB === 'trophies') {
+        var playerPicks = Object.keys(C.players).reduce(function(a, p) { return a + C.players[p]; }, 0);
+        var holiday = C.hits.filter(function(x) { return /thanksgiving|black friday|christmas/i.test(x.g.slot); })[0];
+        var intl = C.hits.filter(function(x) { return /international/i.test(x.g.slot); })[0];
+        var long = C.hits.filter(function(x) { return x.o >= 20; })[0];
+        var killer = SY.filter(function(y) { return y.S.n >= CROWD_MIN && y.S.pct > y.md.Maria.pct && y.S.pct > y.md.Danielle.pct; }).map(function(y) { return y.year; });
+        var slayer = ['Maria', 'Danielle'].filter(function(w) { var x = C.h2h[w]; return x.me - x.them >= 3; });
+        function hw(x) { return x ? hitAt(x) + ' · ' + escHtml(x.g.scorer) + (x.o ? ' ' + fmtOdds(x.o) : '') : ''; }
         var A = [
-          { ic: '🐺', n: 'Lone Wolf', d: 'Hit a scorer nobody else had', got: S.lone.length > 0, w: hitW(S.lone[0]) },
-          { ic: '🔥', n: 'Heater', d: '3 hits in a row', got: S.heater.n >= 3, w: 'Best run: ' + S.heater.n, p: [Math.min(S.heater.n, 3), 3] },
-          { ic: '🌋', n: 'On Fire', d: '5 hits in a row', got: S.heater.n >= 5, w: 'Best run: ' + S.heater.n, p: [Math.min(S.heater.n, 5), 5] },
-          { ic: '🧹', n: 'Clean Sweep', d: 'Hit every game in a week (2+)', got: !!sweep, w: sweep ? weekName(sweep) : '' },
-          { ic: '❤️', n: 'Ride or Die', d: 'Pick the same player 10 times', got: !!(fav && S.players[fav] >= 10), w: fav ? escHtml(fav) + ' · ' + S.players[fav] + 'x' : '', p: [fav ? Math.min(S.players[fav], 10) : 0, 10] },
-          { ic: '🦃', n: 'Holiday Hero', d: 'Hit on Thanksgiving, Black Friday or Christmas', got: !!holiday, w: hitW(holiday) },
-          { ic: '🌍', n: 'Globetrotter', d: 'Hit in an International game', got: !!intl, w: hitW(intl) },
+          { ic: '🏅', n: 'Crowd Champion', d: 'Finish a season #1 in the Crowd', got: C.titles.length > 0, w: C.titles.join(', ') },
+          { ic: '🗡️', n: 'Giant Killer', d: 'Beat Maria\'s and Danielle\'s hit % over a season (' + CROWD_MIN + '+ games)', got: killer.length > 0, w: killer.join(', ') },
+          { ic: '⚔️', n: 'Rival Slayer', d: 'Lead Maria or Danielle head to head by 3+', got: slayer.length > 0, w: slayer.join(' & ') },
+          { ic: '🐺', n: 'Lone Wolf', d: 'Hit a scorer nobody else had', got: C.lone.length > 0, w: hw(C.lone[0]) },
+          { ic: '🎯', n: 'Sniper', d: 'Hit a player priced +2000 or longer', got: !!long, w: hw(long) },
+          { ic: '🔥', n: 'Heater', d: '3 hits in a row', got: C.heater.n >= 3, w: 'Best run: ' + C.heater.n, p: [Math.min(C.heater.n, 3), 3] },
+          { ic: '🌋', n: 'On Fire', d: '5 hits in a row', got: C.heater.n >= 5, w: 'Best run: ' + C.heater.n, p: [Math.min(C.heater.n, 5), 5] },
+          { ic: '🧹', n: 'Clean Sweep', d: 'Hit every game in a week (2+)', got: !!C.sweep, w: C.sweep ? (multi ? C.sweep.year + ' ' : '') + weekName(C.sweep.week) : '' },
+          { ic: '❤️', n: 'Ride or Die', d: 'Pick the same player 10 times', got: !!(C.fav && C.fav.n >= 10), w: C.fav ? escHtml(C.fav.name) + ' · ' + C.fav.n + 'x' : '', p: [C.fav ? Math.min(C.fav.n, 10) : 0, 10] },
+          { ic: '🦃', n: 'Holiday Hero', d: 'Hit on Thanksgiving, Black Friday or Christmas', got: !!holiday, w: hw(holiday) },
+          { ic: '🌍', n: 'Globetrotter', d: 'Hit in an International game', got: !!intl, w: hw(intl) },
           { ic: '💯', n: 'Century', d: 'Pick 100 players', got: playerPicks >= 100, w: playerPicks + ' players', p: [Math.min(playerPicks, 100), 100] },
-          { shame: true, ic: '🧊', n: 'Ice Cold', d: '5 misses in a row', got: S.drought.n >= 5, w: 'Worst run: ' + S.drought.n, p: [Math.min(S.drought.n, 5), 5] },
-          { shame: true, ic: '💀', n: 'Cursed', d: 'Pick a player 5 times who never hits for you', got: !!cursed, w: cursed ? escHtml(cursed) + ' · 0 for ' + S.players[cursed] : '' },
+          { shame: true, ic: '🧊', n: 'Ice Cold', d: '5 misses in a row', got: C.drought.n >= 5, w: 'Worst run: ' + C.drought.n, p: [Math.min(C.drought.n, 5), 5] },
+          { shame: true, ic: '💀', n: 'Cursed', d: 'Pick a player 5 times who never hits for you', got: !!C.cursed, w: C.cursed ? escHtml(C.cursed) + ' · 0 for ' + C.players[C.cursed] : '' },
         ];
         function badges(list) {
           list.sort(function(a, b) { return (b.got ? 1 : 0) - (a.got ? 1 : 0); });
           return lockedBadges(list, function(a) {
             var prog = (!a.got && a.p) ? '<div class="pf-bar"><i style="width:' + Math.round(a.p[0] / a.p[1] * 100) + '%"></i></div><div class="pg">' + a.p[0] + ' / ' + a.p[1] + '</div>' : '';
-            return '<div class="pf-badge ' + (a.got ? 'got' : 'locked') + (a.shame ? ' shame' : '') + '"><div class="ic">' + a.ic + '</div><div class="n">' + a.n + '</div><div class="d">' + a.d + '</div>' +
+            return '<div class="pf-badge ' + (a.got ? 'got' : 'locked') + (a.shame ? ' shame' : '') + '" title="' + a.d + '"><div class="ic">' + a.ic + '</div><div class="n">' + a.n + '</div><div class="d">' + a.d + '</div>' +
               (a.got && a.w ? '<div class="w">' + a.w + '</div>' : '') + prog + '</div>';
           });
         }
         var glory = A.filter(function(a) { return !a.shame; }), shame = A.filter(function(a) { return a.shame; });
         h += '<div class="pf-h">🏆 Trophy Case <small>' + glory.filter(function(a) { return a.got; }).length + ' / ' + glory.length + ' unlocked</small></div>' + badges(glory);
         h += '<div class="pf-h">🤡 Hall of Shame <small>' + shame.filter(function(a) { return a.got; }).length + ' / ' + shame.length + '</small></div>' + badges(shame);
-        h += '<div class="tcd-slot"></div>'; // 🃏 Card Collection (js/cards.js)
-        el.innerHTML = h;
-        bindProfileSwitch(el);
-        var fslot = el.querySelector('.tcd-slot');
-        if (fslot) loadScriptOnce('js/cards.js').then(function() {
-          renderFriendCards(fslot, name, S.hits.map(function(x) {
-            return { name: x.g.scorer, team: playerKey(x.g.scorer) === playerKey(x.r.homePick) ? x.g.home : x.g.away, year: CURRENT_YEAR, week: x.g.week };
-          }), col);
-        }).catch(function() {});
-        var more = document.getElementById('hist-more');
-        if (more) more.addEventListener('click', function() { el.querySelectorAll('[data-hist]').forEach(function(d) { d.style.display = ''; }); more.remove(); });
-        if (owner) document.getElementById('fr-style-btn').addEventListener('click', function() { openStylePicker(name); });
-      }).catch(function() { el.innerHTML = profileSwitchHtml('Maria') + '<div class="loading">Couldn\'t load this profile.</div>'; bindProfileSwitch(el); });
+      }
+      return h;
     }
 
     // 🎨 A friend picks their own emoji + color (shows on the Crowd tab and their profile)

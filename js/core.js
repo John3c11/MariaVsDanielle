@@ -304,12 +304,13 @@
         homeOddsTxt: b.homeOdds, awayOddsTxt: b.awayOdds, amount: b.amount, // as typed (for the Data check)
       };
     }
-    var ALL_BETS_PROMISE = null;
+    var ALL_BETS_PROMISE = null, SEASON_RAW = {};
     function loadAllBets() {
       if (ALL_BETS_PROMISE) return ALL_BETS_PROMISE;
       ALL_BETS_PROMISE = Promise.all(SEASONS.map(function(s) {
         var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + s.sheetId + '/values/' + encodeURIComponent(s.tab + '!A1:Q400') + '?key=' + API_KEY;
         return fetch(url).then(function(r) { return r.json(); }).then(function(d) {
+          SEASON_RAW[s.year] = d.values || []; // the raw rows too (friend stats for past seasons, js/crowd.js)
           return readBets(d.values).map(function(b, i) { return statBet(b, s.year, i + 2); }).filter(isMDRow);
         }).catch(function() { return []; });
       })).then(function(lists) {

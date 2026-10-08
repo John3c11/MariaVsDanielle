@@ -216,6 +216,7 @@
     setTimeout(function() { loadScriptOnce('js/eggs.js').catch(function() {}); }, 2500);
     // 🤖 The Machine's line under the scoreboard (only games that have kicked off)
     setTimeout(function() { if (PICKS_URL) loadScriptOnce('js/machine.js').then(function() { renderMachineLine(); }).catch(function() {}); }, 3000);
+    setTimeout(function() { if (PICKS_URL) renderCrowdLine(); }, 3200); // 🏅 the Crowd vs Maria & Danielle (js/crowd.js)
     // Open the 🧪 Stat Lab on a question, e.g. openLabQuery('split=pos') (used by Analytics' Splits buttons)
     function openLabQuery(qs) {
       try { history.replaceState(null, '', location.pathname + location.search + '#lab?' + qs); } catch (e) {}

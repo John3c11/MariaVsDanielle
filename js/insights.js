@@ -722,9 +722,23 @@
     }
 
     // Bad beats from analytics-style rows: checks ESPN once per finished game, then caches it
-    var BAD_BEATS_CACHE = null;
-    async function computeBadBeats(rows, onProgress) {
-      if (BAD_BEATS_CACHE) return BAD_BEATS_CACHE;
+    var BAD_BEATS_CACHE = null, BAD_BEATS_RUN = null;
+    // Every TD of every bet game, saved by the script's 🔮 Every TD job (v136): one call instead of asking ESPN
+    // about each game. Games it doesn't have yet still come from ESPN below.
+    var ALL_TDS = null;
+    function loadAllTDs() {
+      if (!ALL_TDS) ALL_TDS = (typeof PICKS_URL !== 'undefined' && PICKS_URL ? picksApi({ action: 'alltds' }) : Promise.resolve({}))
+        .then(function(d) { return (d && d.tds) || {}; }).catch(function() { return {}; });
+      return ALL_TDS;
+    }
+    function tdKey(year, week, home, away) { return year + '|' + week + '|' + espnTeamKey(home) + '|' + espnTeamKey(away); }
+    function computeBadBeats(rows, onProgress) {
+      if (BAD_BEATS_CACHE) return Promise.resolve(BAD_BEATS_CACHE);
+      if (!BAD_BEATS_RUN) { BAD_BEATS_RUN = computeBadBeatsRun(rows, onProgress); BAD_BEATS_RUN.catch(function() { BAD_BEATS_RUN = null; }); }
+      return BAD_BEATS_RUN;
+    }
+    async function computeBadBeatsRun(rows, onProgress) {
+      var server = await loadAllTDs();
     var games = {}, order = [];
     rows.forEach(function(r) {
       if (!r.firstScorer || (r.picker !== 'Maria' && r.picker !== 'Danielle')) return;
@@ -749,6 +763,8 @@
     function clockSecs(c) { var m = (c || '').match(/(\d+):(\d+)/); return m ? +m[1] * 60 + +m[2] : 0; }
 
     async function tdsFor(g) {
+      var sv = server[tdKey(g.year, g.week, g.home, g.away)];
+      if (sv) return sv;
       if (cache[g.key]) return cache[g.key];
       var events = await board(g.year, g.week);
       var hk = espnTeamKey(g.home), ak = espnTeamKey(g.away), ev = null;
@@ -797,6 +813,6 @@
       });
     });
       var anyData = Object.keys(results).some(function(k) { return results[k]; });
-      BAD_BEATS_CACHE = { beats: beats, failed: failed, order: order, results: results, anyData: anyData };
+      BAD_BEATS_CACHE = { beats: beats, failed: failed, order: order, results: results, games: games, anyData: anyData };
       return BAD_BEATS_CACHE;
     }

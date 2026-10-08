@@ -134,7 +134,7 @@
     // ── 📜 Which copy of each Apps Script file the website expects ─────────────
     // Bump these whenever a delivery includes that file. Status and the admin alert compare them
     // with what the live script says, so a file that didn't get pasted (or deployed) shows up.
-    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-20', Features: '2026-10-10', Automation: '2026-10-18', WeeklyRecap: '2026-10-06', Machine: '2026-10-18' };
+    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-21', Features: '2026-10-10', Automation: '2026-10-21', WeeklyRecap: '2026-10-06', Machine: '2026-10-18' };
     var OLD_SCRIPT_FILES = { Features: 'Market.gs, Museum.gs and Bracket.gs', Automation: 'FirstTD.gs, NFLPlayers.gs, Injuries.gs and Playoffs.gs' };
     var DEPLOY_STEPS = 'Deploy → Manage deployments → ✏️ → New version → Deploy';
     function scriptIssues(v) {
@@ -232,6 +232,16 @@
       return '<div class="adm-alert" id="adm-alert"><span class="adm-al-h">⚠️ Needs you</span>' + chips.join('') +
         '<button class="link-btn adm-al-x" id="adm-alert-x" aria-label="Hide">✕</button></div>';
     }
+    // 🔮 Tell the script's Every TD job which sheet holds each season (from config.js), so it can fill in past seasons
+    function tdSeasonsSync() {
+      var data = JSON.stringify((typeof SEASONS !== 'undefined' ? SEASONS : []).map(function(s) { return { year: s.year, id: s.sheetId, tab: s.tab }; }));
+      var sent = ''; try { sent = localStorage.getItem('mvd-tdseasons') || ''; } catch (e) {}
+      if (sent === data) return Promise.resolve({});
+      return picksApi({ pin: SUB.pin, action: 'tdseasons', data: data }).then(function(r) {
+        if (r && r.ok) { try { localStorage.setItem('mvd-tdseasons', data); } catch (e) {} }
+        return {};
+      }).catch(function() { return {}; });
+    }
     function adminLoginCheck() {
       ADMIN.alert = null; ADMIN.alertHidden = false;
       var seen = errSeen();
@@ -242,6 +252,7 @@
         picksApi({ pin: SUB.pin, action: 'jobs' }).catch(function() { return {}; }),
         picksApi({ pin: SUB.pin, action: 'friends' }).catch(function() { return {}; }),
         picksApi({ pin: SUB.pin, action: 'checklist' }).catch(function() { return {}; }),
+        tdSeasonsSync(),
         loadAdminPart('site').catch(function() {}), // the Data check count (admin-site.js)
       ]).then(function(res) {
         if (SUB.role !== 'admin') return;

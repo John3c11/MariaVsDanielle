@@ -39,6 +39,7 @@
       ['picking', '🎯 Picking', ['Boldness Meter', 'Pressure Picks', 'Picking vs Reality', 'Who Scores First']],
       ['players', '🏈 Players & Teams', ['Overachievers & Busts', 'TD Scorer Leaderboard', 'Chaos Corner']],
       ['pain', '😬 Pain', ['Jinx Tracker', 'Bad Beats']],
+      ['whatif', '🔮 What-If', ['Anytime TD']],
     ];
     // Sections folded into another one: [target, 'sub' (shown) or 'list' (behind a button), subheading, button label]
     // Order matters: a section that receives others must be merged after them.
@@ -294,6 +295,11 @@
         html += section("Bad Beats");
         html += '<div class="ui-note u-mb">A <b>bad beat</b> is when someone\'s pick scored a touchdown in that game, just not the first one.</div>';
         html += '<div id="bad-beats"><div class="loading">Checking every game with ESPN…</div></div>';
+
+        // ── 🔮 What-If: Anytime TD (v136, filled in once every TD is known) ──
+        html += section("Anytime TD");
+        html += '<div class="ch-intro">What if the bet paid when their player scored <b>any</b> touchdown, not just the first one?</div>';
+        html += '<div class="af-bar-season" hidden></div><div id="whatif-box"><div class="loading">Finding every touchdown…</div></div>'; // follows the Season picker on top
 
         // ── Hit Grid (chart) ──
         html += section("Hit Grid");
@@ -582,6 +588,68 @@
 
 
         // ── Bad Beats: every TD from ESPN for each tracked game ──────────────
+        // 🔮 Anytime TD: the same bets, graded against every touchdown in the game.
+        // Hits are real. Money is an estimate: anytime odds run about a quarter of first-TD odds
+        // (+700 to score first is about +165 to score at all), so a hit pays its first-TD odds ÷ 4.3.
+        // Like the sheet: any hit pays (two hits pay both), no hit loses 1u per pick.
+        var ATD_RATIO = 4.3;
+        async function loadWhatIf() {
+          var box = document.getElementById('whatif-box');
+          if (!box) return;
+          var BB;
+          try { BB = await computeBadBeats(rows); } catch (e) { BB = null; }
+          if (!BB || !BB.anyData) { box.innerHTML = EMPTY('Couldn\'t get the touchdowns right now. Try again later.'); return; }
+          var res = {}; Object.keys(BB.results).forEach(function(k) { res[k] = BB.results[k]; });
+          var bets = scored.filter(function(r) { return isMD(r.picker) && (r.homePick || r.awayPick); }).map(function(r) {
+            var tds = res[r.year + '_' + r.week + '_' + r.homeTeam + '_' + r.awayTeam];
+            var picks = [[r.homePick, r.homeOdds], [r.awayPick, r.awayOdds]].filter(function(x) { return x[0]; });
+            var per = r.netUnits ? Math.abs(r.netDollars / r.netUnits) : (parseFloat(r.amount) || 5);
+            var b = { r: r, known: !!tds, ftdHit: r.correct === 'Yes' && !isNotOffered(r), ftdU: r.netUnits, ftdD: r.netDollars, per: per };
+            if (!tds) return b;
+            // (a first-TD hit always counts, even if ESPN spells the name differently)
+            var hits = picks.filter(function(x) { return (b.ftdHit && sameScorer(r.firstScorer, x[0])) || tds.some(function(t) { return sameScorer(t.n, x[0]); }); });
+            b.atdHit = hits.length > 0; b.atdHits = hits.length;
+            b.atdU = hits.length ? hits.reduce(function(a, x) { return a + oddsN(x[1]) / ATD_RATIO; }, 0) : -picks.length;
+            b.atdD = b.atdU * per;
+            b.near = picks.filter(function(x) { return !(b.ftdHit && sameScorer(r.firstScorer, x[0])) && tds.some(function(t) { return sameScorer(t.n, x[0]); }); }).length;
+            return b;
+          });
+          var years = AN_YEARS.slice(), cur = anStore('mvd-an-season') || 'all';
+          if (cur !== 'all' && years.indexOf(cur) < 0) cur = 'all';
+          function draw() {
+            var list = bets.filter(function(b) { return cur === 'all' || b.r.year === cur; }), known = list.filter(function(b) { return b.known; });
+            var S = {};
+            ['Maria', 'Danielle'].forEach(function(w) {
+              var mine = known.filter(function(b) { return b.r.picker === w; });
+              S[w] = { n: mine.length, f: 0, a: 0, fu: 0, au: 0, fd: 0, ad: 0, near: 0 };
+              mine.forEach(function(b) { var x = S[w]; if (b.ftdHit) x.f++; if (b.atdHit) x.a++; x.fu += b.ftdU; x.au += b.atdU; x.fd += b.ftdD; x.ad += b.atdD; x.near += b.near; });
+            });
+            function card(w) {
+              var x = S[w], c = personColor(w);
+              return '<div class="wi-card" style="--pc:' + c + '"><div class="wi-who" style="color:' + c + '">' + w + '</div>' +
+                '<div class="wi-row"><span>First TD <small>what happened</small></span><b>' + x.f + '/' + x.n + '</b><b class="' + (x.fu >= 0 ? 'u-good' : 'u-bad') + '">' + fmtU(x.fu) + '</b></div>' +
+                '<div class="wi-row wi-any"><span>Anytime TD <small>est. money</small></span><b>' + x.a + '/' + x.n + '</b><b class="' + (x.au >= 0 ? 'u-good' : 'u-bad') + '">' + fmtU(x.au) + '</b></div>' +
+                '<div class="wi-foot">' + (x.a - x.f > 0 ? '+' + (x.a - x.f) + ' more winning bet' + (x.a - x.f === 1 ? '' : 's') : 'No extra wins') + ' · ' + fmtDWhole(x.ad) + ' instead of ' + fmtDWhole(x.fd) + '</div></div>';
+            }
+            function lead(k) { var m = S.Maria[k], d = S.Danielle[k]; return Math.abs(m - d) < 0.05 ? 'they\'re tied' : '<b style="color:' + personColor(m > d ? 'Maria' : 'Danielle') + '">' + (m > d ? 'Maria' : 'Danielle') + '</b> leads by ' + Math.abs(m - d).toFixed(1) + 'u'; }
+            var h = '';
+            if (!known.length) { box.innerHTML = EMPTY('No finished games yet' + (cur === 'all' ? '' : ' in ' + cur) + '.'); return; }
+            h += '<div class="ui-cols2 two-col">' + card('Maria') + card('Danielle') + '</div>';
+            h += '<div class="wi-verdict">First TD: ' + lead('fu') + '. Anytime TD: ' + lead('au') + ' <span class="mc-est">est</span>.</div>';
+            var near = S.Maria.near + S.Danielle.near;
+            if (near) h += '<div class="an-link">' + near + ' pick' + (near === 1 ? '' : 's') + ' scored, just not first. Every one, with how close it was: <button class="link-btn" onclick="openAnalyticsPane(\'pain\')">😬 Bad Beats →</button></div>';
+            h += '<div class="ui-note">Hits are real: every touchdown in the game, from ESPN. Money is estimated: anytime odds are roughly first-TD odds ÷ ' + ATD_RATIO + ' (+700 to score first ≈ +165 to score at all). Games where the scorer wasn\'t offered count here, since anytime bets still pay.' +
+              (list.length > known.length ? ' ' + (list.length - known.length) + ' bet' + (list.length - known.length === 1 ? '' : 's') + ' left out (ESPN didn\'t have the game).' : '') + '</div>';
+            box.innerHTML = h;
+          }
+          // The Season picker at the top of Stories drives this one too
+          document.getElementById('analytics-content').addEventListener('click', function(e) {
+            var b = e.target.closest('[data-an-season]');
+            if (b) { cur = b.getAttribute('data-an-season'); draw(); }
+          });
+          draw();
+        }
+
         async function loadBadBeats() {
           var box = document.getElementById('bad-beats');
           if (!box) return;
@@ -640,6 +708,7 @@
         afInit(analyticsEl);
         anOrganize(analyticsEl, SEASON_OPTS);
         loadBadBeats();
+        loadWhatIf();
       } catch(e) {
         console.error(e);
         document.getElementById("analytics-content").innerHTML = '<div class="loading">Error loading analytics.</div>';

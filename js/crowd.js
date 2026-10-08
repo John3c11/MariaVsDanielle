@@ -17,12 +17,14 @@
         if (!b.game || !b.home) return;
         var k = b.week + '_' + b.game;
         var g = G[k] || (G[k] = { key: k, week: b.weekN, game: parseInt(b.game) || 0, slot: b.slot, home: resolveTeam(b.home), away: resolveTeam(b.away),
-          scorer: '', notOffered: false, md: {}, mdCorrect: {} });
+          scorer: '', notOffered: false, md: {}, mdCorrect: {}, odds: {} });
         if (b.scorer) g.scorer = b.scorer;
         if (b.notOffered) g.notOffered = true;
         if (picker === 'Maria' || picker === 'Danielle') {
           g.md[picker] = [b.homePick, b.awayPick];
           g.mdCorrect[picker] = b.correct;
+          if (b.homeOdds > 0) g.odds[playerKey(b.homePick)] = b.homeOdds; // real prices from their picks (best-hit odds for friends)
+          if (b.awayOdds > 0) g.odds[playerKey(b.awayPick)] = b.awayOdds;
         }
       });
       return G;

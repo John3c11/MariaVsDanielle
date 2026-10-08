@@ -30,7 +30,49 @@
 
 
     function loadSubmitTab() {
-      if (!SUB.pin) renderPinScreen('');
+      if (!SUB.pin) { if (joinCode()) renderJoinScreen(''); else renderPinScreen(''); }
+    }
+
+    // ── 📨 Sign up from an invite link (#join?c=CODE) (v129) ─────────────────────
+    // The friend picks a name and PIN. John approves them in admin (👥 Friends), then the PIN works.
+    function joinCode() { var m = /^#join\?c=([0-9a-f]{6,20})/i.exec(location.hash || ''); return m ? m[1] : ''; }
+    function leaveJoin() { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
+    function renderJoinScreen(msg) {
+      var el = document.getElementById('submit-content');
+      if (!PICKS_URL) { el.innerHTML = '<div class="loading">Sign-up isn\'t set up yet.</div>'; return; }
+      el.innerHTML = '<div class="u-center u-pad-top join-box">' +
+        '<div class="ui-title u-mb-xs">Join Maria vs Danielle</div>' +
+        '<div class="ui-intro u-mb-m">Pick first TD scorers every week alongside Maria and Danielle, and see how you stack up.</div>' +
+        '<label class="join-l" for="jn-name">Your name</label>' +
+        '<input id="jn-name" class="adm-input join-in" maxlength="20" autocomplete="given-name" placeholder="What everyone will see">' +
+        '<label class="join-l" for="jn-pin">Pick a 4-digit PIN</label>' +
+        '<input id="jn-pin" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password">' +
+        '<label class="join-l" for="jn-pin2">Type it again</label>' +
+        '<input id="jn-pin2" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password">' +
+        '<div class="u-mt"><button class="primary-btn" id="jn-go">Ask to join</button></div>' +
+        '<div class="submit-msg" id="jn-msg" style="color:#F87171">' + escHtml(msg || '') + '</div>' +
+        '<div class="u-mt"><button class="link-btn" id="jn-login">Already in? Log in</button></div>' +
+      '</div>';
+      document.getElementById('jn-name').focus();
+      document.getElementById('jn-login').addEventListener('click', function() { leaveJoin(); renderPinScreen(''); });
+      document.getElementById('jn-go').addEventListener('click', sendJoin);
+      document.getElementById('jn-pin2').addEventListener('keydown', function(e) { if (e.key === 'Enter') sendJoin(); });
+    }
+    function sendJoin() {
+      if (SUB.busy) return;
+      var name = document.getElementById('jn-name').value.trim(), pin = document.getElementById('jn-pin').value.trim(),
+        pin2 = document.getElementById('jn-pin2').value.trim(), msg = document.getElementById('jn-msg');
+      function say(t, ok) { msg.style.color = ok ? '#A1A9B6' : '#F87171'; msg.textContent = t; }
+      if (name.length < 2) return say('Pick a name with at least 2 letters.');
+      if (!/^\d{4}$/.test(pin)) return say('Your PIN has to be 4 digits.');
+      if (pin !== pin2) return say('The two PINs don\'t match.');
+      SUB.busy = true; say('Sending…', true);
+      picksApi({ action: 'join', code: joinCode(), name: name, pin: pin }).then(function(r) {
+        SUB.busy = false;
+        if (r.error) return say(r.error);
+        leaveJoin();
+        renderPinScreen('', '<div class="ui-okbox u-mb-m">📨 ' + escHtml(r.msg || 'Request sent!') + ' Remember your PIN, it\'s how you log in.</div>');
+      }).catch(function() { SUB.busy = false; say('Couldn\'t reach the sheet. Try again.'); });
     }
 
     function renderPinScreen(msg, successHtml) {
@@ -73,7 +115,11 @@
       document.getElementById('pin-msg').textContent = 'Checking…';
       picksApi({ pin: pin }).then(function(res) {
         SUB.busy = false;
-        if (res.error) { renderPinScreen(res.error); return; }
+        if (res.error) {
+          renderPinScreen(res.error);
+          if (res.pending) document.getElementById('pin-msg').style.color = '#FBBF24'; // waiting for John, not wrong
+          return;
+        }
         SUB.pin = pin;
         SUB.role = res.admin ? 'admin' : res.role === 'friend' ? 'friend' : 'player';
         SUB.name = res.admin ? '' : res.name;
@@ -265,11 +311,11 @@
     function renderFriendHome(res) {
       var body = playerScreen('fpick', '');
       var games = res.games || [];
-      if (!games.length) { body.innerHTML = '<div class="ui-empty">No open games right now. Check back later.</div>'; return; }
+      if (!games.length) { body.innerHTML = '<div id="fh-sum"></div><div class="ui-empty">No open games right now. Check back later.</div>'; drawFriendSummary(res); return; }
       var weeks = games.map(function(g) { return parseInt(g.week, 10); }).filter(function(w, i, a) { return a.indexOf(w) === i; });
       var nearWeeks = weeks.slice(0, 2);
       var shown = FRIEND.showLater ? games : games.filter(function(g) { return nearWeeks.indexOf(parseInt(g.week, 10)) >= 0; });
-      var h = '<div class="ui-note u-mb-xs">Pick one player from each team. You can change picks until kickoff. Nobody sees your picks until the game starts.</div>' +
+      var h = '<div id="fh-sum"></div><div class="ui-note u-mb-xs">Pick one player from each team. You can change picks until kickoff. Nobody sees your picks until the game starts.</div>' +
         '<div class="submit-msg" id="fr-msg" style="text-align:left;min-height:0"></div>';
       var lastWeek = null;
       shown.forEach(function(g, i) {
@@ -289,6 +335,63 @@
       });
       var later = document.getElementById('fr-later');
       if (later) later.addEventListener('click', function() { FRIEND.showLater = true; renderFriendHome(res); });
+      drawFriendSummary(res);
+    }
+
+    // 🏠 A friend's own summary at the top of their home (v129): this week, record, best hit,
+    // and how they stack up against Maria, Danielle and the Machine on the same games.
+    function drawFriendSummary(res) {
+      var box = document.getElementById('fh-sum'), name = SUB.name;
+      if (!box || !name) return;
+      var games = res.games || [], wk = games.length ? games[0].week : null;
+      var thisWk = games.filter(function(g) { return g.week === wk; }), done = thisWk.filter(function(g) { return g.myHome && g.myAway; }).length;
+      var soon = thisWk.filter(function(g) { return !(g.myHome && g.myAway) && g.kickoff && new Date(g.kickoff) - Date.now() < 36e5 * 24; }).length;
+      var wkLine = !thisWk.length ? 'No open games right now'
+        : done === thisWk.length ? '✅ All ' + thisWk.length + ' ' + weekName(wk) + ' game' + (thisWk.length === 1 ? '' : 's') + ' picked'
+        : (soon ? '⏰ ' : '') + done + ' of ' + thisWk.length + ' ' + weekName(wk) + ' game' + (thisWk.length === 1 ? '' : 's') + ' picked' + (soon ? ' · ' + soon + ' kick' + (soon === 1 ? 's' : '') + ' off within a day' : '');
+      var st = typeof fStyle === 'function' ? fStyle(name) : { color: FRIEND_COLOR }, col = st.color || FRIEND_COLOR;
+      box.innerHTML = '<div class="fh-card" style="--pc:' + col + '"><div class="fh-top"><span class="fh-hi">Hey ' + escHtml(name) + (st.emoji ? ' ' + st.emoji : '') + '</span>' +
+        '<span class="fh-wk' + (soon ? ' warn' : done && done === thisWk.length ? ' ok' : '') + '">' + wkLine + '</span></div><div class="fh-body"><div class="u-c-muted u-fs-13px">Loading your season…</div></div></div>';
+      Promise.all([picksApi({ pin: SUB.pin, action: 'fmine' }), getCrowd(), fetchSheet('Winnings', 'A1:Q400')]).then(function(r) {
+        var el = box.querySelector('.fh-body');
+        if (!el || r[0].error) { if (el) el.innerHTML = ''; return; }
+        var crowd = r[1], G = crowdGames(r[2]);
+        var rows = (r[0].rows || []).filter(function(x) { return String(x.season) === String(CURRENT_YEAR); });
+        rows.forEach(function(x) { x.revealed = crowd.picks.some(function(p) { return p.friend === x.friend && String(p.week) === String(x.week) && String(p.game) === String(x.game); }); });
+        var S = friendStats(name, rows, G, crowd.picks), R = rankFriends(crowd, G);
+        var rank = R.ranked.map(function(s) { return s.name; }).indexOf(name) + 1;
+        if (!S.n) { el.innerHTML = '<div class="fh-empty">Your record starts once your first picked game is graded. Good luck! 🍀</div>'; return; }
+        // Best hit: the longest price of their hits (from Maria's and Danielle's odds), else the latest
+        var best = null;
+        S.hits.forEach(function(x) { var o = x.g.odds[playerKey(x.g.scorer)] || 0; if (!best || o > best.o) best = { x: x, o: o }; });
+        var h = '<div class="fh-stats"><div><b>' + S.w + '–' + (S.n - S.w) + '</b><span>Record</span></div><div><b class="u-good">' + pctTxt(S.pct) + '</b><span>Win %</span></div>' +
+          '<div><b>' + (rank ? (rank === 1 ? '👑 #1' : '#' + rank) : '—') + '</b><span>' + (rank ? 'of ' + R.ranked.length + ' in the Crowd' : S.n + '/' + CROWD_MIN + ' to rank') + '</span></div>' +
+          '<div><b>' + streakTxt(S.cur) + '</b><span>Streak</span></div></div>';
+        if (best) h += '<div class="fh-best">💥 <b>Best hit:</b> ' + escHtml(best.x.g.scorer) + (best.o ? ' <span class="u-c-good">' + fmtOdds(best.o) + '</span>' : '') + ' <span class="u-c-muted">· ' + weekName(best.x.g.week) + '</span></div>';
+        h += '<div class="fh-vs">' + ['Maria', 'Danielle'].map(function(who) { return vsRow(who, personColor(who), S.h2h[who]); }).join('') + '<div id="fh-mch"></div></div>' +
+          '<div class="u-ta-right u-mt-s"><button class="link-btn" id="fh-prof">My full profile →</button></div>';
+        el.innerHTML = h;
+        document.getElementById('fh-prof').addEventListener('click', function() { openProfile(name); });
+        function vsRow(who, c2, x) {
+          var tot = x.me + x.them, lead = x.me > x.them ? 'You lead' : x.them > x.me ? who + ' leads' : tot ? 'All square' : 'Nothing decided yet';
+          return '<div class="fh-vrow"><span class="fh-vn" style="color:' + c2 + '">vs ' + who + '</span><span class="fh-vbar"><i style="width:' + (tot ? x.me / tot * 100 : 50) + '%;background:' + col + '"></i><i style="flex:1;background:' + c2 + '"></i></span>' +
+            '<span class="fh-vs-n"><b>' + x.me + '–' + x.them + '</b><span class="fh-lead"> ' + lead + '</span></span></div>';
+        }
+        // 🤖 The Machine: same idea, games where only one of you hit
+        loadScriptOnce('js/machine.js').then(function() { return loadMachine(); }).then(function(M) {
+          var slot = document.getElementById('fh-mch');
+          if (!slot || String(M.year) !== String(CURRENT_YEAR)) return;
+          var byGame = {}; M.games.forEach(function(g) { if (g.settled && !g.notOffered) byGame[g.week + '_' + g.game] = g; });
+          var x = { me: 0, them: 0 };
+          S.history.forEach(function(e) {
+            if (e.status !== 'hit' && e.status !== 'miss') return;
+            var mg = byGame[e.g.week + '_' + e.g.game]; if (!mg) return;
+            var me = e.status === 'hit', it = !!mg.hit;
+            if (me && !it) x.me++; else if (it && !me) x.them++;
+          });
+          slot.innerHTML = vsRow('the Machine', 'var(--machine)', x).replace('>vs the Machine<', '>vs 🤖<');
+        }).catch(function() {});
+      }).catch(function() { var el = box.querySelector('.fh-body'); if (el) el.innerHTML = ''; });
     }
 
     function renderFriendPicker(g, res) {

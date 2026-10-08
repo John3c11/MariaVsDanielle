@@ -145,6 +145,7 @@
             '<button class="adm-btn" id="fr-rand" title="Random PIN">🎲</button>' +
             '<button class="u-p-9px-18px primary-btn" id="fr-add">Add Friend</button>' +
           '</div><div class="u-ta-left submit-msg" id="adm-msg"></div>' +
+          inviteHtml(res) +
           '<div class="u-fs-11px u-fw-800 u-ls-0-12em u-c-muted u-m-14px-0-4px">FRIENDS (' + list.length + ')</div>';
         h += list.length ? list.map(function(f) {
           return '<div class="adm-row"><div><b style="color:' + fStyle(f.name).color + '">' + (fStyle(f.name).emoji ? fStyle(f.name).emoji + ' ' : '') + escHtml(f.name) + '</b> <span class="u-c-muted u-ls-0-15em u-ml-6px">' + f.pin + '</span></div>' +
@@ -192,7 +193,74 @@
             }).catch(function() { adminMsg('Couldn\'t reach the script.'); });
           });
         });
+        bindInvite(body, res);
         drawMainPins();
+      });
+    }
+    // 📨 Invite link + people waiting to be approved (v129)
+    function inviteLink(code) { return location.origin + location.pathname + '#join?c=' + code; }
+    function inviteHtml(res) {
+      var pend = res.pending || [], h = '<div class="pf-h">📨 Invite link</div>';
+      h += res.invite
+        ? '<div class="ui-note u-mb">Anyone with this link can ask to join. They pick a name and PIN, and you approve them here.</div>' +
+          '<div class="inv-box"><code id="inv-url">' + escHtml(inviteLink(res.invite)) + '</code></div>' +
+          '<div class="u-d-flex u-gap-6px u-fwrap-wrap u-mb-6px"><button class="adm-btn" id="inv-copy">📋 Copy</button>' +
+          (navigator.share ? '<button class="adm-btn" id="inv-share">📤 Share</button>' : '') +
+          '<button class="adm-btn" id="inv-new">🔄 New link</button><button class="adm-btn red" id="inv-off">Turn off</button></div>'
+        : '<div class="ui-note u-mb">No invite link right now. Make one to let friends sign themselves up (you still approve each one).</div>' +
+          '<button class="u-p-9px-18px primary-btn u-mb-6px" id="inv-new">Make an invite link</button>';
+      if (pend.length) {
+        h += '<div class="u-fs-11px u-fw-800 u-ls-0-12em u-c-warn u-m-14px-0-4px">WAITING FOR YOU (' + pend.length + ')</div>' +
+          pend.map(function(r) {
+            return '<div class="adm-row inv-pend"><div><b>' + escHtml(r.name) + '</b> <span class="u-c-muted u-fs-12px">' + (r.at ? new Date(r.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '') + '</span>' +
+              (r.clash ? '<div class="u-fs-12px u-c-warn">Their PIN is already used. Approving asks you for a new one.</div>' : '') + '</div>' +
+              '<div class="u-d-flex u-gap-6px"><button class="adm-btn" data-jok="' + escHtml(r.name) + '" data-clash="' + (r.clash ? 1 : '') + '">✅ Approve</button>' +
+              '<button class="adm-btn red" data-jno="' + escHtml(r.name) + '">Decline</button></div></div>';
+          }).join('');
+      }
+      return h;
+    }
+    function bindInvite(body, res) {
+      function act(params, done) {
+        adminMsg('Saving…', true);
+        picksApi(Object.assign({ pin: SUB.pin }, params)).then(function(r) {
+          if (r.error) {
+            if (r.clash && params.action === 'joinok') return approve(params.name, true);
+            return adminMsg(r.error);
+          }
+          CROWD.data = null; adminFriends();
+          if (done) setTimeout(function() { adminMsg(done, true); }, 600);
+        }).catch(function() { adminMsg('Couldn\'t reach the script.'); });
+      }
+      function approve(n, clash) {
+        var params = { action: 'joinok', name: n };
+        if (clash) {
+          var pin = prompt(n + '\'s PIN is already used by someone else. Type a new 4-digit PIN for them (you\'ll need to text it to them):', '');
+          if (pin === null) return adminMsg('');
+          pin = pin.trim();
+          if (!/^\d{4}$/.test(pin)) return adminMsg('PINs are 4 digits.');
+          params.newpin = pin;
+        }
+        act(params, n + ' is in! They can log in now' + (clash ? ' with the new PIN you gave them.' : ' with the PIN they picked.'));
+      }
+      var on = function(id, fn) { var b = document.getElementById(id); if (b) b.addEventListener('click', fn); };
+      on('inv-copy', function() {
+        var url = inviteLink(res.invite);
+        (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(function() { adminMsg('Copied. Text it to your friends.', true); })
+          .catch(function() { prompt('Copy this link:', url); });
+      });
+      on('inv-share', function() { navigator.share({ title: 'Join Maria vs Danielle', text: 'Make your picks against Maria and Danielle:', url: inviteLink(res.invite) }).catch(function() {}); });
+      on('inv-new', function() {
+        if (res.invite && !confirm('Make a new link? The old one stops working.')) return;
+        act({ action: 'invitenew' }, 'New invite link ready.');
+      });
+      on('inv-off', function() { if (confirm('Turn off the invite link? Nobody new can sign up until you make another.')) act({ action: 'inviteoff' }); });
+      body.querySelectorAll('[data-jok]').forEach(function(b) { b.addEventListener('click', function() { approve(b.getAttribute('data-jok'), !!b.getAttribute('data-clash')); }); });
+      body.querySelectorAll('[data-jno]').forEach(function(b) {
+        b.addEventListener('click', function() {
+          var n = b.getAttribute('data-jno');
+          if (confirm('Decline ' + n + '?')) act({ action: 'joinno', name: n });
+        });
       });
     }
     // 🔑 Maria's, Danielle's and John's PINs (kept in the script's settings, changeable here)
@@ -236,7 +304,7 @@
     // ── 📜 Which copy of each Apps Script file the website expects ─────────────
     // Bump these whenever a delivery includes that file. Status and the admin alert compare them
     // with what the live script says, so a file that didn't get pasted (or deployed) shows up.
-    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-19', Features: '2026-10-10', Automation: '2026-10-18', WeeklyRecap: '2026-10-06', Machine: '2026-10-18' };
+    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-20', Features: '2026-10-10', Automation: '2026-10-18', WeeklyRecap: '2026-10-06', Machine: '2026-10-18' };
     var OLD_SCRIPT_FILES = { Features: 'Market.gs, Museum.gs and Bracket.gs', Automation: 'FirstTD.gs, NFLPlayers.gs, Injuries.gs and Playoffs.gs' };
     var DEPLOY_STEPS = 'Deploy → Manage deployments → ✏️ → New version → Deploy';
     function scriptIssues(v) {
@@ -278,15 +346,17 @@
     function markErrSeen(list) { if (list && list.length) { try { localStorage.setItem('mvd-err-seen', list[0].at); } catch (e) {} } }
     function adminAlertHtml() {
       var a = ADMIN.alert;
-      if (!a || ADMIN.alertHidden || (!a.issues && !a.errs && !a.jobs && !a.bracket && !(a.scripts && a.scripts.length))) return '';
+      if (!a || ADMIN.alertHidden || (!a.issues && !a.errs && !a.jobs && !a.css && !a.joins && !a.bracket && !(a.scripts && a.scripts.length))) return '';
       var parts = [];
       if (a.scripts && a.scripts.length) parts.push('📜 <b>' + a.scripts.map(function(x) { return x.file + '.gs'; }).join(', ') + (a.scripts.length === 1 ? ' needs' : ' need') + ' updating</b> in Apps Script');
       if (a.bracket) parts.push('🏆 Playoff field is (almost) set: <b>open the Bracket Challenge</b> <button class="adm-btn" data-adm="bracket">Bracket</button>');
       if (a.issues) parts.push('🔍 Data check: <b>' + a.issues + ' thing' + (a.issues > 1 ? 's' : '') + ' to look at</b>' + (a.bad ? ' (' + a.bad + ' affect' + (a.bad === 1 ? 's' : '') + ' the totals)' : ''));
       if (a.errs) parts.push('📱 <b>' + a.errs + ' new error' + (a.errs > 1 ? 's' : '') + '</b> from phones');
+      if (a.css) parts.push('🎨 <b>style.css on GitHub is out of date</b>: upload the newest one');
+      if (a.joins) parts.push('📨 <b>' + a.joins + ' friend' + (a.joins > 1 ? 's' : '') + ' asked to join</b> <button class="adm-btn" data-adm="friends">Friends</button>');
       if (a.jobs) parts.push('⏱️ <b>' + a.jobs + ' background job' + (a.jobs > 1 ? 's' : '') + ' not working</b>');
       return '<div class="adm-alert" id="adm-alert"><span>⚠️ ' + parts.join(' · ') + '</span>' +
-        '<span class="u-ws-nowrap">' + (a.issues || a.errs || a.jobs || (a.scripts && a.scripts.length) ? '<button class="adm-btn" data-adm="status">Open Status</button> ' : '') + '<button class="link-btn" id="adm-alert-x" aria-label="Hide">✕</button></span></div>';
+        '<span class="u-ws-nowrap">' + (a.issues || a.errs || a.jobs || a.css || (a.scripts && a.scripts.length) ? '<button class="adm-btn" data-adm="status">Open Status</button> ' : '') + '<button class="link-btn" id="adm-alert-x" aria-label="Hide">✕</button></span></div>';
     }
     function adminLoginCheck() {
       ADMIN.alert = null; ADMIN.alertHidden = false;
@@ -296,6 +366,7 @@
         picksApi({ pin: SUB.pin, action: 'errlist' }).catch(function() { return {}; }),
         picksApi({ pin: SUB.pin, action: 'versions' }).catch(function() { return {}; }),
         picksApi({ pin: SUB.pin, action: 'jobs' }).catch(function() { return {}; }),
+        picksApi({ pin: SUB.pin, action: 'friends' }).catch(function() { return {}; }),
       ]).then(function(res) {
         if (SUB.role !== 'admin') return;
         if (res[1].dcOk) ADMIN.dcOk = res[1].dcOk;
@@ -306,7 +377,7 @@
         // An older PicksAPI doesn't know 'versions' (it answers with the odds list): treat that as old too
         var scripts = res[2] && res[2].versions ? scriptIssues(res[2].versions).filter(function(x) { return x.kind !== 'newer'; }) : (res[2] && !res[2].error && Object.keys(res[2]).length ? [{ file: 'PicksAPI', kind: 'old' }] : []);
         var jobsBad = (res[3] && res[3].jobs || []).filter(function(j) { return j.fails >= 2 || (!j.triggers && j.fn !== 'sendWeeklyRecap'); }).length;
-        ADMIN.alert = { scripts: scripts, issues: c.issues, bad: c.bad, errs: errs, jobs: jobsBad, bracket: mo === 0 && new Date().getDate() <= 14 && brOff };
+        ADMIN.alert = { scripts: scripts, issues: c.issues, bad: c.bad, errs: errs, jobs: jobsBad, css: CSS_CHECK.stale, joins: (res[4] && res[4].pending || []).length, bracket: mo === 0 && new Date().getDate() <= 14 && brOff };
         var nav = document.querySelector('#submit-content .adm-nav');
         if (!nav || document.getElementById('adm-alert') || document.querySelector('.adm-nav .on[data-adm="status"]')) return;
         nav.insertAdjacentHTML('afterend', adminAlertHtml());
@@ -398,6 +469,9 @@
         h += row('info', '📺 Game Day', 'Only shows up while a game they both picked is live. <button class="adm-btn" id="gd-test">Test it on the last game</button>' +
           '<br><span class="u-c-faint">Opens the most recent finished game they both picked, with the final box score, plays and the touchdown moment.</span>');
         h += row(sh.ok ? 'ok' : 'bad', 'Google Sheets (from this browser)', sh.ok ? 'Reachable · ' + sh.ms + ' ms' : 'Not reachable' + (sh.code ? ' (HTTP ' + sh.code + (sh.code === 429 ? ', too many requests: wait a minute' : sh.code === 403 ? ', check the API key limits' : '') + ')' : ''));
+        h += row(CSS_CHECK.stale ? 'bad' : 'ok', '🎨 style.css', CSS_CHECK.stale
+          ? 'The live style.css is <b>older</b> than the page (style v' + escHtml(CSS_CHECK.have || '?') + ', page v' + escHtml(CSS_CHECK.want) + '). Some screens will look broken until you upload the newest style.css to GitHub.'
+          : 'Matches the page' + (CSS_CHECK.want ? ' (v' + escHtml(CSS_CHECK.want) + ')' : ''));
         h += row(s.error ? 'bad' : 'ok', 'Picks script (PicksAPI)', s.error ? s.error : 'Reachable · season ' + s.season + ' · ' + s.friends + ' friend' + (s.friends === 1 ? '' : 's'));
         h += row(be.ok ? 'ok' : 'warn', 'ESPN (from this browser)', be.ok ? 'Reachable · ' + be.ms + ' ms · used for Live Picks scores and kickoff times' : 'Not reachable right now. Live scores and kickoff times won\'t show; nothing else is affected.');
         if (!s.error) {
@@ -1210,7 +1284,7 @@
       if (!document.body.contains(body)) return;
       if (r.error) { body.innerHTML = '<div class="inj-warn">' + escHtml(r.error) + '</div>'; return; }
       if (!r.items) { body.innerHTML = '<div class="inj-warn">⚠️ The picks script that\'s live is older. Paste the new PicksAPI.gs, then Deploy → Manage deployments → ✏️ → New version → Deploy.</div>'; return; }
-      var go = { graded: 'status', odds: 'odds', mlines: 'mlines', jobs: 'status' };
+      var go = { graded: 'status', odds: 'odds', mlines: 'mlines', jobs: 'status', join: 'friends' };
       var h = '<div class="ck-head"><div class="ck-big">' + (r.todo ? r.todo + ' thing' + (r.todo === 1 ? '' : 's') + ' to do' : 'All done ✅') + '</div>' +
         '<div class="st-d">' + (r.lastWeek ? weekName(r.lastWeek) + ' is done, ' + weekName(r.nextWeek) + ' is next.' : 'Before Week 1.') + ' <button class="link-btn" id="ck-again">Check again</button></div></div>';
       h += r.items.map(function(it, i) {
@@ -1222,7 +1296,7 @@
               '<span class="ck-ko">' + ko.toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + '</span></label>';
           }).join('') + '<div class="ck-add"><label>$ per unit <input class="u-w-64px u-ta-center adm-input" id="ck-amt" value="' + escHtml(it.amount || '5') + '" inputmode="decimal"></label>' +
             '<button class="adm-btn green" id="ck-addbtn" data-ck-i="' + i + '">Add these to the sheet</button></div><div class="u-ta-left submit-msg" id="ck-msg"></div></div>' : '') +
-          (it.state === 'todo' && go[it.key] ? '<button class="link-btn ck-go" data-adm="' + go[it.key] + '">Open ' + { status: '🩺 Status', odds: '💲 Odds', mlines: '🎯 Machine Lines' }[go[it.key]] + ' →</button>' : '') +
+          (it.state === 'todo' && go[it.key] ? '<button class="link-btn ck-go" data-adm="' + go[it.key] + '">Open ' + { status: '🩺 Status', odds: '💲 Odds', mlines: '🎯 Machine Lines', friends: '👥 Friends' }[go[it.key]] + ' →</button>' : '') +
           '</div></div>';
       }).join('');
       body.innerHTML = h;

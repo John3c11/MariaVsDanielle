@@ -49,6 +49,32 @@
       window.reportSiteError = report; // for testing from the console
     })();
 
+    // ── 🎨 Old style.css check (v129) ──────────────────────────────────────────
+    // style.css says which version it is (--css-v). If it doesn't match this page (a missed upload, or a
+    // phone holding an old copy), fetch a fresh copy once. Still old after that = it's old on GitHub:
+    // it shows on 🩺 Status so John knows to upload it.
+    var CSS_CHECK = { want: '', have: '', stale: false };
+    (function() {
+      var s = document.querySelector('script[src*="js/core.js"]'), m = s && /[?&]v=(\d+)/.exec(s.getAttribute('src'));
+      if (!m) return;
+      function have() { try { return getComputedStyle(document.documentElement).getPropertyValue('--css-v').replace(/["'\s]/g, ''); } catch (e) { return ''; } }
+      CSS_CHECK.want = m[1]; CSS_CHECK.have = have();
+      if (CSS_CHECK.have === CSS_CHECK.want) return;
+      var link = document.querySelector('link[rel="stylesheet"][href*="style.css"]'), key = 'mvd-cssfix-' + m[1], tried = '';
+      try { tried = sessionStorage.getItem(key) || ''; } catch (e) {}
+      function giveUp() {
+        CSS_CHECK.have = have(); CSS_CHECK.stale = CSS_CHECK.have !== CSS_CHECK.want;
+        if (CSS_CHECK.stale && window.reportSiteError) window.reportSiteError('Old style.css on the site (style v' + (CSS_CHECK.have || 'unknown') + ', page v' + CSS_CHECK.want + '). Upload style.css.');
+      }
+      if (!link || tried) return giveUp();
+      try { sessionStorage.setItem(key, '1'); } catch (e) {}
+      var fresh = link.cloneNode();
+      fresh.href = 'style.css?v=' + m[1] + '&r=' + Date.now();
+      fresh.onload = function() { link.remove(); setTimeout(giveUp, 0); };
+      fresh.onerror = giveUp;
+      link.parentNode.insertBefore(fresh, link.nextSibling);
+    })();
+
     // ── Week names: playoff weeks get their round's name everywhere on the site ──
     // Same numbering as ESPN and the scripts: 19 = Wild Card, 20 = Divisional, 21 = Conference, 23 = Super Bowl (22 is the Pro Bowl week).
     var PLAYOFF_ROUNDS = { 19: 'Wild Card', 20: 'Divisional', 21: 'Conference', 22: 'Pro Bowl', 23: 'Super Bowl' };

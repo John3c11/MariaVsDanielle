@@ -2415,3 +2415,37 @@ button.lab-st-r:hover { background: rgba(255,255,255,0.08); }
 }
 .pf-bot { width: 92px; height: 92px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 52px; flex: 0 0 auto; margin: 0; background: rgba(167,139,250,0.15); border: 3px solid #A78BFA; }
 @media (max-width: 520px) { .pf-bot { width: 74px; height: 74px; font-size: 42px; } }
+
+/* ── v129: 📨 invite / sign-up, friend home summary ── */
+:root { --css-v: "129"; } /* main.js compares this with the page version to catch an old style.css */
+.inv-box { background: var(--s1); border: 1px solid var(--line-2); border-radius: var(--r-s); padding: 9px 11px; margin-bottom: 8px; overflow-x: auto; }
+.inv-box code { font-size: 12px; color: var(--t2); white-space: nowrap; }
+.inv-pend { border-left: 3px solid var(--warn); padding-left: 10px; }
+.join-box { max-width: 340px; margin-left: auto; margin-right: auto; }
+.join-l { display: block; text-align: left; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t3); margin: 14px 0 6px; }
+.join-in { width: 100%; box-sizing: border-box; }
+.join-box .pin-input { width: 100%; box-sizing: border-box; }
+.fh-card { background: linear-gradient(140deg, var(--s1), color-mix(in srgb, var(--pc) 14%, transparent)); border: 1px solid color-mix(in srgb, var(--pc) 35%, transparent); border-radius: var(--r-l); padding: 14px 16px; margin-bottom: 16px; }
+.fh-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.fh-hi { font-size: 18px; font-weight: 800; color: var(--pc); }
+.fh-wk { font-size: 12.5px; color: var(--t2); }
+.fh-wk.warn { color: var(--warn); font-weight: 700; }
+.fh-wk.ok { color: var(--good-2); }
+.fh-stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; }
+.fh-stats > div { background: var(--s2); border-radius: var(--r-s); padding: 8px 6px; text-align: center; min-width: 0; }
+.fh-stats b { display: block; font-size: clamp(14px, 4.2vw, 19px); font-weight: 800; white-space: nowrap; }
+.fh-stats span { display: block; font-size: 9.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--t3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fh-best { font-size: 13px; margin: 12px 0 4px; }
+.fh-vs { margin-top: 8px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px 10px; font-size: 12.5px; }
+.fh-vrow, #fh-mch { display: contents; } /* one shared grid so the three bars line up */
+.fh-vn { font-weight: 800; white-space: nowrap; }
+.fh-vbar { display: flex; height: 7px; border-radius: 999px; overflow: hidden; gap: 2px; background: var(--s2); }
+.fh-vbar i { display: block; }
+.fh-vs-n { color: var(--t3); white-space: nowrap; }
+.fh-vs-n b { color: var(--t1); }
+.fh-empty { font-size: 13px; color: var(--t2); }
+@media (max-width: 480px) {
+  .fh-stats { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .fh-vs { gap: 10px 8px; }
+  .fh-lead { display: none; } /* the bar colours already say who leads */
+}

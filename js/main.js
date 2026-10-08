@@ -131,6 +131,7 @@
       });
     }
     if ((location.hash || '').indexOf('#lab') === 0) setTimeout(function() { switchTab('lab'); }, 0);
+    if ((location.hash || '').indexOf('#join') === 0) setTimeout(function() { switchTab('submit'); }, 0); // 📨 invite link
     // Open Analytics on one of its sub-tabs (Profiles' Bad Beats / Jinxes tiles -> 😬 Pain)
     function openAnalyticsPane(pane) {
       try { localStorage.setItem('mvd-an-tab', pane); } catch (e) {}

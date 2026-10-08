@@ -44,10 +44,9 @@
       return out + '</div>';
     }
 
-    // ── Analytics layout: one season picker + five sub-tabs ──────────────────
+    // ── Analytics layout: one season picker + four sub-tabs ──────────────────
     var AN_TABS = [
-      ['highlights', '🔥 Highlights', ['Hit Grid']],
-      ['trends', '📈 Trends', ['Luck Meter', 'Weekly Units', 'Form', 'Month by Month']],
+      ['trends', '📈 Trends', ['Hit Grid', 'Luck Meter', 'Weekly Units', 'Form', 'Month by Month']],
       ['picking', '🎯 Picking', ['Splits', 'Boldness Meter', 'Pressure Picks', 'Picking vs Reality', 'Who Scores First']],
       ['players', '🏈 Players & Teams', ['Overachievers & Busts', 'TD Scorer Leaderboard', 'Chaos Corner']],
       ['pain', '😬 Pain', ['Jinx Tracker', 'Bad Beats']],
@@ -97,8 +96,8 @@
       // Controls + panes
       var seasonNow = anStore('mvd-an-season') || 'all';
       if (!seasonOpts.some(function(o) { return o[0] === seasonNow; })) seasonNow = 'all';
-      var tabNow = anStore('mvd-an-tab') || 'highlights';
-      if (!AN_TABS.some(function(t) { return t[0] === tabNow; })) tabNow = 'highlights';
+      var tabNow = anStore('mvd-an-tab') || 'trends';
+      if (!AN_TABS.some(function(t) { return t[0] === tabNow; })) tabNow = 'trends'; // old 'highlights' (Hit Grid now tops Trends)
       var top = document.createElement('div');
       top.className = 'an-controls';
       top.innerHTML = '<div class="af-bar an-season"><span class="af-bar-label">Season</span>' + seasonOpts.map(function(o) {
@@ -120,9 +119,9 @@
         root.insertBefore(pane, lastPane.nextSibling);
         lastPane = pane;
       });
-      // Anything not listed lands at the end of Highlights so nothing goes missing
+      // Anything not listed lands at the end of Trends so nothing goes missing
       Object.keys(secs).forEach(function(t) {
-        if (t !== '_top' && !used[t] && secs[t].parentNode === root) root.querySelector('.an-pane[data-pane="highlights"]').appendChild(secs[t]);
+        if (t !== '_top' && !used[t] && secs[t].parentNode === root) root.querySelector('.an-pane[data-pane="trends"]').appendChild(secs[t]);
       });
       function setSeason(v) {
         seasonNow = v; anStore('mvd-an-season', v);

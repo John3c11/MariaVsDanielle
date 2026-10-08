@@ -87,7 +87,33 @@
     // ── Files loaded only when needed (Analytics) ──────────────────────────
     // Same ?v= as the rest of the site, so a new version never mixes with an old one.
     var SCRIPT_LOADS = {};
+    // Styles that only one lazy-loaded screen uses live in css/<name>.css (v132) and load with its script,
+    // so the first visit downloads a much smaller style.css. The screen waits for both before drawing.
+    var CSS_SPLIT = ['admin', 'analytics', 'bracket', 'cards', 'chalk', 'eggs', 'gameday', 'gamepage', 'lab', 'machine', 'market', 'museum', 'replay', 'story'];
+    var CSS_LOADS = {};
+    function loadCssOnce(name) {
+      if (CSS_LOADS[name]) return CSS_LOADS[name];
+      CSS_LOADS[name] = new Promise(function(res) {
+        var me = document.querySelector('script[src*="js/core.js"]');
+        var v = me && /[?&]v=([^&]+)/.exec(me.getAttribute('src'));
+        var l = document.createElement('link');
+        l.rel = 'stylesheet'; l.href = 'css/' + name + '.css' + (v ? '?v=' + v[1] : '');
+        l.onload = function() { res(); };
+        l.onerror = function() { delete CSS_LOADS[name]; l.remove(); res(); }; // never block the screen over its styles
+        document.head.appendChild(l);
+      });
+      return CSS_LOADS[name];
+    }
     function loadScriptOnce(path) {
+      var css = /^js\/(\w+)\.js$/.exec(path);
+      if (css && CSS_SPLIT.indexOf(css[1]) >= 0) {
+        var key = path + '+css';
+        if (!SCRIPT_LOADS[key]) { SCRIPT_LOADS[key] = Promise.all([loadScriptOnly(path), loadCssOnce(css[1])]).then(function() {}); SCRIPT_LOADS[key].catch(function() { delete SCRIPT_LOADS[key]; }); }
+        return SCRIPT_LOADS[key];
+      }
+      return loadScriptOnly(path);
+    }
+    function loadScriptOnly(path) {
       if (SCRIPT_LOADS[path]) return SCRIPT_LOADS[path];
       SCRIPT_LOADS[path] = new Promise(function(res, rej) {
         var me = document.querySelector('script[src*="js/core.js"]');

@@ -592,6 +592,8 @@
         sc.onerror = function() { ADMIN_JS = null; sc.remove(); rej(new Error('admin.js')); };
         document.body.appendChild(sc);
       });
+      ADMIN_JS = Promise.all([ADMIN_JS, loadCssOnce('admin')]).then(function() {}); // css/admin.css (v132)
+      ADMIN_JS.catch(function() { ADMIN_JS = null; });
       return ADMIN_JS;
     }
 

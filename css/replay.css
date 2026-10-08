@@ -1,0 +1,33 @@
+/* replay.css: styles only the replay screens use. Loaded with js/replay.js (loadScriptOnce), not at startup. */
+.rp-ctrl { padding: 0 14px 8px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+.rp-games { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
+.rp-bar { display: flex; align-items: center; gap: 6px; }
+.rp-jumps { margin-top: 6px; flex-wrap: wrap; }
+.rp-main { width: 40px; font-size: 15px; padding: 5px 0; }
+.rp-scrub { flex: 1; min-width: 60px; accent-color: #C4B5FD; }
+.rp-tag { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; color: #C4B5FD; }
+.rpc { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 12px; margin-bottom: 28px; }
+.rpc-sel { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.rpc-sel select { width: auto; padding: 8px 10px; }
+.rpc-sel .primary-btn { padding: 8px 16px; }
+.rpc-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
+@media (min-width: 701px) { .rpc-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.rpc-g {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  column-gap: 8px;
+  text-align: left;
+  font-family: inherit;
+  color: #E5E7EB;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 8px 10px;
+  cursor: pointer;
+}
+.rpc-g:hover { border-color: rgba(196,181,253,0.5); }
+.rpc-g > span:first-child { display: flex; align-items: center; gap: 5px; }
+.rpc-g small { grid-row: 2; font-size: 11.5px; font-weight: 500; color: var(--t3); margin-top: 2px; }
+.rpc-play { grid-row: 1 / span 2; grid-column: 2; align-self: center; color: #C4B5FD; font-size: 16px; }
+.u-p-6px-2px { padding:6px 2px !important; }

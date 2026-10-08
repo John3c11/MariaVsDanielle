@@ -1,0 +1,36 @@
+/* museum.css: styles only the museum screens use. Loaded with js/museum.js (loadScriptOnce), not at startup. */
+.mu-hero { display: flex; align-items: center; gap: 14px; padding: 18px 18px; margin-bottom: 14px; border-radius: 16px;
+  background: linear-gradient(135deg, rgba(251,191,36,0.16), rgba(251,191,36,0.03) 60%), #141519; border: 1px solid rgba(251,191,36,0.28); }
+.mu-hero-ic { font-size: 40px; line-height: 1; }
+.mu-hero-t { font-size: 22px; font-weight: 800; color: #FDE68A; letter-spacing: 0.01em; }
+.mu-hero-s { font-size: 12.5px; color: var(--t3); margin-top: 3px; line-height: 1.4; }
+.mu-filters { flex-wrap: wrap; margin-bottom: 4px; }
+.mu-year { display: flex; align-items: center; gap: 10px; margin: 18px 0 10px; font-size: 13px; font-weight: 800; color: #FDE68A; letter-spacing: 0.08em; }
+.mu-year::before, .mu-year::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(251,191,36,0.4), transparent); }
+.mu-card { display: flex; gap: 12px; align-items: flex-start; padding: 13px 14px; border-radius: 14px; background: rgba(255,255,255,0.045);
+  border: 1px solid rgba(255,255,255,0.07); border-left: 3px solid var(--mc); min-width: 0; }
+.mu-card.has-photo { flex-direction: column; padding: 0; overflow: hidden; }
+.mu-card.has-photo .mu-body { padding: 0 14px 13px; }
+.mu-card.mu-star { border-color: rgba(251,191,36,0.45); border-left-color: var(--mc); background: linear-gradient(135deg, rgba(251,191,36,0.10), rgba(255,255,255,0.04)); box-shadow: 0 0 22px rgba(251,191,36,0.08); }
+@media (min-width: 701px) { .mu-card.mu-star.has-photo { grid-column: span 2; } }
+.mu-photo { width: 100%; aspect-ratio: 16 / 9; background: #0B0C0F; }
+.mu-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mu-art { flex: 0 0 auto; width: 64px; height: 64px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.06); box-shadow: 0 0 0 2px var(--mc); }
+.mu-art .hs { border-radius: 50%; }
+.mu-art.mu-ic { font-size: 30px; }
+.mu-face { width: 100%; height: 100%; object-fit: cover; }
+.mu-body { flex: 1; min-width: 0; }
+.mu-tag { font-size: 10.5px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: var(--t3); }
+.mu-st { color: #FBBF24; margin-left: 4px; }
+.mu-title { font-size: 16px; font-weight: 800; color: var(--t1); margin-top: 3px; line-height: 1.25; overflow-wrap: anywhere; }
+.mu-cap { font-size: 12.5px; color: var(--t2); margin-top: 4px; line-height: 1.45; }
+.mu-when { font-size: 11px; color: var(--t3); margin-top: 7px; }
+.mu-champs { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin-bottom: 18px; }
+.mu-champ { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: var(--r); background: linear-gradient(135deg, var(--s1), color-mix(in srgb, var(--pc) 16%, transparent));
+  border: 1px solid color-mix(in srgb, var(--pc) 45%, transparent); }
+.mu-champ.live { border-style: dashed; }
+.mu-champ-ic { font-size: 30px; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--s2); flex: 0 0 auto; }
+.mu-champ-y { font-size: 10.5px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t3); }
+.mu-champ-n { font-size: 17px; font-weight: 800; }
+.mu-champ-s { font-size: 12px; color: var(--t3); }

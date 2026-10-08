@@ -1,0 +1,9 @@
+/* eggs.css: styles only the eggs screens use. Loaded with js/eggs.js (loadScriptOnce), not at startup. */
+.egg-toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 1200; max-width: min(92vw, 420px); padding: 12px 16px; border-radius: 14px; background: rgba(17,19,24,0.96); border: 1px solid rgba(255,255,255,0.18); color: #FFFFFF; font-size: 14px; font-weight: 700; text-align: center; box-shadow: 0 16px 40px -10px rgba(0,0,0,0.8); animation: eggIn 0.35s cubic-bezier(.2,1.4,.4,1) both; }
+.egg-toast small { display: block; margin-top: 4px; font-size: 12px; font-weight: 600; color: #FCD34D; }
+.egg-rain { position: fixed; inset: 0; z-index: 1150; pointer-events: none; overflow: hidden; }
+.egg-rain i, .egg-rain img { position: absolute; top: -70px; font-style: normal; border-radius: 50%; animation: eggFall linear both; }
+.egg-vs { animation: eggVs 0.9s ease; }
+.egg-roll { display: inline-block; animation: eggRoll 1s cubic-bezier(.4,0,.2,1); }
+html.egg-retro body::after { content: ''; position: fixed; inset: 0; z-index: 1100; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.18) 0 1px, transparent 1px 3px); }
+html.egg-retro .player img, html.egg-retro .vs-row img { image-rendering: pixelated; }

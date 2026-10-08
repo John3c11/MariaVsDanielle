@@ -1,0 +1,4 @@
+/* gameday.css: styles only the gameday screens use. Loaded with js/gameday.js (loadScriptOnce), not at startup. */
+.gd-live { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; color: #F87171; }
+.gd-rz-tag { font-size: 9px; font-weight: 800; color: #FCA5A5; background: rgba(239,68,68,0.2); border-radius: 4px; padding: 1px 4px; vertical-align: 1px; }
+.gd-note { font-size: 11px; color: var(--t4); margin: 2px 0 6px; }

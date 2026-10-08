@@ -1,0 +1,70 @@
+/* analytics.css: styles only the analytics screens use. Loaded with js/analytics.js (loadScriptOnce), not at startup. */
+.an-controls { margin-bottom: 6px; }
+.an-season { margin-bottom: 12px; }
+.an-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.an-h { font-size: 13px; font-weight: 800; color: var(--t1); margin: 24px 0 12px; padding-bottom: 8px; border-bottom: 1.5px solid rgba(255,255,255,0.16); display: flex; align-items: baseline; gap: 8px; }
+.an-all { display: none; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--t4); margin-left: auto; }
+.an-one-season .an-all { display: inline; }
+#analytics-content .an-pane .af-bar-season { display: none; }
+.an-merged { margin-top: 16px; }
+.an-sub { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t3); margin: 4px 0 10px; }
+@media (max-width: 700px) { .an-tab { font-size: 12px; padding: 7px 11px; } }
+.ch-intro { font-size: 12px; color: var(--t3); margin-bottom: 12px; }
+.af-bars { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 12px; }
+.af-list.af-collapsed .af-extra { display: none !important; }
+@media (min-width: 1440px) { .an-pane { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 28px; align-items: start; } }
+@media (min-width: 1440px) { .an-pane[style*="none"] { display: none; } }
+@media (min-width: 1440px) { .an-pane > .an-sec:has(.ch-svg), .an-pane > .an-sec:only-child { grid-column: 1 / -1; } }
+@media (min-width: 1440px) { .an-pane > .an-sec:has(.ch-svg) + .an-sec:not(:has(.ch-svg)):last-child,
+  .an-pane > .an-sec:has(.ch-svg) + .an-sec:not(:has(.ch-svg)):has(+ .an-sec .ch-svg) { grid-column: 1 / -1; } }
+@media (min-width: 1440px) { .an-pane[data-pane="picking"] > [data-sec="Pressure Picks"] { order: 1; } }
+@media (min-width: 1440px) { .an-pane[data-pane="picking"] > [data-sec="Correct Picks by Game Type"] { order: 2; } }
+@media (min-width: 1440px) { .an-pane[data-pane="picking"] > [data-sec="Picking vs Reality"] { order: 3; } }
+@media (min-width: 1440px) { .an-pane[data-pane="picking"] > [data-sec="Who Scores First"] { order: 4; } }
+.lab-jump { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; }
+.u-bb-0-5px-solid-rgba-255-255-255-0-06 { border-bottom:0.5px solid var(--line) !important; }
+.u-bb-1px-solid-rgba-255-255-255-0-10 { border-bottom:1px solid var(--line-2) !important; }
+.u-bd-1px-solid-rgba-248-113-113-0-3 { border:1px solid rgba(248,113,113,0.3) !important; }
+.u-bg-a78bfa { background:var(--machine) !important; }
+.u-bg-rgba-167-139-250-0-18 { background:rgba(167,139,250,0.18) !important; }
+.u-bg-rgba-248-113-113-0-12 { background:rgba(248,113,113,0.12) !important; }
+.u-bg-rgba-251-191-36-0-15 { background:rgba(251,191,36,0.15) !important; }
+.u-bg-rgba-255-255-255-0-06 { background:var(--line) !important; }
+.u-bg-rgba-255-255-255-0-12 { background:rgba(255,255,255,0.12) !important; }
+.u-bt-1px-solid-rgba-255-255-255-0-08 { border-top:1px solid var(--line) !important; }
+.u-c-bad2 { color:var(--bad-2) !important; }
+.u-c-violet { color:#C4B5FD !important; }
+.u-d-grid { display:grid; }
+.u-fs-10px { font-size:10px !important; }
+.u-fshrink-0 { flex-shrink:0 !important; }
+.u-gap-16px { gap:16px !important; }
+.u-gtc-1fr-1fr-1fr { grid-template-columns:1fr 1fr 1fr !important; }
+.u-gtc-1fr-90px-80px { grid-template-columns:1fr 90px 80px !important; }
+.u-gtc-62px-1fr-38px { grid-template-columns:62px 1fr 38px !important; }
+.u-gtc-80px-1fr-80px { grid-template-columns:80px 1fr 80px !important; }
+.u-h-10px { height:10px !important; }
+.u-h-7px { height:7px !important; }
+.u-lh-1-5 { line-height:1.5 !important; }
+.u-lh-1-6 { line-height:1.6 !important; }
+.u-ls-0-05em { letter-spacing:0.05em !important; }
+.u-ls-0-08em { letter-spacing:0.08em !important; }
+.u-m-10px-0-4px { margin:10px 0 4px !important; }
+.u-m-8px-0-12px { margin:8px 0 12px !important; }
+.u-mb-5px { margin-bottom:5px !important; }
+.u-ml-3px { margin-left:3px !important; }
+.u-mt-12px { margin-top:12px !important; }
+.u-mt-6px { margin-top:6px !important; }
+.u-p-11px-0 { padding:11px 0 !important; }
+.u-p-16px { padding:16px !important; }
+.u-p-2px-0 { padding:2px 0 !important; }
+.u-p-2px-6px { padding:2px 6px !important; }
+.u-p-7px-0 { padding:7px 0 !important; }
+.u-p-8px-0 { padding:8px 0 !important; }
+.u-p-8px-0-4px { padding:8px 0 4px !important; }
+.u-p-8px-12px { padding:8px 12px !important; }
+.u-p-8px-14px { padding:8px 14px !important; }
+.u-p-9px-0 { padding:9px 0 !important; }
+.u-pt-6px { padding-top:6px !important; }
+.u-r-4px { border-radius:4px !important; }
+.u-w-62px { width:62px !important; }
+.u-w-72px { width:72px !important; }

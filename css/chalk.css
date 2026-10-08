@@ -1,0 +1,19 @@
+/* chalk.css: styles only the chalk screens use. Loaded with js/chalk.js (loadScriptOnce), not at startup. */
+.ck-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; margin-bottom: 28px; }
+.ck-verdict { font-size: 14px; color: #E5E7EB; padding: 9px 12px; border-radius: 10px; margin-bottom: 12px; line-height: 1.4; }
+.ck-verdict.up { background: rgba(52,211,153,0.10); border: 1px solid rgba(52,211,153,0.25); }
+.ck-verdict.down { background: rgba(248,113,113,0.10); border: 1px solid rgba(248,113,113,0.25); }
+.ck-vs { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; align-items: center; margin-bottom: 10px; }
+.ck-side { text-align: center; min-width: 0; }
+.ck-k { font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.ck-u { font-size: 24px; font-weight: 800; margin-top: 2px; }
+.ck-s { font-size: 11px; color: var(--t3); margin-top: 2px; line-height: 1.4; }
+.ck-mid { font-size: 12px; font-weight: 800; color: var(--t4); }
+.ck-swings { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; margin-bottom: 10px; }
+@media (min-width: 701px) { .ck-swings { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ck-sw { display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; color: var(--t2); padding: 8px 10px; border-radius: 10px; background: rgba(0,0,0,0.2); line-height: 1.4; }
+.ck-sw-d { font-weight: 800; font-size: 13px; white-space: nowrap; min-width: 54px; }
+.ck-sw.up .ck-sw-d { color: #34D399; }
+.ck-sw.down .ck-sw-d { color: #F87171; }
+.ck-sw-w { font-size: 10.5px; font-weight: 700; color: var(--t3); text-transform: uppercase; letter-spacing: 0.04em; }
+.ck-note { font-size: 11px; color: var(--t3); line-height: 1.5; }

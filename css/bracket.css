@@ -1,0 +1,53 @@
+/* bracket.css: styles only the bracket screens use. Loaded with js/bracket.js (loadScriptOnce), not at startup. */
+.br-hero { display: flex; gap: 14px; align-items: center; padding: 18px; margin-bottom: 14px; border-radius: 16px;
+  background: radial-gradient(circle at 0 0, rgba(251,191,36,0.20), transparent 60%), linear-gradient(135deg, #1A1407, #101114); border: 1px solid rgba(251,191,36,0.3); }
+.br-hero-ic { font-size: 42px; line-height: 1; }
+.br-hero-t { font-size: 20px; font-weight: 800; color: #FDE68A; }
+.br-yr { font-size: 13px; color: var(--t3); font-weight: 700; margin-left: 4px; }
+.br-hero-s { font-size: 13px; color: var(--t2); margin-top: 4px; line-height: 1.45; }
+.br-left { display: inline-block; font-size: 11px; font-weight: 800; color: #111; background: #FBBF24; border-radius: 6px; padding: 1px 6px; margin-left: 4px; }
+.br-rules-btn { margin-top: 6px; font-size: 12px; }
+.br-rules { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 10px 12px; margin-bottom: 14px; }
+.br-rt { display: grid; grid-template-columns: 1.4fr repeat(4, 1fr); gap: 6px; font-size: 12px; padding: 4px 0; text-align: center; }
+.br-rt span { text-align: left; color: var(--t2); }
+.br-rt b { color: var(--t3); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; }
+.br-rt i { font-style: normal; font-weight: 800; color: #FDE68A; }
+.br-rnote { font-size: 11.5px; color: var(--t3); margin-top: 6px; line-height: 1.5; }
+.br-pin { padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+.br-in { display: flex; flex-wrap: wrap; gap: 6px; }
+.br-chip { font-size: 12.5px; padding: 5px 10px; border-radius: 999px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); }
+.br-chip small { color: var(--t3); margin-left: 3px; }
+.br-board { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+@media (min-width: 1100px) { .br-board { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: start; } }
+.br-round { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+@media (min-width: 560px) and (max-width: 1099px) { .br-round { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 560px) and (max-width: 1099px) { .br-rh { grid-column: 1 / -1; } }
+.br-rh { font-size: 12px; font-weight: 800; color: #FDE68A; letter-spacing: 0.06em; text-transform: uppercase; padding-bottom: 4px; border-bottom: 1px solid rgba(251,191,36,0.25); }
+.br-rh small { color: var(--t3); font-weight: 700; letter-spacing: 0; text-transform: none; margin-left: 4px; }
+.br-g { padding: 9px; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.br-gl { font-size: 10px; font-weight: 800; color: var(--t3); letter-spacing: 0.07em; text-transform: uppercase; }
+button.br-team { cursor: pointer; }
+.br-team.tbd { color: var(--t4); }
+.br-team.on.dead .br-tn { text-decoration: line-through; }
+.br-q { width: 20px; text-align: center; color: var(--t4); font-weight: 800; }
+.br-sd { font-size: 10.5px; color: var(--t3); font-weight: 800; min-width: 10px; }
+.br-tn { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.br-ck { font-size: 11.5px; white-space: nowrap; }
+.br-td.dead b { text-decoration: line-through; }
+.br-sel { flex: 1; min-width: 0; padding: 7px 9px; font-size: 13px; }
+.br-act { font-size: 11px; color: var(--t3); }
+@media (min-width: 701px) { .br-save { bottom: 12px; } }
+.br-tb { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12.5px; color: var(--t2); margin-top: 14px; }
+.br-tb input { width: 90px; }
+.br-prog { font-size: 12px; color: var(--t3); line-height: 1.4; min-width: 0; }
+.br-table { display: flex; flex-direction: column; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
+.br-tr:last-child { border-bottom: 0; }
+.br-th { cursor: default; font-size: 10.5px; font-weight: 800; color: var(--t3); letter-spacing: 0.06em; text-transform: uppercase; background: rgba(255,255,255,0.05); }
+.br-tr > b, .br-tr > span:nth-child(n+4) { text-align: center; }
+.br-tr > b { color: #FDE68A; font-size: 15px; }
+.br-nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.br-champ { text-align: center; }
+.br-champ.dead { opacity: 0.35; filter: grayscale(1); }
+.u-ls-0-3em { letter-spacing:0.3em !important; }
+.u-mt-20px { margin-top:20px !important; }
+.u-w-110px { width:110px !important; }

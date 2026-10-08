@@ -1,0 +1,67 @@
+/* story.css: styles only the story screens use. Loaded with js/story.js (loadScriptOnce), not at startup. */
+.st-frame { position: relative; width: min(440px, 100vw); height: min(100dvh, 880px); }
+.st-root > .st-loading { position: absolute; top: 45%; left: 0; right: 0; }
+.st-bars { position: absolute; top: calc(10px + env(safe-area-inset-top)); left: 12px; right: 12px; display: flex; gap: 4px; z-index: 4; }
+.st-bars i { flex: 1; height: 3px; border-radius: 3px; background: rgba(255,255,255,0.25); overflow: hidden; }
+.st-bars b { display: block; height: 100%; width: 0; background: #FFFFFF; }
+.st-top { position: absolute; top: calc(22px + env(safe-area-inset-top)); left: 12px; right: 12px; display: flex; align-items: center; gap: 8px; z-index: 4; }
+.st-year { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 800; color: #FFFFFF; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.25); border-radius: 999px; padding: 5px 10px; margin-right: auto; }
+.st-year option { color: #111; }
+.st-pause, .st-x { width: 34px; height: 34px; border-radius: 50%; border: 0; background: rgba(0,0,0,0.35); color: #FFFFFF; font-size: 14px; cursor: pointer; }
+.st-stage { position: absolute; inset: 0; }
+.st-nav { position: absolute; top: 70px; bottom: 0; width: 34%; background: transparent; border: 0; z-index: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.st-prev { left: 0; }
+.st-next { right: 0; width: 66%; }
+.st-card { position: relative; height: 100%; padding: calc(78px + env(safe-area-inset-top)) 24px 54px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #FFFFFF; overflow: hidden; box-sizing: border-box; }
+@media (min-width: 700px) { .st-frame { padding: 18px 0; box-sizing: border-box; } }
+@media (min-width: 700px) { .st-card { border-radius: 26px; box-shadow: 0 30px 90px -20px rgba(0,0,0,0.8); } }
+@media (min-width: 700px) { .st-stage { inset: 18px 0; } }
+@media (min-width: 700px) { .st-bars { top: 28px; } }
+@media (min-width: 700px) { .st-top { top: 40px; } }
+.st-card .share-btn { top: auto; bottom: 14px; right: 16px; z-index: 3; }
+.st-in > * { animation: stUp 0.7s cubic-bezier(.2,.8,.2,1) both; }
+.st-in > *:nth-child(3) { animation-delay: 0.08s; }
+.st-in > *:nth-child(4) { animation-delay: 0.22s; }
+.st-in > *:nth-child(5) { animation-delay: 0.36s; }
+.st-in > *:nth-child(6) { animation-delay: 0.5s; }
+.st-in > *:nth-child(7) { animation-delay: 0.64s; }
+.st-kick { font-size: 12px; font-weight: 800; letter-spacing: 0.28em; text-transform: uppercase; opacity: 0.75; margin-bottom: 20px; }
+.st-year-big { font-size: 104px; font-weight: 800; letter-spacing: -0.04em; line-height: 0.95; }
+.st-faces { display: flex; align-items: center; gap: 16px; margin: 26px 0 8px; }
+.st-faces img, .st-champ { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 3px solid var(--pc); box-shadow: 0 0 34px -4px var(--pc); }
+.st-faces span { font-size: 16px; font-weight: 800; opacity: 0.6; }
+.st-line { font-size: 17px; line-height: 1.5; margin-top: 18px; max-width: 360px; }
+.st-line.big { font-size: 20px; font-weight: 600; }
+.st-dim { opacity: 0.7; font-size: 15px; }
+.st-small { font-size: 13px; line-height: 1.45; opacity: 0.8; margin-top: 6px; }
+.st-hint { font-size: 12px; opacity: 0.55; margin-top: 30px; animation: stHint 2s ease-in-out infinite; }
+.st-num { font-size: 54px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.st-gold { color: #FCD34D; text-shadow: 0 0 30px rgba(252,211,77,0.35); }
+.st-duel { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; margin-top: 6px; }
+.st-side { background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; padding: 16px 8px; }
+.st-side .st-num { font-size: 40px; }
+.st-who { font-size: 13px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; }
+.st-chart { width: 100%; background: rgba(0,0,0,0.3); border-radius: 16px; padding: 8px 4px 2px; }
+.st-chart svg { width: 100%; height: auto; display: block; }
+.st-name { font-size: 26px; font-weight: 800; line-height: 1.15; margin-bottom: 6px; }
+.st-name.sm { font-size: 16px; margin-bottom: 4px; }
+.st-emoji { font-size: 54px; line-height: 1; margin-bottom: 10px; }
+.st-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; }
+.st-pair .st-num { font-size: 46px; }
+.st-logo .st-tlogo, .st-logo img { width: 112px; height: 112px; margin: 0 0 10px; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.5)); }
+.st-recs { width: 100%; text-align: left; }
+.st-rec { display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin-bottom: 8px; background: rgba(0,0,0,0.28); border-radius: 14px; }
+.st-rec > span { font-size: 22px; }
+.st-rec > div { flex: 1; min-width: 0; }
+.st-rec b { display: block; font-size: 14px; }
+.st-rec small { font-size: 11px; opacity: 0.7; }
+.st-rec em { font-style: normal; font-size: 12px; font-weight: 800; text-align: right; }
+.st-wp { width: 100%; margin-top: 16px; }
+.st-crown { font-size: 60px; animation: stCrown 1.6s ease-in-out infinite; margin-bottom: -6px; }
+.st-champ { width: 140px; height: 140px; }
+.st-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 22px 0 10px; position: relative; z-index: 3; }
+.st-btn { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 800; padding: 10px 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.14); color: #FFFFFF; cursor: pointer; }
+.st-brand { position: absolute; bottom: 20px; left: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; opacity: 0.45; text-transform: uppercase; }
+.st-confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.st-confetti i { position: absolute; top: -12px; width: 8px; height: 14px; border-radius: 2px; animation: stFall linear infinite; }
+@media (prefers-reduced-motion: reduce) { .st-in > *, .st-confetti, .st-crown, .st-hint { animation: none !important; } }

@@ -1,30 +1,93 @@
 // 🏈 Game Pages: one page for every game Maria and Danielle bet on, at #game/<season>-<game number>.
 // Everything about that game in one place: the score, the first TD, both picks and odds, the Machine's
 // picks and chances, friends' picks, the first-TD drive (with ⏪ Replay), Trash Talk from game time,
-// and any Museum moments. Opened by openGame(year, game) in main.js. Loaded on demand (loadScriptOnce).
+// and any Museum moments. The Rivalry hub's 🏈 Games tab lists every game; tapping one (or any game link on the
+// site) opens its page full screen: openGame(year, game) in main.js. Loaded on demand (loadScriptOnce).
 // Part of the MariaVsDanielle site. Shares the global scope with the other js/ files.
 
     var GP = { token: 0 };
 
-    function gpFromHash() {
-      var m = /^#game\/(\d{4})-([0-9A-Za-z]+)/.exec(location.hash || '');
-      return m ? { year: m[1], game: m[2] } : null;
+    // ── Full-screen page ──
+    function gpRoot() {
+      var root = document.getElementById('gp-root');
+      if (!root) {
+        root = document.createElement('div');
+        root.id = 'gp-root';
+        root.className = 'gp-root';
+        root.setAttribute('role', 'dialog');
+        root.setAttribute('aria-label', 'Game');
+        root.innerHTML = '<div class="gp-frame" id="gp-frame"></div>';
+        document.body.appendChild(root);
+        document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && root.classList.contains('open')) gpClose(); });
+      }
+      return root;
     }
-
-    function renderGamePage() {
-      var el = document.getElementById('game-content');
-      if (!el) return;
-      var want = gpFromHash() || GP.last;
-      if (!want) { el.innerHTML = '<div class="loading">Pick a game from the Bet Log, Schedule or Stat Lab.</div>'; return; }
+    function gpCloseBar() { return '<div class="gp-top"><button class="gp-x" onclick="gpClose()" aria-label="Close">✕</button></div>'; }
+    function gpOpen(year, game) {
+      var root = gpRoot(), el = document.getElementById('gp-frame');
+      root.classList.add('open');
+      document.documentElement.classList.add('st-lock');
+      try { history.replaceState(null, '', location.pathname + location.search + '#game/' + year + '-' + game); } catch (e) {}
+      var want = { year: year, game: game };
       GP.last = want;
       var token = ++GP.token;
-      el.innerHTML = '<div class="loading">Loading the game…</div>';
+      el.innerHTML = gpCloseBar() + '<div class="loading">Loading the game…</div>';
       loadAllBets().then(function(all) {
         if (token !== GP.token) return;
         var rows = all.filter(function(r) { return r.year === want.year && String(r.game) === String(want.game) && isMD(r.picker); });
-        if (!rows.length) { el.innerHTML = '<div class="loading">Couldn\'t find that game. <button class="link-btn" onclick="switchTab(GAME_FROM)">Go back</button></div>'; return; }
+        if (!rows.length) { el.innerHTML = gpCloseBar() + '<div class="loading">Couldn\'t find that game.</div>'; return; }
         gpDraw(el, want, rows, all, token);
-      }).catch(function() { el.innerHTML = '<div class="loading">Couldn\'t load the game. <button class="link-btn" onclick="renderGamePage()">Try again</button></div>'; });
+        root.scrollTop = 0;
+      }).catch(function() { el.innerHTML = gpCloseBar() + '<div class="loading">Couldn\'t load the game.</div>'; });
+    }
+    function gpClose() {
+      GP.token++;
+      var root = document.getElementById('gp-root');
+      if (root) { root.classList.remove('open'); document.getElementById('gp-frame').innerHTML = ''; }
+      document.documentElement.classList.remove('st-lock');
+      if ((location.hash || '').indexOf('#game/') === 0) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
+    }
+
+    // ── The 🏈 Games tab: every game, newest first, grouped by week ──
+    var GL = { year: '' };
+    function renderGamesList() {
+      var el = document.getElementById('game-content');
+      if (!el) return;
+      if (!el.innerHTML) el.innerHTML = '<div class="loading">Loading every game…</div>';
+      loadAllBets().then(function(all) {
+        var G = {}, years = [];
+        all.forEach(function(r) {
+          if (!isMD(r.picker) || !r.game || !r.homeTeam || !(r.homePick || r.awayPick)) return; // games they actually picked
+          var k = r.year + '-' + r.game;
+          var g = G[k] || (G[k] = { year: r.year, game: String(r.game), week: parseInt(r.week, 10) || 0, slot: r.slot || '', home: r.homeTeam, away: r.awayTeam, idx: r.idx, scorer: '', by: {}, vd: false });
+          if (r.firstScorer) g.scorer = r.firstScorer;
+          if (isNotOffered(r)) g.vd = true;
+          g.by[r.picker] = r;
+          if (years.indexOf(r.year) < 0) years.push(r.year);
+        });
+        years.sort().reverse();
+        if (!GL.year || years.indexOf(GL.year) < 0) GL.year = years[0];
+        var list = Object.keys(G).map(function(k) { return G[k]; }).filter(function(g) { return g.year === GL.year; })
+          .sort(function(a, b) { return b.week - a.week || b.idx - a.idx; });
+        var h = '<div class="gl-head"><div class="lab-title">🏈 Games</div><div class="lab-sub">Every game they\'ve bet on. Tap one for everything about it.</div></div>' +
+          '<div class="af-bar" style="margin-bottom:12px"><span class="af-bar-label">Season</span>' + years.map(function(y) { return '<button class="filter-btn' + (y === GL.year ? ' active' : '') + '" data-gl-y="' + y + '">' + y + '</button>'; }).join('') + '</div>';
+        var wk = null;
+        list.forEach(function(g) {
+          if (g.week !== wk) { if (wk !== null) h += '</div>'; wk = g.week; h += '<div class="gl-wk">' + weekName(g.week) + '</div><div class="gl-list">'; }
+          var res = ['Maria', 'Danielle'].map(function(w) {
+            var r = g.by[w]; if (!r || !(r.homePick || r.awayPick)) return '';
+            var done = r.correct === 'Yes' || r.correct === 'No';
+            return '<span class="gl-who" style="color:' + personColor(w) + '">' + w.charAt(0) + (done ? (g.vd ? ' –' : r.correct === 'Yes' ? ' ✅' : ' ❌') : ' ⏳') + '</span>';
+          }).join('');
+          h += '<button class="gl-g" onclick="openGame(\'' + g.year + '\',\'' + escHtml(g.game) + '\')"><span class="gl-slot">' + escHtml(g.slot) + '</span>' +
+            '<span class="gl-match">' + teamLogo(g.away) + escHtml(teamNick(g.away)) + ' <i>@</i> ' + escHtml(teamNick(g.home)) + teamLogo(g.home) + '</span>' +
+            '<span class="gl-ftd">' + (g.scorer ? '🏈 ' + escHtml(g.scorer) : '<span class="gp-dim">Not played yet</span>') + '</span><span class="gl-res">' + res + '</span><span class="gl-go">›</span></button>';
+        });
+        if (wk !== null) h += '</div>';
+        if (!list.length) h += '<div class="loading">No games yet.</div>';
+        el.innerHTML = h;
+        el.querySelectorAll('[data-gl-y]').forEach(function(b) { b.addEventListener('click', function() { GL.year = b.getAttribute('data-gl-y'); renderGamesList(); }); });
+      }).catch(function() { el.innerHTML = '<div class="loading">Couldn\'t load the games. <button class="link-btn" onclick="renderGamesList()">Try again</button></div>'; });
     }
 
     // Every game they bet on, in order (for ‹ previous / next ›)
@@ -56,7 +119,7 @@
         (typeof nowTeam === 'function' ? nowTeam(scorer) : '') || '';
 
       var h = '<div class="gp">';
-      h += '<div class="gp-top"><button class="link-btn" onclick="switchTab(GAME_FROM)">‹ Back</button>' +
+      h += '<div class="gp-top"><button class="gp-x" onclick="gpClose()" aria-label="Close">✕</button>' +
         '<span class="gp-when">' + want.year + ' · ' + weekName(week) + (g.slot ? ' · ' + escHtml(g.slot) : '') + '</span>' +
         '<span class="gp-pn">' + (prev ? '<button class="adm-btn" onclick="openGame(\'' + prev.year + '\',\'' + prev.game + '\')" title="Previous game">‹</button>' : '') +
         (next ? '<button class="adm-btn" onclick="openGame(\'' + next.year + '\',\'' + next.game + '\')" title="Next game">›</button>' : '') + '</span></div>';
@@ -88,11 +151,10 @@
         return '<div class="gp-col" style="--pc:' + c + '"><div class="gp-col-h" style="color:' + c + '">' + w + '</div>' + picks + u + '</div>';
       }).join('') + '</div>';
       h += '<div id="gp-machine"></div><div id="gp-friends"></div><div id="gp-drive"></div><div id="gp-chat"></div><div id="gp-museum"></div>';
-      h += '<div class="gp-foot"><button class="adm-btn" id="gp-share">🔗 Share this game</button> <button class="adm-btn" onclick="replayGame(\'' + want.year + '\',' + week + ',\'' + escHtml(String(want.game)) + '\')">⏪ Replay it</button></div></div>';
+      h += '<div class="gp-foot"><button class="adm-btn" id="gp-share">🔗 Share this game</button> ' + (settled ? '<button class="adm-btn" onclick="replayGame(\'' + want.year + '\',' + week + ',\'' + escHtml(String(want.game)) + '\')">⏪ Replay it</button>' : '') + '</div></div>';
       el.innerHTML = h;
       if (typeof fillHeadshots === 'function') fillHeadshots(el);
       document.getElementById('gp-share').addEventListener('click', function() { gpShare(this, want, away, home); });
-      window.scrollTo(0, 0);
 
       var ctx = { want: want, week: week, home: home, away: away, scorer: scorer, settled: settled, vd: vd, by: by, isScorer: isScorer, token: token };
       gpEspn(ctx);

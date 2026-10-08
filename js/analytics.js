@@ -752,7 +752,9 @@
                 '<span style="text-align:center">' + tdTag(data.pickedBy) + '</span>' +
               '</div>';
             });
-            html += afVariant('td', [season, who], afList(divs, 10, tdHead, '</div>'));
+            // Show everyone with 2+ first TDs; "Show all" adds the one-timers
+            var lim = list.filter(function(e) { return e[1].total > 1; }).length || Math.min(10, list.length);
+            html += afVariant('td', [season, who], afList(divs, lim, tdHead, '</div>'));
           });
         });
 

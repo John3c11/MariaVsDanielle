@@ -1098,7 +1098,7 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
 .af-bars { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 12px; }
 .af-bar { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
 .af-bar-label { font-size: 11px; color: #9CA3AF; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-right: 2px; }
-.af-list.af-collapsed .af-extra { display: none; }
+.af-list.af-collapsed .af-extra { display: none !important; } /* rows with their own inline display (grid) stay hidden too */
 .af-more { text-align: center; padding: 8px 0 4px; }
 /* Live Picks: headshot + player on one line each */
 .live-pick-card .lp-pick { display: flex; align-items: center; margin: 2px 0; }
@@ -2097,3 +2097,26 @@ button.lab-st-r:hover { background: rgba(255,255,255,0.08); }
   .gp-cols { grid-template-columns: 1fr; }
 }
 .pf-tile-go { cursor: pointer; } .pf-tile-go:hover { background: rgba(255,255,255,0.08); }
+/* v122: Game page full screen + the 🏈 Games list */
+.gp-root { position: fixed; inset: 0; z-index: 980; display: none; background: radial-gradient(120% 60% at 50% 0%, #1A1D26 0%, #07080B 70%) fixed, #07080B; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.gp-root.open { display: block; }
+.gp-frame { max-width: 720px; margin: 0 auto; padding: calc(14px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom)); box-sizing: border-box; }
+.gp-x { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16); color: #F3F4F6; border-radius: 50%; width: 34px; height: 34px; font-size: 15px; cursor: pointer; flex: 0 0 auto; }
+.gl-head { margin: 2px 0 12px; }
+.gl-wk { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #9CA3AF; margin: 16px 0 6px; }
+.gl-list { display: flex; flex-direction: column; gap: 6px; }
+.gl-g { display: grid; grid-template-columns: 96px minmax(0, 1.3fr) minmax(0, 1.2fr) auto 14px; gap: 10px; align-items: center; text-align: left; font-family: 'Inter', sans-serif;
+  padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); color: #E5E7EB; cursor: pointer; font-size: 13px; }
+.gl-g:hover { background: rgba(255,255,255,0.08); }
+.gl-slot { font-size: 10.5px; font-weight: 800; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.06em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gl-match { font-weight: 700; display: flex; align-items: center; gap: 5px; white-space: nowrap; overflow: hidden; }
+.gl-match i { font-style: normal; color: rgba(255,255,255,0.4); }
+.gl-match img { width: 18px; height: 18px; }
+.gl-ftd { color: #D1D5DB; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gl-res { display: flex; gap: 8px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+.gl-go { color: #6B7280; font-size: 16px; }
+@media (max-width: 560px) {
+  .gl-g { grid-template-columns: minmax(0, 1fr) auto 12px; grid-template-areas: "match res go" "ftd ftd go"; row-gap: 3px; }
+  .gl-slot { display: none; }
+  .gl-match { grid-area: match; } .gl-res { grid-area: res; } .gl-ftd { grid-area: ftd; font-size: 12px; color: #A1A9B6; } .gl-go { grid-area: go; }
+}

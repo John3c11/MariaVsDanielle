@@ -218,22 +218,40 @@
         var best = hits.slice().sort(function(a, b) { return b.hit.price - a.hit.price; })[0];
         var fav = {}; D.games.forEach(function(g) { g.picks.forEach(function(x) { fav[x.name] = (fav[x.name] || 0) + 1; }); });
         var favN = Object.keys(fav).sort(function(a, b) { return fav[b] - fav[a]; })[0];
+        var sig = {}; hits.forEach(function(g) { sig[g.hit.name] = (sig[g.hit.name] || 0) + 1; });
+        var sigName = Object.keys(sig).sort(function(a, b) { return sig[b] - sig[a]; })[0];
+        var tab = MACHINE.pfTab || 'overview';
         var h = profileSwitchHtml('Machine') +
-          '<div class="pf-hero" style="--pc:' + MC_COLOR + ';background:linear-gradient(140deg,#0F0F12 0%,#1E1240 55%,#5B21B6 100%)"><div class="mch-avatar">🤖</div>' +
-          '<div class="pf-name" style="color:' + MC_COLOR + '">The Machine</div><div class="pf-sub">' + D.year + ' · ' + S.n + ' games played</div>' +
+          '<div class="pf-card" style="--pc:' + MC_COLOR + '"><div class="pf-card-top"><div class="mch-avatar pf-bot">🤖</div><div class="pf-card-id"><div class="pf-name" style="color:' + MC_COLOR + '">The Machine</div>' +
+          '<div class="pf-sub">' + D.year + ' · ' + S.n + ' games played · ' + D.sealed + ' pick' + (D.sealed === 1 ? '' : 's') + ' sealed</div>' +
+          (sigName ? '<div class="pf-sig">✍️ Signature pick: <b>' + escHtml(sigName) + '</b> <span>' + sig[sigName] + ' hit' + (sig[sigName] === 1 ? '' : 's') + '</span></div>' : '') + '</div></div>' +
           '<div class="pf-big"><div><b>' + S.h + '/' + S.n + '</b><span>Record · ' + (S.n ? Math.round(S.h / S.n * 100) : 0) + '%</span></div>' +
-          '<div><b style="color:' + (S.u >= 0 ? '#34D399' : '#F87171') + '">' + shortU(S.u) + '</b><span>Units' + (D.anyEst ? ' (est)' : '') + '</span></div>' +
-          '<div><b>' + D.sealed + '</b><span>Sealed picks</span></div></div></div>' +
-          '<div class="pf-tiles">' +
-            '<div class="pf-tile"><div class="l">Best hit</div><div class="v">' + (best ? escHtml(best.hit.name) + ' +' + Math.round(best.hit.price) : '—') + '</div><div class="s">' + (best ? wkName(best.week) + (best.hit.real ? '' : ' · est price') : '') + '</div></div>' +
+          '<div><b class="' + (S.u >= 0 ? 'u-good' : 'u-bad') + '">' + shortU(S.u) + '</b><span>Units' + (D.anyEst ? ' (est)' : '') + '</span></div>' +
+          '<div><b>' + (best ? '+' + Math.round(best.hit.price) : '—') + '</b><span>Best hit</span></div></div></div>' +
+          '<div class="pf-tabs">' + [['overview', 'Overview'], ['cards', 'Cards']].map(function(t) { return '<button class="hub-sub-btn' + (tab === t[0] ? ' on' : '') + '" data-mpf-tab="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div>';
+        if (tab === 'overview') {
+          // Ledger: games where only one side hit, against each of them
+          var led = ['Maria', 'Danielle'].map(function(w) {
+            var a = { me: 0, them: 0, both: 0, n: 0 };
+            D.games.forEach(function(g) {
+              var r = g.rows[w]; if (!r || !g.settled || g.notOffered) return;
+              a.n++; var x = !!g.hit, y = r.correct === 'Yes';
+              if (x && !y) a.me++; else if (y && !x) a.them++; else if (x && y) a.both++;
+            });
+            return '<div class="pf-led-r ' + (a.me > a.them ? 'lead' : a.me < a.them ? 'trail' : '') + '"><span class="pf-led-w" style="color:' + personColor(w) + '">vs ' + w + '</span><span class="pf-led-s"><b>' + a.me + '</b>–<b>' + a.them + '</b></span>' +
+              '<span class="pf-led-n">' + (a.both ? a.both + ' both hit · ' : '') + a.n + ' game' + (a.n === 1 ? '' : 's') + '</span></div>';
+          }).join('');
+          h += '<div class="pf-tiles">' +
+            '<div class="pf-tile"><div class="l">Best hit</div><div class="v">' + (best ? escHtml(best.hit.name) + ' +' + Math.round(best.hit.price) : '—') + '</div><div class="s">' + (best ? '<span ' + gameLinkAttr(D.year, best.game) + '>' + wkName(best.week) + (best.hit.real ? '' : ' · est price') + ' ›</span>' : '') + '</div></div>' +
             '<div class="pf-tile"><div class="l">Favorite pick</div><div class="v">' + (favN ? escHtml(favN) : '—') + '</div><div class="s">' + (favN ? 'picked ' + fav[favN] + 'x' : '') + '</div></div>' +
-          '</div>' +
-          '<div class="u-m-6px-0-14px mc-note">It doesn\'t have opinions, just numbers: every pick is the offered player with the best chance on his side. <button class="link-btn" onclick="switchTab(\'machine\')">See every pick →</button></div>' +
-          '<div class="tcd-slot" id="mc-cards"></div>';
+            '</div><div class="pf-h">⚔️ Rivalry ledger <small>games where only one side hit</small></div><div class="pf-ledger">' + led + '</div>' +
+            '<div class="u-m-6px-0-14px mc-note">It doesn\'t have opinions, just numbers: every pick is the offered player with the best chance on his side. <button class="link-btn" onclick="switchTab(\'machine\')">See every pick →</button></div>';
+        } else h += '<div class="tcd-slot" id="mc-cards"></div>';
         el.innerHTML = h;
         bindProfileSwitch(el);
+        el.querySelectorAll('[data-mpf-tab]').forEach(function(b) { b.addEventListener('click', function() { MACHINE.pfTab = b.getAttribute('data-mpf-tab'); renderMachineProfile(el); }); });
         var slot = document.getElementById('mc-cards');
-        loadScriptOnce('js/cards.js').then(function() {
+        if (slot) loadScriptOnce('js/cards.js').then(function() {
           rostersReady().then(function() {
             drawCardAlbum(slot, { key: 'machine', who: 'The Machine', color: MC_COLOR, seasons: false, mode: 'odds',
               hits: hits.map(function(g) { return { name: g.hit.name, team: g.hit.team, year: D.year, week: g.week, odds: g.hit.price, units: g.units }; }) });

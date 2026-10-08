@@ -7,6 +7,7 @@
     // PROFILE_WHO and openProfile() live in main.js (this file loads the first time Profiles opens, v133)
     // Every profile is public. Friends' upcoming picks are only shown to them and admin.
     function loadProfilesTab() {
+      if (PROFILE_TAB_NEXT) { PROFILE_TAB = PROFILE_TAB_NEXT; PROFILE_TAB_NEXT = ''; }
       if (PROFILE_WHO === 'Maria' || PROFILE_WHO === 'Danielle') {
         renderProfile(PROFILE_WHO);
         if (!CROWD.data) getCrowd().then(function() { if (PROFILE_WHO === 'Maria' || PROFILE_WHO === 'Danielle') { var sw = document.querySelector('#profiles-content .pf-switch'); if (sw) { sw.outerHTML = profileSwitchHtml(PROFILE_WHO); bindProfileSwitch(document.getElementById('profiles-content')); } } }).catch(function() {});
@@ -247,7 +248,8 @@
           }).join('') +
           '<div class="pf-seas-r pf-seas-tot"><span>Career</span><span>' + Y.reduce(function(a, y) { return a + y.games; }, 0) + '</span><span>' + (S.n ? Math.round(S.w / S.n * 100) : 0) + '% <small>' + S.w + '/' + S.n + '</small></span>' +
           '<span class="' + (S.units >= 0 ? 'u-good' : 'u-bad') + '">' + fmtU(S.units) + '</span><span class="' + (S.dollars >= 0 ? 'u-good' : 'u-bad') + '">' + fmtDWhole(S.dollars) + '</span><span>' + (S.best ? escHtml(S.best.r.firstScorer) + ' ' + fmtOdds(S.best.odds) : '—') + '</span><span>' + S.heater.n + '</span><span>' + S.weeksWon + '</span></div></div>' +
-          '<div class="ui-note u-mt-s">Games counts every graded bet; hit % leaves out games where the first TD scorer wasn\'t offered. Heater is the longest run of straight hits that season.</div>';
+          '<div class="ui-note u-mt-s">Games counts every graded bet; hit % leaves out games where the first TD scorer wasn\'t offered. Heater is the longest run of straight hits that season.</div>' +
+          '<div class="an-link">Both of them side by side, season by season: <button class="link-btn" onclick="switchTab(\'legacy\')">📜 All-Time →</button></div>';
       }
       if (PROFILE_TAB === 'cards') h += '<div class="tcd-slot" data-who="' + who + '"></div>';
       if (PROFILE_TAB === 'trophies') {
@@ -399,8 +401,6 @@
           bindProfileSwitch(el);
           el.querySelectorAll('[data-pf-tab]').forEach(function(b) { b.addEventListener('click', function() { PROFILE_TAB = b.getAttribute('data-pf-tab'); draw(); }); });
           if (owner) document.getElementById('fr-style-btn').addEventListener('click', function() { openStylePicker(name); });
-          var more = document.getElementById('hist-more');
-          if (more) more.addEventListener('click', function() { el.querySelectorAll('[data-hist]').forEach(function(d) { d.style.display = ''; }); more.remove(); });
           var slot = el.querySelector('.tcd-slot');
           if (slot) loadScriptOnce('js/cards.js').then(function() { return rostersReady(); }).then(function() {
             drawCardAlbum(slot, { key: 'f:' + name, who: name, color: col, seasons: SY.length > 1, mode: 'depth',
@@ -496,17 +496,16 @@
         var hist = C.history.slice().reverse();
         if (hist.length) {
           h += '<div class="pf-h">📜 Pick history <small>' + hist.length + ' game' + (hist.length > 1 ? 's' : '') + '</small></div>';
-          hist.forEach(function(x, i) {
+          h += moreList(hist.map(function(x) {
             var g = x.g, sk = playerKey(g.scorer);
             function pk(p, team) { var hit = g.scorer && playerKey(p) === sk; return '<span class="' + (hit ? 'hist-hit' : '') + '">' + coloredText(p, team) + (hit ? ' ✅' : '') + '</span>'; }
             var tag = x.status === 'hit' ? '<span class="hist-tag hit">HIT</span>' : x.status === 'miss' ? '<span class="hist-tag miss">MISS</span>' :
               x.status === 'void' ? '<span class="hist-tag">NOT OFFERED</span>' : '<span class="hist-tag live">LIVE</span>';
-            h += '<div class="hist-row"' + (i >= 8 ? ' style="display:none" data-hist' : '') + '>' +
+            return '<div class="hist-row">' +
               '<div class="hist-l"><div class="hist-wk"><span ' + gameLinkAttr(x.year, g.game) + '>' + (multi ? x.year + ' · ' : '') + wkName(g.week) + ' · ' + escHtml(g.slot) + ' ›</span></div>' +
               '<div>' + pk(x.r.homePick, g.home) + ' <span class="u-faint">/</span> ' + pk(x.r.awayPick, g.away) + '</div>' +
               (g.scorer ? '<div class="hist-sc">🏈 ' + escHtml(g.scorer) + '</div>' : '') + '</div>' + tag + '</div>';
-          });
-          if (hist.length > 8) h += '<div class="u-center u-mt-s"><button class="link-btn" id="hist-more">Show all ' + hist.length + '</button></div>';
+          }), 8);
         }
       }
       if (PROFILE_TAB === 'seasons') {

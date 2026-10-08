@@ -11,7 +11,6 @@
 @media (max-width: 700px) { .an-tab { font-size: 12px; padding: 7px 11px; } }
 .ch-intro { font-size: 12px; color: var(--t3); margin-bottom: 12px; }
 .af-bars { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 12px; }
-.af-list.af-collapsed .af-extra { display: none !important; }
 @media (min-width: 1440px) { .an-pane { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 28px; align-items: start; } }
 @media (min-width: 1440px) { .an-pane[style*="none"] { display: none; } }
 @media (min-width: 1440px) { .an-pane > .an-sec:has(.ch-svg), .an-pane > .an-sec:only-child { grid-column: 1 / -1; } }

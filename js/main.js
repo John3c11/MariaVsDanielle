@@ -67,8 +67,8 @@
 
     // ── Tabs whose code loads the first time they open (v133): Profiles, All-Time, Bet Log, Schedule ──
     // These stand-ins load the real file, which replaces them, then run the real one.
-    var PROFILE_WHO = 'Maria';
-    function openProfile(name) { PROFILE_WHO = name; switchTab('profiles'); }
+    var PROFILE_WHO = 'Maria', PROFILE_TAB_NEXT = '';
+    function openProfile(name, tab) { PROFILE_WHO = name; PROFILE_TAB_NEXT = tab || ''; switchTab('profiles'); } // tab: 'seasons', 'cards'…
     function lazyTab(file, elId, again) {
       loadScriptOnce(file).then(again).catch(function() {
         var el = document.getElementById(elId);

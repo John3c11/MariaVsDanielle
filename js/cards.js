@@ -124,14 +124,14 @@
         h += '<div class="tcd-tally">' + CARD_TIERS.map(function(t) { return counts[t.k] ? '<span class="tcd-t-' + t.k + '" title="' + t.d + '">' + counts[t.k] + ' ' + t.t + '</span>' : ''; }).join('') +
           '<span class="tcd-key">' + CARD_KEY[A.mode] + '</span></div>';
         h += '<div class="tcd-grid">' + cards.map(function(c, i) { return cardHtml(c, A, i >= LIMIT && !showAll); }).join('') + '</div>';
-        if (cards.length > LIMIT && !showAll) h += '<div class="u-center"><button class="link-btn" data-tcd-all="1">Show all ' + cards.length + ' cards</button></div>';
+        if (cards.length > LIMIT) h += '<div class="af-more"><button class="link-btn" data-tcd-all="1">' + (showAll ? 'Show less' : 'Show all ' + cards.length) + '</button></div>';
         el.innerHTML = h;
         if (typeof fillHeadshots === 'function') fillHeadshots(el);
       }
       el.querySelectorAll('[data-tcd-season]').forEach(function(b) { b.addEventListener('click', function() { CARDS.season[A.key] = b.getAttribute('data-tcd-season'); drawCardAlbum(el, A); }); });
       el.querySelectorAll('[data-tcd-sort]').forEach(function(b) { b.addEventListener('click', function() { CARDS.sort[A.key] = b.getAttribute('data-tcd-sort'); drawCardAlbum(el, A); }); });
       var more = el.querySelector('[data-tcd-all]');
-      if (more) more.addEventListener('click', function() { CARDS.all[A.key] = true; drawCardAlbum(el, A); });
+      if (more) more.addEventListener('click', function() { CARDS.all[A.key] = !CARDS.all[A.key]; drawCardAlbum(el, A); });
       el.querySelectorAll('.tcd').forEach(function(card) {
         card.addEventListener('click', function(e) {
           if (e.target.closest('.tcd-share')) return shareTradingCard(card, e.target.closest('.tcd-share'));

@@ -171,6 +171,7 @@
       { k: 'bestwk', ic: '📈', t: 'Best week' },
       { k: 'worstwk', ic: '📉', t: 'Worst week', shame: true },
       { k: 'hitswk', ic: '🎯', t: 'Most hits in a week' },
+      { k: 'stretch', ic: '🔟', t: 'Best 10-bet stretch' },
       { k: 'season', ic: '🏆', t: 'Best season' },
     ];
     function computeRecords(rows) {
@@ -196,6 +197,16 @@
           if (r.correct === 'Yes') beat('heater', cur.Yes, n, { year: r.year, week: r.week, txt: cur.Yes + ' straight hits', sub: span });
           else beat('drought', cur.No, n, { year: r.year, week: r.week, txt: cur.No + ' straight misses', sub: span });
         });
+      });
+      // Best run of 10 bets in a row by units (moved here from Analytics in v135)
+      ['Maria', 'Danielle'].forEach(function(n) {
+        var mine = bets.filter(function(r) { return r.picker === n; });
+        for (var i = 0; i + 10 <= mine.length; i++) {
+          var w = mine.slice(i, i + 10), u = 0, h = 0;
+          w.forEach(function(r) { u += r.netUnits; if (r.correct === 'Yes' && !isNotOffered(r)) h++; });
+          var a = w[0], z = w[9];
+          beat('stretch', Math.round(u * 10) / 10, n, { year: z.year, week: z.week, txt: fmtU(u), sub: h + ' of 10 hit · ' + a.year + ' ' + wkName(a.week) + ' – ' + (a.year === z.year ? '' : z.year + ' ') + wkName(z.week) });
+        }
       });
       // Weeks and seasons
       var W = {}, S = {};
@@ -241,7 +252,7 @@
       try { saved = JSON.parse(localStorage.getItem('mvd-records') || 'null'); } catch (e) {}
       try { localStorage.setItem('mvd-records', JSON.stringify(now)); } catch (e) {}
       if (!saved) return [];
-      return RECORDS.filter(function(d) { return now[d.k] && saved[d.k] !== now[d.k] && R[d.k].year === CURRENT_YEAR; }).map(function(d) {
+      return RECORDS.filter(function(d) { return now[d.k] && d.k in saved && saved[d.k] !== now[d.k] && R[d.k].year === CURRENT_YEAR; }).map(function(d) { // (a record added in a new version isn't "new")
         var r = R[d.k];
         return '🚨 New record: ' + d.ic + ' <b>' + d.t + '</b>, <b style="color:' + personColor(r.who) + '">' + r.who + '</b> ' + r.txt;
       });

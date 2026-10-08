@@ -172,9 +172,9 @@
         });
         var wkKeys = Object.keys(weeks).filter(function(w) { return weeks[w].best > 0; }).sort(function(a, b) { return b - a; });
         if (wkKeys.length) {
-          h += '<div class="u-mt-l pf-h">🗓️ Weekly Best</div>' + wkKeys.map(function(w) {
+          h += '<div class="u-mt-l pf-h">🗓️ Weekly Best</div>' + moreList(wkKeys.map(function(w) {
             return '<div class="adm-row"><span class="u-muted">' + weekName(w) + '</span><span><b>' + weeks[w].who.map(fName).join(' & ') + '</b> · ' + weeks[w].best + ' hit' + (weeks[w].best > 1 ? 's' : '') + '</span></div>';
-          }).join('');
+          }), 5);
         }
 
         // Game by game (only games that have kicked off)
@@ -183,26 +183,23 @@
         var gKeys = Object.keys(byGame).filter(function(k) { return G[k]; }).sort(function(a, b) { return G[b].week - G[a].week || G[b].game - G[a].game; });
         if (gKeys.length) {
           h += '<div class="u-mt-l pf-h">🏈 Game by Game</div>';
-          gKeys.forEach(function(k, i) {
+          h += moreList(gKeys.map(function(k) {
             var g = G[k], sk = playerKey(g.scorer);
             function pk(p, team) {
               var hit = g.scorer && playerKey(p) === sk;
               return '<span style="' + (hit ? 'color:#34D399;font-weight:800' : '') + '">' + escHtml(p) + (hit ? ' ✅' : '') + '</span>';
             }
-            h += '<div class="sch-game" style="' + (i >= 6 ? 'display:none' : '') + '" data-cg="1"><div class="sch-top"><span class="sch-slot">' + weekName(g.week) + ' · ' + escHtml(g.slot) + '</span>' +
+            return '<div class="sch-game"><div class="sch-top"><span class="sch-slot">' + weekName(g.week) + ' · ' + escHtml(g.slot) + '</span>' +
               '<span class="sch-ko">' + (g.scorer ? '🏈 ' + escHtml(g.scorer) : '⏳ In progress') + '</span></div>' +
               '<div class="sch-teams">' + teamPill(g.home, g.home) + ' <span class="u-faint">vs</span> ' + teamPill(g.away, g.away) + '</div>' +
               byGame[k].map(function(p) {
                 return '<div class="ui-note-plain"><b>' + fName(p.friend) + '</b> · ' + pk(p.homePick) + ' / ' + pk(p.awayPick) + '</div>';
               }).join('') + '</div>';
-          });
-          if (gKeys.length > 6) h += '<div class="u-center"><button class="link-btn" id="cr-more">Show all ' + gKeys.length + ' games</button></div>';
+          }), 6);
         }
         el.innerHTML = h;
         crowdSeasonChips(yr);
         if (!past) loadScriptOnce('js/market.js').then(function() { renderMarket(document.getElementById('market-slot'), {}); }).catch(function() {});
-        var more = document.getElementById('cr-more');
-        if (more) more.addEventListener('click', function() { el.querySelectorAll('[data-cg]').forEach(function(d) { d.style.display = ''; }); more.remove(); });
       }).catch(function() { el.innerHTML = '<div class="loading">Couldn\'t load the crowd right now.</div>'; });
     }
 

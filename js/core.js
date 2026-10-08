@@ -75,6 +75,28 @@
       link.parentNode.insertBefore(fresh, link.nextSibling);
     })();
 
+    // ── One "Show all N / Show less" for every long list on the site (v135) ──
+    // rows: array of row HTML strings. Rows past `limit` are hidden until "Show all" (the first tag of each
+    // gets the ml-x class). open/close wrap the rows (a table, a styled box). Show less scrolls back up to the list.
+    function addClassTo(html, cls) {
+      var m = /^(\s*<\w+)([^>]*?)(\sclass=")([^"]*)"/.exec(html);
+      if (m && m[2].indexOf('>') < 0) return m[1] + m[2] + m[3] + m[4] + ' ' + cls + '"' + html.slice(m[0].length);
+      return html.replace(/^(\s*<\w+)/, '$1 class="' + cls + '"');
+    }
+    function moreList(rows, limit, open, close) {
+      var n = rows.length, fold = n > limit;
+      return '<div class="ml' + (fold ? ' ml-folded' : '') + '">' + (open || '') +
+        rows.map(function(r, i) { return i < limit ? r : addClassTo(r, 'ml-x'); }).join('') + (close || '') +
+        (fold ? '<div class="af-more"><button class="link-btn" data-ml="' + n + '">Show all ' + n + '</button></div>' : '') + '</div>';
+    }
+    document.addEventListener('click', function(e) {
+      var b = e.target.closest && e.target.closest('[data-ml]');
+      if (!b) return;
+      var list = b.closest('.ml'), folded = list.classList.toggle('ml-folded');
+      b.textContent = folded ? 'Show all ' + b.getAttribute('data-ml') : 'Show less';
+      if (folded) { var top = list.getBoundingClientRect().top; if (top < 0) window.scrollBy(0, top - 70); }
+    });
+
     // ── Week names: playoff weeks get their round's name everywhere on the site ──
     // Same numbering as ESPN and the scripts: 19 = Wild Card, 20 = Divisional, 21 = Conference, 23 = Super Bowl (22 is the Pro Bowl week).
     var PLAYOFF_ROUNDS = { 19: 'Wild Card', 20: 'Divisional', 21: 'Conference', 22: 'Pro Bowl', 23: 'Super Bowl' };

@@ -1152,8 +1152,6 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
 .lp-rec { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
 .lp-best { font-size: 10px; font-weight: 800; color: #FBBF24; white-space: nowrap; }
 /* Player card: older games behind "Show all" */
-.pc-folded .pc-extra { display: none; }
-.pc-all { display: block; margin: 8px auto 0; }
 
 /* ── v94: phone bottom tab bar ──────────────────────────────────────────── */
 #tab-login[data-in]::before { content: attr(data-ic) ' '; }   /* desktop: "👤 Maria" like before */
@@ -1669,7 +1667,7 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 }
 
 /* ── v129: 📨 invite / sign-up, friend home summary ── */
-:root { --css-v: "134"; } /* main.js compares this with the page version to catch an old style.css */
+:root { --css-v: "135"; } /* main.js compares this with the page version to catch an old style.css */
 .join-box { max-width: 340px; margin-left: auto; margin-right: auto; }
 .join-l { display: block; text-align: left; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t3); margin: 14px 0 6px; }
 .join-in { width: 100%; box-sizing: border-box; }
@@ -1719,3 +1717,8 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 .nm-mode button { flex: 1 1 0; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; color: var(--t3); background: none; border: 0; border-radius: 10px; padding: 10px 8px; cursor: pointer; }
 .nm-mode button:hover { color: var(--t1); }
 .nm-mode button.on { color: #0B0B0E; background: #F3F4F6; }
+
+/* ── v135: one "Show all / Show less" for every list, and links between the pages ── */
+.ml.ml-folded .ml-x { display: none !important; }
+.an-link { font-size: 12.5px; color: var(--t3); margin: 8px 0 14px; line-height: 1.6; }
+.an-link .link-btn { font-size: 12.5px; }

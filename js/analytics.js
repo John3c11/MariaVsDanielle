@@ -29,20 +29,9 @@
       return '<div class="af-v" style="display:none" data-g="' + g + '" data-v="' + vals.join('|') + '" data-lazy="' + id + '"></div>';
     }
 
-    // rowsHtml: array of row strings. Rows past `limit` hide behind a "Show all" button.
-    // wrapOpen/wrapClose let rows sit inside a table or styled box.
-    function afList(rowsHtml, limit, wrapOpen, wrapClose) {
-      var out = '<div class="af-list af-collapsed">' + (wrapOpen || '');
-      rowsHtml.forEach(function(r, i) {
-        out += i < limit ? r : r.replace(/^<(\w+)/, '<$1 class="af-extra"');
-      });
-      out += (wrapClose || '');
-      if (rowsHtml.length > limit) {
-        var label = 'Show all ' + rowsHtml.length;
-        out += '<div class="af-more"><button class="link-btn" data-af-more="1" data-label="' + label + '">' + label + '</button></div>';
-      }
-      return out + '</div>';
-    }
+    // rowsHtml: array of row strings. Rows past `limit` hide behind "Show all" (moreList in core.js, v135:
+    // the same Show all / Show less as every other list on the site).
+    function afList(rowsHtml, limit, wrapOpen, wrapClose) { return moreList(rowsHtml, limit, wrapOpen, wrapClose); }
 
     // ── Analytics layout: one season picker + four sub-tabs ──────────────────
     var AN_TABS = [
@@ -55,9 +44,7 @@
     // Order matters: a section that receives others must be merged after them.
     var AN_MERGE = {
       'Week-by-Week Results': ['Weekly Units', 'list', 'Week by week', 'Show the week-by-week list'],
-      'Win Rate by Week': ['Weekly Units', 'list', 'Win rate by week', 'Show the week-by-week list'],
       'Odds vs Hits': ['Boldness Meter', 'sub', 'Where the hits come from'],
-      'Best Stretches & Biggest Wins': ['Hit Grid', 'list', 'Best stretches & biggest wins (all seasons)', 'Show best stretches & biggest wins'],
     };
     var AN_RENAME = { 'Who Scores First': 'Which Side Scores First' };
     // "Explore this →" on each story (v134): the same question in 🧪 Explore, already set up.
@@ -181,13 +168,6 @@
     function afInit(root) {
       Object.keys(AF).forEach(afApply);
       root.addEventListener('click', function(e) {
-        var more = e.target.closest('[data-af-more]');
-        if (more) {
-          var list = more.closest('.af-list');
-          var collapsed = list.classList.toggle('af-collapsed');
-          more.textContent = collapsed ? more.getAttribute('data-label') : 'Show less';
-          return;
-        }
         var btn = e.target.closest('[data-af-g]');
         if (!btn) return;
         var g = btn.getAttribute('data-af-g');
@@ -251,12 +231,6 @@
         var EMPTY = function(t) { return '<div class="u-c-muted u-fs-13px u-ta-center u-p-16px">' + t + '</div>'; };
 
         // (v121: "Most picked & cursed picks" cut. Each Profile has Ride or Die + the Hall of Shame, and the Stat Lab splits by player.)
-
-        // ── Fun Stats from Legacy ─────────────────────────────────────────────
-        function legFun(label, val, cls) {
-          var color = cls === 'maria' ? SB_M : cls === 'danielle' ? SB_D : cls === 'red' ? '#F87171' : '#F3F4F6';
-          return '<div class="u-d-flex u-jc-space-between u-p-11px-0 u-bb-0-5px-solid-rgba-255-255-255-0-06 u-fs-13px u-gap-16px"><span class="u-muted">' + label + '</span><span style="font-weight:600;text-align:right;color:' + color + '">' + val + '</span></div>';
-        }
 
         // ── Streaks ───────────────────────────────────────────────────────────
         // ── Jinx Tracker ──────────────────────────────────────────────────────
@@ -326,6 +300,7 @@
         html += '<div class="ch-intro">Every bet as a square, so hot and cold stretches stand out.</div>';
         html += '<div class="af-bars">' + afBar('hgrid', 'season', 'Season', SEASON_OPTS, CUR_SEASON) + '</div>';
         SEASON_OPTS.forEach(function(so) { html += afVariant('hgrid', [so[0]], '<div class="ch-box">' + hitGridChart(rows, so[0]) + '</div>'); });
+        html += '<div class="an-link">Biggest hits, longest streaks and best stretches: <button class="link-btn" onclick="switchTab(\'legacy\')">📖 Record Book in All-Time →</button></div>';
 
         // (v121: Pick of the Season cut. The Museum's big hits and each Profile's Best Hit show it.)
 
@@ -376,59 +351,8 @@
           html += afVariant('wsf', [season], inner + '</div>');
         });
 
-        // ── Best Stretch & Biggest Wins (from all-time data) ───────────────────
-        html += section("Best Stretches & Biggest Wins");
-        html += '<div class="u-mb-16px">';
-
-        // Best 10-game stretch by money
-        function bestStretchAll(betsArr) {
-          var best = { dollars: -Infinity, label: 'No profitable stretch yet' };
-          for (var i = 0; i < betsArr.length; i++) {
-            for (var j = i+1; j <= Math.min(i+10, betsArr.length); j++) {
-              var w = betsArr.slice(i,j);
-              var wins = w.filter(function(b){return b.correct==="Yes";}).length;
-              var u = w.reduce(function(a,b){return a+b.netUnits;},0);
-              var d = w.reduce(function(a,b){return a+b.netDollars;},0);
-              if (d > best.dollars) {
-                var a = w[0], z = w[w.length - 1];
-                var span = a.year === z.year
-                  ? (a.week === z.week ? wkLabel(a.year, a.week) : a.year + ' ' + wkName(a.week) + '–' + (isPlayoffWeek(z.week) ? wkName(z.week) : z.week))
-                  : wkLabel(a.year, a.week) + ' to ' + wkLabel(z.year, z.week);
-                best = { wins:wins, total:w.length, units:u, dollars:d,
-                  label: '$'+d.toFixed(2)+' (+'+u.toFixed(1)+'u) — '+wins+'/'+w.length+' correct · '+span };
-              }
-            }
-          }
-          return best;
-        }
-
-        var mStretchAll = bestStretchAll(rows.filter(function(r){return r.picker==="Maria" && (r.correct==="Yes"||r.correct==="No");}));
-        var dStretchAll = bestStretchAll(rows.filter(function(r){return r.picker==="Danielle" && (r.correct==="Yes"||r.correct==="No");}));
-        if (mStretchAll.dollars > -Infinity) html += legFun("Maria's best 10-game stretch", mStretchAll.label, 'maria');
-        if (dStretchAll.dollars > -Infinity) html += legFun("Danielle's best 10-game stretch", dStretchAll.label, 'danielle');
-
-        // Biggest wins all-time
-        var mBigWin = null, dBigWin = null;
-        rows.filter(function(r){return r.correct==="Yes";}).forEach(function(r) {
-          if (r.picker==="Maria" && (!mBigWin || r.netUnits > mBigWin.netUnits)) mBigWin = r;
-          if (r.picker==="Danielle" && (!dBigWin || r.netUnits > dBigWin.netUnits)) dBigWin = r;
-        });
-        if (mBigWin) html += legFun("Maria's biggest win ever", '+'+mBigWin.netUnits+'u ($'+mBigWin.netDollars+') — '+mBigWin.firstScorer+', '+wkLabel(mBigWin.year, mBigWin.week), 'maria');
-        if (dBigWin) html += legFun("Danielle's biggest win ever", '+'+dBigWin.netUnits+'u ($'+dBigWin.netDollars+') — '+dBigWin.firstScorer+', '+wkLabel(dBigWin.year, dBigWin.week), 'danielle');
-
-        // Most scored first TD (correctly guessed)
-        var csc = {};
-        rows.forEach(function(r){ if (r.firstScorer && r.correct==="Yes") csc[r.firstScorer]=(csc[r.firstScorer]||0)+1; });
-        var cscArr = Object.keys(csc).map(function(n){return {name:n,count:csc[n]};}).sort(function(a,b){return b.count-a.count;});
-        if (cscArr.length > 0) {
-          var topC = cscArr[0].count;
-          var tied = cscArr.filter(function(s){return s.count===topC;});
-          var cVal = topC<=1 ? 'Tied at 1 — '+tied.map(function(s){return s.name;}).join(', ') : tied.map(function(s){return s.name;}).join(', ')+' ('+topC+'x)';
-          html += legFun('Most scored first TD (correctly guessed)', cVal, '');
-        }
-
-        html += '</div>';
-
+        // (v135: Best Stretches & Biggest Wins cut. Biggest hits, streaks and the best 10-game stretch are in
+        //  📜 All-Time's Record Book; the Hit Grid links there.)
         // ── Positions (used by Picking vs Reality; hit rate by position is in the Stat Lab) ────
         try { await ROSTERS_READY; } catch (e) {}
         var POS_ORDER = ['WR', 'RB', 'TE', 'QB', 'Other'];
@@ -545,57 +469,7 @@
             (rowsHtml.length ? afList(rowsHtml, 6) : EMPTY('No scored weeks yet.')) + '</div>');
         });
 
-// ── Performance: Win rate by week ─────────────────────────────────────
-        html += section("Win Rate by Week");
-        html += '<div class="af-bars">' +
-          afBar('wrw', 'season', 'Season', SEASON_OPTS, CUR_SEASON) +
-          afBar('wrw', 'picker', 'Picker', PICKER_OPTS, 'all') + '</div>';
-        html += '<div class="u-fs-12px u-c-muted u-mb-10px">A game counts as a win if any selected pick was right. Newest weeks first.</div>';
-        SEASON_OPTS.forEach(function(so) {
-          PICKER_OPTS.forEach(function(po) {
-            var season = so[0], picker = po[0];
-            var weekData = {};
-            scored.forEach(function(r) {
-              if (!inSeason(r, season) || !byPicker(r, picker)) return;
-              var wk = r.year + '_' + r.week;
-              var gameKey = r.year + "_" + r.week + "_" + r.homeTeam + "_" + r.awayTeam;
-              if (!weekData[wk]) weekData[wk] = { year: r.year, week: r.week, wins: 0, total: 0, games: {} };
-              if (!weekData[wk].games[gameKey]) {
-                weekData[wk].games[gameKey] = { win: false };
-                weekData[wk].total++;
-              }
-              if (r.correct === "Yes") weekData[wk].games[gameKey].win = true;
-            });
-            var weeks = Object.keys(weekData).map(function(k) {
-              var d = weekData[k];
-              d.wins = Object.values(d.games).filter(function(g) { return g.win; }).length;
-              d.rate = d.wins / d.total;
-              return d;
-            }).sort(function(a, b) {
-              return a.year !== b.year ? parseInt(b.year) - parseInt(a.year) : b.week - a.week;
-            });
-            if (!weeks.length) { html += afVariant('wrw', [season, picker], EMPTY('No scored games yet.')); return; }
-            var best = weeks[0], worst = weeks[0];
-            weeks.forEach(function(d) {
-              if (d.rate > best.rate) best = d;
-              if (d.rate < worst.rate) worst = d;
-            });
-            var bars = weeks.map(function(d) {
-              var barColor = d.rate > 0.5 ? "#34D399" : d.rate > 0.25 ? "#FBBF24" : "#F87171";
-              return '<div class="u-d-flex u-ai-center u-gap-10px u-mb-6px">' +
-                '<span class="u-fs-11px u-c-muted u-w-72px u-fshrink-0">' + wkLabel(d.year, d.week) + '</span>' +
-                '<div class="u-f-1 u-bg-rgba-255-255-255-0-12 u-r-4px u-h-10px">' +
-                  '<div style="width:' + Math.round(d.rate * 100) + '%;background:' + barColor + ';height:10px;border-radius:4px"></div>' +
-                '</div>' +
-                '<span class="u-fs-11px u-c-muted u-w-62px u-ta-right u-fshrink-0">' + pct(d.wins, d.total) + ' (' + d.wins + '/' + d.total + ')</span>' +
-              '</div>';
-            });
-            var inner = afList(bars, 8, '<div class="u-bg-rgba-255-255-255-0-05 u-r-10px u-p-16px u-mb-12px">', '</div>');
-            inner += statRow("Best week", wkLabel(best.year, best.week) + " — " + pct(best.wins, best.total));
-            inner += statRow("Worst week", wkLabel(worst.year, worst.week) + " — " + pct(worst.wins, worst.total));
-            html += afVariant('wrw', [season, picker], inner);
-          });
-        });
+        // (v135: Win Rate by Week cut. Week-by-Week Results above has the same weeks, and best/worst week are in the Record Book.)
 
         // (v134: Month by Month cut. Weekly Units shows the same run of form week by week, and Explore filters any stretch of weeks.)
 

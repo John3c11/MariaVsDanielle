@@ -349,7 +349,7 @@
             '</span></div>';
         }
 
-        // Newest first; past 6 they hide behind a "Show all" button
+        // Newest first; past 6 they hide behind "Show all" (moreList, core.js)
         var allGames = p.gameOrder.slice().reverse();
         var games = allGames.map(function(gk, gi) {
           var g = p.games[gk];
@@ -366,9 +366,9 @@
           var res = !g.scorer ? '<span class="u-faint">Pending</span>'
                   : playerKey(g.scorer) === k ? '<span class="u-good u-bold">🏈 Scored first</span>'
                   : '<span class="u-faint">—</span>';
-          return '<div class="pc-game' + (gi >= 6 ? ' pc-extra' : '') + '"><span class="u-muted">' + g.year + ' ' + wkName(g.week) + '</span>' +
+          return '<div class="pc-game"><span class="u-muted">' + g.year + ' ' + wkName(g.week) + '</span>' +
             '<span>' + vs + ' ' + chips + '</span><span>' + res + '</span></div>';
-        }).join('');
+        });
 
         var html = '<div class="pc-backdrop" id="pc-backdrop"><div class="pc-card" role="dialog" aria-label="' + p.name + '">' +
           '<div class="pc-head" style="background:linear-gradient(150deg,' + hexA(headBg, 0.95) + ' 0%,' + hexA(headBg, 0.35) + ' 70%, rgba(17,19,24,1) 100%)">' +
@@ -388,7 +388,7 @@
                 '<div class="pc-small">' + (pickedGames.length ? 'scored first in ' + hitGames + ' of ' + pickedGames.length : 'no picked games yet') + '</div></div>' +
             '</div>' +
             person('Maria') + person('Danielle') + oddsHistoryHtml(p.oddsHist || []) +
-            (games ? '<div class="pc-games' + (allGames.length > 6 ? ' pc-folded' : '') + '"><div class="pc-label">Recent games</div>' + games + (allGames.length > 6 ? '<button class="link-btn pc-all" onclick="this.parentNode.classList.remove(\'pc-folded\');this.remove()">Show all ' + allGames.length + ' games</button>' : '') + '</div>' : '') +
+            (games.length ? '<div class="pc-games"><div class="pc-label">Recent games</div>' + moreList(games, 6) + '</div>' : '') +
           '</div></div></div>';
 
         closePlayerCard();

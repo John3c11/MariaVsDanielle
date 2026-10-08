@@ -386,6 +386,7 @@
         // (v121: the All-Time Totals block was cut: the By Season table's Total row has the same numbers)
         // Earnings by season (both of them together). This used to be its own tab.
         html += secH('📅 By Season', 'hit rates, odds and earnings') + '<div id="legacy-earn"><div class="loading">Loading…</div></div>';
+        html += '<div class="an-link">Each one\'s own season table, with best hit and longest heater: <button class="link-btn" onclick="openProfile(\'Maria\', \'seasons\')">Maria</button> · <button class="link-btn" onclick="openProfile(\'Danielle\', \'seasons\')">Danielle</button></div>';
         html += secH('🪜 Climbing out of the hole', 'where the season ends if nothing else hits') + '<div id="legacy-climb"><div class="loading">Loading…</div></div>';
 
         html += '</div><div class="wide-col">';

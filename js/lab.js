@@ -600,7 +600,7 @@
             '<span class="lab-dc-ic">' + (d.hot ? '🔥' : '🧊') + '</span><span class="lab-dc-m"><span class="lab-dc-t">' + labDiscText(d) + (!first && !seen[d.key] ? ' <span class="lab-new">NEW</span>' : '') + '</span>' +
             '<span class="lab-dc-s">The odds said about ' + d.e.toFixed(1) + ' hit' + (Math.abs(d.e - 1) < 0.05 ? '' : 's') + ' · ' + fmtU(d.u) + '</span></span></button>';
         }).join('') + '</div>' +
-        (D.length > 4 ? '<div class="u-pt-0 af-more"><button class="link-btn" id="lab-disc-all">' + (LAB.discAll ? 'Show fewer' : 'Show all ' + D.length) + '</button></div>' : '');
+        (D.length > 4 ? '<div class="u-pt-0 af-more"><button class="link-btn" id="lab-disc-all">' + (LAB.discAll ? 'Show less' : 'Show all ' + D.length) + '</button></div>' : '');
       el.querySelectorAll('[data-lab-disc]').forEach(function(b) {
         b.addEventListener('click', function() {
           LAB.q = labDiscQuery(show[+b.getAttribute('data-lab-disc')]); LAB.shown = 25; labDraw();

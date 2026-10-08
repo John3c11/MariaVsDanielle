@@ -191,12 +191,15 @@
           if (v === null) { pen = false; return; }
           d += (pen ? 'L' : 'M') + x(i).toFixed(1) + ',' + y(v).toFixed(1); pen = true; last = { i: i, v: v };
         });
-        svg += '<path d="' + d + '" fill="none" stroke="' + s.color + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
-        if (last) { svg += '<circle cx="' + x(last.i) + '" cy="' + y(last.v) + '" r="4" fill="' + s.color + '" stroke="' + CH.surface + '" stroke-width="2"/>'; ends.push({ y: y(last.v), x: x(last.i), txt: o.fmt(last.v), c: s.color }); }
+        svg += '<path d="' + d + '" fill="none" stroke="' + s.color + '" stroke-width="' + (s.width || 2) + '" stroke-linejoin="round" stroke-linecap="round"' + (s.dash ? ' stroke-dasharray="' + s.dash + '" opacity="0.7"' : '') + '/>';
+        if (last && !s.noEnd) { svg += '<circle cx="' + x(last.i) + '" cy="' + y(last.v) + '" r="4" fill="' + s.color + '" stroke="' + CH.surface + '" stroke-width="2"/>'; ends.push({ y: y(last.v), x: x(last.i), txt: o.fmt(last.v), c: s.color }); }
       });
       if (ends.length === 2 && Math.abs(ends[0].y - ends[1].y) < 14) {
         var mid = (ends[0].y + ends[1].y) / 2, up = ends[0].y <= ends[1].y;
         ends[0].y = mid + (up ? -7 : 7); ends[1].y = mid + (up ? 7 : -7);
+      } else if (ends.length > 2) { // 3+ end labels: keep them 14px apart, top to bottom
+        ends.sort(function(a, b) { return a.y - b.y; });
+        for (var ei = 1; ei < ends.length; ei++) if (ends[ei].y - ends[ei - 1].y < 14) ends[ei].y = ends[ei - 1].y + 14;
       }
       ends.forEach(function(e) { svg += '<text x="' + (e.x + 9) + '" y="' + (e.y + 4) + '" font-size="12" font-weight="700" fill="' + e.c + '">' + e.txt + '</text>'; });
       // hover columns

@@ -392,6 +392,7 @@
         // (v121: the All-Time Totals block was cut: the By Season table's Total row has the same numbers)
         // Earnings by season (both of them together). This used to be its own tab.
         html += secH('📅 By Season', 'hit rates, odds and earnings') + '<div id="legacy-earn"><div class="loading">Loading…</div></div>';
+        html += secH('🪜 Climbing out of the hole', 'where the season ends if nothing else hits') + '<div id="legacy-climb"><div class="loading">Loading…</div></div>';
 
         html += '</div><div class="wide-col">';
         // Record Book (insights.js): every all-time record and who holds it
@@ -421,6 +422,7 @@
         html += '<div style="font-size:12px;color:#9CA3AF;text-align:center;margin:-8px 0 20px">' + CURRENT_YEAR + ' Wrapped unlocks when the season is over.</div>';
 
         document.getElementById('legacy-content').innerHTML = html;
+        renderClimb();
         document.querySelectorAll('[data-race-y]').forEach(function(b) {
           b.addEventListener('click', function() {
             var y = b.getAttribute('data-race-y'), box = document.getElementById('lg-race');
@@ -498,6 +500,85 @@
       h += tile('🏆 Beat Both', beatBoth + ' friend' + (beatBoth === 1 ? '' : 's'), 'better win % than Maria and Danielle');
       h += '</div></div>';
       return h;
+    }
+
+    // ── 🪜 Climbing out of the hole (inside All-Time) ───────────────────────
+    // The "floor": where a season ends if no other bet hits. Like the sheet's "Total $ Through This Week",
+    // every bet not graded yet counts as lost (both picks, so 2 units for a game with no picks entered yet).
+    // It starts at the worst case (every bet of the season misses), only moves up (a hit adds what it won
+    // back on top of the stake the floor had already written off; a miss changes nothing), and ends at the
+    // season's real total. Games added to the sheet later lower the whole line by their stakes.
+    var CLIMB = { year: '' };
+    function climbData(rows, year) {
+      var R = rows.filter(function(r) { return r.year === year && isMD(r.picker) && r.game; });
+      if (!R.length) return null;
+      function graded(r) { return r.correct === 'Yes' || r.correct === 'No' || isNotOffered(r); }
+      function perUnit(r) { var a = parseFloat(String(r.amount || '').replace(/[^0-9.]/g, '')); return a > 0 ? a : r.netUnits ? Math.abs(r.netDollars / r.netUnits) || 5 : 5; }
+      function stake(r) { var n = (r.homePick ? 1 : 0) + (r.awayPick ? 1 : 0); return (graded(r) ? n : (n || 2)) * perUnit(r); }
+      var weeks = []; R.forEach(function(r) { var w = parseInt(r.week, 10) || 0; if (weeks.indexOf(w) < 0) weeks.push(w); });
+      weeks.sort(function(a, b) { return a - b; });
+      var who = ['Maria', 'Danielle'], S = {};
+      who.forEach(function(w) { S[w] = { floor: [], actual: [] }; });
+      // Point 0 = before any game; then one point per week
+      [0].concat(weeks).forEach(function(wk, i) {
+        who.forEach(function(w) {
+          var f = 0, a = 0;
+          R.forEach(function(r) {
+            if (r.picker !== w) return;
+            var done = i > 0 && (parseInt(r.week, 10) || 0) <= wk && graded(r);
+            if (done) { f += r.netDollars; a += r.netDollars; } else f -= stake(r);
+          });
+          S[w].floor.push(Math.round(f * 100) / 100); S[w].actual.push(Math.round(a * 100) / 100);
+        });
+      });
+      // Weeks still to be graded: the actual line stops at the last graded week
+      var lastDone = 0;
+      weeks.forEach(function(wk, i) { if (R.some(function(r) { return (parseInt(r.week, 10) || 0) === wk && graded(r); })) lastDone = i + 1; });
+      var both = { floor: S.Maria.floor.map(function(v, i) { return Math.round((v + S.Danielle.floor[i]) * 100) / 100; }),
+        actual: S.Maria.actual.map(function(v, i) { return Math.round((v + S.Danielle.actual[i]) * 100) / 100; }) };
+      return { year: year, weeks: weeks, S: S, both: both, lastDone: lastDone, done: lastDone === weeks.length && !R.some(function(r) { return !graded(r) && (r.homePick || r.awayPick); }) };
+    }
+    function renderClimb() {
+      var box = document.getElementById('legacy-climb');
+      if (!box) return;
+      loadAllBets().then(function(rows) {
+        var years = SEASONS.map(function(s) { return s.year; }).filter(function(y) { return rows.some(function(r) { return r.year === y && isMD(r.picker); }); });
+        if (!years.length) { box.innerHTML = ''; return; }
+        if (!CLIMB.year || years.indexOf(CLIMB.year) < 0) CLIMB.year = years.indexOf(CURRENT_YEAR) >= 0 ? CURRENT_YEAR : years[0];
+        var D = climbData(rows, CLIMB.year);
+        var h = '<div class="af-bar" style="margin-bottom:8px"><span class="af-bar-label">Season</span>' + years.map(function(y) { return '<button class="filter-btn' + (y === CLIMB.year ? ' active' : '') + '" data-climb-y="' + y + '">' + y + '</button>'; }).join('') + '</div>';
+        if (!D || D.weeks.length < 1) { box.innerHTML = h + '<div class="ch-empty">No games entered for this season yet.</div>'; climbBind(box); return; }
+        var f = D.both.floor, a = D.both.actual, n = f.length, last = f[n - 1], start = f[0];
+        var outAt = -1; for (var i = 1; i < n; i++) if (f[i] >= 0 && f[i - 1] < 0) { outAt = i; break; }
+        if (start >= 0) outAt = 0;
+        var labels = ['Start'].concat(D.weeks.map(function(w) { return wkShort(w); }));
+        var xl = labels.map(function(l, i) { return { i: i, label: l }; }).filter(function(x, i) { return i === 0 || i === n - 1 || i % Math.ceil(n / 8) === 0; });
+        var tips = labels.map(function(l, i) {
+          var t = (i ? weekName(D.weeks[i - 1]) : 'Before Week 1') + ': if nothing else hits, ' + fmtDWhole(f[i]);
+          if (i <= D.lastDone && i > 0) t += ' · actual so far ' + fmtDWhole(a[i]) + ' · still at risk $' + Math.round(a[i] - f[i]).toLocaleString('en-US');
+          return t + ' · Maria ' + fmtDWhole(D.S.Maria.floor[i]) + ' · Danielle ' + fmtDWhole(D.S.Danielle.floor[i]);
+        });
+        var actualVals = a.map(function(v, i) { return i <= D.lastDone ? v : null; });
+        var chart = chLineChart({ n: n, height: 250, xLabels: xl, tips: tips,
+          dividers: outAt > 0 ? [{ i: outAt, label: 'Out of the hole' }] : [],
+          series: [
+            { name: 'Combined', color: '#FCD34D', vals: f, width: 3 },
+            { name: 'Maria', color: SB_M, vals: D.S.Maria.floor },
+            { name: 'Danielle', color: SB_D, vals: D.S.Danielle.floor },
+            { name: 'Actual so far', color: '#E5E7EB', vals: actualVals, dash: '5 4', noEnd: true },
+          ],
+          fmt: function(v, axis) { return axis ? (v < 0 ? '-$' : '$') + Math.abs(Math.round(v)).toLocaleString('en-US') : fmtDWhole(v); } });
+        var line;
+        if (D.done) line = 'If nothing had hit, this season would have ended <b>$' + Math.round(Math.abs(start)).toLocaleString('en-US') + '</b> in the hole. ' + (outAt > 0 ? 'Out of the hole in <b>' + weekName(D.weeks[outAt - 1]) + '</b>. ' : last < 0 ? 'Never got out of the hole. ' : '') + 'Finished at <b>' + fmtDWhole(last) + '</b>.';
+        else line = 'If nothing else hits, ' + CLIMB.year + ' ends at <b style="color:' + (last >= 0 ? '#34D399' : '#F87171') + '">' + fmtDWhole(last) + '</b>' +
+          (last >= 0 ? ', so this season is already guaranteed to finish up' + (outAt > 0 ? ' (out of the hole in ' + weekName(D.weeks[outAt - 1]) + ')' : '') + '.' : '. Every hit from here pulls that up.') +
+          ' Weeks not entered in the sheet yet (like the playoffs) aren\'t counted.';
+        box.innerHTML = h + '<div class="mc-note" style="margin:0 0 10px">' + line + '</div><div class="ch-box" style="margin-bottom:28px">' + chart + '</div>';
+        climbBind(box);
+      }).catch(function() { box.innerHTML = ''; });
+    }
+    function climbBind(box) {
+      box.querySelectorAll('[data-climb-y]').forEach(function(b) { b.addEventListener('click', function() { CLIMB.year = b.getAttribute('data-climb-y'); renderClimb(); }); });
     }
 
     // ── Earnings by season (inside All-Time) ─────────────────────────────────

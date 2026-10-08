@@ -134,7 +134,7 @@
     // ── 📜 Which copy of each Apps Script file the website expects ─────────────
     // Bump these whenever a delivery includes that file. Status and the admin alert compare them
     // with what the live script says, so a file that didn't get pasted (or deployed) shows up.
-    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-21', Features: '2026-10-10', Automation: '2026-10-21', WeeklyRecap: '2026-10-06', Machine: '2026-10-18' };
+    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-22', Features: '2026-10-10', Automation: '2026-10-21', WeeklyRecap: '2026-10-06', Machine: '2026-10-18' };
     var OLD_SCRIPT_FILES = { Features: 'Market.gs, Museum.gs and Bracket.gs', Automation: 'FirstTD.gs, NFLPlayers.gs, Injuries.gs and Playoffs.gs' };
     var DEPLOY_STEPS = 'Deploy → Manage deployments → ✏️ → New version → Deploy';
     function scriptIssues(v) {
@@ -156,7 +156,7 @@
 
     // ── Admin layout (v131): 5 sections, each with its own row of screens ──
     var ADM_SECTIONS = [
-      ['week', '✅ This Week', [['check', '✅ Checklist'], ['odds', '💲 Odds'], ['games', '🏈 Games'], ['mlines', '🎯 Machine Lines']]],
+      ['week', '✅ This Week', [['check', '✅ Checklist'], ['odds', '💲 Odds'], ['games', '🏈 Games'], ['plan', '🗓️ Planner'], ['mlines', '🎯 Machine Lines']]],
       ['people', '👥 People', [['friends', '👥 Friends'], ['chat', '🗣️ Trash Talk']]],
       ['season', '🏈 Season', [['season', '🆕 New Season'], ['bracket', '🏆 Bracket'], ['injuries', '🚑 Injuries'], ['museum', '🏛️ Museum']]],
       ['machine', '🤖 Machine', [['machine', '🤖 Machine']]],
@@ -273,6 +273,8 @@
       var el = document.getElementById('submit-content');
       el.innerHTML = adminHeader(active) + '<div id="adm-body">' + bodyHtml + '</div>';
       bindSwitch(); bindAdminNav();
+      var row = el.querySelector('#adm-navs .adm-nav'), on = row && row.querySelector('.on'); // keep the open screen's button in view
+      if (on && on.offsetLeft - row.offsetLeft + on.offsetWidth > row.clientWidth) row.scrollLeft = on.offsetLeft - row.offsetLeft - 16;
       return document.getElementById('adm-body');
     }
     function adminMsg(text, ok) {
@@ -316,6 +318,7 @@
       if (section === 'machine') adminMachine();
       if (section === 'mlines') adminMachineLines();
       if (section === 'check') adminChecklist();
+      if (section === 'plan') adminPlanner();
       if (section === 'eggs') adminEggs();
       if (section === 'status') adminStatus();
     }

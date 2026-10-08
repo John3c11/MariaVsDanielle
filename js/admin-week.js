@@ -171,7 +171,7 @@
       if (r.error) { body.innerHTML = '<div class="inj-warn">' + escHtml(r.error) + '</div>'; return; }
       if (r.items && ADMIN.ckTodo !== (r.todo || 0)) { ADMIN.ckTodo = r.todo || 0; adminRefreshNav(); }
       if (!r.items) { body.innerHTML = '<div class="inj-warn">⚠️ The picks script that\'s live is older. Paste the new PicksAPI.gs, then Deploy → Manage deployments → ✏️ → New version → Deploy.</div>'; return; }
-      var go = { graded: 'status', odds: 'odds', mlines: 'mlines', jobs: 'status', join: 'friends' };
+      var go = { graded: 'status', odds: 'odds', mlines: 'mlines', jobs: 'status', join: 'friends', nextweek: 'plan' };
       var h = '<div class="ck-head"><div class="ck-big">' + (r.todo ? r.todo + ' thing' + (r.todo === 1 ? '' : 's') + ' to do' : 'All done ✅') + '</div>' +
         '<div class="st-d">' + (r.lastWeek ? weekName(r.lastWeek) + ' is done, ' + weekName(r.nextWeek) + ' is next.' : 'Before Week 1.') + ' <button class="link-btn" id="ck-again">Check again</button></div></div>';
       h += r.items.map(function(it, i) {
@@ -183,7 +183,7 @@
               '<span class="ck-ko">' + ko.toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + '</span></label>';
           }).join('') + '<div class="ck-add"><label>$ per unit <input class="u-w-64px u-ta-center adm-input" id="ck-amt" value="' + escHtml(it.amount || '5') + '" inputmode="decimal"></label>' +
             '<button class="adm-btn green" id="ck-addbtn" data-ck-i="' + i + '">Add these to the sheet</button></div><div class="u-ta-left submit-msg" id="ck-msg"></div></div>' : '') +
-          (it.state === 'todo' && go[it.key] ? '<button class="link-btn ck-go" data-adm="' + go[it.key] + '">Open ' + { status: '🩺 Status', odds: '💲 Odds', mlines: '🎯 Machine Lines', friends: '👥 Friends' }[go[it.key]] + ' →</button>' : '') +
+          (it.state === 'todo' && go[it.key] ? '<button class="link-btn ck-go" data-adm="' + go[it.key] + '">Open ' + { status: '🩺 Status', odds: '💲 Odds', mlines: '🎯 Machine Lines', friends: '👥 Friends', plan: '🗓️ Planner' }[go[it.key]] + ' →</button>' : '') +
           '</div></div>';
       }).join('');
       body.innerHTML = h;
@@ -210,3 +210,106 @@
         });
       });
     }
+
+// ── 🗓️ Season Planner (v137) ────────────────────────────────────────────────
+// The whole schedule from ESPN; tick the games to bet each week (and the $ per unit). The ✅ Checklist then
+// offers that week's planned games when it isn't in the sheet yet. Saves as you go.
+var PLAN = { r: null, open: {}, past: false, t: null };
+function adminPlanner() {
+  var body = adminScreen('plan', '<div class="loading">Getting the whole season from ESPN…</div>');
+  picksApi({ pin: SUB.pin, action: 'plan' }).then(function(r) {
+    if (!document.body.contains(body)) return;
+    if (r.error || !r.weeks) { body.innerHTML = '<div class="inj-warn">' + escHtml(r.error || 'The Planner needs the newest PicksAPI.gs (' + DEPLOY_STEPS + ').') + '</div>'; return; }
+    r.plan.weeks = r.plan.weeks || {};
+    PLAN.r = r; PLAN.open = {};
+    var up = r.weeks.filter(function(w) { return planState(w).up && !r.inSheet[w.week]; });
+    up.slice(0, 2).forEach(function(w) { PLAN.open[w.week] = true; });
+    drawPlanner(body);
+  }).catch(function() { body.innerHTML = '<div class="loading">Couldn\'t reach the script.</div>'; });
+}
+// up = has a game that hasn't finished (or no games known yet)
+function planState(w) { var g = w.games || []; return { up: !g.length || g.some(function(x) { return !x.done; }), n: g.length }; }
+function planWeek(w) { var P = PLAN.r.plan; return P.weeks[w] || (P.weeks[w] = { g: [] }); }
+function planSave(msg) {
+  var el = document.getElementById('pl-msg');
+  if (el) { el.style.color = '#A1A9B6'; el.textContent = 'Saving…'; }
+  clearTimeout(PLAN.t);
+  PLAN.t = setTimeout(function() {
+    picksApi({ pin: SUB.pin, action: 'planset', data: JSON.stringify(PLAN.r.plan) }).then(function(x) {
+      var m = document.getElementById('pl-msg'); if (!m) return;
+      if (x.error) { m.style.color = '#F87171'; m.textContent = x.error; return; }
+      PLAN.r.plan = x.plan; PLAN.r.plan.weeks = PLAN.r.plan.weeks || {};
+      m.style.color = '#6EE7B7'; m.textContent = '✓ Saved' + (msg ? ': ' + msg : '');
+    }).catch(function() { var m = document.getElementById('pl-msg'); if (m) { m.style.color = '#F87171'; m.textContent = 'Couldn\'t save. Check your connection.'; } });
+  }, 600);
+}
+function drawPlanner(body) {
+  var r = PLAN.r, P = r.plan, all = {};
+  r.weeks.forEach(function(w) { (w.games || []).forEach(function(g) { all[g.home] = 1; all[g.away] = 1; }); });
+  var teams = Object.keys(all);
+  var upcoming = r.weeks.filter(function(w) { return planState(w).up; }), past = r.weeks.filter(function(w) { return !planState(w).up; });
+  var total = 0, wk = 0;
+  upcoming.forEach(function(w) { var x = P.weeks[w.week]; if (!r.inSheet[w.week] && x && x.g && x.g.length) { total += x.g.length; wk++; } });
+  function day(d) { return new Date(d).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }); }
+  function weekHtml(w) {
+    var games = w.games || [], x = P.weeks[w.week] || { g: [] }, sheet = r.inSheet[w.week], open = !!PLAN.open[w.week];
+    var dates = games.length ? day(games[0].kickoff) + (games.length > 1 ? ' – ' + day(games[games.length - 1].kickoff) : '') : 'Schedule not out yet';
+    var playing = {}; games.forEach(function(g) { playing[g.home] = 1; playing[g.away] = 1; });
+    var byes = w.week <= 18 && games.length && games.length < 16 ? teams.filter(function(t) { return !playing[t]; }).sort() : [];
+    var chip = sheet ? '<span class="pl-chip in">✓ In the sheet</span>' : x.g.length ? '<span class="pl-chip on">' + x.g.length + ' planned</span>' : '<span class="pl-chip">Nothing planned</span>';
+    var h = '<div class="pl-wk' + (open ? ' open' : '') + (sheet ? ' sheet' : '') + '"><button class="pl-head" data-pl-open="' + w.week + '"><span class="pl-name">' + escHtml(w.name) + '</span><span class="pl-dates">' + dates + '</span>' + chip + '<span class="pl-car">' + (open ? '▾' : '▸') + '</span></button>';
+    if (!open) return h + '</div>';
+    h += '<div class="pl-body">';
+    if (sheet) h += '<div class="st-d u-mb-6px">Already in the sheet: ' + sheet.map(escHtml).join(' · ') + '. Change these on 🏈 Games.</div>';
+    else if (!games.length) h += '<div class="st-d">ESPN hasn\'t posted these games yet. Check back closer to the week.</div>';
+    else {
+      h += '<div class="pl-quick"><button class="adm-btn" data-pl-fill="' + w.week + '">Usual slots (' + r.usual.join(', ') + ')</button><button class="adm-btn" data-pl-none="' + w.week + '">None</button>' +
+        '<label class="pl-amt">$ per unit <input class="adm-input" data-pl-amt="' + w.week + '" value="' + escHtml(x.amt || '') + '" placeholder="' + escHtml(P.amt || r.amount) + '" inputmode="decimal"></label></div>';
+      h += games.map(function(g) {
+        var on = x.g.indexOf(g.k) >= 0;
+        return '<label class="pl-g' + (on ? ' on' : '') + (g.done ? ' done' : '') + '"><input type="checkbox" data-pl-g="' + w.week + '|' + g.k + '"' + (on ? ' checked' : '') + (g.done ? ' disabled' : '') + '>' +
+          '<span class="ck-slot">' + escHtml(g.slot) + '</span><span class="ck-match">' + teamLogo(g.away) + escHtml(teamNick(g.away)) + ' <i>@</i> ' + escHtml(teamNick(g.home)) + teamLogo(g.home) + '</span>' +
+          '<span class="ck-ko">' + (g.done ? 'Final' : new Date(g.kickoff).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' })) + '</span></label>';
+      }).join('');
+    }
+    if (byes.length) h += '<div class="pl-byes">😴 Byes: ' + byes.map(function(t) { return escHtml(teamNick(t)); }).join(', ') + '</div>';
+    return h + '</div></div>';
+  }
+  var h = '<div class="ui-note u-mb">Tick the games to bet for the rest of the season. When a week isn\'t in the sheet yet, ✅ Checklist offers that week\'s planned games (you still tap Add). Saves as you go.</div>' +
+    '<div class="pl-top"><label class="pl-amt">Default $ per unit <input class="adm-input" id="pl-amt-all" value="' + escHtml(P.amt || '') + '" placeholder="' + escHtml(r.amount) + '" inputmode="decimal"></label>' +
+    '<button class="adm-btn" id="pl-fill-all">Fill empty weeks with usual slots</button><button class="adm-btn red" id="pl-clear">Clear the plan</button></div>' +
+    '<div class="pl-sum"><b>' + total + '</b> game' + (total === 1 ? '' : 's') + ' planned across <b>' + wk + '</b> week' + (wk === 1 ? '' : 's') + ' still to come <span class="u-ta-left submit-msg" id="pl-msg"></span></div>';
+  h += upcoming.map(weekHtml).join('');
+  if (past.length) {
+    h += '<div class="u-center u-mt-s"><button class="link-btn" id="pl-past">' + (PLAN.past ? 'Hide' : 'Show') + ' ' + past.length + ' finished week' + (past.length === 1 ? '' : 's') + '</button></div>';
+    if (PLAN.past) h += past.map(weekHtml).join('');
+  }
+  body.innerHTML = h;
+  if (typeof fillHeadshots === 'function') fillHeadshots(body);
+  function usualFor(w) { return (w.games || []).filter(function(g) { return !g.done && (w.week > 18 || r.usual.indexOf(g.slot) >= 0); }).map(function(g) { return g.k; }); }
+  function byWeek(n) { return r.weeks.filter(function(w) { return w.week === n; })[0]; }
+  body.querySelectorAll('[data-pl-open]').forEach(function(b) { b.addEventListener('click', function() { var n = +b.getAttribute('data-pl-open'); PLAN.open[n] = !PLAN.open[n]; drawPlanner(body); }); });
+  body.querySelectorAll('[data-pl-g]').forEach(function(c) {
+    c.addEventListener('change', function() {
+      var p = c.getAttribute('data-pl-g').split('|'), x = planWeek(p[0]), i = x.g.indexOf(p[1]);
+      if (c.checked && i < 0) x.g.push(p[1]); else if (!c.checked && i >= 0) x.g.splice(i, 1);
+      c.closest('.pl-g').classList.toggle('on', c.checked);
+      planSave(); drawPlanner(body);
+    });
+  });
+  body.querySelectorAll('[data-pl-fill]').forEach(function(b) { b.addEventListener('click', function() { var n = +b.getAttribute('data-pl-fill'); planWeek(n).g = usualFor(byWeek(n)); planSave(); drawPlanner(body); }); });
+  body.querySelectorAll('[data-pl-none]').forEach(function(b) { b.addEventListener('click', function() { planWeek(+b.getAttribute('data-pl-none')).g = []; planSave(); drawPlanner(body); }); });
+  body.querySelectorAll('[data-pl-amt]').forEach(function(inp) { inp.addEventListener('change', function() { planWeek(+inp.getAttribute('data-pl-amt')).amt = inp.value.replace(/[^0-9.]/g, ''); planSave(); }); });
+  document.getElementById('pl-amt-all').addEventListener('change', function() { P.amt = this.value.replace(/[^0-9.]/g, ''); planSave('default $ per unit'); drawPlanner(body); });
+  document.getElementById('pl-fill-all').addEventListener('click', function() {
+    var n = 0;
+    upcoming.forEach(function(w) { if (r.inSheet[w.week]) return; var x = planWeek(w.week); if (!x.g.length) { x.g = usualFor(w); if (x.g.length) n++; } });
+    planSave(n + ' week' + (n === 1 ? '' : 's') + ' filled'); drawPlanner(body);
+  });
+  document.getElementById('pl-clear').addEventListener('click', function() {
+    if (!confirm('Clear every planned game? (Weeks already in the sheet aren\'t touched.)')) return;
+    P.weeks = {}; planSave('plan cleared'); drawPlanner(body);
+  });
+  var pb = document.getElementById('pl-past');
+  if (pb) pb.addEventListener('click', function() { PLAN.past = !PLAN.past; drawPlanner(body); });
+}

@@ -41,7 +41,7 @@
     // Earned badges show; locked ones sit behind a "Show N locked" toggle
     function lockedBadges(list, draw) {
       var got = list.filter(function(a) { return a.got; }), locked = list.filter(function(a) { return !a.got; });
-      var h = got.length ? '<div class="pf-badges">' + got.map(draw).join('') + '</div>' : '<div class="st-d" style="margin-bottom:8px">None yet.</div>';
+      var h = got.length ? '<div class="pf-badges">' + got.map(draw).join('') + '</div>' : '<div class="u-mb-s st-d">None yet.</div>';
       if (locked.length) h += '<details class="pf-locked"><summary>Show ' + locked.length + ' locked</summary><div class="pf-badges">' + locked.map(draw).join('') + '</div></details>';
       return h;
     }
@@ -264,9 +264,9 @@
           '<div class="pf-name" style="color:' + col + '">' + escHtml(name) + '</div>' +
           '<div class="pf-sub">' + CURRENT_YEAR + ' Crowd · ' + (rank ? 'Ranked #' + rank + ' of ' + R.ranked.length : 'Unranked (' + S.n + '/' + CROWD_MIN + ' games)') + (admin ? ' · 🔒 Admin view' : '') + '</div>' +
           '<div class="pf-big"><div><b>' + S.w + '–' + (S.n - S.w) + '</b><span>Record</span></div>' +
-          '<div><b style="color:#34D399">' + pctTxt(S.pct) + '</b><span>Win %</span></div>' +
+          '<div><b class="u-good">' + pctTxt(S.pct) + '</b><span>Win %</span></div>' +
           '<div><b>' + streakTxt(S.cur) + '</b><span>Streak</span></div></div></div>';
-        if (owner) h += '<div id="fr-style" style="display:none"></div>';
+        if (owner) h += '<div id="fr-style" class="u-hide"></div>';
 
         function tile(l, v, sub) { return '<div class="pf-tile"><div class="l">' + l + '</div><div class="v">' + v + '</div>' + (sub ? '<div class="s">' + sub + '</div>' : '') + '</div>'; }
         var last = S.hits[S.hits.length - 1];
@@ -293,7 +293,7 @@
 
         if ((owner || admin) && S.upcoming.length) {
           h += '<div class="pf-h">⏳ Upcoming Picks <small>🔒 only ' + (owner ? 'you' : escHtml(name)) + ' and admin can see these</small></div>' + S.upcoming.map(function(x) {
-            return '<div class="adm-row"><span style="color:#A1A9B6">' + wkName(x.g.week) + ' · ' + escHtml(x.g.slot) + '</span><span>' + coloredText(x.r.homePick, x.g.home) + ' / ' + coloredText(x.r.awayPick, x.g.away) + '</span></div>';
+            return '<div class="adm-row"><span class="u-muted">' + wkName(x.g.week) + ' · ' + escHtml(x.g.slot) + '</span><span>' + coloredText(x.r.homePick, x.g.home) + ' / ' + coloredText(x.r.awayPick, x.g.away) + '</span></div>';
           }).join('') + '<div style="height:18px"></div>';
         }
 
@@ -306,12 +306,12 @@
             function pk(p, team) { var hit = g.scorer && playerKey(p) === sk; return '<span class="' + (hit ? 'hist-hit' : '') + '">' + coloredText(p, team) + (hit ? ' ✅' : '') + '</span>'; }
             var tag = x.status === 'hit' ? '<span class="hist-tag hit">HIT</span>' : x.status === 'miss' ? '<span class="hist-tag miss">MISS</span>' :
               x.status === 'void' ? '<span class="hist-tag">NOT OFFERED</span>' : '<span class="hist-tag live">LIVE</span>';
-            h += '<div class="hist-row"' + (i >= 8 ? ' data-hist style="display:none"' : '') + '>' +
+            h += '<div class="u-hide hist-row"' + (i >= 8 ? ' data-hist' : '') + '>' +
               '<div class="hist-l"><div class="hist-wk">' + wkName(g.week) + ' · ' + escHtml(g.slot) + '</div>' +
-              '<div>' + pk(x.r.homePick, g.home) + ' <span style="color:rgba(255,255,255,0.35)">/</span> ' + pk(x.r.awayPick, g.away) + '</div>' +
+              '<div>' + pk(x.r.homePick, g.home) + ' <span class="u-faint">/</span> ' + pk(x.r.awayPick, g.away) + '</div>' +
               (g.scorer ? '<div class="hist-sc">🏈 ' + escHtml(g.scorer) + '</div>' : '') + '</div>' + tag + '</div>';
           });
-          if (hist.length > 8) h += '<div style="text-align:center;margin-top:6px"><button class="link-btn" id="hist-more">Show all ' + hist.length + '</button></div>';
+          if (hist.length > 8) h += '<div class="u-center u-mt-s"><button class="link-btn" id="hist-more">Show all ' + hist.length + '</button></div>';
           h += '<div style="height:18px"></div>';
         }
 
@@ -362,12 +362,12 @@
       function paint() {
         box.innerHTML = '<div class="fr-style">' +
           '<div class="fr-style-h">Your emoji</div><div class="fr-emojis">' +
-            '<button data-em="" class="' + (!sel.emoji ? 'on' : '') + '" style="font-size:15px;font-weight:800">' + escHtml(name.charAt(0).toUpperCase()) + '</button>' +
+            '<button data-em="" class="ui-title ' + (!sel.emoji ? 'on' : '') + '">' + escHtml(name.charAt(0).toUpperCase()) + '</button>' +
             FRIEND_EMOJI.map(function(e) { return '<button data-em="' + e + '" class="' + (sel.emoji === e ? 'on' : '') + '">' + e + '</button>'; }).join('') + '</div>' +
           '<div class="fr-style-h">Your color</div><div class="fr-colors">' +
             FRIEND_COLORS.map(function(c) { return '<button data-col="' + c + '" class="' + ((sel.color || FRIEND_COLOR) === c ? 'on' : '') + '" style="background:' + c + '"></button>'; }).join('') + '</div>' +
-          '<div style="text-align:center;margin-top:14px"><span style="font-size:20px;font-weight:800;color:' + (sel.color || FRIEND_COLOR) + '">' + (sel.emoji ? sel.emoji + ' ' : '') + escHtml(name) + '</span></div>' +
-          '<div style="text-align:center;margin-top:12px"><button class="primary-btn" id="fr-style-save">Save</button> <button class="link-btn" id="fr-style-cancel" style="margin-left:10px">Cancel</button>' +
+          '<div class="u-center u-mt"><span style="font-size:20px;font-weight:800;color:' + (sel.color || FRIEND_COLOR) + '">' + (sel.emoji ? sel.emoji + ' ' : '') + escHtml(name) + '</span></div>' +
+          '<div class="u-center u-mt"><button class="primary-btn" id="fr-style-save">Save</button> <button class="u-ml-s link-btn" id="fr-style-cancel">Cancel</button>' +
           '<div class="submit-msg" id="fr-style-msg"></div></div></div>';
         box.querySelectorAll('[data-em]').forEach(function(b) { b.addEventListener('click', function() { sel.emoji = b.getAttribute('data-em'); paint(); }); });
         box.querySelectorAll('[data-col]').forEach(function(b) { b.addEventListener('click', function() { sel.color = b.getAttribute('data-col'); paint(); }); });

@@ -53,20 +53,20 @@
           var hits = ['Maria', 'Danielle'].filter(function(n) { return g.hit[n]; });
           status = '🏈 First TD: <b>' + escHtml(g.scorer) + '</b> · ' + (hits.length
             ? hits.map(function(n) { var c = personColor(n); return '<span class="sch-chip" style="color:' + c + ';background:' + hexA(c, 0.15) + '">✅ ' + n + '</span>'; }).join('')
-            : '<span style="color:#A1A9B6">nobody had him</span>');
+            : '<span class="u-muted">nobody had him</span>');
         } else {
           var m = g.picked.Maria, d = g.picked.Danielle;
-          if (m && d) status = '<span class="sch-chip" style="color:#6EE7B7;background:rgba(52,211,153,0.14)">✅ Both picks in</span>';
+          if (m && d) status = '<span class="ui-chip-good sch-chip">✅ Both picks in</span>';
           else if (m || d) {
             var waiting = m ? 'Danielle' : 'Maria', c = personColor(waiting);
-            status = '<span class="sch-chip" style="color:#FCD34D;background:rgba(251,191,36,0.14)">⏳ Waiting on <span style="color:' + c + '">' + waiting + '</span></span>';
-          } else status = '<span class="sch-chip" style="color:#A1A9B6;background:rgba(255,255,255,0.06)">No picks yet</span>';
+            status = '<span class="ui-chip-warn sch-chip">⏳ Waiting on <span style="color:' + c + '">' + waiting + '</span></span>';
+          } else status = '<span class="ui-chip-neutral sch-chip">No picks yet</span>';
         }
-        h += '<div class="sch-game"' + (g.scorer ? ' style="opacity:0.75"' : '') + '><div class="sch-top"><span class="sch-slot">' + escHtml(g.slot) + '</span><span class="sch-ko">' + koText + '</span></div>' +
-          '<div class="sch-teams">' + teamPill(g.home, g.home) + ' <span style="color:rgba(255,255,255,0.45)">vs</span> ' + teamPill(g.away, g.away) + '</div>' +
+        h += '<div class="u-o75 sch-game"' + (g.scorer ? '' : '') + '><div class="sch-top"><span class="sch-slot">' + escHtml(g.slot) + '</span><span class="sch-ko">' + koText + '</span></div>' +
+          '<div class="sch-teams">' + teamPill(g.home, g.home) + ' <span class="u-faint">vs</span> ' + teamPill(g.away, g.away) + '</div>' +
           '<div class="sch-status">' + status + (g.scorer && g.game && typeof gameLinkAttr === 'function' ? ' <span ' + gameLinkAttr(CURRENT_YEAR, g.game) + '>Game ›</span>' : '') + '</div></div>';
       });
-      if (hiddenWeeks) h += '<div style="text-align:center;margin-top:8px"><button class="adm-btn" id="sch-later">Show ' + hiddenWeeks + ' later week' + (hiddenWeeks > 1 ? 's' : '') + '</button></div>';
+      if (hiddenWeeks) h += '<div class="u-center u-mt-s"><button class="adm-btn" id="sch-later">Show ' + hiddenWeeks + ' later week' + (hiddenWeeks > 1 ? 's' : '') + '</button></div>';
       el.innerHTML = h;
       var later = document.getElementById('sch-later');
       if (later) later.addEventListener('click', function() { SCHED.later = true; drawSchedule(values); });

@@ -201,7 +201,7 @@
       try { localStorage.setItem('mvd-gd-td', JSON.stringify(seen)); } catch (e) {}
       var who = GD.picks.filter(function(p) { return sameScorer(first, p.name); });
       var p0 = who[0];
-      var color = p0 ? personColor(p0.who) : '#9CA3AF';
+      var color = p0 ? personColor(p0.who) : '#A1A9B6';
       var team = p0 ? p0.team : '';
       var el = document.createElement('div');
       el.className = 'gd-takeover' + (p0 ? ' win' : '');

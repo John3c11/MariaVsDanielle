@@ -254,7 +254,7 @@
         if (!results.length) { box.innerHTML = '<div class="psearch-none">No player called "' + escHtml(input.value) + '"</div>'; return; }
         box.innerHTML = results.map(function(r, i) {
           var p = r.p, db = (PLAYER_DB || {})[r.k], tds = db ? Object.keys(db.tds).length : 0, picks = db ? db.picks.Maria + db.picks.Danielle : 0;
-          var sub = [p.pos ? p.pos.replace(/\d+/g, '') : '', p.team ? p.team.split(' ').pop() + (p.former ? ' (last seen)' : '') : '', p.offered ? '<span style="color:#34D399">offered</span>' : 'not offered'].filter(Boolean).join(' · ');
+          var sub = [p.pos ? p.pos.replace(/\d+/g, '') : '', p.team ? p.team.split(' ').pop() + (p.former ? ' (last seen)' : '') : '', p.offered ? '<span class="u-good">offered</span>' : 'not offered'].filter(Boolean).join(' · ');
           var stat = [tds ? '🏈 ' + tds + ' first TD' + (tds > 1 ? 's' : '') : '', picks ? 'picked ' + picks + 'x' : ''].filter(Boolean).join(' · ');
           return '<button class="psearch-item" data-ps="' + i + '">' + (p.team ? headshot(p.name, p.team, 34) : '') +
             '<span class="psearch-txt"><b>' + escHtml(p.name) + '</b><small>' + sub + (stat ? ' · ' + stat : '') + '</small></span></button>';
@@ -295,7 +295,7 @@
       var verdict = last <= first * 0.8 ? 'The books caught on 📉' : last >= first * 1.25 ? 'Getting longer 📈' : 'About the same price';
       return '<div class="oh"><div class="pc-label">Odds history</div>' +
         '<div class="oh-line"><b>+' + Math.round(first) + '</b> → <b>+' + Math.round(last) + '</b> · ' + verdict + '</div>' + svg +
-        '<div class="oh-key"><span style="color:' + SB_M + '">● Maria</span> <span style="color:' + SB_D + '">● Danielle</span> <span>● both</span> <span style="color:#FCD34D">● scored first</span> · higher = longer odds</div></div>';
+        '<div class="oh-key"><span style="color:' + SB_M + '">● Maria</span> <span style="color:' + SB_D + '">● Danielle</span> <span>● both</span> <span class="u-warn">● scored first</span> · higher = longer odds</div></div>';
     }
 
     function openPlayerCard(name, ctx) {
@@ -344,8 +344,8 @@
           var c = personColor(n);
           var u = p.units[n];
           return '<div class="pc-person"><span style="color:' + c + ';font-weight:700">' + n + '</span>' +
-            '<span style="color:rgba(255,255,255,0.85)">' + (p.picks[n] ? 'picked ' + p.picks[n] + 'x · hit ' + p.hits[n] + 'x' +
-              (p.hits[n] ? ' · <span style="color:#34D399;font-weight:700">+' + u.toFixed(1) + 'u</span>' : '') : '<span style="color:rgba(255,255,255,0.45)">never picked</span>') +
+            '<span class="u-soft">' + (p.picks[n] ? 'picked ' + p.picks[n] + 'x · hit ' + p.hits[n] + 'x' +
+              (p.hits[n] ? ' · <span class="u-good u-bold">+' + u.toFixed(1) + 'u</span>' : '') : '<span class="u-faint">never picked</span>') +
             '</span></div>';
         }
 
@@ -363,10 +363,10 @@
             var c = personColor(n);
             return '<span class="pc-chip" style="color:' + c + ';background:' + hexA(c, 0.15) + '">' + n.charAt(0) + '</span>';
           }).join('');
-          var res = !g.scorer ? '<span style="color:rgba(255,255,255,0.45)">Pending</span>'
-                  : playerKey(g.scorer) === k ? '<span style="color:#34D399;font-weight:700">🏈 Scored first</span>'
-                  : '<span style="color:rgba(255,255,255,0.45)">—</span>';
-          return '<div class="pc-game' + (gi >= 6 ? ' pc-extra' : '') + '"><span style="color:rgba(255,255,255,0.55)">' + g.year + ' ' + wkName(g.week) + '</span>' +
+          var res = !g.scorer ? '<span class="u-faint">Pending</span>'
+                  : playerKey(g.scorer) === k ? '<span class="u-good u-bold">🏈 Scored first</span>'
+                  : '<span class="u-faint">—</span>';
+          return '<div class="pc-game' + (gi >= 6 ? ' pc-extra' : '') + '"><span class="u-muted">' + g.year + ' ' + wkName(g.week) + '</span>' +
             '<span>' + vs + ' ' + chips + '</span><span>' + res + '</span></div>';
         }).join('');
 
@@ -426,19 +426,19 @@
         var bits = [];
         if (p.picks.Maria) bits.push('<span style="color:' + SB_M + '">Maria x' + p.picks.Maria + '</span>');
         if (p.picks.Danielle) bits.push('<span style="color:' + SB_D + '">Danielle x' + p.picks.Danielle + '</span>');
-        if (tds) bits.push('<span style="color:#34D399">🏈 ' + tds + ' first TD' + (tds > 1 ? 's' : '') + '</span>');
+        if (tds) bits.push('<span class="u-good">🏈 ' + tds + ' first TD' + (tds > 1 ? 's' : '') + '</span>');
         return '<div class="player-row" style="padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05);align-items:center">' +
           '<span class="pos-label" style="min-width:74px;color:' + (tc ? tc.dark : '#A1A9B6') + '">' + nick + '</span>' +
-          '<span class="player-name-text" style="flex:1"><span>' + p.name + '</span></span>' +
-          '<span style="font-size:10px;text-align:right">' + bits.join(' <span style="color:rgba(255,255,255,0.25)">·</span> ') +
-          (p.last ? ' <span style="color:rgba(255,255,255,0.4)">· last ' + p.last.year + ' ' + wkName(p.last.week) + '</span>' : '') + '</span>' +
+          '<span class="u-grow player-name-text"><span>' + p.name + '</span></span>' +
+          '<span class="ui-tiny u-right">' + bits.join(' <span class="u-faint">·</span> ') +
+          (p.last ? ' <span class="u-faint">· last ' + p.last.year + ' ' + wkName(p.last.week) + '</span>' : '') + '</span>' +
         '</div>';
       }).join('');
 
       el.innerHTML = '<div class="division-block">' +
         '<div class="division-header" onclick="toggleDivision(this)">Picked Before, Not Offered Now (' + list.length + ') <span class="division-chevron">▼</span></div>' +
         '<div class="division-teams">' +
-          '<div style="font-size:12px;color:#A1A9B6;margin:4px 0 10px">Players from past games who aren\'t offered right now: anyone who was picked, plus anyone who scored a first TD. The team shown is where they play today (from ESPN). Tap a name for their card.</div>' +
+          '<div class="ui-note u-mb">Players from past games who aren\'t offered right now: anyone who was picked, plus anyone who scored a first TD. The team shown is where they play today (from ESPN). Tap a name for their card.</div>' +
           '<div class="team-block" style="border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03)"><div class="team-players-inner" style="background:transparent">' + rows + '</div></div>' +
         '</div></div>';
       schedulePlayerTagging();
@@ -527,7 +527,7 @@
         const pickNoteHtml = (name) => {
           const c = pickCounts[name] || {};
           const notes = ['Maria', 'Danielle'].filter(w => c[w]).map(w => `${w} x${c[w]}`);
-          return notes.length ? `<span style="font-size:10px;color:#9CA3AF;margin-left:6px">${notes.join(', ')}</span>` : '';
+          return notes.length ? `<span class="ui-tiny u-ml-xs">${notes.join(', ')}</span>` : '';
         };
 
         // Render divisions

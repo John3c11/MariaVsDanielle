@@ -70,7 +70,7 @@
         var list = Object.keys(G).map(function(k) { return G[k]; }).filter(function(g) { return g.year === GL.year; })
           .sort(function(a, b) { return b.week - a.week || b.idx - a.idx; });
         var h = '<div class="gl-head"><div class="lab-title">🏈 Games</div><div class="lab-sub">Every game they\'ve bet on. Tap one for everything about it.</div></div>' +
-          '<div class="af-bar" style="margin-bottom:12px"><span class="af-bar-label">Season</span>' + years.map(function(y) { return '<button class="filter-btn' + (y === GL.year ? ' active' : '') + '" data-gl-y="' + y + '">' + y + '</button>'; }).join('') + '</div>';
+          '<div class="u-mb af-bar"><span class="af-bar-label">Season</span>' + years.map(function(y) { return '<button class="filter-btn' + (y === GL.year ? ' active' : '') + '" data-gl-y="' + y + '">' + y + '</button>'; }).join('') + '</div>';
         var wk = null;
         list.forEach(function(g) {
           if (g.week !== wk) { if (wk !== null) h += '</div>'; wk = g.week; h += '<div class="gl-wk">' + weekName(g.week) + '</div><div class="gl-list">'; }
@@ -146,7 +146,7 @@
           return '<div class="gp-pick' + (hit ? ' hit' : settled ? ' miss' : '') + '">' + headshot(x[0], x[2], 40) + '<div class="gp-pk-m"><div class="gp-pk-n">' + (hit ? '✅ ' : '') + escHtml(x[0]) + '</div>' +
             '<div class="gp-pk-s">' + nick(x[2]) + (x[1] ? ' · ' + fmtOdds(x[1]) : '') + '</div></div></div>';
         }).join('');
-        var u = settled ? '<div class="gp-u"><b style="color:' + (r.netUnits > 0 ? '#34D399' : r.netUnits < 0 ? '#F87171' : '#9CA3AF') + '">' + fmtU(r.netUnits) + '</b> <span>' + fmtD(r.netDollars) + '</span>' +
+        var u = settled ? '<div class="gp-u"><b style="color:' + (r.netUnits > 0 ? '#34D399' : r.netUnits < 0 ? '#F87171' : '#A1A9B6') + '">' + fmtU(r.netUnits) + '</b> <span>' + fmtD(r.netDollars) + '</span>' +
           (grade ? ' <span class="mc-grade g-' + grade.g.replace('+', 'p') + '" title="Pick grade from the Machine: the price vs the players\' real chances">' + grade.g + '</span>' : '') + '</div>' : '';
         return '<div class="gp-col" style="--pc:' + c + '"><div class="gp-col-h" style="color:' + c + '">' + w + '</div>' + picks + u + '</div>';
       }).join('') + '</div>';
@@ -206,7 +206,7 @@
       if (!drive) { box.innerHTML = ''; return; }
       var plays = (drive.plays || []).slice(0, tdIdx + 1).filter(function(p) { return p.text; });
       var team = drive.team ? resolveTeam(drive.team.displayName || '') : '';
-      var tc = (TEAM_COLORS[team] || {}).primary || '#9CA3AF';
+      var tc = (TEAM_COLORS[team] || {}).primary || '#A1A9B6';
       var summary = drive.description || (plays.length + ' plays');
       var h = '<div class="pf-h">🏟️ The first-TD drive <small>' + escHtml(teamNick(team)) + ' · ' + escHtml(summary) + '</small></div><div class="gp-drive" style="--tc:' + tc + '">';
       plays.forEach(function(p, i) {
@@ -227,7 +227,7 @@
         var mg = D.games.filter(function(x) { return String(x.game) === String(ctx.want.game); })[0];
         if (!mg) {
           var sealed = !ctx.settled && D.sealed;
-          box.innerHTML = sealed ? '<div class="pf-h">🤖 The Machine</div><div class="gp-dim" style="margin-bottom:14px">🔒 Its pick is sealed until kickoff.</div>' : '';
+          box.innerHTML = sealed ? '<div class="pf-h">🤖 The Machine</div><div class="u-mb gp-dim">🔒 Its pick is sealed until kickoff.</div>' : '';
           return;
         }
         var ch = mg.p.chances || {};
@@ -241,7 +241,7 @@
             var hit = ctx.settled && !ctx.vd && ctx.isScorer(x.name);
             return '<div class="gp-pick' + (hit ? ' hit' : ctx.settled ? ' miss' : '') + '" style="--pc:#A78BFA">' + headshot(x.name, x.team, 40) + '<div class="gp-pk-m"><div class="gp-pk-n">' + (hit ? '✅ ' : '') + escHtml(x.name) + '</div>' +
               '<div class="gp-pk-s">' + escHtml(teamNick(x.team)) + ' · +' + Math.round(x.price) + (x.real ? '' : ' est') + (x.pct ? ' · ' + Math.round(x.pct * 100) + '% chance' : '') + '</div></div></div>';
-          }).join('') + (mg.settled ? '<div class="gp-u"><b style="color:' + (mg.units > 0 ? '#34D399' : mg.units < 0 ? '#F87171' : '#9CA3AF') + '">' + fmtU(mg.units) + '</b></div>' : '') + '</div>';
+          }).join('') + (mg.settled ? '<div class="gp-u"><b style="color:' + (mg.units > 0 ? '#34D399' : mg.units < 0 ? '#F87171' : '#A1A9B6') + '">' + fmtU(mg.units) + '</b></div>' : '') + '</div>';
         if (list.some(function(x) { return x.c !== null; })) {
           var top = Math.max.apply(null, list.map(function(x) { return x.c || 0; })) || 1;
           h += '<div class="gp-ch"><div class="gp-k">Its chances for every pick in this game</div>' + list.map(function(x) {

@@ -129,7 +129,7 @@
         h += '<div class="tcd-tally">' + CARD_TIERS.map(function(t) { return counts[t.k] ? '<span class="tcd-t-' + t.k + '" title="' + t.d + '">' + counts[t.k] + ' ' + t.t + '</span>' : ''; }).join('') +
           '<span class="tcd-key">' + CARD_KEY[A.mode] + '</span></div>';
         h += '<div class="tcd-grid">' + cards.map(function(c, i) { return cardHtml(c, A, i >= LIMIT && !showAll); }).join('') + '</div>';
-        if (cards.length > LIMIT && !showAll) h += '<div style="text-align:center"><button class="link-btn" data-tcd-all="1">Show all ' + cards.length + ' cards</button></div>';
+        if (cards.length > LIMIT && !showAll) h += '<div class="u-center"><button class="link-btn" data-tcd-all="1">Show all ' + cards.length + ' cards</button></div>';
         el.innerHTML = h;
         if (typeof fillHeadshots === 'function') fillHeadshots(el);
       }
@@ -147,7 +147,7 @@
     }
 
     function cardHtml(c, A, hidden) {
-      var t = resolveTeam(c.team), tc = TEAM_COLORS[t] || { primary: '#374151', secondary: '#6B7280', dark: '#9CA3AF' };
+      var t = resolveTeam(c.team), tc = TEAM_COLORS[t] || { primary: '#374151', secondary: '#6B7280', dark: '#A1A9B6' };
       var first = c.hits[0], last = c.hits[c.hits.length - 1], odds = c.best > 0;
       var back = c.hits.slice().reverse().map(function(x) {
         return '<div class="tcd-hit"><span>' + x.year + ' ' + wkName(x.week) + '</span>' + (x.odds ? '<b>+' + Math.round(x.odds) + '</b>' : '') + (x.units ? '<em>' + fmtU(x.units) + '</em>' : '<em>✓</em>') + '</div>';

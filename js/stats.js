@@ -64,8 +64,8 @@
 
       return '<div class="sb-glass" data-share="recap-week-' + wk + '" style="position:relative;border-left:3px solid ' + accent + ';padding:12px 16px;margin-bottom:20px">' +
         '<button class="share-btn" onclick="shareCard(this)" title="Share as image">Share</button>' +
-        '<div class="sb-dim" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:6px">' + weekName(wk) + ' Recap' + (live ? ' · in progress' : '') + '</div>' +
-        '<div style="font-size:13px;color:rgba(255,255,255,0.85);line-height:1.8">' + text + '</div></div>';
+        '<div class="ui-label u-mb-xs sb-dim">' + weekName(wk) + ' Recap' + (live ? ' · in progress' : '') + '</div>' +
+        '<div class="ui-body">' + text + '</div></div>';
     }
 
     function formatOdds(val) {
@@ -187,10 +187,10 @@
             combinedStreak.count > 0 ? '<span title="At least one of them right">Combined ' + (combinedStreak.type === 'win' ? '🔥' : '❄️') + ' ' + combinedStreak.count + (combinedStreak.type === 'win' ? 'W' : 'L') + '</span>' : ''
           ].filter(Boolean).join('<i>·</i>')}</div>
 
-          <div class="sb-weeks" style="display:flex;justify-content:center;gap:24px;margin-bottom:20px;background:rgba(255,255,255,0.07);border-radius:12px;padding:12px;flex-wrap:wrap">
-            <div style="text-align:center"><div style="font-size:24px;font-weight:800;color:${SB_M}">${mariaWeeksWon}</div><div style="font-size:11px;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.08em">Maria weeks won</div></div>
-            <div style="text-align:center"><div style="font-size:24px;font-weight:800;color:rgba(255,255,255,0.75)">${tiedWeeks}</div><div style="font-size:11px;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.08em">Tied</div></div>
-            <div style="text-align:center"><div style="font-size:24px;font-weight:800;color:${SB_D}">${danielleWeeksWon}</div><div style="font-size:11px;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.08em">Danielle weeks won</div></div>
+          <div class="ui-box ui-box-row sb-weeks">
+            <div class="u-center"><div style="font-size:24px;font-weight:800;color:${SB_M}">${mariaWeeksWon}</div><div class="ui-label">Maria weeks won</div></div>
+            <div class="u-center"><div class="ui-big u-soft">${tiedWeeks}</div><div class="ui-label">Tied</div></div>
+            <div class="u-center"><div style="font-size:24px;font-weight:800;color:${SB_D}">${danielleWeeksWon}</div><div class="ui-label">Danielle weeks won</div></div>
           </div>
           <div class="sb-grid">
           ${statBlock('Correct', mCorrect, dCorrect, `${mCorrect}/${mTotal}`, `${dCorrect}/${dTotal}`)}
@@ -226,11 +226,11 @@
               html += `<div class="live-game" data-wg="${(mariaRow || danielleRow).week}_${gameNum}" style="margin-top:${html ? '22px' : '0'}">
               <div class="live-game-title">
                 ${teamPill(homeTeamName, homeTeamName)}
-                <span style="color:rgba(255,255,255,0.45)"> vs </span>
+                <span class="u-faint"> vs </span>
                 ${teamPill(awayTeamName, awayTeamName)}
               </div>
               <div class="live-strip" data-home="${homeTeamName}" data-away="${awayTeamName}"></div>
-              <div style="background:rgba(255,255,255,0.07);border-radius:12px;padding:14px 16px;font-size:13px;color:rgba(255,255,255,0.7)">
+              <div class="ui-box">
                 🔒 <span style="color:${doneC};font-weight:600">${done}</span> has picked. Waiting on
                 <span style="color:${waitC};font-weight:600">${waiting}</span>. Picks show once both are in.
               </div></div>`;
@@ -252,7 +252,7 @@
             html += `<div class="live-game" data-reveal="${revealKey}" data-wg="${mariaRow.week}_${gameNum}" style="margin-top:${html ? '22px' : '0'}">
               <div class="live-game-title">
                 ${teamPill(homeTeamName, homeTeamName)}
-                <span style="color:rgba(255,255,255,0.45)"> vs </span>
+                <span class="u-faint"> vs </span>
                 ${teamPill(awayTeamName, awayTeamName)}
               </div>
               <div class="live-strip" data-home="${homeTeamName}" data-away="${awayTeamName}"></div>
@@ -406,7 +406,7 @@
         var g = G[k];
         var ab = function(t) { return (TEAM_ABBR[resolveTeam(t)] || resolveTeam(t).split(' ').pop()).toUpperCase(); };
         h += '<div class="ftd-row" data-ftd="' + escHtml(k) + '" data-ctx-year="' + CURRENT_YEAR + '" data-ctx-week="' + week + '"><div class="ftd-top"><span class="ftd-slot">' + escHtml(g.slot) + (g.scorer && typeof gameLinkAttr === 'function' ? ' <span ' + gameLinkAttr(CURRENT_YEAR, k) + ' title="Open this game">Game ›</span>' : '') + '</span>' +
-          '<span class="ftd-teams">' + tmTag(g.home, teamLogo(g.home) + ab(g.home)) + ' <span style="color:rgba(255,255,255,0.4)">vs</span> ' + tmTag(g.away, teamLogo(g.away) + ab(g.away)) + '</span></div>';
+          '<span class="ftd-teams">' + tmTag(g.home, teamLogo(g.home) + ab(g.home)) + ' <span class="u-faint">vs</span> ' + tmTag(g.away, teamLogo(g.away) + ab(g.away)) + '</span></div>';
         if (g.scorer) {
           var team = /^home$/i.test(g.side) ? g.home : /^away$/i.test(g.side) ? g.away : '';
           var hits = ['Maria', 'Danielle'].filter(function(n) { return g.md[n] === 'Yes'; });
@@ -950,7 +950,7 @@
               (picks.length ? (who.length ? ' · 🎉 ' + who.join(' & ') + (who.length > 1 ? ' both' : '') + ' hit it!' : ' · Nobody had him') : '') +
               '</div>';
           } else if (state === 'in') {
-            tdHtml = '<div class="ls-td" style="color:rgba(255,255,255,0.55)">🏈 No touchdowns yet</div>';
+            tdHtml = '<div class="u-muted ls-td">🏈 No touchdowns yet</div>';
           }
         }
         // 📺 Game Day for live games both of them picked

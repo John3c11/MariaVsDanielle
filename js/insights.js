@@ -72,7 +72,7 @@
     function luckTxt(v) { return (v >= 0 ? '+' : '') + v.toFixed(1); }
     function luckVerdict(o) {
       var diff = o.hits - o.exp;
-      if (o.n < 4) return { t: 'Not enough bets yet', c: '#9CA3AF' };
+      if (o.n < 4) return { t: 'Not enough bets yet', c: '#A1A9B6' };
       if (diff >= 1) return { t: '🔥 Running hot', c: '#34D399' };
       if (diff <= -1) return { t: '🧊 Running cold (she\'s due)', c: '#93C5FD' };
       return { t: '⚖️ Right where the odds say', c: '#D1D5DB' };
@@ -411,7 +411,7 @@
     }
     function pressureVerdict(s) {
       var b = s.behind, base = s.all.n ? s.all.h / s.all.n : 0;
-      return b.n < 4 ? { t: 'Not enough pressure spots yet', c: '#9CA3AF' }
+      return b.n < 4 ? { t: 'Not enough pressure spots yet', c: '#A1A9B6' }
         : b.h / b.n - base >= 0.08 ? { t: '🧊 Ice in her veins', c: '#93C5FD' }
         : b.h / b.n - base <= -0.08 ? { t: '😰 Feels the pressure', c: '#FCA5A5' }
         : { t: '😐 Same either way', c: '#D1D5DB' };
@@ -470,9 +470,9 @@
         });
         function person(n) {
           var m = me[n], c = personColor(n);
-          return '<div class="pc-person"><span style="color:' + c + ';font-weight:700">' + n + '</span><span style="color:rgba(255,255,255,0.85)">' +
-            (m.picked ? 'picked ' + m.picked + 'x · paid ' + m.paid + 'x · <span style="font-weight:700;color:' + (m.u > 0 ? '#34D399' : m.u < 0 ? '#F87171' : '#9CA3AF') + '">' + fmtU(m.u) + '</span>'
-              : '<span style="color:rgba(255,255,255,0.45)">never picked from them</span>') + '</span></div>';
+          return '<div class="pc-person"><span style="color:' + c + ';font-weight:700">' + n + '</span><span class="u-soft">' +
+            (m.picked ? 'picked ' + m.picked + 'x · paid ' + m.paid + 'x · <span style="font-weight:700;color:' + (m.u > 0 ? '#34D399' : m.u < 0 ? '#F87171' : '#A1A9B6') + '">' + fmtU(m.u) + '</span>'
+              : '<span class="u-faint">never picked from them</span>') + '</span></div>';
         }
         // Offered right now (Rosters tab)
         var ORDER = ['WR1', 'RB1', 'WR2', 'QB', 'TE', 'WR3'];
@@ -499,8 +499,8 @@
         var recent = played.slice().reverse().slice(0, 5).map(function(g) {
           var r = g.by.Maria || g.by.Danielle, opp = r.homeTeam === team ? r.awayTeam : r.homeTeam;
           var oc = TEAM_COLORS[opp];
-          var ftd = r.firstScorer ? (scorerTeam(r) === team ? '<b style="color:' + tc.dark + '">' + escHtml(r.firstScorer) + '</b>' : '<span style="color:rgba(255,255,255,0.55)">' + escHtml(r.firstScorer) + '</span>') : '<span style="color:rgba(255,255,255,0.45)">Not played</span>';
-          return '<div class="pc-game tc-game"><span style="color:rgba(255,255,255,0.55)">' + r.year + ' ' + wkName(r.week) + '</span>' +
+          var ftd = r.firstScorer ? (scorerTeam(r) === team ? '<b style="color:' + tc.dark + '">' + escHtml(r.firstScorer) + '</b>' : '<span class="u-muted">' + escHtml(r.firstScorer) + '</span>') : '<span class="u-faint">Not played</span>';
+          return '<div class="pc-game tc-game"><span class="u-muted">' + r.year + ' ' + wkName(r.week) + '</span>' +
             '<span>' + (r.homeTeam === team ? 'vs ' : '@ ') + '<b style="color:' + (oc ? oc.dark : '#F3F4F6') + '">' + (TEAM_ABBR[opp] || opp).toUpperCase() + '</b> · ' + ftd + '</span>' +
             '<span>' + res1(g.by.Maria) + res1(g.by.Danielle) + '</span></div>';
         }).join('');
@@ -605,7 +605,7 @@
       // (later seasons don't count, so a season's Wrapped never changes after the fact)
       var R = computeRecords(all.filter(function(r) { return parseInt(r.year, 10) <= parseInt(year, 10); })), set = RECORDS.filter(function(d) { return R[d.k] && R[d.k].year === year; });
       if (set.length) out.push('<div class="wr-tile"><div class="wr-tile-label">📖 Records Set</div>' + set.slice(0, 3).map(function(d) {
-        return '<div class="wr-fav">' + d.ic + ' ' + nm(R[d.k].who) + ' · ' + d.t + ' <span style="opacity:0.6;font-weight:500">' + R[d.k].txt + '</span></div>';
+        return '<div class="wr-fav">' + d.ic + ' ' + nm(R[d.k].who) + ' · ' + d.t + ' <span class="u-faint">' + R[d.k].txt + '</span></div>';
       }).join('') + '</div>');
       return out.join('');
     }

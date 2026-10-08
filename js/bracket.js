@@ -194,7 +194,7 @@
       function tryPin() {
         var pin = inp.value.trim(), msg = document.getElementById('br-pin-msg');
         if (!/^\d{4}$/.test(pin)) { msg.style.color = '#F87171'; msg.textContent = 'PINs are 4 digits.'; return; }
-        go.disabled = true; msg.style.color = '#9CA3AF'; msg.textContent = 'Checking…';
+        go.disabled = true; msg.style.color = '#A1A9B6'; msg.textContent = 'Checking…';
         picksApi({ pin: pin, action: 'brmine' }).then(function(r) {
           go.disabled = false;
           if (r.error) { msg.style.color = '#F87171'; msg.textContent = r.error; return; }

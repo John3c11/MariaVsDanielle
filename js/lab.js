@@ -373,7 +373,7 @@
         h += '<button class="lab-st-r" style="' + cols + '" data-lab-split="' + escHtml(k) + '"><span class="lab-st-l">' + labSplitLabel(k, key) + '</span>' + g.by.map(function(b, i) {
           if (!b.n) return '<span class="lab-st-c dim">—</span>';
           return '<span class="lab-st-c' + (R.length > 1 && i === bi ? ' lead' : '') + '"><b>' + b.h + '/' + b.n + '</b> <i>' + Math.round(b.h / b.n * 100) + '%</i>' +
-            (b.money ? '<em style="color:' + (b.u > 0 ? '#34D399' : b.u < 0 ? '#F87171' : '#9CA3AF') + '">' + fmtU(b.u) + '</em>' : '') + '</span>';
+            (b.money ? '<em style="color:' + (b.u > 0 ? '#34D399' : b.u < 0 ? '#F87171' : '#A1A9B6') + '">' + fmtU(b.u) + '</em>' : '') + '</span>';
         }).join('') + '</button>';
       });
       return h + '</div>' + (more > 0 ? '<div class="mc-note" style="margin:-2px 0 12px">Top ' + cut + ' by picks. ' + more + ' more aren\'t shown.</div>' : '');
@@ -392,7 +392,7 @@
     function labPickHtml(p) {
       var c = labWhoColor(p.who);
       var res = p.void ? '<span class="lab-r void">void</span>' : p.hit ? '<span class="lab-r hit">✅</span>' : '<span class="lab-r miss">❌</span>';
-      var u = p.units === null ? '' : '<b class="lab-u" style="color:' + (p.units > 0 ? '#34D399' : p.units < 0 ? '#F87171' : '#9CA3AF') + '">' + (p.units ? fmtU(p.units) : '0') + '</b>';
+      var u = p.units === null ? '' : '<b class="lab-u" style="color:' + (p.units > 0 ? '#34D399' : p.units < 0 ? '#F87171' : '#A1A9B6') + '">' + (p.units ? fmtU(p.units) : '0') + '</b>';
       return '<div class="lab-pk" style="--pc:' + c + '"><div class="lab-pk-m"><div class="lab-pk-n">' + res + ' ' + escHtml(p.name) + (p.odds ? ' <small>' + fmtOdds(p.odds) + (p.est ? ' est' : '') + '</small>' : '') + '</div>' +
         '<div class="lab-pk-s"><span style="color:' + c + ';font-weight:700">' + escHtml(p.who) + '</span> · ' + p.year + ' ' + wkName(p.week) + (p.slot ? ' · ' + escHtml(p.slot) : '') + ' · ' +
         (typeof gameLinkAttr === 'function' ? '<span ' + gameLinkAttr(p.year, p.game) + '>' + escHtml(teamNick(p.awayTeam)) + ' @ ' + escHtml(teamNick(p.homeTeam)) + ' ›</span>' : escHtml(teamNick(p.awayTeam)) + ' @ ' + escHtml(teamNick(p.homeTeam))) + (!p.hit && p.scorer ? ' · 🏈 ' + escHtml(p.scorer) : '') + '</div></div>' + u +

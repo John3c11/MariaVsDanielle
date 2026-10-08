@@ -199,7 +199,7 @@
         const medalColors = ["#FBBF24", "#888", "#8B4513"];
 
         function podium(title, items) {
-          var html = '<div style="margin-bottom:28px"><div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">' + title + '</div>';
+          var html = '<div style="margin-bottom:28px"><div style="font-size:11px;font-weight:600;color:#A1A9B6;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">' + title + '</div>';
           items.slice(0, 3).forEach(function(item, i) {
             html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,0.06)">' +
               '<span style="font-size:20px">' + medals[i] + '</span>' +
@@ -245,7 +245,7 @@
         var PICKER_OPTS = [['all', 'Both'], ['Maria', 'Maria', 'maria-btn'], ['Danielle', 'Danielle', 'danielle-btn']];
         function inSeason(r, season) { return season === 'all' || r.year === season; }
         function byPicker(r, picker) { return picker === 'all' ? (r.picker === 'Maria' || r.picker === 'Danielle') : r.picker === picker; }
-        var EMPTY = function(t) { return '<div style="color:#9CA3AF;font-size:13px;text-align:center;padding:16px">' + t + '</div>'; };
+        var EMPTY = function(t) { return '<div style="color:#A1A9B6;font-size:13px;text-align:center;padding:16px">' + t + '</div>'; };
 
         // (v121: "Most picked & cursed picks" cut. Each Profile has Ride or Die + the Hall of Shame, and the Stat Lab splits by player.)
 
@@ -534,7 +534,7 @@
             var winnerColor = mW > dW ? SB_M : dW > mW ? SB_D : '#6B7280';
             var winnerLabel = mW > dW ? 'Maria' : dW > mW ? 'Danielle' : 'Tied';
             return '<div style="display:grid;grid-template-columns:80px 1fr 80px;gap:8px;align-items:center;padding:8px 0;border-bottom:0.5px solid rgba(255,255,255,0.06)">' +
-              '<span style="font-size:11px;color:#9CA3AF">' + wkLabel(wk.year, wk.week) + '</span>' +
+              '<span style="font-size:11px;color:#A1A9B6">' + wkLabel(wk.year, wk.week) + '</span>' +
               '<div style="display:flex;align-items:center;gap:6px">' +
                 '<span style="font-size:12px;color:' + SB_M + ';font-weight:600">M: ' + mW + '/' + (mW + mL) + '</span>' +
                 '<span style="color:#4B5563;font-size:10px">·</span>' +
@@ -585,7 +585,7 @@
             var bars = weeks.map(function(d) {
               var barColor = d.rate > 0.5 ? "#34D399" : d.rate > 0.25 ? "#FBBF24" : "#F87171";
               return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">' +
-                '<span style="font-size:11px;color:#9CA3AF;width:72px;flex-shrink:0">' + wkLabel(d.year, d.week) + '</span>' +
+                '<span style="font-size:11px;color:#A1A9B6;width:72px;flex-shrink:0">' + wkLabel(d.year, d.week) + '</span>' +
                 '<div style="flex:1;background:rgba(255,255,255,0.12);border-radius:4px;height:10px">' +
                   '<div style="width:' + Math.round(d.rate * 100) + '%;background:' + barColor + ';height:10px;border-radius:4px"></div>' +
                 '</div>' +
@@ -629,12 +629,12 @@
           function cell(p, c) {
             if (!p.n) return '<span style="text-align:center;color:#6B7280">—</span>';
             var u = Math.round(p.u * 10) / 10;
-            return '<span style="text-align:center"><b style="color:' + c + ';font-size:14px">' + p.w + '/' + p.n + '</b> <span style="color:#9CA3AF;font-size:11px">' + Math.round(p.w / p.n * 100) + '%</span>' +
-              '<div style="font-size:11px;font-weight:700;color:' + (u > 0 ? '#34D399' : u < 0 ? '#F87171' : '#9CA3AF') + '">' + (u > 0 ? '+' : '') + u + 'u</div></span>';
+            return '<span style="text-align:center"><b style="color:' + c + ';font-size:14px">' + p.w + '/' + p.n + '</b> <span style="color:#A1A9B6;font-size:11px">' + Math.round(p.w / p.n * 100) + '%</span>' +
+              '<div style="font-size:11px;font-weight:700;color:' + (u > 0 ? '#34D399' : u < 0 ? '#F87171' : '#A1A9B6') + '">' + (u > 0 ? '+' : '') + u + 'u</div></span>';
           }
           var inner = '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:8px 12px">' +
             '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:8px 0 4px;border-bottom:1px solid rgba(255,255,255,0.10)">' +
-            '<span style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Month</span>' +
+            '<span style="font-size:11px;color:#A1A9B6;text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Month</span>' +
             '<span style="font-size:11px;color:' + SB_M + ';text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Maria</span>' +
             '<span style="font-size:11px;color:' + SB_D + ';text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Danielle</span></div>';
           keys.forEach(function(k, i) {
@@ -702,14 +702,14 @@
           if (pickedBy.has('Maria') && pickedBy.has('Danielle')) return '<span style="font-size:10px;font-weight:600;color:#C4B5FD;background:rgba(167,139,250,0.18);border-radius:4px;padding:2px 6px">Both</span>';
           if (pickedBy.has('Maria')) return '<span style="font-size:10px;font-weight:600;color:' + SB_M + ';background:' + hexA(SB_M, 0.15) + ';border-radius:4px;padding:2px 6px">Maria</span>';
           if (pickedBy.has('Danielle')) return '<span style="font-size:10px;font-weight:600;color:' + SB_D + ';background:' + hexA(SB_D, 0.16) + ';border-radius:4px;padding:2px 6px">Danielle</span>';
-          return '<span style="font-size:10px;color:#9CA3AF">—</span>';
+          return '<span style="font-size:10px;color:#A1A9B6">—</span>';
         }
 
         var tdHead = '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:8px 12px">' +
           '<div style="display:grid;grid-template-columns:1fr 90px 80px;gap:8px;padding:8px 0 4px;border-bottom:1px solid rgba(255,255,255,0.10)">' +
-          '<span style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Player</span>' +
-          '<span style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">TDs (picked)</span>' +
-          '<span style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Picked By</span>' +
+          '<span style="font-size:11px;color:#A1A9B6;text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Player</span>' +
+          '<span style="font-size:11px;color:#A1A9B6;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">TDs (picked)</span>' +
+          '<span style="font-size:11px;color:#A1A9B6;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;text-align:center">Picked By</span>' +
           '</div>';
 
         SEASON_OPTS.forEach(function(so) {
@@ -745,7 +745,7 @@
             var divs = list.map(function(entry) {
               var data = entry[1];
               var tdDisplay = '<span style="font-size:14px;font-weight:700;color:#D1D5DB">' + data.total + '</span>' +
-                (data.picked > 0 && data.picked < data.total ? '<span style="font-size:11px;color:#9CA3AF;margin-left:3px">(' + data.picked + ' picked)</span>' : '');
+                (data.picked > 0 && data.picked < data.total ? '<span style="font-size:11px;color:#A1A9B6;margin-left:3px">(' + data.picked + ' picked)</span>' : '');
               return '<div style="display:grid;grid-template-columns:1fr 90px 80px;gap:8px;padding:9px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);align-items:center">' +
                 '<span style="font-size:13px;font-weight:600;color:#F3F4F6">' + entry[0] + '</span>' +
                 '<span style="text-align:center">' + tdDisplay + '</span>' +

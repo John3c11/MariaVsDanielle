@@ -49,12 +49,12 @@
         return;
       }
       el.innerHTML = (successHtml || '') +
-        '<div style="text-align:center;padding:24px 0 8px">' +
-          '<div style="font-size:18px;font-weight:700;margin-bottom:6px">Log In</div>' +
-          '<div style="font-size:13px;color:#A1A9B6;margin-bottom:20px">Enter your PIN to see what you can do</div>' +
+        '<div class="u-center u-pad-top">' +
+          '<div class="ui-title u-mb-xs">Log In</div>' +
+          '<div class="ui-intro u-mb-m">Enter your PIN to see what you can do</div>' +
           '<input id="pin-input" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off">' +
-          '<div style="margin-top:16px"><button class="primary-btn" id="pin-go">Enter</button></div>' +
-          '<div class="submit-msg" id="pin-msg" style="color:#F87171">' + (msg || '') + '</div>' +
+          '<div class="u-mt"><button class="primary-btn" id="pin-go">Enter</button></div>' +
+          '<div class="u-bad submit-msg" id="pin-msg">' + (msg || '') + '</div>' +
         '</div>';
       var input = document.getElementById('pin-input');
       if (!successHtml) input.focus();
@@ -69,7 +69,7 @@
       var pin = (input.value || '').trim();
       if (pin.length !== 4) { document.getElementById('pin-msg').textContent = 'PINs are 4 digits.'; return; }
       SUB.busy = true;
-      document.getElementById('pin-msg').style.color = '#9CA3AF';
+      document.getElementById('pin-msg').style.color = '#A1A9B6';
       document.getElementById('pin-msg').textContent = 'Checking…';
       picksApi({ pin: pin }).then(function(res) {
         SUB.busy = false;
@@ -107,30 +107,30 @@
       var html = playerHeader(res.name || SUB.name, changing ? 'change' : 'pick');
 
       if (done) {
-        html += '<div style="background:rgba(52,211,153,0.15);border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:#34D399;line-height:1.6">' +
+        html += '<div class="ui-okbox u-mb-m">' +
           '✅ Locked in for ' + weekName(done.week) + ' ' + done.slot + ': ' +
           coloredText(done.homePick, done.home) + ' / ' + coloredText(done.awayPick, done.away) +
           '. Odds get added later.</div>';
       }
 
       if (res.done) {
-        html += '<div style="text-align:center;padding:32px 0;color:#A1A9B6;font-size:14px">🎉 You\'re all caught up. No open games right now.</div>';
+        html += '<div class="ui-empty">🎉 You\'re all caught up. No open games right now.</div>';
         el.innerHTML = html;
         bindSwitch(); bindPlayerNav();
         return;
       }
 
       var g = res;
-      html += '<div style="text-align:center;margin-bottom:16px">' +
-        '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">' + weekName(g.week) + ' · ' + g.slot + '</div>' +
-        '<div style="font-size:17px;font-weight:700">' + coloredGame(g.home, g.away) + '</div>' +
-        '<div style="font-size:12px;color:#A1A9B6;margin-top:6px">' + (changing ? 'Your current picks are highlighted. Tap someone else to swap.' : 'Pick one player from each team.') + '</div></div>';
+      html += '<div class="u-center u-mb-m">' +
+        '<div class="ui-label u-mb-xs">' + weekName(g.week) + ' · ' + g.slot + '</div>' +
+        '<div class="ui-title">' + coloredGame(g.home, g.away) + '</div>' +
+        '<div class="ui-note u-mt-s">' + (changing ? 'Your current picks are highlighted. Tap someone else to swap.' : 'Pick one player from each team.') + '</div></div>';
 
       function column(side, team, players) {
         var tc = TEAM_COLORS[team] || { bg: '#1C1C1E', text: '#FFFFFF', primary: '#1C1C1E' };
         var out = '<div>' +
           '<div class="team-header-bar" style="background:' + (tc.bg || tc.primary) + ';color:' + tc.text + ';border-radius:8px;margin-bottom:8px">' + team + '</div>';
-        if (!players.length) out += '<div style="font-size:12px;color:#9CA3AF;padding:8px">No players listed on the Rosters tab.</div>';
+        if (!players.length) out += '<div class="ui-note u-pad-s">No players listed on the Rosters tab.</div>';
         var taken = g.taken || [];
         players.forEach(function(name, i) {
           if (taken.indexOf(name) >= 0) {
@@ -142,11 +142,11 @@
         });
         return out + '</div>';
       }
-      html += '<div class="two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px">' +
+      html += '<div class="ui-cols2 two-col">' +
         column('home', g.home, g.homePlayers) + column('away', g.away, g.awayPlayers) + '</div>';
 
-      html += '<div style="text-align:center;margin-top:16px">' +
-        '<div id="sub-summary" style="font-size:13px;color:#A1A9B6;margin-bottom:12px;min-height:20px"></div>' +
+      html += '<div class="u-center u-mt">' +
+        '<div id="sub-summary" class="ui-intro u-mb"></div>' +
         '<button class="primary-btn" id="sub-go" disabled>' + (changing ? 'Save Changes' : 'Submit Picks') + '</button>' +
         '<div class="submit-msg" id="sub-msg"></div></div>';
 
@@ -183,7 +183,7 @@
       });
       var sum = document.getElementById('sub-summary');
       if (SUB.homeSel && SUB.awaySel) {
-        sum.innerHTML = coloredText(SUB.homeSel, g.home) + ' <span style="color:#9CA3AF">/</span> ' + coloredText(SUB.awaySel, g.away);
+        sum.innerHTML = coloredText(SUB.homeSel, g.home) + ' <span class="u-muted">/</span> ' + coloredText(SUB.awaySel, g.away);
       } else {
         sum.textContent = (SUB.homeSel || SUB.awaySel) ? 'One more to go…' : '';
       }
@@ -227,7 +227,7 @@
     // Confirmation + log out after one game's picks
     function showSubmitted(res) {
       SUB.busy = false;
-      var done = '<div style="background:rgba(52,211,153,0.15);border-radius:10px;padding:14px 16px;font-size:13px;color:#34D399;line-height:1.6">' +
+      var done = '<div class="ui-okbox">' +
         '✅ <b>' + res.name + '</b>, you\'re ' + (SUB.mode === 'change' ? 'updated' : 'locked in') + ' for ' + weekName(res.week) + ' ' + res.slot + ': ' +
         coloredText(res.homePick, res.home) + ' / ' + coloredText(res.awayPick, res.away) +
         '. You\'ve been logged out.</div>';
@@ -265,11 +265,11 @@
     function renderFriendHome(res) {
       var body = playerScreen('fpick', '');
       var games = res.games || [];
-      if (!games.length) { body.innerHTML = '<div style="text-align:center;padding:30px 0;color:#A1A9B6">No open games right now. Check back later.</div>'; return; }
+      if (!games.length) { body.innerHTML = '<div class="ui-empty">No open games right now. Check back later.</div>'; return; }
       var weeks = games.map(function(g) { return parseInt(g.week, 10); }).filter(function(w, i, a) { return a.indexOf(w) === i; });
       var nearWeeks = weeks.slice(0, 2);
       var shown = FRIEND.showLater ? games : games.filter(function(g) { return nearWeeks.indexOf(parseInt(g.week, 10)) >= 0; });
-      var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:6px">Pick one player from each team. You can change picks until kickoff. Nobody sees your picks until the game starts.</div>' +
+      var h = '<div class="ui-note u-mb-xs">Pick one player from each team. You can change picks until kickoff. Nobody sees your picks until the game starts.</div>' +
         '<div class="submit-msg" id="fr-msg" style="text-align:left;min-height:0"></div>';
       var lastWeek = null;
       shown.forEach(function(g, i) {
@@ -277,12 +277,12 @@
         var picked = g.myHome && g.myAway;
         var ko = g.kickoff ? new Date(g.kickoff).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : '';
         h += '<div class="sch-game"><div class="sch-top"><span class="sch-slot">' + escHtml(g.slot) + '</span><span class="sch-ko">' + ko + '</span></div>' +
-          '<div class="sch-teams">' + teamPill(g.home, g.home) + ' <span style="color:rgba(255,255,255,0.45)">vs</span> ' + teamPill(g.away, g.away) + '</div>' +
-          '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px">' +
-            '<div class="sch-status">' + (picked ? '✅ ' + coloredText(g.myHome, g.home) + ' / ' + coloredText(g.myAway, g.away) : '<span style="color:#A1A9B6">Not picked yet</span>') + '</div>' +
+          '<div class="sch-teams">' + teamPill(g.home, g.home) + ' <span class="u-faint">vs</span> ' + teamPill(g.away, g.away) + '</div>' +
+          '<div class="u-between">' +
+            '<div class="sch-status">' + (picked ? '✅ ' + coloredText(g.myHome, g.home) + ' / ' + coloredText(g.myAway, g.away) : '<span class="u-muted">Not picked yet</span>') + '</div>' +
             '<button class="adm-btn' + (picked ? '' : ' green') + '" data-fg="' + games.indexOf(g) + '">' + (picked ? 'Change' : 'Pick') + '</button></div></div>';
       });
-      if (!FRIEND.showLater && shown.length < games.length) h += '<div style="text-align:center;margin-top:8px"><button class="adm-btn" id="fr-later">Show later weeks</button></div>';
+      if (!FRIEND.showLater && shown.length < games.length) h += '<div class="u-center u-mt-s"><button class="adm-btn" id="fr-later">Show later weeks</button></div>';
       body.innerHTML = h;
       body.querySelectorAll('[data-fg]').forEach(function(b) {
         b.addEventListener('click', function() { renderFriendPicker(games[+b.getAttribute('data-fg')], res); });
@@ -301,11 +301,11 @@
             return '<button class="pick-chip fr-chip" data-fs="' + side + '" data-fn="' + escHtml(n) + '">' + escHtml(n) + '</button>';
           }).join('') + '</div>';
       }
-      body.innerHTML = '<div style="text-align:center;margin-bottom:16px">' +
-          '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">' + weekName(g.week) + ' · ' + escHtml(g.slot) + '</div>' +
-          '<div style="font-size:17px;font-weight:700">' + coloredGame(g.home, g.away) + '</div></div>' +
-        '<div class="two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px">' + column('home', g.home, g.homePlayers) + column('away', g.away, g.awayPlayers) + '</div>' +
-        '<div style="text-align:center;margin-top:16px"><button class="primary-btn" id="fr-save">Save Picks</button> <button class="link-btn" id="fr-back" style="margin-left:10px">Back</button>' +
+      body.innerHTML = '<div class="u-center u-mb-m">' +
+          '<div class="ui-label u-mb-xs">' + weekName(g.week) + ' · ' + escHtml(g.slot) + '</div>' +
+          '<div class="ui-title">' + coloredGame(g.home, g.away) + '</div></div>' +
+        '<div class="ui-cols2 two-col">' + column('home', g.home, g.homePlayers) + column('away', g.away, g.awayPlayers) + '</div>' +
+        '<div class="u-center u-mt"><button class="primary-btn" id="fr-save">Save Picks</button> <button class="u-ml-s link-btn" id="fr-back">Back</button>' +
         '<div class="submit-msg" id="fr-msg"></div></div>';
       function paint() {
         body.querySelectorAll('.fr-chip').forEach(function(b) {
@@ -343,8 +343,8 @@
       var sections = SUB.role === 'friend' ? FRIEND_SECTIONS : PLAYER_SECTIONS;
       if (typeof BRACKET_ON !== 'undefined' && BRACKET_ON) sections = sections.concat([['bracket', '🏆 Bracket']]);
       if (SUB.role === 'friend') pc = '#2DD4BF';
-      return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
-        '<div style="font-size:16px;font-weight:700">Hi <span style="color:' + pc + '">' + name + '</span></div>' +
+      return '<div class="u-between u-mb-xs">' +
+        '<div class="ui-title">Hi <span style="color:' + pc + '">' + name + '</span></div>' +
         '<button class="link-btn" id="sub-switch">Log out</button></div>' +
         '<div class="adm-nav">' + sections.map(function(t) {
           return '<button data-pl="' + t[0] + '" class="' + (t[0] === active ? 'on' : '') + '">' + t[1] + '</button>';
@@ -393,14 +393,14 @@
     function showChangeList() {
       var body = playerScreen('change', '<div class="loading">Loading…</div>');
       picksApi({ pin: SUB.pin, action: 'editable' }).then(function(res) {
-        if (res.error) { body.innerHTML = '<div class="submit-msg" style="color:#F87171">' + res.error + '</div>'; return; }
-        var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:12px">You can swap a pick until the other person makes theirs. After that it\'s locked.</div>';
+        if (res.error) { body.innerHTML = '<div class="u-bad submit-msg">' + res.error + '</div>'; return; }
+        var h = '<div class="ui-note u-mb">You can swap a pick until the other person makes theirs. After that it\'s locked.</div>';
         if (!res.games.length) {
-          h += '<div style="text-align:center;padding:26px 0;color:#A1A9B6;font-size:14px">Nothing to change right now. Every pick you\'ve made is locked in.</div>';
+          h += '<div class="ui-empty">Nothing to change right now. Every pick you\'ve made is locked in.</div>';
         } else {
           h += res.games.map(function(g, i) {
-            return '<div class="adm-row"><div><div style="font-size:11px;font-weight:700;color:#A1A9B6;letter-spacing:0.08em">' + weekName(g.week).toUpperCase() + ' · ' + escHtml(g.slot).toUpperCase() + '</div>' +
-              '<div style="margin-top:4px">' + coloredText(g.homePick, g.home) + ' / ' + coloredText(g.awayPick, g.away) + '</div></div>' +
+            return '<div class="adm-row"><div><div class="ui-label">' + weekName(g.week).toUpperCase() + ' · ' + escHtml(g.slot).toUpperCase() + '</div>' +
+              '<div class="u-mt-xs">' + coloredText(g.homePick, g.home) + ' / ' + coloredText(g.awayPick, g.away) + '</div></div>' +
               '<button class="adm-btn" data-chg="' + i + '">Change</button></div>';
           }).join('');
         }
@@ -412,7 +412,7 @@
             renderGame(g, null, 'change');
           });
         });
-      }).catch(function() { body.innerHTML = '<div class="submit-msg" style="color:#F87171">Couldn\'t reach the sheet. Try again.</div>'; });
+      }).catch(function() { body.innerHTML = '<div class="u-bad submit-msg">Couldn\'t reach the sheet. Try again.</div>'; });
     }
 
     // 📋 My Picks: what's open, what's waiting, how it went
@@ -438,7 +438,7 @@
         var wins = counted.filter(function(b) { return b.correct === 'Yes'; }).length;
         var pc = personColor(me);
 
-        var h = '<div class="pf-big" style="margin-bottom:18px">' +
+        var h = '<div class="u-mb-m pf-big">' +
           '<div><b>' + wins + '/' + counted.length + '</b><span>' + CURRENT_YEAR + ' record</span></div>' +
           '<div><b style="color:' + (units >= 0 ? '#34D399' : '#F87171') + '">' + fmtU(units) + '</b><span>Units</span></div>' +
           '<div><b>' + open.length + '</b><span>Games left to pick</span></div></div>';
@@ -447,23 +447,23 @@
           h += '<div class="adm-row"><div>🏈 Next up: <b>' + weekName(open[0].week) + ' ' + escHtml(open[0].slot) + '</b> · ' + coloredGame(open[0].home, open[0].away) + '</div>' +
             '<button class="adm-btn green" id="go-pick">Make Pick</button></div>';
         }
-        h += '<div style="font-size:11px;font-weight:800;letter-spacing:0.12em;color:#A1A9B6;margin:18px 0 4px">WAITING ON RESULTS (' + waiting.length + ')</div>';
+        h += '<div class="ui-label u-mt">WAITING ON RESULTS (' + waiting.length + ')</div>';
         h += waiting.length ? waiting.map(function(r) {
           var o = byGame[r.week + '_' + r.game];
           var otherIn = o && o.homePick;
-          return '<div class="adm-row"><div><div style="font-size:11px;font-weight:700;color:#A1A9B6">' + weekName(r.week).toUpperCase() + ' · ' + escHtml(r.slot).toUpperCase() + '</div>' +
-            '<div style="margin-top:3px">' + picksOf(r) + '</div><div style="font-size:11px;color:#A1A9B6;margin-top:2px">' + oddsOf(r) + '</div></div>' +
+          return '<div class="adm-row"><div><div class="ui-label">' + weekName(r.week).toUpperCase() + ' · ' + escHtml(r.slot).toUpperCase() + '</div>' +
+            '<div class="u-mt-xs">' + picksOf(r) + '</div><div class="ui-small">' + oddsOf(r) + '</div></div>' +
             '<span class="sch-chip" style="' + (otherIn ? 'color:#6EE7B7;background:rgba(52,211,153,0.14)">🔒 Locked' : 'color:#FCD34D;background:rgba(251,191,36,0.14)">✏️ Can change') + '</span></div>';
-        }).join('') : '<div style="color:#A1A9B6;font-size:13px;padding:8px 0">Nothing pending.</div>';
+        }).join('') : '<div class="ui-intro u-pad-s">Nothing pending.</div>';
 
-        h += '<div style="font-size:11px;font-weight:800;letter-spacing:0.12em;color:#A1A9B6;margin:18px 0 4px">RECENT RESULTS</div>';
+        h += '<div class="ui-label u-mt">RECENT RESULTS</div>';
         h += done.length ? done.slice(-6).reverse().map(function(r) {
           var win = r.correct === 'Yes', u = r.units, no = r.notOffered;
-          return '<div class="adm-row"><div><div style="font-size:11px;font-weight:700;color:#A1A9B6">' + weekName(r.week).toUpperCase() + ' · ' + escHtml(r.slot).toUpperCase() + '</div>' +
-            '<div style="margin-top:3px">' + picksOf(r) + '</div><div style="font-size:11px;color:#A1A9B6;margin-top:2px">First TD: ' + escHtml(r.scorer) + '</div></div>' +
-            '<div style="text-align:right"><div style="font-weight:800;color:' + (no ? '#A1A9B6' : win ? '#34D399' : '#F87171') + '">' + (no ? 'NOT OFFERED' : win ? 'WIN' : 'LOSS') + '</div>' +
+          return '<div class="adm-row"><div><div class="ui-label">' + weekName(r.week).toUpperCase() + ' · ' + escHtml(r.slot).toUpperCase() + '</div>' +
+            '<div class="u-mt-xs">' + picksOf(r) + '</div><div class="ui-small">First TD: ' + escHtml(r.scorer) + '</div></div>' +
+            '<div class="u-right"><div style="font-weight:800;color:' + (no ? '#A1A9B6' : win ? '#34D399' : '#F87171') + '">' + (no ? 'NOT OFFERED' : win ? 'WIN' : 'LOSS') + '</div>' +
             '<div style="font-size:12px;color:' + (u > 0 ? '#34D399' : u < 0 ? '#F87171' : '#A1A9B6') + '">' + (u > 0 ? '+' : '') + u + 'u</div></div></div>';
-        }).join('') : '<div style="color:#A1A9B6;font-size:13px;padding:8px 0">No results yet.</div>';
+        }).join('') : '<div class="ui-intro u-pad-s">No results yet.</div>';
 
         body.innerHTML = h;
         var go = document.getElementById('go-pick');

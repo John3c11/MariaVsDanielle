@@ -37,35 +37,35 @@
       var countEl = document.getElementById('bh-hist-count');
       if (countEl) countEl.textContent = bets.length + ' bet' + (bets.length !== 1 ? 's' : '');
       if (!el) return;
-      var header = '<div class="bh-head" style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 110px 50px;gap:8px;padding-bottom:8px;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:10px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em">' +
+      var header = '<div class="bh-grid bh-grid-head bh-head">' +
         '<span>Year</span><span>Wk</span><span>Game</span><span>Picker</span><span>Players</span><span>Odds</span><span>First TD</span><span>Units</span></div>';
       var rows = bets.slice(0, BH_SHOW).map(function(b) {
         // First TD scorer: green = hit, red = miss, gray = not offered (didn't count)
         var noOffer = b.notOffered;
         var resultBg = noOffer ? 'rgba(255,255,255,0.08)' : b.correct === 'Yes' ? 'rgba(52,211,153,0.15)' : b.correct === 'No' ? 'rgba(248,113,113,0.15)' : 'rgba(255,255,255,0.08)';
-        var resultColor = noOffer ? '#9CA3AF' : b.correct === 'Yes' ? '#34D399' : b.correct === 'No' ? '#F87171' : '#9CA3AF';
+        var resultColor = noOffer ? '#A1A9B6' : b.correct === 'Yes' ? '#34D399' : b.correct === 'No' ? '#F87171' : '#A1A9B6';
         var resultText = b.firstScorer ? escHtml(b.firstScorer) : '⏳';
         var pickerColor = personColor(b.picker);
-        var unitColor = b.netUnits > 0 ? '#34D399' : b.netUnits < 0 ? '#F87171' : '#9CA3AF';
+        var unitColor = b.netUnits > 0 ? '#34D399' : b.netUnits < 0 ? '#F87171' : '#A1A9B6';
         var unitStr = b.netUnits !== 0 ? (b.netUnits > 0 ? '+' : '') + b.netUnits + 'u' : '0u';
         var homeColored = b.homePick ? coloredText(b.homePick, b.homeTeam) : '';
         var awayColored = b.awayPick ? coloredText(b.awayPick, b.awayTeam) : '';
-        var players = [homeColored, awayColored].filter(Boolean).join('<span style="color:#9CA3AF"> / </span>') || '—';
+        var players = [homeColored, awayColored].filter(Boolean).join('<span class="u-muted"> / </span>') || '—';
         var gameDisplay = b.homeTeam && b.awayTeam ? (b.gameNo && typeof gameLinkAttr === 'function' ? '<span ' + gameLinkAttr(b.year, b.gameNo) + ' title="Open this game">' + coloredGame(b.homeTeam, b.awayTeam) + '</span>' : coloredGame(b.homeTeam, b.awayTeam)) : (b.game || '—');
         if (b.firstScorer && b.homeTeam) gameDisplay += ' <button class="rp-mini" title="Replay this game" aria-label="Replay this game" onclick="replayGame(\'' + b.year + '\',' + parseInt(b.week, 10) + ',\'' + escHtml(String(b.gameNo)) + '\')">⏪</button>';
-        return '<div class="bh-row" data-ctx-year="' + b.year + '" data-ctx-week="' + b.week + '" style="display:grid;grid-template-columns:44px 40px 1fr 80px 1fr 70px 110px 50px;gap:8px;padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:12px;align-items:start">' +
+        return '<div class="bh-grid bh-row" data-ctx-year="' + b.year + '" data-ctx-week="' + b.week + '">' +
           '<span style="font-size:11px;font-weight:600;color:' + (b.year === CURRENT_YEAR ? '#60A5FA' : '#34D399') + '">' + b.year + '</span>' +
-          '<span style="color:#9CA3AF;text-align:center">' + (PLAYOFF_SHORT[parseInt(b.week, 10)] || b.week) + '</span>' +
-          '<span style="font-weight:500">' + gameDisplay + '</span>' +
+          '<span class="u-muted u-center">' + (PLAYOFF_SHORT[parseInt(b.week, 10)] || b.week) + '</span>' +
+          '<span class="u-medium">' + gameDisplay + '</span>' +
           '<span style="font-weight:500;color:' + pickerColor + '">' + b.picker + '</span>' +
           '<span>' + players + '</span>' +
-          '<span style="color:#A1A9B6">' + b.odds + (window.MACHINE_GRADES && MACHINE_GRADES[b.year + '|' + b.gameNo + '|' + b.picker] ? ' <span class="mc-grade g-' + MACHINE_GRADES[b.year + '|' + b.gameNo + '|' + b.picker].g.replace('+', 'p') + '" title="Pick grade from the Machine: the price vs the players\' real chances">' + MACHINE_GRADES[b.year + '|' + b.gameNo + '|' + b.picker].g + '</span>' : '') + '</span>' +
+          '<span class="u-muted">' + b.odds + (window.MACHINE_GRADES && MACHINE_GRADES[b.year + '|' + b.gameNo + '|' + b.picker] ? ' <span class="mc-grade g-' + MACHINE_GRADES[b.year + '|' + b.gameNo + '|' + b.picker].g.replace('+', 'p') + '" title="Pick grade from the Machine: the price vs the players\' real chances">' + MACHINE_GRADES[b.year + '|' + b.gameNo + '|' + b.picker].g + '</span>' : '') + '</span>' +
           '<span class="bh-ftd" title="' + (noOffer ? 'Not offered, bet did not count' : '') + '" style="font-size:11px;font-weight:600;padding:3px 7px;border-radius:5px;text-align:center;line-height:1.3;background:' + resultBg + ';color:' + resultColor + '">' + resultText + '</span>' +
           '<span style="text-align:right;font-weight:500;color:' + unitColor + '">' + unitStr + '</span>' +
           '</div>';
       }).join('');
-      var more = bets.length > BH_SHOW ? '<div style="text-align:center;margin:14px 0 4px"><button class="adm-btn" id="bh-more">Show ' + Math.min(25, bets.length - BH_SHOW) + ' more · ' + (bets.length - BH_SHOW) + ' left</button></div>' : '';
-      el.innerHTML = bets.length === 0 ? '<div style="color:#9CA3AF;text-align:center;padding:32px">No results.</div>' : header + rows + more;
+      var more = bets.length > BH_SHOW ? '<div class="u-center u-mt"><button class="adm-btn" id="bh-more">Show ' + Math.min(25, bets.length - BH_SHOW) + ' more · ' + (bets.length - BH_SHOW) + ' left</button></div>' : '';
+      el.innerHTML = bets.length === 0 ? '<div class="ui-empty">No results.</div>' : header + rows + more;
       var mb = document.getElementById('bh-more');
       if (mb) mb.addEventListener('click', function() { BH_SHOW += 25; renderBHHistory(bets); });
     }
@@ -85,22 +85,22 @@
         // oldest first: SEASONS array is newest first, so we reverse to get oldest first
 
 
-        var html = '<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap" id="bh-filters">' +
-          '<div style="display:flex;gap:4px;align-items:center"><span style="font-size:11px;color:#9CA3AF;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Year</span>' +
+        var html = '<div class="u-wrap u-mb" id="bh-filters">' +
+          '<div class="u-row-xs"><span class="ui-label">Year</span>' +
           '<button class="filter-btn active" data-key="year" data-val="all">All</button>' +
           SEASONS.map(function(se) { return '<button class="filter-btn" data-key="year" data-val="' + se.year + '">' + se.year + '</button>'; }).join('') + '</div>' +
-          '<div style="display:flex;gap:4px;align-items:center;margin-left:12px"><span style="font-size:11px;color:#9CA3AF;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Picker</span>' +
+          '<div class="u-row-xs u-ml-s"><span class="ui-label">Picker</span>' +
           '<button class="filter-btn active" data-key="picker" data-val="all">Both</button>' +
           '<button class="filter-btn maria-btn" data-key="picker" data-val="Maria">Maria</button>' +
           '<button class="filter-btn danielle-btn" data-key="picker" data-val="Danielle">Danielle</button></div>' +
-          '<div style="display:flex;gap:4px;align-items:center;margin-left:12px"><span style="font-size:11px;color:#9CA3AF;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Result</span>' +
+          '<div class="u-row-xs u-ml-s"><span class="ui-label">Result</span>' +
           '<button class="filter-btn active" data-key="result" data-val="all">All</button>' +
           '<button class="filter-btn win-btn" data-key="result" data-val="Yes">Win</button>' +
           '<button class="filter-btn loss-btn" data-key="result" data-val="No">Loss</button></div>' +
-          '<div style="display:flex;gap:4px;align-items:center;margin-left:12px"><span style="font-size:11px;color:#9CA3AF;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Order</span><button class="filter-btn" data-key="order" data-val="asc">Oldest First</button><button class="filter-btn active" data-key="order" data-val="desc">Newest First</button></div>' +
+          '<div class="u-row-xs u-ml-s"><span class="ui-label">Order</span><button class="filter-btn" data-key="order" data-val="asc">Oldest First</button><button class="filter-btn active" data-key="order" data-val="desc">Newest First</button></div>' +
           '</div>' +
-          '<input type="text" id="bh-search" style="width:100%;padding:10px 14px;font-family:Inter,sans-serif;font-size:14px;border:0.5px solid rgba(255,255,255,0.10);border-radius:8px;background:rgba(255,255,255,0.05);color:#F3F4F6;outline:none;margin-bottom:12px" placeholder="Search player, team, week, year, or picker..." oninput="filterBHHistory()">' +
-          '<div id="bh-hist-count" style="font-size:12px;color:#9CA3AF;margin-bottom:12px"></div>' +
+          '<input type="text" id="bh-search" class="ui-input u-mb" placeholder="Search player, team, week, year, or picker..." oninput="filterBHHistory()">' +
+          '<div id="bh-hist-count" class="ui-note u-mb"></div>' +
           '<div id="bh-history-table"></div>';
 
         document.getElementById('bethistory-content').innerHTML = html;
@@ -120,7 +120,7 @@
         filterBHHistory();
       }).catch(function(e) {
         console.error(e);
-        document.getElementById('bethistory-content').innerHTML = '<div style="color:#9CA3AF;text-align:center;padding:32px">Error: ' + e.message + '</div>';
+        document.getElementById('bethistory-content').innerHTML = '<div class="ui-empty">Error: ' + e.message + '</div>';
       });
     }
 
@@ -318,7 +318,7 @@
       if (favM || favD) {
         var fav = function(n, f) {
           return f ? '<div class="wr-fav"><span style="color:' + pc(n) + '">' + n + '</span> · ' + f.name +
-            ' <span style="opacity:0.6;font-weight:500">' + f.n + 'x</span></div>' : '';
+            ' <span class="u-faint">' + f.n + 'x</span></div>' : '';
         };
         h += '<div class="wr-tile"><div class="wr-tile-label">❤️ Ride or Die</div>' + fav('Maria', favM) + fav('Danielle', favD) + '</div>';
       }
@@ -385,7 +385,7 @@
 
         var winner = s.mUnits > s.dUnits ? 'Maria leads all-time' : s.dUnits > s.mUnits ? 'Danielle leads all-time' : 'All-time tied';
 
-        var html = '<div style="font-size:13px;color:#A1A9B6;margin-bottom:24px">' + winner + ' · ' + SEASONS.length + ' seasons of data</div>';
+        var html = '<div class="ui-intro u-mb-l">' + winner + ' · ' + SEASONS.length + ' seasons of data</div>';
 
         // Big screens: totals + earnings on the left, Record Book on the right (no effect elsewhere)
         html += '<div class="wide-cols"><div class="wide-col">';
@@ -404,9 +404,9 @@
         var race = allTimeRaceChart(raceBets);
         var raceYears = byYear.map(function(ys) { return ys.year; }).filter(Boolean);
         // One race chart for everything: every season together, or one season at a time (Analytics' Season Race lived here from v121)
-        if (race) html += secH('🏁 The Race') + '<div class="af-bar" style="margin-bottom:8px"><span class="af-bar-label">Season</span><button class="filter-btn active" data-race-y="all">All-time</button>' +
+        if (race) html += secH('🏁 The Race') + '<div class="u-mb-s af-bar"><span class="af-bar-label">Season</span><button class="filter-btn active" data-race-y="all">All-time</button>' +
           raceYears.map(function(y) { return '<button class="filter-btn" data-race-y="' + y + '">' + y + '</button>'; }).join('') + '</div>' +
-          '<div class="ch-box" id="lg-race" style="margin-bottom:28px">' + race + '</div>';
+          '<div class="u-mb-l ch-box" id="lg-race">' + race + '</div>';
         // 🔮 The Chalk Team (js/chalk.js) and ⏪ Replay (js/replay.js), filled in once their files load
         html += '<div id="chalk-slot" class="lazy-slot"></div><div id="replay-slot" class="lazy-slot"></div>';
 
@@ -419,7 +419,7 @@
           });
           html += '</div>';
         }
-        html += '<div style="font-size:12px;color:#9CA3AF;text-align:center;margin:-8px 0 20px">' + CURRENT_YEAR + ' Wrapped unlocks when the season is over.</div>';
+        html += '<div class="ui-note u-center u-pull-up">' + CURRENT_YEAR + ' Wrapped unlocks when the season is over.</div>';
 
         document.getElementById('legacy-content').innerHTML = html;
         renderClimb();
@@ -438,7 +438,7 @@
         loadAllBets().then(function(all) { var el = document.getElementById('legacy-records'); if (el) el.innerHTML = recordBookHtml(all) || '<div class="loading">No records yet.</div>'; });
       }).catch(function(e) {
         console.error(e);
-        document.getElementById('legacy-content').innerHTML = '<div style="color:#9CA3AF;text-align:center;padding:32px">Error loading legacy data: ' + e.message + '</div>';
+        document.getElementById('legacy-content').innerHTML = '<div class="ui-empty">Error loading legacy data: ' + e.message + '</div>';
       });
     }
 
@@ -484,7 +484,7 @@
       h += '<div class="wr-kicker">Crowd Wrapped</div><div class="wr-year">' + year + '</div>';
       h += '<div class="wr-champ">👑 ' + nm(champ.name) + ' wins the Crowd at ' + pctTxt(champ.pct) + ' (' + champ.w + '–' + (champ.n - champ.w) + ')</div>';
       h += '<div class="wr-chart" style="padding:10px 14px">' + board.slice(0, 5).map(function(s, i) {
-        return '<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:14px' + (i ? ';border-top:1px solid rgba(255,255,255,0.08)' : '') + '"><span>' + (i === 0 ? '👑' : i + 1) + '&nbsp; ' + nm(s.name) + '</span><span style="opacity:0.85">' + s.w + '–' + (s.n - s.w) + ' · <b>' + pctTxt(s.pct) + '</b></span></div>';
+        return '<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:14px' + (i ? ';border-top:1px solid rgba(255,255,255,0.08)' : '') + '"><span>' + (i === 0 ? '👑' : i + 1) + '&nbsp; ' + nm(s.name) + '</span><span class="u-o85">' + s.w + '–' + (s.n - s.w) + ' · <b>' + pctTxt(s.pct) + '</b></span></div>';
       }).join('') +
         '<div style="display:flex;justify-content:space-between;padding:6px 0 2px;font-size:12px;opacity:0.7;border-top:1px dashed rgba(255,255,255,0.15)"><span>For reference: <span style="color:' + SB_M + '">Maria ' + pctTxt(m.pct) + '</span> · <span style="color:' + SB_D + '">Danielle ' + pctTxt(d.pct) + '</span></span><span>' + all.length + ' friends played</span></div></div>';
       function tile(label, main, sub) {
@@ -546,7 +546,7 @@
         if (!years.length) { box.innerHTML = ''; return; }
         if (!CLIMB.year || years.indexOf(CLIMB.year) < 0) CLIMB.year = years.indexOf(CURRENT_YEAR) >= 0 ? CURRENT_YEAR : years[0];
         var D = climbData(rows, CLIMB.year);
-        var h = '<div class="af-bar" style="margin-bottom:8px"><span class="af-bar-label">Season</span>' + years.map(function(y) { return '<button class="filter-btn' + (y === CLIMB.year ? ' active' : '') + '" data-climb-y="' + y + '">' + y + '</button>'; }).join('') + '</div>';
+        var h = '<div class="u-mb-s af-bar"><span class="af-bar-label">Season</span>' + years.map(function(y) { return '<button class="filter-btn' + (y === CLIMB.year ? ' active' : '') + '" data-climb-y="' + y + '">' + y + '</button>'; }).join('') + '</div>';
         if (!D || D.weeks.length < 1) { box.innerHTML = h + '<div class="ch-empty">No games entered for this season yet.</div>'; climbBind(box); return; }
         var f = D.both.floor, a = D.both.actual, n = f.length, last = f[n - 1], start = f[0];
         var outAt = -1; for (var i = 1; i < n; i++) if (f[i] >= 0 && f[i - 1] < 0) { outAt = i; break; }
@@ -573,7 +573,7 @@
         else line = 'If nothing else hits, ' + CLIMB.year + ' ends at <b style="color:' + (last >= 0 ? '#34D399' : '#F87171') + '">' + fmtDWhole(last) + '</b>' +
           (last >= 0 ? ', so this season is already guaranteed to finish up' + (outAt > 0 ? ' (out of the hole in ' + weekName(D.weeks[outAt - 1]) + ')' : '') + '.' : '. Every hit from here pulls that up.') +
           ' Weeks not entered in the sheet yet (like the playoffs) aren\'t counted.';
-        box.innerHTML = h + '<div class="mc-note" style="margin:0 0 10px">' + line + '</div><div class="ch-box" style="margin-bottom:28px">' + chart + '</div>';
+        box.innerHTML = h + '<div class="u-mb mc-note">' + line + '</div><div class="u-mb-l ch-box">' + chart + '</div>';
         climbBind(box);
       }).catch(function() { box.innerHTML = ''; });
     }
@@ -608,7 +608,7 @@
         const totalUnits = results.reduce(function(a, r) { return a + r.units; }, 0);
         const totalDollars = results.reduce(function(a, r) { return a + r.dollars; }, 0);
 
-        function uColor(n) { return n > 0 ? "#34D399" : n < 0 ? "#F87171" : "#9CA3AF"; }
+        function uColor(n) { return n > 0 ? "#34D399" : n < 0 ? "#F87171" : "#A1A9B6"; }
 
         function row(label, r, isTotal) {
           function cell(n, w, fmt) {
@@ -617,7 +617,7 @@
           }
           return '<div class="er-row' + (isTotal ? ' er-total' : '') + '">' +
             '<div class="er-c er-y">' + label + '</div>' +
-            '<div class="er-c"><div style="font-weight:700">' + r.bets + '</div>' + (r.notOffered ? '<div class="er-w">' + r.notOffered + ' not<br class="tn-short"> offered</div>' : '') + '</div>' +
+            '<div class="er-c"><div class="u-bold">' + r.bets + '</div>' + (r.notOffered ? '<div class="er-w">' + r.notOffered + ' not<br class="tn-short"> offered</div>' : '') + '</div>' +
             '<div class="er-c er-rate"><div style="color:' + SB_M + '">' + (r.rateM == null ? '—' : r.rateM + '%') + '</div><div style="color:' + SB_D + '">' + (r.rateD == null ? '—' : r.rateD + '%') + '</div>' +
               (r.avgOdds ? '<div class="er-w">avg +' + r.avgOdds + '</div>' : '') + '</div>' +
             cell(r.units, r.unitsWorst, fmtUResp) + cell(r.dollars, r.dollarsWorst, fmtDResp) + '</div>';

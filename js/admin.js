@@ -32,7 +32,7 @@
 
       games.forEach(function(g) {
         html += '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:14px 16px;margin-bottom:14px">' +
-          '<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">' + weekName(g.week) + ' · ' + g.slot + '</div>' +
+          '<div style="font-size:11px;font-weight:600;color:#A1A9B6;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">' + weekName(g.week) + ' · ' + g.slot + '</div>' +
           '<div style="font-size:15px;font-weight:700;margin-bottom:10px">' + coloredGame(g.home, g.away) + '</div>';
         g.rows.forEach(function(r) {
           html += '<div style="margin-top:8px">' +
@@ -447,7 +447,7 @@
           else {
             h += errs.slice(0, 10).map(function(e) {
               var isNew = e.at > seen;
-              return '<div class="err-item">' + row(isNew ? 'warn' : 'info', escHtml(e.msg) + (e.n > 1 ? ' <span style="color:#9CA3AF">×' + e.n + '</span>' : '') + (isNew ? ' <span class="err-new">new</span>' : ''),
+              return '<div class="err-item">' + row(isNew ? 'warn' : 'info', escHtml(e.msg) + (e.n > 1 ? ' <span style="color:#A1A9B6">×' + e.n + '</span>' : '') + (isNew ? ' <span class="err-new">new</span>' : ''),
                 escHtml(e.who) + ' · ' + escHtml(e.device) + ' · ' + escHtml(e.tab || '?') + ' tab' + (e.where ? ' · ' + escHtml(e.where) : '') + (e.v ? ' · ' + escHtml(e.v) : '') + '<br>' + ago(e.at) +
                 ' · <button class="link-btn" data-errdel="' + escHtml(e.at) + '" data-errmsg="' + escHtml(e.msg) + '">Dismiss</button>') + '</div>';
             }).join('') + (errs.length > 10 ? '<div style="font-size:11px;color:#6B7280;margin:4px 0">+ ' + (errs.length - 10) + ' older</div>' : '') +
@@ -557,14 +557,14 @@
       var E = r.entries || [];
       h += '<div class="pf-h" style="margin-top:18px">👥 Brackets <small>' + E.length + '</small></div>' + (E.length ? E.map(function(e) {
         var n = BR_ORDER.filter(function(k) { return e.picks[k] && e.picks[k].w; }).length, ns = BR_ORDER.filter(function(k) { return e.picks[k] && e.picks[k].s; }).length;
-        return '<div class="adm-row"><div><b>' + escHtml(e.who) + '</b> <span style="color:#9CA3AF">· ' + n + '/13 winners · ' + ns + '/13 first TDs' + (e.at && !isNaN(new Date(e.at)) ? ' · ' + new Date(e.at).toLocaleDateString() : '') + '</span></div>' +
+        return '<div class="adm-row"><div><b>' + escHtml(e.who) + '</b> <span style="color:#A1A9B6">· ' + n + '/13 winners · ' + ns + '/13 first TDs' + (e.at && !isNaN(new Date(e.at)) ? ' · ' + new Date(e.at).toLocaleDateString() : '') + '</span></div>' +
           '<button class="adm-btn red" data-bra-rm="' + escHtml(e.who) + '">Remove</button></div>';
       }).join('') : '<div style="font-size:13px;color:#A1A9B6">None yet.</div>');
       var G = B.games || [];
       if (G.length) {
         h += '<div class="pf-h" style="margin-top:18px">📋 Results from ESPN <small>fix a first TD if ESPN\'s name doesn\'t match</small></div>';
         G.forEach(function(g) {
-          h += '<div class="adm-row"><div style="min-width:0"><b>' + escHtml(brNick(g.teams[0])) + ' vs ' + escHtml(brNick(g.teams[1])) + '</b> <span style="color:#9CA3AF">· ' + BR_ROUNDS[g.round].t + ' · ' + (g.state === 'post' ? 'final' + (g.winner ? ', ' + escHtml(brNick(g.winner)) + ' won' : '') : g.state === 'in' ? 'live' : 'not started') + '</span>' +
+          h += '<div class="adm-row"><div style="min-width:0"><b>' + escHtml(brNick(g.teams[0])) + ' vs ' + escHtml(brNick(g.teams[1])) + '</b> <span style="color:#A1A9B6">· ' + BR_ROUNDS[g.round].t + ' · ' + (g.state === 'post' ? 'final' + (g.winner ? ', ' + escHtml(brNick(g.winner)) + ' won' : '') : g.state === 'in' ? 'live' : 'not started') + '</span>' +
             '<div style="font-size:12px;margin-top:3px">First TD: <b>' + escHtml(g.ftd || '—') + '</b>' + (g.fixed ? ' (fixed by you)' : '') + '</div></div>' +
             '<span style="white-space:nowrap"><button class="adm-btn" data-bra-fix="' + escHtml(g.id) + '">Fix</button>' + (g.fixed ? ' <button class="adm-btn" data-bra-unfix="' + escHtml(g.id) + '">Use ESPN</button>' : '') + '</span></div>';
         });
@@ -908,7 +908,7 @@
       }).join('') + '<div class="submit-msg" id="pt-msg" style="text-align:left"></div>';
       box.querySelectorAll('[data-pt]').forEach(function(sel) {
         sel.addEventListener('change', function() {
-          var m = document.getElementById('pt-msg'); m.style.color = '#9CA3AF'; m.textContent = 'Saving…';
+          var m = document.getElementById('pt-msg'); m.style.color = '#A1A9B6'; m.textContent = 'Saving…';
           picksApi({ pin: SUB.pin, action: 'settheme', name: sel.getAttribute('data-pt'), theme: sel.value }).then(function(r) {
             if (r.error) { m.style.color = '#F87171'; m.textContent = r.error; return; }
             m.style.color = '#6EE7B7'; m.textContent = '✅ ' + sel.getAttribute('data-pt') + ': ' + THEME_NAMES[sel.value] + '. It shows the next time they open the site.';
@@ -1086,7 +1086,7 @@
         h += '<div class="ag-wk">' + weekName(w) + '</div>';
         byWeek[w].forEach(function(g) {
           var state = g.scorer ? '<span class="ag-st">🏈 ' + escHtml(g.scorer) + '</span>' : g.picked ? '<span class="ag-st">picked</span>' : '';
-          h += '<div class="adm-row"><div style="min-width:0"><b>' + nick(g.home) + '</b> vs <b>' + nick(g.away) + '</b> <span style="color:#9CA3AF">· ' + escHtml(g.slot || '—') + ' · game ' + escHtml(g.game) + ' · rows ' + g.rows.join(', ') + '</span></div>' +
+          h += '<div class="adm-row"><div style="min-width:0"><b>' + nick(g.home) + '</b> vs <b>' + nick(g.away) + '</b> <span style="color:#A1A9B6">· ' + escHtml(g.slot || '—') + ' · game ' + escHtml(g.game) + ' · rows ' + g.rows.join(', ') + '</span></div>' +
             (g.picked || g.scorer ? state : '<span style="white-space:nowrap"><button class="adm-btn" data-edg="' + g.week + '|' + escHtml(g.game) + '">Edit</button> ' +
               '<button class="adm-btn red" data-rmg="' + g.week + '|' + escHtml(g.game) + '|' + nick(g.home) + ' vs ' + nick(g.away) + '">Remove</button></span>') + '</div>';
         });
@@ -1537,7 +1537,7 @@
         var bad = issues.filter(function(x) { return x.level === 'bad'; }).length;
         var h = '';
         var fineHtml = fine.length ? '<details class="chk-more dc-fine"><summary class="link-btn">✓ ' + fine.length + ' marked as fine</summary>' + fine.map(function(x) {
-          return '<div class="dc-fine-row"><div><b>' + x.title + '</b> <span style="color:#9CA3AF">' + escHtml(x.where) + '</span><div>' + escHtml(x.text) + '</div></div>' +
+          return '<div class="dc-fine-row"><div><b>' + x.title + '</b> <span style="color:#A1A9B6">' + escHtml(x.where) + '</span><div>' + escHtml(x.text) + '</div></div>' +
             '<button class="adm-btn" data-dcundo="' + x.key + '">Undo</button></div>';
         }).join('') + '</details>' : '';
         if (!issues.length) {

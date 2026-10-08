@@ -104,8 +104,8 @@
       if (!el.innerHTML) el.innerHTML = '<div class="loading">Loading the crowd…</div>';
       Promise.all([getCrowd(), fetchSheet('Winnings', 'A1:Q400')]).then(function(res) {
         var crowd = res[0], G = crowdGames(res[1]);
-        var h = '<div style="text-align:center;margin-bottom:18px"><div style="font-size:22px;font-weight:800">🏅 The Crowd</div>' +
-          '<div style="font-size:12px;color:#A1A9B6;margin-top:4px">Friends make their own picks each game. Ranked by win % (' + CROWD_MIN + '+ games to qualify). Picks show at kickoff.</div></div>';
+        var h = '<div class="u-center u-mb-m"><div class="ui-big">🏅 The Crowd</div>' +
+          '<div class="ui-note u-mt-xs">Friends make their own picks each game. Ranked by win % (' + CROWD_MIN + '+ games to qualify). Picks show at kickoff.</div></div>';
         if (!crowd.friends || !crowd.friends.length) { el.innerHTML = h + '<div class="loading">No friends have joined yet.</div>'; return; }
         var R = rankFriends(crowd, G);
         var ref = ['Maria', 'Danielle'].map(function(n) { var s = mdStats(n, G); s.ref = true; return s; });
@@ -113,24 +113,24 @@
         // Leaderboard, with Maria and Danielle slotted in as reference rows
         var board = R.ranked.concat(ref).sort(function(a, b) { return b.pct - a.pct || b.n - a.n; });
         var rank = 0;
-        h += '<div style="font-size:11px;color:#A1A9B6;text-align:right;margin-bottom:4px">Tap a name to see their profile</div><table class="cr-table"><tr><th>#</th><th>Name</th><th>Record</th><th>Win %</th><th>Streak</th></tr>';
+        h += '<div class="ui-small u-right u-mb-xs">Tap a name to see their profile</div><table class="cr-table"><tr><th>#</th><th>Name</th><th>Record</th><th>Win %</th><th>Streak</th></tr>';
         board.forEach(function(s) {
           var c = s.ref ? (personColor(s.name)) : FRIEND_COLOR;
           if (!s.ref) rank++;
           h += '<tr class="' + (s.ref ? 'ref' : '') + '"><td>' + (s.ref ? '' : (rank === 1 ? '👑' : rank)) + '</td>' +
-            '<td style="font-weight:700;color:' + c + '">' + (s.ref ? '<a class="fr-link" data-fname="' + s.name + '" style="color:' + c + '">' + s.name + '</a> <span style="font-size:10px;color:#A1A9B6">(for reference)</span>' : fName(s.name)) + '</td>' +
-            '<td>' + s.w + '–' + (s.n - s.w) + '</td><td style="font-weight:800">' + pctTxt(s.pct) + '</td><td>' + streakTxt(s.cur) + '</td></tr>';
+            '<td style="font-weight:700;color:' + c + '">' + (s.ref ? '<a class="fr-link" data-fname="' + s.name + '" style="color:' + c + '">' + s.name + '</a> <span class="ui-tiny">(for reference)</span>' : fName(s.name)) + '</td>' +
+            '<td>' + s.w + '–' + (s.n - s.w) + '</td><td class="u-xbold">' + pctTxt(s.pct) + '</td><td>' + streakTxt(s.cur) + '</td></tr>';
         });
         h += '</table>';
         if (R.unranked.length) {
-          h += '<div style="font-size:11px;font-weight:800;letter-spacing:0.12em;color:#A1A9B6;margin:16px 0 6px">UNRANKED (UNDER ' + CROWD_MIN + ' GAMES)</div>' +
+          h += '<div class="ui-label u-mt">UNRANKED (UNDER ' + CROWD_MIN + ' GAMES)</div>' +
             R.unranked.map(function(s) {
-              return '<div class="adm-row"><span style="font-weight:700">' + fName(s.name) + '</span><span style="color:#A1A9B6">' + s.w + '–' + (s.n - s.w) + ' · ' + s.n + ' game' + (s.n === 1 ? '' : 's') + '</span></div>';
+              return '<div class="adm-row"><span class="u-bold">' + fName(s.name) + '</span><span class="u-muted">' + s.w + '–' + (s.n - s.w) + ' · ' + s.n + ' game' + (s.n === 1 ? '' : 's') + '</span></div>';
             }).join('');
         }
 
         // 📈 The Market (js/market.js, loaded when this tab opens)
-        h += '<div id="market-slot" style="margin-top:22px"></div>';
+        h += '<div id="market-slot" class="u-mt-l"></div>';
 
         // Weekly best
         var weeks = {};
@@ -143,8 +143,8 @@
         });
         var wkKeys = Object.keys(weeks).filter(function(w) { return weeks[w].best > 0; }).sort(function(a, b) { return b - a; });
         if (wkKeys.length) {
-          h += '<div class="pf-h" style="margin-top:22px">🗓️ Weekly Best</div>' + wkKeys.map(function(w) {
-            return '<div class="adm-row"><span style="color:#A1A9B6">' + weekName(w) + '</span><span><b>' + weeks[w].who.map(fName).join(' & ') + '</b> · ' + weeks[w].best + ' hit' + (weeks[w].best > 1 ? 's' : '') + '</span></div>';
+          h += '<div class="u-mt-l pf-h">🗓️ Weekly Best</div>' + wkKeys.map(function(w) {
+            return '<div class="adm-row"><span class="u-muted">' + weekName(w) + '</span><span><b>' + weeks[w].who.map(fName).join(' & ') + '</b> · ' + weeks[w].best + ' hit' + (weeks[w].best > 1 ? 's' : '') + '</span></div>';
           }).join('');
         }
 
@@ -153,7 +153,7 @@
         crowd.picks.forEach(function(p) { (byGame[p.week + '_' + p.game] = byGame[p.week + '_' + p.game] || []).push(p); });
         var gKeys = Object.keys(byGame).filter(function(k) { return G[k]; }).sort(function(a, b) { return G[b].week - G[a].week || G[b].game - G[a].game; });
         if (gKeys.length) {
-          h += '<div class="pf-h" style="margin-top:22px">🏈 Game by Game</div>';
+          h += '<div class="u-mt-l pf-h">🏈 Game by Game</div>';
           gKeys.forEach(function(k, i) {
             var g = G[k], sk = playerKey(g.scorer);
             function pk(p, team) {
@@ -162,12 +162,12 @@
             }
             h += '<div class="sch-game" style="' + (i >= 6 ? 'display:none' : '') + '" data-cg="1"><div class="sch-top"><span class="sch-slot">' + weekName(g.week) + ' · ' + escHtml(g.slot) + '</span>' +
               '<span class="sch-ko">' + (g.scorer ? '🏈 ' + escHtml(g.scorer) : '⏳ In progress') + '</span></div>' +
-              '<div class="sch-teams">' + teamPill(g.home, g.home) + ' <span style="color:rgba(255,255,255,0.45)">vs</span> ' + teamPill(g.away, g.away) + '</div>' +
+              '<div class="sch-teams">' + teamPill(g.home, g.home) + ' <span class="u-faint">vs</span> ' + teamPill(g.away, g.away) + '</div>' +
               byGame[k].map(function(p) {
-                return '<div style="font-size:12px;padding:3px 0"><b>' + fName(p.friend) + '</b> · ' + pk(p.homePick) + ' / ' + pk(p.awayPick) + '</div>';
+                return '<div class="ui-note-plain"><b>' + fName(p.friend) + '</b> · ' + pk(p.homePick) + ' / ' + pk(p.awayPick) + '</div>';
               }).join('') + '</div>';
           });
-          if (gKeys.length > 6) h += '<div style="text-align:center"><button class="link-btn" id="cr-more">Show all ' + gKeys.length + ' games</button></div>';
+          if (gKeys.length > 6) h += '<div class="u-center"><button class="link-btn" id="cr-more">Show all ' + gKeys.length + ' games</button></div>';
         }
         el.innerHTML = h;
         loadScriptOnce('js/market.js').then(function() { renderMarket(document.getElementById('market-slot'), {}); }).catch(function() {});

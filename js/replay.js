@@ -245,7 +245,7 @@
       var names = who.map(function(x) { return x.who; }).filter(function(n, i, a) { return a.indexOf(n) === i; });
       var p0 = who[0], el = document.createElement('div');
       el.className = 'gd-takeover' + (p0 ? ' win' : '');
-      el.style.setProperty('--pc', p0 ? personColor(p0.who) : '#9CA3AF');
+      el.style.setProperty('--pc', p0 ? personColor(p0.who) : '#A1A9B6');
       var team = p0 ? p0.team : (typeof ROSTER_INFO !== 'undefined' && ROSTER_INFO[playerKey(first)] ? ROSTER_INFO[playerKey(first)].team : '');
       el.innerHTML = '<div class="gd-to-in"><div class="gd-to-k">TOUCHDOWN</div>' + (team ? headshot(first, team, 120) : '') +
         '<div class="gd-to-n">' + escHtml(first) + '</div><div class="gd-to-r">' +

@@ -290,7 +290,7 @@
         renderFirstTDs(rows);
         renderHistory(rows);
         renderVisitBanner(rows);
-        if (!VISIT.trophiesChecked) { VISIT.trophiesChecked = true; setTimeout(checkNewTrophies, 400); }
+        if (!VISIT.trophiesChecked) { VISIT.trophiesChecked = true; setTimeout(function() { loadScriptOnce('js/profiles.js').then(checkNewTrophies).catch(function() {}); }, 1500); } // profiles.js has the trophy rules
 
         if (navigator.onLine) {
           try { localStorage.setItem('mvd-last-online', String(Date.now())); } catch (e) {}

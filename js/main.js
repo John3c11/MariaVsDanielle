@@ -64,6 +64,21 @@
       if (on && on.offsetLeft - row.offsetLeft + on.offsetWidth > row.clientWidth) row.scrollLeft = Math.max(0, on.offsetLeft - row.offsetLeft - 16); // only if it's off-screen
     }
 
+    // ── Tabs whose code loads the first time they open (v133): Profiles, All-Time, Bet Log, Schedule ──
+    // These stand-ins load the real file, which replaces them, then run the real one.
+    var PROFILE_WHO = 'Maria';
+    function openProfile(name) { PROFILE_WHO = name; switchTab('profiles'); }
+    function lazyTab(file, elId, again) {
+      loadScriptOnce(file).then(again).catch(function() {
+        var el = document.getElementById(elId);
+        if (el) el.innerHTML = '<div class="loading">Couldn\'t load this page. Check your connection. <button class="link-btn" onclick="switchTab(\'' + elId.replace('-content', '') + '\')">Try again</button></div>';
+      });
+    }
+    function loadProfilesTab() { lazyTab('js/profiles.js', 'profiles-content', function() { loadProfilesTab(); }); }
+    function loadLegacyTab() { lazyTab('js/history.js', 'legacy-content', function() { loadLegacyTab(); }); }
+    function loadBetHistoryTab() { lazyTab('js/history.js', 'bethistory-content', function() { loadBetHistoryTab(); }); }
+    function loadScheduleTab() { lazyTab('js/schedule.js', 'schedule-content', function() { loadScheduleTab(); }); }
+
     // The Log In tab shows who's logged in
     function setLoginTab() {
       var b = document.getElementById('tab-login'), m = document.getElementById('acct-mini');

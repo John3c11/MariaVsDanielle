@@ -4,8 +4,7 @@
     // ── Profiles: career stats + trophy case ────────────────────────────────
     // loadAllBets() lives in core.js (Analytics uses it too)
 
-    var PROFILE_WHO = 'Maria';
-    function openProfile(name) { PROFILE_WHO = name; switchTab('profiles'); }
+    // PROFILE_WHO and openProfile() live in main.js (this file loads the first time Profiles opens, v133)
     // Every profile is public. Friends' upcoming picks are only shown to them and admin.
     function loadProfilesTab() {
       if (PROFILE_WHO === 'Maria' || PROFILE_WHO === 'Danielle') {

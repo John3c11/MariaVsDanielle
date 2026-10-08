@@ -101,12 +101,7 @@
         drawCardAlbum(el, { key: who, who: who, color: personColor(who), hits: mdHits(res[0], who), seasons: true, mode: 'odds' });
       }).catch(function() { el.innerHTML = ''; });
     }
-    // A friend's album: hits = [{ name, team, year, week }] from their profile
-    function renderFriendCards(el, name, hits, color) {
-      if (!el) return;
-      rostersReady().then(function() { drawCardAlbum(el, { key: 'f:' + name, who: name, color: color, hits: hits, seasons: false, mode: 'depth' }); });
-    }
-
+    // Any album (Maria, Danielle, a friend, the Machine): A = { key, who, color, hits, seasons, mode }
     function drawCardAlbum(el, A) {
       var season = A.seasons ? (CARDS.season[A.key] || 'all') : 'all', sort = CARDS.sort[A.key] || 'rarity';
       var years = SEASONS.map(function(s) { return s.year; });

@@ -129,7 +129,7 @@
           loadAdmin().then(function() {
             // Tuesday starts on ✅ Checklist; otherwise wherever you were last time (💲 Odds the first time)
             var last = ''; try { last = localStorage.getItem('mvd-adm-last') || ''; } catch (e) {}
-            if (new Date().getDay() === 2 && typeof adminChecklist === 'function') adminChecklist();
+            if (new Date().getDay() === 2) showAdmin('check');
             else if (last && last !== 'odds' && typeof ADM_SECTIONS !== 'undefined' && admSecOf(last)[2].some(function(t) { return t[0] === last; })) { ADMIN.oddsRes = res; showAdmin(last); }
             else renderOdds(res);
             picksApi({ pin: SUB.pin, action: 'friends' }).then(function(r) { if (r.friends) ADMIN.friends = r.friends; }).catch(function() {});

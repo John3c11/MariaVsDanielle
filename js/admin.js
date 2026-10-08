@@ -136,8 +136,7 @@
         if (!document.body.contains(body)) return; // left this tab before it loaded
         ADMIN.friends = res.friends || [];
         var list = ADMIN.friends;
-        var h = '<div class="u-mt-0 pf-h">🔑 Main PINs <small>no code edits needed</small></div><div id="main-pins"><div class="loading">Loading…</div></div>' +
-          '<div class="pf-h">👥 Friends</div>' +
+        var h = '<div class="u-mt-0 pf-h">👥 Friends</div>' +
           '<div class="ui-note u-mb">Friends log in with their PIN to make their own picks. PINs are stored in the script, not the sheet. Text each friend their PIN.</div>' +
           '<div class="u-d-flex u-gap-8px u-fwrap-wrap u-mb-6px">' +
             '<input class="u-f-2 u-minw-140px adm-input" id="fr-name" placeholder="Name" maxlength="24">' +
@@ -194,7 +193,6 @@
           });
         });
         bindInvite(body, res);
-        drawMainPins();
       });
     }
     // 📨 Invite link + people waiting to be approved (v129)
@@ -263,6 +261,13 @@
         });
       });
     }
+    // 🔑 PINs screen (⚙️ Site): rarely changed, so it lives out of the way
+    function adminPins() {
+      adminScreen('pins', '<div class="u-mt-0 pf-h">🔑 Main PINs <small>no code edits needed</small></div>' +
+        '<div class="ui-note u-mb">Maria\'s, Danielle\'s and your login. Changing one works right away. Friends\' PINs are on 👥 People → Friends.</div>' +
+        '<div id="main-pins"><div class="loading">Loading…</div></div><div class="u-ta-left submit-msg" id="adm-msg"></div>');
+      drawMainPins();
+    }
     // 🔑 Maria's, Danielle's and John's PINs (kept in the script's settings, changeable here)
     function drawMainPins() {
       var box = document.getElementById('main-pins');
@@ -324,18 +329,57 @@
     // ── Admin tools (admin PIN): Odds · Friends · Injuries · Trash Talk · Season · Theme · Status ───────
     var ADMIN = { oddsRes: null };
 
+    // ── Admin layout (v131): 5 sections, each with its own row of screens ──
+    var ADM_SECTIONS = [
+      ['week', '✅ This Week', [['check', '✅ Checklist'], ['odds', '💲 Odds'], ['games', '🏈 Games'], ['mlines', '🎯 Machine Lines']]],
+      ['people', '👥 People', [['friends', '👥 Friends'], ['chat', '🗣️ Trash Talk']]],
+      ['season', '🏈 Season', [['season', '🆕 New Season'], ['bracket', '🏆 Bracket'], ['injuries', '🚑 Injuries'], ['museum', '🏛️ Museum']]],
+      ['machine', '🤖 Machine', [['machine', '🤖 Machine']]],
+      ['site', '⚙️ Site', [['status', '🩺 Status'], ['theme', '🎨 Theme'], ['eggs', '🥚 Eggs'], ['pins', '🔑 PINs']]],
+    ];
+    function admSecOf(tab) { return ADM_SECTIONS.filter(function(s) { return s[2].some(function(t) { return t[0] === tab; }); })[0] || ADM_SECTIONS[0]; }
+    // Little counts on each section: how many things in it need you
+    function admBadges() {
+      var a = ADMIN.alert || {};
+      return { week: ADMIN.ckTodo || 0, people: a.joins || 0, season: a.bracket ? 1 : 0, machine: 0,
+        site: (a.scripts && a.scripts.length ? 1 : 0) + (a.issues ? 1 : 0) + (a.errs ? 1 : 0) + (a.jobs ? 1 : 0) + (a.css ? 1 : 0) };
+    }
+    function adminNavHtml(active) {
+      var sec = admSecOf(active), B = admBadges();
+      return '<div class="adm-secs">' + ADM_SECTIONS.map(function(s) {
+          return '<button data-adm-sec="' + s[0] + '" class="' + (s === sec ? 'on' : '') + '"><span class="adm-sec-ic">' + s[1].split(' ')[0] + '</span><span>' + s[1].split(' ').slice(1).join(' ') + '</span>' + (B[s[0]] ? '<i class="adm-badge">' + B[s[0]] + '</i>' : '') + '</button>';
+        }).join('') + '</div>' +
+        (sec[2].length > 1 ? '<div class="adm-nav">' + sec[2].map(function(t) {
+          return '<button data-adm="' + t[0] + '" class="' + (t[0] === active ? 'on' : '') + '">' + t[1] + '</button>';
+        }).join('') + '</div>' : '<div class="adm-nav adm-nav-none"></div>');
+    }
     function adminHeader(active) {
-      var tabs = [['check', '✅ Checklist'], ['odds', '💲 Odds'], ['games', '🏈 Games'], ['friends', '👥 Friends'], ['injuries', '🚑 Injuries'], ['chat', '🗣️ Trash Talk'], ['season', '🆕 Season'], ['bracket', '🏆 Bracket'], ['theme', '🎨 Theme'], ['museum', '🏛️ Museum'], ['machine', '🤖 Machine'], ['mlines', '🎯 Machine Lines'], ['eggs', '🥚 Eggs'], ['status', '🩺 Status']];
+      ADMIN.active = active;
       return '<div class="u-between u-mb-xs">' +
         '<div class="ui-title">Hi John</div>' +
         '<button class="link-btn" id="sub-switch">Log out</button></div>' +
-        '<div class="adm-nav">' + tabs.map(function(t) {
-          return '<button data-adm="' + t[0] + '" class="' + (t[0] === active ? 'on' : '') + '">' + t[1] + '</button>';
-        }).join('') + '</div>' + (active === 'status' ? '' : adminAlertHtml());
+        '<div id="adm-navs">' + adminNavHtml(active) + '</div>' + adminAlertHtml(active);
+    }
+    // After the login checks come back: refresh the badges and the heads-up bar in place
+    function adminRefreshNav() {
+      var navs = document.getElementById('adm-navs');
+      if (!navs || !ADMIN.active) return;
+      navs.innerHTML = adminNavHtml(ADMIN.active);
+      var old = document.getElementById('adm-alert'); if (old) old.remove();
+      navs.insertAdjacentHTML('afterend', adminAlertHtml(ADMIN.active));
+      bindAdminNav();
     }
     function bindAdminNav() {
       document.querySelectorAll('[data-adm]').forEach(function(b) {
+        if (b.__adm) return; b.__adm = 1;
         b.addEventListener('click', function() { showAdmin(b.getAttribute('data-adm')); });
+      });
+      document.querySelectorAll('[data-adm-sec]').forEach(function(b) {
+        if (b.__adm) return; b.__adm = 1;
+        b.addEventListener('click', function() {
+          var sec = ADM_SECTIONS.filter(function(s) { return s[0] === b.getAttribute('data-adm-sec'); })[0];
+          showAdmin((ADMIN.lastSub || {})[sec[0]] || sec[2][0][0]);
+        });
       });
       var x = document.getElementById('adm-alert-x');
       if (x) x.addEventListener('click', function() { ADMIN.alertHidden = true; var a = document.getElementById('adm-alert'); if (a) a.remove(); });
@@ -344,19 +388,24 @@
     // ── ⚠️ Heads-up right after logging in: Data check problems + new phone errors ──
     function errSeen() { try { return localStorage.getItem('mvd-err-seen') || ''; } catch (e) { return ''; } }
     function markErrSeen(list) { if (list && list.length) { try { localStorage.setItem('mvd-err-seen', list[0].at); } catch (e) {} } }
-    function adminAlertHtml() {
+    // One short heads-up bar: each thing that needs you is a chip that opens where you fix it.
+    // Chips for the screen you're on (and things the ✅ Checklist already lists) are left out.
+    function adminAlertHtml(active) {
       var a = ADMIN.alert;
-      if (!a || ADMIN.alertHidden || (!a.issues && !a.errs && !a.jobs && !a.css && !a.joins && !a.bracket && !(a.scripts && a.scripts.length))) return '';
-      var parts = [];
-      if (a.scripts && a.scripts.length) parts.push('📜 <b>' + a.scripts.map(function(x) { return x.file + '.gs'; }).join(', ') + (a.scripts.length === 1 ? ' needs' : ' need') + ' updating</b> in Apps Script');
-      if (a.bracket) parts.push('🏆 Playoff field is (almost) set: <b>open the Bracket Challenge</b> <button class="adm-btn" data-adm="bracket">Bracket</button>');
-      if (a.issues) parts.push('🔍 Data check: <b>' + a.issues + ' thing' + (a.issues > 1 ? 's' : '') + ' to look at</b>' + (a.bad ? ' (' + a.bad + ' affect' + (a.bad === 1 ? 's' : '') + ' the totals)' : ''));
-      if (a.errs) parts.push('📱 <b>' + a.errs + ' new error' + (a.errs > 1 ? 's' : '') + '</b> from phones');
-      if (a.css) parts.push('🎨 <b>style.css on GitHub is out of date</b>: upload the newest one');
-      if (a.joins) parts.push('📨 <b>' + a.joins + ' friend' + (a.joins > 1 ? 's' : '') + ' asked to join</b> <button class="adm-btn" data-adm="friends">Friends</button>');
-      if (a.jobs) parts.push('⏱️ <b>' + a.jobs + ' background job' + (a.jobs > 1 ? 's' : '') + ' not working</b>');
-      return '<div class="adm-alert" id="adm-alert"><span>⚠️ ' + parts.join(' · ') + '</span>' +
-        '<span class="u-ws-nowrap">' + (a.issues || a.errs || a.jobs || a.css || (a.scripts && a.scripts.length) ? '<button class="adm-btn" data-adm="status">Open Status</button> ' : '') + '<button class="link-btn" id="adm-alert-x" aria-label="Hide">✕</button></span></div>';
+      if (!a || ADMIN.alertHidden) return '';
+      var chips = [];
+      function chip(on, ic, txt, to, title) { if (on && to !== active) chips.push('<button class="adm-chip" data-adm="' + to + '"' + (title ? ' title="' + escHtml(title) + '"' : '') + '>' + ic + ' ' + txt + '</button>'); }
+      var sc = a.scripts || [];
+      chip(sc.length, '📜', sc.length === 1 ? sc[0].file + '.gs to update' : sc.length + ' scripts to update', 'status', sc.map(function(x) { return x.file + '.gs'; }).join(', '));
+      chip(a.bracket, '🏆', 'Open the Bracket', 'bracket');
+      chip(a.issues, '🔍', a.issues + ' data issue' + (a.issues > 1 ? 's' : ''), 'status', a.bad ? a.bad + ' affect the totals' : '');
+      chip(a.errs, '📱', a.errs + ' new error' + (a.errs > 1 ? 's' : ''), 'status');
+      chip(a.css, '🎨', 'Upload style.css', 'status', 'style.css on GitHub is older than the page');
+      chip(a.joins && active !== 'check', '📨', a.joins + ' want' + (a.joins > 1 ? '' : 's') + ' to join', 'friends');
+      chip(a.jobs && active !== 'check', '⏱️', a.jobs + ' job' + (a.jobs > 1 ? 's' : '') + ' down', 'status');
+      if (!chips.length) return '';
+      return '<div class="adm-alert" id="adm-alert"><span class="adm-al-h">⚠️ Needs you</span>' + chips.join('') +
+        '<button class="link-btn adm-al-x" id="adm-alert-x" aria-label="Hide">✕</button></div>';
     }
     function adminLoginCheck() {
       ADMIN.alert = null; ADMIN.alertHidden = false;
@@ -367,6 +416,7 @@
         picksApi({ pin: SUB.pin, action: 'versions' }).catch(function() { return {}; }),
         picksApi({ pin: SUB.pin, action: 'jobs' }).catch(function() { return {}; }),
         picksApi({ pin: SUB.pin, action: 'friends' }).catch(function() { return {}; }),
+        picksApi({ pin: SUB.pin, action: 'checklist' }).catch(function() { return {}; }),
       ]).then(function(res) {
         if (SUB.role !== 'admin') return;
         if (res[1].dcOk) ADMIN.dcOk = res[1].dcOk;
@@ -378,10 +428,8 @@
         var scripts = res[2] && res[2].versions ? scriptIssues(res[2].versions).filter(function(x) { return x.kind !== 'newer'; }) : (res[2] && !res[2].error && Object.keys(res[2]).length ? [{ file: 'PicksAPI', kind: 'old' }] : []);
         var jobsBad = (res[3] && res[3].jobs || []).filter(function(j) { return j.fails >= 2 || (!j.triggers && j.fn !== 'sendWeeklyRecap'); }).length;
         ADMIN.alert = { scripts: scripts, issues: c.issues, bad: c.bad, errs: errs, jobs: jobsBad, css: CSS_CHECK.stale, joins: (res[4] && res[4].pending || []).length, bracket: mo === 0 && new Date().getDate() <= 14 && brOff };
-        var nav = document.querySelector('#submit-content .adm-nav');
-        if (!nav || document.getElementById('adm-alert') || document.querySelector('.adm-nav .on[data-adm="status"]')) return;
-        nav.insertAdjacentHTML('afterend', adminAlertHtml());
-        bindAdminNav();
+        if (res[5] && res[5].items) ADMIN.ckTodo = res[5].todo || 0;
+        adminRefreshNav();
       });
     }
     function adminScreen(active, bodyHtml) {
@@ -1283,6 +1331,7 @@
     function drawChecklist(body, r) {
       if (!document.body.contains(body)) return;
       if (r.error) { body.innerHTML = '<div class="inj-warn">' + escHtml(r.error) + '</div>'; return; }
+      if (r.items && ADMIN.ckTodo !== (r.todo || 0)) { ADMIN.ckTodo = r.todo || 0; adminRefreshNav(); }
       if (!r.items) { body.innerHTML = '<div class="inj-warn">⚠️ The picks script that\'s live is older. Paste the new PicksAPI.gs, then Deploy → Manage deployments → ✏️ → New version → Deploy.</div>'; return; }
       var go = { graded: 'status', odds: 'odds', mlines: 'mlines', jobs: 'status', join: 'friends' };
       var h = '<div class="ck-head"><div class="ck-big">' + (r.todo ? r.todo + ' thing' + (r.todo === 1 ? '' : 's') + ' to do' : 'All done ✅') + '</div>' +
@@ -1330,6 +1379,10 @@
     }
 
     function showAdmin(section) {
+      var sec = admSecOf(section);
+      ADMIN.lastSub = ADMIN.lastSub || {}; ADMIN.lastSub[sec[0]] = section;
+      if (section !== 'pins') { try { localStorage.setItem('mvd-adm-last', section); } catch (e) {} } // never land on PINs at login
+      if (section === 'pins') adminPins();
       if (section === 'friends') adminFriends();
       if (section === 'odds') {
         adminScreen('odds', '<div class="loading">Loading…</div>');

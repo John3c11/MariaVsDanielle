@@ -236,7 +236,7 @@
     // ── 📜 Which copy of each Apps Script file the website expects ─────────────
     // Bump these whenever a delivery includes that file. Status and the admin alert compare them
     // with what the live script says, so a file that didn't get pasted (or deployed) shows up.
-    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-16', Features: '2026-10-10', Automation: '2026-10-10', WeeklyRecap: '2026-10-06', Machine: '2026-10-16' };
+    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-16', Features: '2026-10-10', Automation: '2026-10-10', WeeklyRecap: '2026-10-06', Machine: '2026-10-17' };
     var OLD_SCRIPT_FILES = { Features: 'Market.gs, Museum.gs and Bracket.gs', Automation: 'FirstTD.gs, NFLPlayers.gs, Injuries.gs and Playoffs.gs' };
     var DEPLOY_STEPS = 'Deploy → Manage deployments → ✏️ → New version → Deploy';
     function scriptIssues(v) {
@@ -589,7 +589,7 @@
         (R ? 'On ' + R.games + ' games. It retrains itself when new games come in.' : 'It trains itself once the library is caught up, or press Train now (needs 100+ games).') +
         '</div><button class="adm-btn" id="mc-train" style="margin-top:8px">' + (R ? 'Retrain now' : 'Train now') + '</button>' +
         (R ? ' <button class="adm-btn" id="mc-picks" style="margin-top:8px">Make its picks now</button>' : '') + '</div></div><div class="submit-msg" id="adm-msg" style="text-align:left"></div>' +
-        (R ? '<div class="mc-note" style="margin:-4px 0 6px">Its picks for upcoming games refresh every hour on their own and lock at kickoff. The 2026 games already played get "after the fact" picks the first time. <button class="link-btn" onclick="switchTab(\'machine\')">See the 🤖 Machine tab →</button></div>' : '');
+        (R ? '<div class="mc-note" style="margin:-4px 0 6px">Its picks for upcoming games refresh every hour on their own and lock at kickoff. The 2026 games already played got "after the fact" picks once, and those never change. <button class="link-btn" onclick="switchTab(\'machine\')">See the 🤖 Machine tab →</button></div>' : '');
       if (R) {
         // Their real hit rate in the same format (two picks a game), for comparison
         function rate(who) {

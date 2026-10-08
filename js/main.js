@@ -31,44 +31,63 @@
     setInterval(function() { if (document.visibilityState === 'visible') checkChatUnread(); }, 120000);
     var ROSTERS_READY = loadRosters();
 
-    function toggleTabMenu(e) {
-      e.stopPropagation();
-      document.getElementById('tab-menu').classList.toggle('open');
+    // ── The 5 hubs and their sub-tabs ──────────────────────────────────────
+    // Each tab panel (#tab-<name>) belongs to one hub. Tapping a hub opens the sub-tab you last used there.
+    var HUBS = {
+      home:    [['stats', 'Home']],
+      picks:   [['submit', ''], ['schedule', '🗓️ Schedule'], ['rosters', '📋 Rosters'], ['crowd', '🏅 Crowd'], ['bracket', '🏆 Bracket']],
+      rivalry: [['profiles', '⭐ Profiles'], ['legacy', '📜 All-Time'], ['bethistory', '🧾 Bet Log'], ['museum', '🏛️ Museum']],
+      numbers: [['analytics', '📊 Analytics'], ['lab', '🧪 Stat Lab'], ['machine', '🤖 Machine']],
+      chat:    [['chat', 'Trash Talk']],
+    };
+    var HUB_OF = {}, HUB_LAST = {};
+    Object.keys(HUBS).forEach(function(h) { HUBS[h].forEach(function(t) { HUB_OF[t[0]] = h; }); });
+    function hubTabs(h) { return HUBS[h].filter(function(t) { return t[0] !== 'bracket' || BRACKET_ON; }); }
+    function openHub(h) {
+      var last = HUB_LAST[h];
+      if (!last || !hubTabs(h).some(function(t) { return t[0] === last; })) last = h === 'picks' ? (SUB.pin ? 'submit' : 'schedule') : hubTabs(h)[0][0];
+      switchTab(last);
     }
-    document.addEventListener('click', function(e) {
-      var m = document.getElementById('tab-menu');
-      if (m && m.classList.contains('open') && !e.target.closest('.tab-more-wrap')) m.classList.remove('open');
-    });
+    function loginLabel() { return !SUB.pin ? '👤 Log In' : SUB.role === 'admin' ? '🔧 Admin' : '✍️ My Picks'; }
+    function drawHubSub(name) {
+      var el = document.getElementById('hub-sub'), h = HUB_OF[name];
+      if (!el) return;
+      var tabs = h ? hubTabs(h) : [];
+      document.body.classList.toggle('has-sub', tabs.length >= 2);
+      if (tabs.length < 2) { el.style.display = 'none'; el.innerHTML = ''; return; }
+      var mini = document.getElementById('acct-mini');
+      el.innerHTML = '<div class="hub-sub-row">' + tabs.map(function(t) {
+        return '<button class="hub-sub-btn' + (t[0] === name ? ' on' : '') + '" onclick="switchTab(\'' + t[0] + '\')">' + (t[0] === 'submit' ? loginLabel() : t[1]) + '</button>';
+      }).join('') + '</div>' + (h !== 'picks' ? '<button class="hub-acct" onclick="switchTab(\'submit\')" aria-label="' + (mini ? mini.getAttribute('aria-label') : 'Log in') + '">' + (mini ? mini.textContent.split(' ')[0] : '👤') + '</button>' : '');
+      el.style.display = '';
+      var row = el.querySelector('.hub-sub-row'), on = el.querySelector('.on');
+      if (on && on.offsetLeft - row.offsetLeft + on.offsetWidth > row.clientWidth) row.scrollLeft = Math.max(0, on.offsetLeft - row.offsetLeft - 16); // only if it's off-screen
+    }
 
     // The Log In tab shows who's logged in
     function setLoginTab() {
-      var b = document.getElementById('tab-login');
-      if (!b) return;
-      b.textContent = !SUB.pin ? 'Log In' : SUB.role === 'admin' ? 'Admin' : (SUB.name || 'Me');
-      b.setAttribute('data-ic', SUB.role === 'admin' ? '🔧' : '👤');
-      if (SUB.pin) b.setAttribute('data-in', '1'); else b.removeAttribute('data-in'); // desktop shows the icon once logged in
+      var b = document.getElementById('tab-login'), m = document.getElementById('acct-mini');
+      var txt = !SUB.pin ? 'Log In' : SUB.role === 'admin' ? 'Admin' : (SUB.name || 'Me'), ic = SUB.role === 'admin' ? '🔧' : '👤';
+      if (b) {
+        b.textContent = txt; b.setAttribute('data-ic', ic);
+        if (SUB.pin) b.setAttribute('data-in', '1'); else b.removeAttribute('data-in'); // desktop shows the icon once logged in
+      }
+      if (m) { m.textContent = SUB.pin ? ic + ' ' + txt : '👤'; m.classList.toggle('in', !!SUB.pin); m.setAttribute('aria-label', SUB.pin ? txt : 'Log in'); }
+      var cur = document.querySelector('.tab-panel.active');
+      if (cur) drawHubSub(cur.id.replace('tab-', ''));
     }
-
     function switchTab(name) {
       if (name === 'money') name = 'legacy'; // Earnings now lives inside All-Time
       var cur = document.querySelector('.tab-panel.active');
       if (cur && cur.id !== 'tab-' + name) window.scrollTo(0, 0); // new tab starts at the top (the phone bar sits at the bottom)
-      document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
       document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
-      document.querySelectorAll('.tab-btn').forEach(function(b) {
-        if (b.getAttribute('onclick') === "switchTab('" + name + "')") b.classList.add('active');
-      });
       document.getElementById('tab-' + name).classList.add('active');
-      // "More" shows which hidden tab you're on
-      var extra = { lab: 'Stat Lab', crowd: 'Crowd', schedule: 'Schedule', legacy: 'All-Time', museum: 'Museum', bracket: 'Bracket', machine: 'Machine', bethistory: 'Bet Log', rosters: 'Rosters' }[name];
-      if (name === 'analytics' && window.matchMedia('(max-width: 700px)').matches) extra = 'Analytics';
-      var more = document.getElementById('tab-more');
-      if (more) {
-        more.innerHTML = (extra || 'More') + ' <span class="tab-caret">▾</span>';
-        more.classList.toggle('active', !!extra);
-      }
-      var menu = document.getElementById('tab-menu');
-      if (menu) menu.classList.remove('open');
+      var hub = HUB_OF[name] || 'home';
+      HUB_LAST[hub] = name;
+      document.querySelectorAll('.tabs-nav [data-hub]').forEach(function(b) { b.classList.toggle('active', b.getAttribute('data-hub') === hub); });
+      var lg = document.getElementById('tab-login');
+      if (lg) lg.classList.toggle('active', name === 'submit');
+      drawHubSub(name);
       if (name === 'legacy') loadLegacyTab();
       if (name === 'analytics') openAnalytics(); // loads js/analytics.js the first time
       if (name === 'bethistory') loadBetHistoryTab();
@@ -86,23 +105,12 @@
         var el = document.getElementById('machine-content'); if (el) el.innerHTML = '<div class="loading">Couldn\'t load the Machine. Check your connection.</div>';
       });
     }
-    // ⏪ Replay one past game (or a whole week) on the Game Day screen (js/replay.js)
-    function replayGame(year, week, game) {
-      loadScriptOnce('js/replay.js').then(function() { openReplay(year, week, game); }).catch(function() { alert('Couldn\'t load Replay. Check your connection.'); });
-    }
-    // 🏆 Playoff Bracket Challenge (js/bracket.js, loaded the first time it opens)
-    function openBracket() {
-      loadScriptOnce('js/bracket.js').then(function() { loadBracketTab(true); }).catch(function() {
-        var el = document.getElementById('bracket-content');
-        if (el) el.innerHTML = '<div class="loading">Couldn\'t load the bracket. Check your connection. <button class="link-btn" onclick="openBracket()">Try again</button></div>';
-      });
-    }
     // The 🏆 Bracket menu item, Log In shortcut and Stats banner only exist while the challenge is on
     var BRACKET_ON = null; // { state, lockAt } from the script, or null
     function setBracketState(b) {
       BRACKET_ON = b && b.state && b.state !== 'off' ? b : null;
-      var mi = document.getElementById('menu-bracket');
-      if (mi) mi.style.display = BRACKET_ON ? '' : 'none';
+      var cur = document.querySelector('.tab-panel.active');
+      if (cur) drawHubSub(cur.id.replace('tab-', '')); // the 🏆 Bracket sub-tab under Picks
       var bn = document.getElementById('br-banner');
       if (!bn) return;
       var closed = ''; try { closed = localStorage.getItem('mvd-br-banner') || ''; } catch (e) {}

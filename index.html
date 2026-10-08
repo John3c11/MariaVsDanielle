@@ -1,4 +1,4 @@
-<!-- v119 -->
+<!-- v120 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -45,7 +45,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=119">
+  <link rel="stylesheet" href="style.css?v=120">
 </head>
 <body>
   <div class="page-layout">
@@ -61,29 +61,16 @@
 
   <div class="wrap">
     <nav class="tabs-nav">
-      <!-- data-ic = the icon shown above the label in the phone bottom bar -->
-      <button class="tab-btn active" data-ic="🏈" onclick="switchTab('stats')">Stats</button>
-      <button class="tab-btn" id="tab-login" data-ic="👤" onclick="switchTab('submit')">Log In</button>
-      <button class="tab-btn" data-ic="🗣️" onclick="switchTab('chat')">Trash Talk</button>
-      <button class="tab-btn" data-ic="⭐" onclick="switchTab('profiles')">Profiles</button>
-      <button class="tab-btn tab-wide" onclick="switchTab('analytics')">Analytics</button>
-      <!-- Everything else lives in the More menu (on phones Analytics does too) -->
-      <div class="tab-more-wrap">
-        <button class="tab-btn tab-more" id="tab-more" data-ic="☰" onclick="toggleTabMenu(event)">More <span class="tab-caret">▾</span></button>
-        <div class="tab-menu" id="tab-menu">
-          <button class="tab-btn menu-phone" onclick="switchTab('analytics')">📊 Analytics</button>
-          <button class="tab-btn" onclick="switchTab('lab')">🧪 Stat Lab</button>
-          <button class="tab-btn" onclick="switchTab('crowd')">🏅 Crowd</button>
-          <button class="tab-btn" onclick="switchTab('schedule')">🗓️ Schedule</button>
-          <button class="tab-btn" onclick="switchTab('legacy')">📜 All-Time</button>
-          <button class="tab-btn" onclick="switchTab('museum')">🏛️ Museum</button>
-          <button class="tab-btn" id="menu-bracket" style="display:none" onclick="switchTab('bracket')">🏆 Bracket</button>
-          <button class="tab-btn" onclick="switchTab('machine')">🤖 Machine</button>
-          <button class="tab-btn" onclick="switchTab('bethistory')">🧾 Bet Log</button>
-          <button class="tab-btn" onclick="switchTab('rosters')">📋 Rosters</button>
-        </div>
-      </div>
+      <!-- 5 hubs. data-ic = the icon shown above the label in the phone bottom bar. Each hub's sub-tabs are drawn in #hub-sub (main.js HUBS). -->
+      <button class="tab-btn hub-btn active" data-hub="home" data-ic="🏈" onclick="switchTab('stats')">Home</button>
+      <button class="tab-btn hub-btn" data-hub="picks" data-ic="🎯" onclick="openHub('picks')">Picks</button>
+      <button class="tab-btn hub-btn" data-hub="rivalry" data-ic="⚔️" onclick="openHub('rivalry')">Rivalry</button>
+      <button class="tab-btn hub-btn" data-hub="numbers" data-ic="📊" onclick="openHub('numbers')">Numbers</button>
+      <button class="tab-btn hub-btn" data-hub="chat" data-ic="🗣️" onclick="switchTab('chat')">Trash Talk</button>
+      <button class="tab-btn acct-btn" id="tab-login" data-ic="👤" onclick="switchTab('submit')">Log In</button>
     </nav>
+    <button class="acct-mini" id="acct-mini" onclick="switchTab('submit')" aria-label="Log in">👤</button>
+    <div class="hub-sub" id="hub-sub" style="display:none"></div>
 
     <div id="tab-stats" class="tab-panel active">
     <div id="announce-banner" class="announce-banner" style="display:none"></div>
@@ -208,18 +195,18 @@
 
   <script src="config.js"></script>
   <!-- Site code, split by tab. Bump ?v= on every file when any file changes. -->
-  <script src="js/core.js?v=119"></script>
-  <script src="js/stats.js?v=119"></script>
-  <script src="js/players.js?v=119"></script>
-  <script src="js/picks.js?v=119"></script>
-  <script src="js/schedule.js?v=119"></script>
-  <script src="js/profiles.js?v=119"></script>
-  <script src="js/chat.js?v=119"></script>
-  <script src="js/crowd.js?v=119"></script>
-  <script src="js/history.js?v=119"></script>
-  <script src="js/charts.js?v=119"></script>
-  <script src="js/insights.js?v=119"></script>
-  <script src="js/main.js?v=119"></script>
+  <script src="js/core.js?v=120"></script>
+  <script src="js/stats.js?v=120"></script>
+  <script src="js/players.js?v=120"></script>
+  <script src="js/picks.js?v=120"></script>
+  <script src="js/schedule.js?v=120"></script>
+  <script src="js/profiles.js?v=120"></script>
+  <script src="js/chat.js?v=120"></script>
+  <script src="js/crowd.js?v=120"></script>
+  <script src="js/history.js?v=120"></script>
+  <script src="js/charts.js?v=120"></script>
+  <script src="js/insights.js?v=120"></script>
+  <script src="js/main.js?v=120"></script>
   
   </div><!-- end wrap -->
 

@@ -2003,3 +2003,29 @@ button.lab-st-r:hover { background: rgba(255,255,255,0.08); }
 .lab-st-c.lead b { color: #FCD34D; }
 .lab-st-c.dim { color: #6B7280; }
 .lab-jump { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; }
+
+/* ── v120: 5 hubs + sub-tabs ─────────────────────────────────────────────── */
+.wrap { position: relative; }
+.tabs-nav > .hub-btn { flex: 1 1 0; }
+.tabs-nav > .acct-btn { flex: 0 0 auto; margin-left: 8px; font-size: 12.5px; color: #A1A9B6; }
+.tabs-nav > .acct-btn.active { color: #FFFFFF; }
+.acct-mini { display: none; }
+.hub-sub { display: flex; gap: 8px; align-items: center; margin: -22px 0 22px; padding: 2px 0 4px; }
+.hub-sub-row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; }
+.hub-sub-row::-webkit-scrollbar { display: none; }
+.hub-acct { display: none; }
+.hub-sub-btn { flex: 0 0 auto; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; color: #C4C9D2; background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; padding: 7px 13px; cursor: pointer; white-space: nowrap; }
+.hub-sub-btn:hover { background: rgba(255,255,255,0.09); color: #FFFFFF; }
+.hub-sub-btn.on { background: #F3F4F6; color: #0B0C10; border-color: #F3F4F6; }
+@media (max-width: 700px) {
+  .tabs-nav > .acct-btn { display: none !important; }
+  .acct-mini { display: block; position: absolute; top: 7px; right: 8px; z-index: 20; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700;
+    color: #E5E7EB; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14); border-radius: 999px; padding: 5px 9px; cursor: pointer; max-width: 120px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hub-sub { position: sticky; top: 0; z-index: 30; margin: -20px -14px 16px; padding: calc(10px + env(safe-area-inset-top)) 14px 10px;
+    background: rgba(14,15,19,0.94); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-bottom: 1px solid rgba(255,255,255,0.08); }
+  body.has-sub .acct-mini { display: none; }
+  .hub-acct { display: block; flex: 0 0 auto; font-size: 14px; width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.07); color: #E5E7EB; cursor: pointer; }
+  .tabs-nav > .tab-btn { font-size: 10.5px; }
+}

@@ -236,7 +236,7 @@
     // ── 📜 Which copy of each Apps Script file the website expects ─────────────
     // Bump these whenever a delivery includes that file. Status and the admin alert compare them
     // with what the live script says, so a file that didn't get pasted (or deployed) shows up.
-    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-16', Features: '2026-10-10', Automation: '2026-10-10', WeeklyRecap: '2026-10-06', Machine: '2026-10-17' };
+    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-18', Features: '2026-10-10', Automation: '2026-10-18', WeeklyRecap: '2026-10-06', Machine: '2026-10-18' };
     var OLD_SCRIPT_FILES = { Features: 'Market.gs, Museum.gs and Bracket.gs', Automation: 'FirstTD.gs, NFLPlayers.gs, Injuries.gs and Playoffs.gs' };
     var DEPLOY_STEPS = 'Deploy → Manage deployments → ✏️ → New version → Deploy';
     function scriptIssues(v) {
@@ -278,14 +278,15 @@
     function markErrSeen(list) { if (list && list.length) { try { localStorage.setItem('mvd-err-seen', list[0].at); } catch (e) {} } }
     function adminAlertHtml() {
       var a = ADMIN.alert;
-      if (!a || ADMIN.alertHidden || (!a.issues && !a.errs && !a.bracket && !(a.scripts && a.scripts.length))) return '';
+      if (!a || ADMIN.alertHidden || (!a.issues && !a.errs && !a.jobs && !a.bracket && !(a.scripts && a.scripts.length))) return '';
       var parts = [];
       if (a.scripts && a.scripts.length) parts.push('📜 <b>' + a.scripts.map(function(x) { return x.file + '.gs'; }).join(', ') + (a.scripts.length === 1 ? ' needs' : ' need') + ' updating</b> in Apps Script');
       if (a.bracket) parts.push('🏆 Playoff field is (almost) set: <b>open the Bracket Challenge</b> <button class="adm-btn" data-adm="bracket">Bracket</button>');
       if (a.issues) parts.push('🔍 Data check: <b>' + a.issues + ' thing' + (a.issues > 1 ? 's' : '') + ' to look at</b>' + (a.bad ? ' (' + a.bad + ' affect' + (a.bad === 1 ? 's' : '') + ' the totals)' : ''));
       if (a.errs) parts.push('📱 <b>' + a.errs + ' new error' + (a.errs > 1 ? 's' : '') + '</b> from phones');
+      if (a.jobs) parts.push('⏱️ <b>' + a.jobs + ' background job' + (a.jobs > 1 ? 's' : '') + ' not working</b>');
       return '<div class="adm-alert" id="adm-alert"><span>⚠️ ' + parts.join(' · ') + '</span>' +
-        '<span style="white-space:nowrap">' + (a.issues || a.errs || (a.scripts && a.scripts.length) ? '<button class="adm-btn" data-adm="status">Open Status</button> ' : '') + '<button class="link-btn" id="adm-alert-x" aria-label="Hide">✕</button></span></div>';
+        '<span style="white-space:nowrap">' + (a.issues || a.errs || a.jobs || (a.scripts && a.scripts.length) ? '<button class="adm-btn" data-adm="status">Open Status</button> ' : '') + '<button class="link-btn" id="adm-alert-x" aria-label="Hide">✕</button></span></div>';
     }
     function adminLoginCheck() {
       ADMIN.alert = null; ADMIN.alertHidden = false;
@@ -294,6 +295,7 @@
         loadAllBets().catch(function() { return null; }),
         picksApi({ pin: SUB.pin, action: 'errlist' }).catch(function() { return {}; }),
         picksApi({ pin: SUB.pin, action: 'versions' }).catch(function() { return {}; }),
+        picksApi({ pin: SUB.pin, action: 'jobs' }).catch(function() { return {}; }),
       ]).then(function(res) {
         if (SUB.role !== 'admin') return;
         if (res[1].dcOk) ADMIN.dcOk = res[1].dcOk;
@@ -303,7 +305,8 @@
         var mo = new Date().getMonth(), brOff = typeof BRACKET_ON === 'undefined' || !BRACKET_ON;
         // An older PicksAPI doesn't know 'versions' (it answers with the odds list): treat that as old too
         var scripts = res[2] && res[2].versions ? scriptIssues(res[2].versions).filter(function(x) { return x.kind !== 'newer'; }) : (res[2] && !res[2].error && Object.keys(res[2]).length ? [{ file: 'PicksAPI', kind: 'old' }] : []);
-        ADMIN.alert = { scripts: scripts, issues: c.issues, bad: c.bad, errs: errs, bracket: mo === 0 && new Date().getDate() <= 14 && brOff };
+        var jobsBad = (res[3] && res[3].jobs || []).filter(function(j) { return j.fails >= 2 || (!j.triggers && j.fn !== 'sendWeeklyRecap'); }).length;
+        ADMIN.alert = { scripts: scripts, issues: c.issues, bad: c.bad, errs: errs, jobs: jobsBad, bracket: mo === 0 && new Date().getDate() <= 14 && brOff };
         var nav = document.querySelector('#submit-content .adm-nav');
         if (!nav || document.getElementById('adm-alert') || document.querySelector('.adm-nav .on[data-adm="status"]')) return;
         nav.insertAdjacentHTML('afterend', adminAlertHtml());
@@ -317,6 +320,56 @@
       return document.getElementById('adm-body');
     }
     // ── 🩺 Status: is everything working? ─────────────────────────────────────
+    // ── ⏱️ Background jobs (Status 2.0): each timed script, its last runs, today's Google limits ──
+    function jobsHtml(J, ago) {
+      function dur(ms) { return ms == null ? '' : ms < 1000 ? ms + ' ms' : ms < 60000 ? (ms / 1000).toFixed(1) + ' s' : Math.floor(ms / 60000) + ' min ' + Math.round(ms % 60000 / 1000) + ' s'; }
+      function bar(label, v, max, unit) {
+        var p = Math.min(100, Math.round(v / max * 100)), c = p >= 80 ? '#F87171' : p >= 50 ? '#FCD34D' : '#34D399';
+        return '<div class="jb-q"><div class="jb-ql"><span>' + label + '</span><b>' + v.toLocaleString('en-US') + ' / ' + max.toLocaleString('en-US') + unit + '</b></div><div class="jb-bar"><i style="width:' + Math.max(2, p) + '%;background:' + c + '"></i></div></div>';
+      }
+      var bad = 0;
+      var rows = J.jobs.map(function(j) {
+        var last = j.runs[0], lastOk = j.runs.filter(function(r) { return r.ok; })[0];
+        var stale = last && Date.now() - new Date(last.at).getTime() > j.mins * 2.5 * 60000;
+        var state = !j.triggers ? (j.fn === 'sendWeeklyRecap' ? 'info' : 'bad') : j.fails >= 2 ? 'bad' : (j.fails === 1 || j.triggers > 1 || stale) ? 'warn' : 'ok';
+        if (state === 'bad' || state === 'warn') bad++;
+        var ic = { ok: '✅', warn: '⚠️', bad: '❌', info: 'ℹ️' }[state];
+        var next = last && j.triggers ? new Date(new Date(last.at).getTime() + j.mins * 60000) : null;
+        var sub = !j.triggers ? 'No timer, so it never runs on its own. Press 🔧 Fix timers below.' :
+          (j.running ? '⏳ Running now (started ' + ago(j.running) + ')<br>' : '') +
+          (last ? 'Last run ' + ago(last.at) + ' · ' + (last.ok ? 'worked' : '<b style="color:#F87171">failed</b>') + (last.ms != null ? ' · took ' + dur(last.ms) : '') + (last.calls ? ' · ' + last.calls + ' outside calls' : '') : 'No runs logged yet (logging starts with this version).') +
+          (j.fails ? '<br><b style="color:#F87171">' + j.fails + ' failure' + (j.fails > 1 ? 's' : '') + ' in a row</b>' + (j.fails >= 2 ? ' · you were emailed' : '') : '') +
+          (last && !last.ok ? '<div class="st-log">' + escHtml(last.err || '') + '</div>' : '') +
+          (j.triggers > 1 ? '<br>⚠️ ' + j.triggers + ' timers for this job (it runs ' + j.triggers + '× too often). Press 🔧 Fix timers.' : '') +
+          (stale && j.triggers ? '<br>⚠️ Hasn\'t run for a while (expected ' + j.every + ').' : '') +
+          (next && !j.running ? '<br><span style="color:#6B7280">Next: about ' + next.toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + ' (' + j.every + ')</span>' : '');
+        var hist = j.runs.length > 1 ? '<details class="jb-hist"><summary>Last ' + j.runs.length + ' runs</summary>' + j.runs.map(function(r) {
+          return '<div class="jb-run' + (r.ok ? '' : ' bad') + '"><span>' + (r.ok ? '✅' : '❌') + ' ' + new Date(r.at).toLocaleString([], { weekday: 'short', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + '</span><span>' + dur(r.ms) + (r.calls ? ' · ' + r.calls + ' calls' : '') + '</span>' +
+            (r.ok ? (r.note ? '<em>' + escHtml(r.note) + '</em>' : '') : '<em>' + escHtml(r.err || '') + '</em>') + '</div>';
+        }).join('') + '</details>' : '';
+        return '<div class="st-row"><span class="st-ic">' + ic + '</span><div style="flex:1;min-width:0"><div class="st-l">' + escHtml(j.name) + '</div><div class="st-d">' + sub + '</div>' + hist + '</div></div>';
+      }).join('');
+      var q = J.quota;
+      return '<div class="pf-h">⏱️ Background jobs <small>' + (bad ? bad + ' need' + (bad === 1 ? 's' : '') + ' a look' : 'all healthy') + '</small></div>' + rows +
+        (J.orphans && J.orphans.length ? '<div class="st-row"><span class="st-ic">⚠️</span><div><div class="st-l">Leftover timers</div><div class="st-d">' + J.orphans.map(escHtml).join(', ') + ' (those jobs don\'t exist anymore). 🔧 Fix timers removes them.</div></div></div>' : '') +
+        '<div class="jb-qs"><div class="st-l" style="margin-bottom:6px">📊 Today\'s Google limits</div>' + bar('Calls to outside sites (ESPN…)', q.fetch, q.limits.fetch, '') + bar('Timed-job run time', q.runMin, q.limits.runMin, ' min') +
+        '<div class="st-d" style="margin-top:4px">Counted by the scripts themselves (Google doesn\'t show this). Resets at midnight.</div></div>' +
+        '<div style="margin:10px 0 18px"><button class="adm-btn" id="jb-fix">🔧 Fix timers</button> <span style="font-size:11.5px;color:#6B7280">One timer per job, missing ones added, leftovers removed.</span><div class="submit-msg" id="jb-msg" style="text-align:left"></div></div>';
+    }
+    function bindJobs(body) {
+      var b = document.getElementById('jb-fix');
+      if (!b) return;
+      b.addEventListener('click', function() {
+        b.disabled = true; b.textContent = 'Fixing…';
+        picksApi({ pin: SUB.pin, action: 'fixtrig' }).then(function(r) {
+          var m = document.getElementById('jb-msg');
+          if (r.error) { b.disabled = false; b.textContent = '🔧 Fix timers'; if (m) { m.style.color = '#F87171'; m.textContent = r.error; } return; }
+          if (m) { m.style.color = '#6EE7B7'; m.innerHTML = r.done.map(escHtml).join('<br>'); }
+          b.textContent = 'Done ✓';
+          setTimeout(adminStatus, 2500);
+        }).catch(function() { b.disabled = false; b.textContent = '🔧 Fix timers'; });
+      });
+    }
     function adminStatus() {
       var body = adminScreen('status', '<div class="loading">Checking everything…</div>');
       function ago(iso) {
@@ -340,6 +393,7 @@
         var siteV = (document.firstChild && document.firstChild.nodeType === 8) ? document.firstChild.nodeValue.trim() : '?';
         var h = '<div style="font-size:12px;color:#A1A9B6;margin-bottom:10px">Everything the site depends on, checked right now. <button class="link-btn" id="st-again">Check again</button></div>';
         var dataSlot = '<div class="pf-h">🔍 Data check <small>every season, every row</small></div><div id="st-data"><div class="loading">Checking every row in every season…</div></div>';
+        if (s.jobs) h += jobsHtml(s.jobs, ago);
         h += '<div class="pf-h">🔌 Connections</div>';
         h += row('info', '📺 Game Day', 'Only shows up while a game they both picked is live. <button class="adm-btn" id="gd-test">Test it on the last game</button>' +
           '<br><span style="color:#6B7280">Opens the most recent finished game they both picked, with the final box score, plays and the touchdown moment.</span>');
@@ -349,7 +403,7 @@
         if (!s.error) {
           h += row(s.espn && s.espn.ok ? 'ok' : 'bad', 'ESPN (from Google, for FirstTD)', s.espn && s.espn.ok ? 'Reachable · ESPN says it\'s ' + (s.espn.week ? (s.espn.week > 18 ? 'playoff round ' + (s.espn.week - 18) : weekName(s.espn.week)) : 'the offseason') : 'Not reachable: ' + (s.espn ? s.espn.error : '') + '. First TDs won\'t fill in until this works.');
           var trig = s.triggers || [];
-          h += '<div class="pf-h">⏱️ Automatic jobs</div>';
+          h += '<div class="pf-h">🔎 Job details</div>';
           h += row(trig.indexOf('fillFirstTDs') >= 0 ? 'ok' : 'bad', 'First TD auto-fill', (trig.indexOf('fillFirstTDs') >= 0 ? 'On (every 30 min)' : 'OFF: run setupFirstTDAutoFill in Apps Script') +
             '<br>Last ran: ' + ago(s.ftdLast && s.ftdLast.at) + (s.ftdLast && s.ftdLast.log && s.ftdLast.log.length ? '<div class="st-log">' + s.ftdLast.log.map(escHtml).join('<br>') + '</div>' : '') +
             'Last wrote something: ' + ago(s.ftdLastWrite && s.ftdLastWrite.at) + (s.ftdLastWrite ? '<div class="st-log">' + s.ftdLastWrite.log.map(escHtml).join('<br>') + '</div>' : ''));
@@ -414,6 +468,7 @@
         if (h.indexOf('id="st-data"') < 0) h += dataSlot; // script unreachable: still check the sheets
         body.innerHTML = h;
         document.getElementById('st-again').addEventListener('click', adminStatus);
+        bindJobs(body);
         var gdt = document.getElementById('gd-test');
         if (gdt) gdt.addEventListener('click', function() { gdt.disabled = true; gdt.textContent = 'Finding a game…'; adminTestGameDay().then(function() { gdt.disabled = false; gdt.textContent = 'Test it on the last game'; }); });
         body.querySelectorAll('[data-errdel]').forEach(function(b) {

@@ -129,6 +129,7 @@
           ? 'The live style.css is <b>older</b> than the page (style v' + escHtml(CSS_CHECK.have || '?') + ', page v' + escHtml(CSS_CHECK.want) + '). Some screens will look broken until you upload the newest style.css to GitHub.'
           : 'Matches the page' + (CSS_CHECK.want ? ' (v' + escHtml(CSS_CHECK.want) + ')' : ''));
         h += row(s.error ? 'bad' : 'ok', 'Picks script (PicksAPI)', s.error ? s.error : 'Reachable · season ' + s.season + ' · ' + s.friends + ' friend' + (s.friends === 1 ? '' : 's'));
+        if (s.sheetWarn) h += row('warn', 'Season sheet', escHtml(s.sheetWarn) + ' <button class="link-btn" id="st-again2">Check again</button>');
         h += row(be.ok ? 'ok' : 'warn', 'ESPN (from this browser)', be.ok ? 'Reachable · ' + be.ms + ' ms · used for Live Picks scores and kickoff times' : 'Not reachable right now. Live scores and kickoff times won\'t show; nothing else is affected.');
         if (!s.error) {
           h += row(s.espn && s.espn.ok ? 'ok' : 'bad', 'ESPN (from Google, for FirstTD)', s.espn && s.espn.ok ? 'Reachable · ESPN says it\'s ' + (s.espn.week ? (s.espn.week > 18 ? 'playoff round ' + (s.espn.week - 18) : weekName(s.espn.week)) : 'the offseason') : 'Not reachable: ' + (s.espn ? s.espn.error : '') + '. First TDs won\'t fill in until this works.');
@@ -198,6 +199,7 @@
         if (h.indexOf('id="st-data"') < 0) h += dataSlot; // script unreachable: still check the sheets
         body.innerHTML = h;
         document.getElementById('st-again').addEventListener('click', adminStatus);
+        var again2 = document.getElementById('st-again2'); if (again2) again2.addEventListener('click', adminStatus);
         bindJobs(body);
         var gdt = document.getElementById('gd-test');
         if (gdt) gdt.addEventListener('click', function() { gdt.disabled = true; gdt.textContent = 'Finding a game…'; adminTestGameDay().then(function() { gdt.disabled = false; gdt.textContent = 'Test it on the last game'; }); });

@@ -43,7 +43,8 @@
         var rr = rowsByGame[String(p.game)] || {}, any = rr.Maria || rr.Danielle || null;
         var scorer = any ? any.firstScorer : '', settled = !!(any && (any.correct === 'Yes' || any.correct === 'No'));
         var notOffered = !!(any && isNotOffered(any));
-        var picks = [{ side: 'home', name: p.hp, pct: p.hpct, price: Math.abs(p.hprice), real: p.hprice > 0, team: p.home }, { side: 'away', name: p.ap, pct: p.apct, price: Math.abs(p.aprice), real: p.aprice > 0, team: p.away }];
+        var picks = [{ side: 'home', name: p.hp, pct: p.hpct, price: Math.abs(p.hprice), real: p.hprice > 0, team: p.home, opp: p.away, why: (p.why || {}).h || null },
+          { side: 'away', name: p.ap, pct: p.apct, price: Math.abs(p.aprice), real: p.aprice > 0, team: p.away, opp: p.home, why: (p.why || {}).a || null }];
         var hit = settled && !notOffered ? picks.filter(function(x) { return playerKey(x.name) === playerKey(scorer); })[0] : null;
         var units = !settled || notOffered ? 0 : hit ? hit.price / 100 : -picks.length;
         // Grades for Maria's and Danielle's picks in this game
@@ -158,6 +159,7 @@
       }
       // Bet log: one card per game, one line per person
       var weeks = []; D.games.forEach(function(g) { if (weeks.indexOf(g.week) < 0) weeks.push(g.week); });
+      h += mcBrainHtml(D);
       h += '<div class="pf-h">🧾 Bet log <small>' + (D.sealed ? '🔒 ' + D.sealed + ' upcoming pick' + (D.sealed === 1 ? '' : 's') + ' sealed until kickoff' : 'newest first') + '</small></div>';
       weeks.forEach(function(w) {
         var list = D.games.filter(function(g) { return g.week === w; });
@@ -198,7 +200,7 @@
         h += '<div class="mch-line"><span class="mch-who" style="color:' + mcColor(w) + '">' + (w === 'Machine' ? '🤖 Machine' : w) + '</span><span class="mch-picks">' + line + '</span>' +
           (units === null ? '' : '<b class="mch-units" style="color:' + (units > 0 ? '#34D399' : units < 0 ? '#F87171' : '#A1A9B6') + '">' + fmtU(units) + '</b>') + '</div>';
       });
-      return h + '</div>';
+      return h + mcWhyHtml(g) + '</div>';
     }
 
     // ── Its profile (Profiles tab, 🤖 button) ──
@@ -271,4 +273,99 @@
           '<button class="link-btn" onclick="switchTab(\'machine\')">vs Maria ' + fmtU(S.Maria.u) + ' & Danielle ' + fmtU(S.Danielle.u) + ' →</button>';
         el.style.display = '';
       }).catch(function() {});
+    }
+
+    // ── 🧠 Machine Brain (v138) ──────────────────────────────────────────────
+    // Why it made each pick (from the numbers it saw at kickoff), how sure it was, where it disagreed with
+    // the odds, and a weekly report card. Everything here is from games that have kicked off.
+    function mcPct(x) { return x >= 0.095 || x === 0 ? Math.round(x * 100) + '%' : (Math.round(x * 1000) / 10) + '%'; }
+    function mcConf(g) { return g.picks.reduce(function(a, x) { return a + (x.pct || 0); }, 0); } // chance one of its two picks scores first
+    function mcConfBand(D) {
+      var c = D.games.map(mcConf).filter(function(x) { return x > 0; }).sort(function(a, b) { return a - b; });
+      return { avg: c.length ? c.reduce(function(a, x) { return a + x; }, 0) / c.length : 0, lo: c[0] || 0, hi: c[c.length - 1] || 0 };
+    }
+    function mcSureTxt(c, B) { return !B.avg ? '' : c > B.avg * 1.15 ? 'more sure than usual' : c < B.avg * 0.85 ? 'less sure than usual' : 'about as sure as usual'; }
+    function mcReasons(x) {
+      var w = x.why; if (!w) return [];
+      var team = teamNick(x.team), opp = teamNick(x.opp), out = [];
+      out.push(mcPct(w.pt) + ' chance the ' + escHtml(team) + ' score the first TD' +
+        (w.sp === null || w.sp === undefined ? '' : w.sp < 0 ? ' (favored by ' + (-w.sp) + ')' : w.sp > 0 ? ' (underdogs by ' + w.sp + ')' : ' (a pick-em)') +
+        (w.f ? '. They\'ve scored ' + w.f.toFixed(1) + ' TDs a game lately, the ' + escHtml(opp) + ' ' + w.fo.toFixed(1) : '') + '.');
+      var m = [['gl', 'of their goal-line touches'], ['td', 'of their recent touchdowns'], ['t', 'of their touches']].filter(function(k) { return w[k[0]] >= 0.05; })
+        .sort(function(a, b) { return w[b[0]] - w[a[0]]; }).slice(0, 2);
+      if (m.length) out.push('He gets ' + m.map(function(k) { return '<b>' + Math.round(w[k[0]] * 100) + '%</b> ' + k[1]; }).join(' and ') + '.');
+      if (w.pri >= 0.5) out.push('Not much history with the ' + escHtml(team) + ' yet, so it leaned on what a typical ' + escHtml(w.slot || 'player in his spot') + ' gets.');
+      if (w.nx) out.push('That made him ' + mcPct(w.s) + ' of the ' + escHtml(team) + (/s$/.test(team) ? '\'' : '\'s') + ' chance. Next was ' + escHtml(w.nx[0]) + ' at ' + mcPct(w.nx[1]) + ' (he was ' + mcPct(x.pct) + ').');
+      return out;
+    }
+    function mcWhyHtml(g) {
+      if (!g.picks.some(function(x) { return x.why; })) return '';
+      var B = MACHINE.band || (MACHINE.band = mcConfBand(MACHINE.data)), c = mcConf(g);
+      var pos = B.hi > B.lo ? Math.round((c - B.lo) / (B.hi - B.lo) * 100) : 50;
+      return '<details class="mch-why"><summary>🧠 Why these picks</summary>' +
+        '<div class="mch-conf"><span>Confidence <b>' + mcPct(c) + '</b> that one of them scores first · ' + mcSureTxt(c, B) + '</span>' +
+        '<div class="mch-meter" title="Its least and most sure games this season"><i style="left:' + Math.max(0, Math.min(100, pos)) + '%"></i></div></div>' +
+        g.picks.map(function(x) {
+          var R = mcReasons(x);
+          return R.length ? '<div class="mch-r"><div class="mch-rn">' + escHtml(x.name) + ' <small>' + mcPct(x.pct) + '</small></div><ul>' + R.map(function(t) { return '<li>' + t + '</li>'; }).join('') + '</ul></div>' : '';
+        }).join('') + '</details>';
+    }
+    function mcBrainHtml(D) {
+      var done = D.games.filter(function(g) { return g.settled && !g.notOffered; });
+      if (!done.length) return '';
+      MACHINE.band = mcConfBand(D);
+      var B = MACHINE.band, h = '<div class="pf-h">🧠 Machine Brain <small>after kickoff only, like its picks</small></div>';
+      // Is it right when it's sure?
+      var sure = { more: { n: 0, h: 0 }, less: { n: 0, h: 0 } }, side = { n: 0, ok: 0 };
+      done.forEach(function(g) {
+        var c = mcConf(g), k = c >= B.avg ? 'more' : 'less'; sure[k].n++; if (g.hit) sure[k].h++;
+        var wh = g.picks[0].why, r = g.rows.Maria || g.rows.Danielle;
+        if (wh && r && (r.side === 'Home' || r.side === 'Away')) { side.n++; if ((wh.pt >= 0.5) === (r.side === 'Home')) side.ok++; }
+      });
+      h += '<div class="mcb-tiles">' +
+        '<div class="pf-tile"><div class="l">When it was sure</div><div class="v">' + sure.more.h + '/' + sure.more.n + '</div><div class="s">hit, on its more-confident games (vs ' + sure.less.h + '/' + sure.less.n + ' on the rest)</div></div>' +
+        (side.n ? '<div class="pf-tile"><div class="l">Picking the team</div><div class="v">' + side.ok + '/' + side.n + '</div><div class="s">times the team it favored to score first did (' + Math.round(side.ok / side.n * 100) + '%)</div></div>' : '') +
+        '<div class="pf-tile"><div class="l">Usual confidence</div><div class="v">' + mcPct(B.avg) + '</div><div class="s">that one of its two picks scores first (' + mcPct(B.lo) + ' to ' + mcPct(B.hi) + ')</div></div></div>';
+      // Where it disagrees with the odds: every player with a real price (Maria's and Danielle's picks, its own priced picks)
+      var cand = [];
+      done.forEach(function(g) {
+        var ch = g.p.chances || {}, seen = {};
+        function add(name, odds, who) {
+          var k = playerKey(name); if (!name || !(odds > 0) || seen[k]) return;
+          var p = mcChance(ch, name); if (!(p > 0)) return;
+          seen[k] = 1;
+          var imp = 100 / (odds + 100);
+          cand.push({ g: g, name: name, odds: odds, p: p, imp: imp, r: p / imp, hit: playerKey(name) === playerKey(g.scorer), who: who });
+        }
+        g.picks.forEach(function(x) { if (x.real) add(x.name, x.price, 'Machine'); });
+        ['Maria', 'Danielle'].forEach(function(w) { var r = g.rows[w]; if (!r) return; add(r.homePick, oddsN(r.homeOdds) * 100, w); add(r.awayPick, oddsN(r.awayOdds) * 100, w); });
+      });
+      if (cand.length >= 4) {
+        var liked = cand.filter(function(c) { return c.r >= 1.5; }), faded = cand.filter(function(c) { return c.r <= 0.67; });
+        function rec(L) { var hits = L.filter(function(c) { return c.hit; }).length, exp = L.reduce(function(a, c) { return a + c.imp; }, 0); return hits + ' of ' + L.length + ' scored first <span class="u-c-muted">(the odds expected ' + exp.toFixed(1) + ')</span>'; }
+        h += '<div class="mcb-h">🎯 Where it disagrees with the odds</div><div class="mcb-rec">' +
+          '<div><b class="u-good">Liked more than the odds</b> ' + (liked.length ? rec(liked) : '<span class="u-c-muted">none yet</span>') + '</div>' +
+          '<div><b class="u-bad">Liked less than the odds</b> ' + (faded.length ? rec(faded) : '<span class="u-c-muted">none yet</span>') + '</div></div>';
+        var top = cand.slice().sort(function(a, b) { return Math.abs(Math.log(b.r)) - Math.abs(Math.log(a.r)); });
+        h += moreList(top.map(function(c) {
+          return '<div class="mcb-row"><span class="mcb-wk">' + wkName(c.g.week) + '</span><span class="mcb-n">' + (c.hit ? '✅ ' : '') + escHtml(c.name) + ' <small style="color:' + mcColor(c.who) + '">' + (c.who === 'Machine' ? '🤖' : c.who) + '</small></span>' +
+            '<span class="mcb-v">+' + Math.round(c.odds) + ' says ' + mcPct(c.imp) + ' · it said <b class="' + (c.r >= 1 ? 'u-good' : 'u-bad') + '">' + mcPct(c.p) + '</b></span></div>';
+        }), 5);
+      }
+      // Weekly report card
+      var weeks = []; done.forEach(function(g) { if (weeks.indexOf(g.week) < 0) weeks.push(g.week); });
+      h += '<div class="mcb-h">📋 Weekly report card</div>';
+      h += moreList(weeks.map(function(w) {
+        var L = done.filter(function(g) { return g.week === w; }), hits = L.filter(function(g) { return g.hit; }), u = L.reduce(function(a, g) { return a + g.units; }, 0);
+        var md = ['Maria', 'Danielle'].map(function(p) { var n = 0, hh = 0; L.forEach(function(g) { var r = g.rows[p]; if (r) { n++; if (r.correct === 'Yes') hh++; } }); return '<span style="color:' + personColor(p) + '">' + p + ' ' + hh + '/' + n + '</span>'; }).join(' · ');
+        var best = hits.slice().sort(function(a, b) { return b.hit.price - a.hit.price; })[0];
+        var miss = []; L.forEach(function(g) { if (!g.hit) g.picks.forEach(function(x) { miss.push({ g: g, x: x }); }); });
+        miss.sort(function(a, b) { return (b.x.pct || 0) - (a.x.pct || 0); });
+        var grade = !L.length ? '' : hits.length / L.length >= 0.5 ? 'A' : hits.length / L.length >= 0.34 ? 'B' : hits.length ? 'C' : u > -L.length * 2 ? 'D' : 'F';
+        return '<div class="mcb-card"><div class="mcb-top"><b>' + wkName(w) + '</b><span class="mcb-grade g-' + grade.charAt(0) + '">' + grade + '</span></div>' +
+          '<div class="mcb-line">🤖 <b>' + hits.length + '/' + L.length + '</b> hit · <b class="' + (u >= 0 ? 'u-good' : 'u-bad') + '">' + fmtU(u) + '</b> · ' + md + '</div>' +
+          (best ? '<div class="mcb-line">✅ Best call: ' + escHtml(best.hit.name) + ' at +' + Math.round(best.hit.price) + (best.hit.real ? '' : ' est') + '</div>' : '') +
+          (miss[0] ? '<div class="mcb-line">❌ Most sure miss: ' + escHtml(miss[0].x.name) + ' (' + mcPct(miss[0].x.pct) + '), ' + escHtml(miss[0].g.scorer) + ' scored first</div>' : '') + '</div>';
+      }), 3); // newest week first
+      return h;
     }

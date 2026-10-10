@@ -1,0 +1,6 @@
+/* eggs.light.css: the light theme for css/eggs.css. Made by a script, don't edit by hand. */
+html[data-theme="light"] .egg-toast:not(.dk, .dk *) { border-radius: 14px; background: rgba(245,245,247,0.96); border: 1px solid rgba(17,24,39,0.162); color: #1A1A1A; box-shadow: 0 16px 40px -10px rgba(17,24,39,0.2); }
+html[data-theme="light"] .egg-toast small:not(.dk, .dk *) { color: #B38A03; }
+html[data-theme="light"] .egg-rain i:not(.dk, .dk *), html[data-theme="light"] .egg-rain img:not(.dk, .dk *) { border-radius: 50%; }
+html[data-theme="light"].egg-retro body:not(.dk, .dk *)::after { background: repeating-linear-gradient(0deg, rgba(17,24,39,0.04) 0 1px, transparent 1px 3px); }
+

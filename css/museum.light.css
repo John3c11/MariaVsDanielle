@@ -1,0 +1,22 @@
+/* museum.light.css: the light theme for css/museum.css. Made by a script, don't edit by hand. */
+html[data-theme="light"] .mu-hero:not(.dk, .dk *) { border-radius: 16px; background: linear-gradient(135deg, rgba(251,191,36,0.16), rgba(251,191,36,0.03) 60%), #F4F5F5; border: 1px solid rgba(251,191,36,0.28); }
+html[data-theme="light"] .mu-hero-t:not(.dk, .dk *) { color: #BB9603; }
+html[data-theme="light"] .mu-hero-s:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .mu-year:not(.dk, .dk *) { color: #BB9603; }
+html[data-theme="light"] .mu-year:not(.dk, .dk *)::before, html[data-theme="light"] .mu-year:not(.dk, .dk *)::after { background: linear-gradient(90deg, transparent, rgba(251,191,36,0.4), transparent); }
+html[data-theme="light"] .mu-card:not(.dk, .dk *) { border-radius: 14px; background: rgba(17,24,39,0.029); border: 1px solid rgba(17,24,39,0.063); border-left: 3px solid var(--mc); }
+html[data-theme="light"] .mu-card.mu-star:not(.dk, .dk *) { border-color: rgba(251,191,36,0.45); border-left-color: var(--mc); background: linear-gradient(135deg, rgba(251,191,36,0.1), rgba(17,24,39,0.026)); box-shadow: 0 0 22px rgba(251,191,36,0.048); }
+html[data-theme="light"] .mu-photo:not(.dk, .dk *) { background: #F9F9FA; }
+html[data-theme="light"] .mu-art:not(.dk, .dk *) { border-radius: 50%; background: rgba(17,24,39,0.039); box-shadow: 0 0 0 2px var(--mc); }
+html[data-theme="light"] .mu-art .hs:not(.dk, .dk *) { border-radius: 50%; }
+html[data-theme="light"] .mu-tag:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .mu-st:not(.dk, .dk *) { color: #AE7E03; }
+html[data-theme="light"] .mu-title:not(.dk, .dk *) { color: var(--t1); }
+html[data-theme="light"] .mu-cap:not(.dk, .dk *) { color: var(--t2); }
+html[data-theme="light"] .mu-when:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .mu-champ:not(.dk, .dk *) { border-radius: var(--r); background: linear-gradient(135deg, var(--s1), color-mix(in srgb, var(--pc) 16%, transparent)); border: 1px solid color-mix(in srgb, var(--pc) 45%, transparent); }
+html[data-theme="light"] .mu-champ.live:not(.dk, .dk *) { border-style: dashed; }
+html[data-theme="light"] .mu-champ-ic:not(.dk, .dk *) { border-radius: 50%; background: var(--s2); }
+html[data-theme="light"] .mu-champ-y:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .mu-champ-s:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] [style^="color:#FBBF24" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#FBBF24" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#FBBF24" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #FBBF24" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #FBBF24" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #FBBF24" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: rgb(251, 191, 36)"]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: rgb(251, 191, 36)"]:not(.dk, .dk *) { color: #AE7E03 !important; }

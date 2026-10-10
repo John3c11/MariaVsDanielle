@@ -1667,7 +1667,7 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 }
 
 /* ── v129: 📨 invite / sign-up, friend home summary ── */
-:root { --css-v: "139"; } /* main.js compares this with the page version to catch an old style.css */
+:root { --css-v: "140"; } /* main.js compares this with the page version to catch an old style.css */
 .join-box { max-width: 340px; margin-left: auto; margin-right: auto; }
 .join-l { display: block; text-align: left; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t3); margin: 14px 0 6px; }
 .join-in { width: 100%; box-sizing: border-box; }
@@ -1722,3 +1722,10 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 .ml.ml-folded .ml-x { display: none !important; }
 .an-link { font-size: 12.5px; color: var(--t3); margin: 8px 0 14px; line-height: 1.6; }
 .an-link .link-btn { font-size: 12.5px; }
+
+/* ── v140: 🌗 the light/dark switch at the bottom of every page (light.css holds the light theme) ── */
+.look-sw { display: inline-flex; align-items: center; gap: 2px; margin-top: 10px; padding: 3px; border-radius: 999px; background: var(--s1); border: 1px solid var(--line); }
+.look-sw span { font-size: 12px; padding: 0 6px 0 4px; }
+.look-sw button { font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 700; color: var(--t3); background: none; border: 0; border-radius: 999px; padding: 5px 11px; cursor: pointer; }
+.look-sw button.on { background: var(--t1); color: var(--bg-ink, #0B0C10); }
+html[data-theme="light"] .look-sw button.on { color: #FFFFFF; }

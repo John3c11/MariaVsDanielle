@@ -80,6 +80,28 @@
     function loadBetHistoryTab() { lazyTab('js/history.js', 'bethistory-content', function() { loadBetHistoryTab(); }); }
     function loadScheduleTab() { lazyTab('js/schedule.js', 'schedule-content', function() { loadScheduleTab(); }); }
 
+    // ── 🌗 Light / dark (v140) ──────────────────────────────────────────────
+    // The head of index.html applies the saved choice before the page draws; this switches it live.
+    function lookPick() { try { return localStorage.getItem('mvd-look') || 'dark'; } catch (e) { return 'dark'; } }
+    function lookApply() {
+      var pick = lookPick(), mq = window.matchMedia && matchMedia('(prefers-color-scheme: light)');
+      var light = pick === 'light' || (pick === 'auto' && mq && mq.matches);
+      document.documentElement.setAttribute('data-theme', light ? 'light' : 'dark');
+      var link = document.getElementById('light-css');
+      if (light && !link) {
+        var me = document.querySelector('link[href*="style.css"]'), v = me && /[?&]v=(\d+)/.exec(me.getAttribute('href'));
+        link = document.createElement('link'); link.rel = 'stylesheet'; link.id = 'light-css'; link.href = 'light.css' + (v ? '?v=' + v[1] : '');
+        document.head.appendChild(link);
+      }
+      if (link) link.disabled = !light;
+      if (typeof CSS_LOADS !== 'undefined') Object.keys(CSS_LOADS).forEach(function(n) { if (light) loadLightCss(n); else if (LIGHT_CSS[n]) LIGHT_CSS[n].disabled = true; });
+      var meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.setAttribute('content', light ? '#F4F5F7' : '#08090C');
+      document.querySelectorAll('[data-look]').forEach(function(b) { b.classList.toggle('on', b.getAttribute('data-look') === pick); });
+    }
+    function setLook(v) { try { localStorage.setItem('mvd-look', v); } catch (e) {} lookApply(); }
+    lookApply();
+    if (window.matchMedia) { var LOOK_MQ = matchMedia('(prefers-color-scheme: light)'); if (LOOK_MQ.addEventListener) LOOK_MQ.addEventListener('change', function() { if (lookPick() === 'auto') lookApply(); }); }
+
     // The Log In tab shows who's logged in
     function setLoginTab() {
       var b = document.getElementById('tab-login'), m = document.getElementById('acct-mini');

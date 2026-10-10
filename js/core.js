@@ -124,7 +124,19 @@
         l.onerror = function() { delete CSS_LOADS[name]; l.remove(); res(); }; // never block the screen over its styles
         document.head.appendChild(l);
       });
+      if (document.documentElement.getAttribute('data-theme') === 'light') loadLightCss(name);
       return CSS_LOADS[name];
+    }
+    // 🌗 Its light-theme copy (css/<name>.light.css, v140): only for someone in light mode
+    var LIGHT_CSS = {};
+    function loadLightCss(name) {
+      if (/^(story|gameday|replay)$/.test(name)) return; // the full-screen shows stay dark in both themes
+      if (LIGHT_CSS[name]) { LIGHT_CSS[name].disabled = false; return; }
+      var me = document.querySelector('script[src*="js/core.js"]'), v = me && /[?&]v=([^&]+)/.exec(me.getAttribute('src'));
+      var l = document.createElement('link');
+      l.rel = 'stylesheet'; l.href = 'css/' + name + '.light.css' + (v ? '?v=' + v[1] : ''); l.setAttribute('data-light-css', name);
+      document.head.appendChild(l);
+      LIGHT_CSS[name] = l;
     }
     function loadScriptOnce(path) {
       var css = /^js\/(\w+)\.js$/.exec(path);

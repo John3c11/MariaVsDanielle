@@ -1,0 +1,36 @@
+/* bracket.light.css: the light theme for css/bracket.css. Made by a script, don't edit by hand. */
+html[data-theme="light"] .br-hero:not(.dk, .dk *) { border-radius: 16px; background: radial-gradient(circle at 0 0, rgba(251,191,36,0.2), transparent 60%), linear-gradient(135deg, #F5F0E5, #F6F7F7); border: 1px solid rgba(251,191,36,0.3); }
+html[data-theme="light"] .br-hero-t:not(.dk, .dk *) { color: #BB9603; }
+html[data-theme="light"] .br-yr:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .br-hero-s:not(.dk, .dk *) { color: var(--t2); }
+html[data-theme="light"] .br-left:not(.dk, .dk *) { color: #F5F5F5; background: #FBBF24; border-radius: 6px; }
+html[data-theme="light"] .br-rules:not(.dk, .dk *) { background: rgba(17,24,39,0.026); border: 1px solid rgba(17,24,39,0.072); border-radius: 12px; }
+html[data-theme="light"] .br-rt span:not(.dk, .dk *) { color: var(--t2); }
+html[data-theme="light"] .br-rt b:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .br-rt i:not(.dk, .dk *) { color: #BB9603; }
+html[data-theme="light"] .br-rnote:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .br-pin:not(.dk, .dk *) { border-radius: 12px; background: rgba(17,24,39,0.026); border: 1px solid rgba(17,24,39,0.072); }
+html[data-theme="light"] .br-chip:not(.dk, .dk *) { border-radius: 999px; background: rgba(17,24,39,0.033); border: 1px solid rgba(17,24,39,0.072); }
+html[data-theme="light"] .br-chip small:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .br-rh:not(.dk, .dk *) { color: #BB9603; border-bottom: 1px solid rgba(251,191,36,0.25); }
+html[data-theme="light"] .br-rh small:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .br-g:not(.dk, .dk *) { border-radius: 12px; background: rgba(17,24,39,0.026); border: 1px solid rgba(17,24,39,0.072); }
+html[data-theme="light"] .br-gl:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .br-team.tbd:not(.dk, .dk *) { color: var(--t4); }
+html[data-theme="light"] .br-team.on.dead .br-tn:not(.dk, .dk *) { text-decoration: line-through; }
+html[data-theme="light"] .br-q:not(.dk, .dk *) { color: var(--t4); }
+html[data-theme="light"] .br-sd:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .br-td.dead b:not(.dk, .dk *) { text-decoration: line-through; }
+html[data-theme="light"] .br-act:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .br-tb:not(.dk, .dk *) { color: var(--t2); }
+html[data-theme="light"] .br-prog:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .br-table:not(.dk, .dk *) { border-radius: 12px; border: 1px solid rgba(17,24,39,0.072); }
+html[data-theme="light"] .br-tr:last-child:not(.dk, .dk *) { border-bottom: 0; }
+html[data-theme="light"] .br-th:not(.dk, .dk *) { color: var(--t3); background: rgba(17,24,39,0.033); }
+html[data-theme="light"] .br-tr > b:not(.dk, .dk *) { color: #BB9603; }
+html[data-theme="light"] .br-champ.dead:not(.dk, .dk *) { filter: grayscale(1); }
+html[data-theme="light"] [style^="color:#6EE7B7" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#6EE7B7" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#6EE7B7" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #6EE7B7" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #6EE7B7" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #6EE7B7" i]:not(.dk, .dk *) { color: #1A9E69 !important; }
+html[data-theme="light"] [style^="color:#C4C9D2" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#C4C9D2" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#C4C9D2" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #C4C9D2" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #C4C9D2" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #C4C9D2" i]:not(.dk, .dk *) { color: #4A5261 !important; }
+html[data-theme="light"] [style^="color:#6B7280" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#6B7280" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#6B7280" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #6B7280" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #6B7280" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #6B7280" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: rgb(107, 114, 128)"]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: rgb(107, 114, 128)"]:not(.dk, .dk *) { color: #B2B6BF !important; }
+html[data-theme="light"] [style^="color:#A1A9B6" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#A1A9B6" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#A1A9B6" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #A1A9B6" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #A1A9B6" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #A1A9B6" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: rgb(161, 169, 182)"]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: rgb(161, 169, 182)"]:not(.dk, .dk *) { color: #707C90 !important; }
+html[data-theme="light"] [style^="color:#F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: rgb(248, 113, 113)"]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: rgb(248, 113, 113)"]:not(.dk, .dk *) { color: #B10909 !important; }

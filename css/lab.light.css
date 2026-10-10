@@ -1,0 +1,33 @@
+/* lab.light.css: the light theme for css/lab.css. Made by a script, don't edit by hand. */
+html[data-theme="light"] .lab-unsave:not(.dk, .dk *) { background: none; border: 0; color: var(--t3); }
+html[data-theme="light"] .lab-row:not(.dk, .dk *) { border-top: 0.5px solid rgba(17,24,39,0.054); }
+html[data-theme="light"] .lab-row:first-child:not(.dk, .dk *) { border-top: 0; }
+html[data-theme="light"] .lab-l:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .lab-ask:not(.dk, .dk *) { color: var(--t2); }
+html[data-theme="light"] .lab-head:not(.dk, .dk *) { background: linear-gradient(135deg, rgba(17,24,39,0.039), rgba(17,24,39,0.013)); border: 1px solid rgba(17,24,39,0.072); border-left: 4px solid var(--pc); }
+html[data-theme="light"] .lab-head-v:not(.dk, .dk *) { color: #14191F; }
+html[data-theme="light"] .lab-tiles .s:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .lab-pk:not(.dk, .dk *) { border-left: 3px solid var(--pc); }
+html[data-theme="light"] .lab-pk-n:not(.dk, .dk *) { color: var(--t1); }
+html[data-theme="light"] .lab-pk-n small:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .lab-pk-s:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .lab-r.void:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .lab-rp:not(.dk, .dk *) { background: rgba(17,24,39,0.039); border: 1px solid rgba(17,24,39,0.108); border-radius: 8px; color: #282C34; }
+html[data-theme="light"] .lab-dc:not(.dk, .dk *) { color: #282C34; background: rgba(17,24,39,0.026); border: 1px solid rgba(17,24,39,0.072); border-left: 3px solid var(--pc); }
+html[data-theme="light"] .lab-dc:hover:not(.dk, .dk *) { background: rgba(17,24,39,0.046); }
+html[data-theme="light"] .lab-dc.hot:not(.dk, .dk *) { background: linear-gradient(135deg, rgba(52,211,153,0.08), rgba(17,24,39,0.019)); }
+html[data-theme="light"] .lab-dc.cold:not(.dk, .dk *) { background: linear-gradient(135deg, rgba(147,197,253,0.08), rgba(17,24,39,0.019)); }
+html[data-theme="light"] .lab-dc-s:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .lab-new:not(.dk, .dk *) { color: #F5F6F8; background: #FCD34D; border-radius: 5px; }
+html[data-theme="light"] .lab-card:not(.dk, .dk *) { border-radius: 14px; }
+html[data-theme="light"] .lab-st-r:not(.dk, .dk *) { border-radius: 10px; background: rgba(17,24,39,0.026); border: 1px solid rgba(17,24,39,0.054); color: #282C34; }
+html[data-theme="light"] button.lab-st-r:hover:not(.dk, .dk *) { background: rgba(17,24,39,0.052); }
+html[data-theme="light"] .lab-st-h:not(.dk, .dk *) { background: none; border: 0; }
+html[data-theme="light"] .lab-st-c i:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .lab-st-c.lead b:not(.dk, .dk *) { color: #B38A03; }
+html[data-theme="light"] .lab-st-c.dim:not(.dk, .dk *) { color: var(--t4); }
+html[data-theme="light"] [style^="color:#34D399" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#34D399" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#34D399" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #34D399" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #34D399" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #34D399" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: rgb(52, 211, 153)"]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: rgb(52, 211, 153)"]:not(.dk, .dk *) { color: #1F8F66 !important; }
+html[data-theme="light"] [style^="color:#A1A9B6" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#A1A9B6" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#A1A9B6" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #A1A9B6" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #A1A9B6" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #A1A9B6" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: rgb(161, 169, 182)"]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: rgb(161, 169, 182)"]:not(.dk, .dk *) { color: #707C90 !important; }
+html[data-theme="light"] [style^="color:#A78BFA" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#A78BFA" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#A78BFA" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #A78BFA" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #A78BFA" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #A78BFA" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: rgb(167, 139, 250)"]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: rgb(167, 139, 250)"]:not(.dk, .dk *) { color: #3408B6 !important; }
+html[data-theme="light"] [style^="color:#F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: rgb(248, 113, 113)"]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: rgb(248, 113, 113)"]:not(.dk, .dk *) { color: #B10909 !important; }
+html[data-theme="light"] [style^="color:#FCD34D" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#FCD34D" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#FCD34D" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #FCD34D" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #FCD34D" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #FCD34D" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: rgb(252, 211, 77)"]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: rgb(252, 211, 77)"]:not(.dk, .dk *) { color: #B38A03 !important; }

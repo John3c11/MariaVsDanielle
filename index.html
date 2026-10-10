@@ -1,4 +1,4 @@
-<!-- v139 -->
+<!-- v140 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -45,12 +45,22 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=139">
+  <link rel="stylesheet" href="style.css?v=140">
+  <script>
+    // 🌗 Light or dark (v140): picked with the switch at the bottom of every page, saved on this phone.
+    // Auto follows the phone's own setting. light.css only loads in light mode, so dark costs nothing.
+    (function() {
+      var pick = 'dark'; try { pick = localStorage.getItem('mvd-look') || 'dark'; } catch (e) {}
+      var light = pick === 'light' || (pick === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches);
+      document.documentElement.setAttribute('data-theme', light ? 'light' : 'dark');
+      if (light) document.write('<link rel="stylesheet" id="light-css" href="light.css?v=140">');
+    })();
+  </script>
 </head>
 <body>
   <div class="page-layout">
 
-<div class="kalshi-ad">
+<div class="kalshi-ad dk">
     <div class="kalshi-logo">Kalshi</div>
     <div class="kalshi-tagline">Trade on real-world events. Sports, politics, economics — all on one platform.</div>
     <div style="font-size:36px">📈</div>
@@ -197,20 +207,21 @@
         <div class="cb-cap">Brought to you by Campbell Dingus</div>
       </div>
       <div class="foot-line"><span id="last-updated">Loading...</span> · Data from Google Sheets</div>
+      <div class="look-sw" role="radiogroup" aria-label="Light or dark"><span>🌗</span><button data-look="dark" onclick="setLook('dark')">Dark</button><button data-look="light" onclick="setLook('light')">Light</button><button data-look="auto" onclick="setLook('auto')">Auto</button></div>
     </footer>
   </div>
 
   <script src="config.js"></script>
   <!-- Site code, split by tab. Bump ?v= on every file when any file changes. -->
-  <script src="js/core.js?v=139"></script>
-  <script src="js/stats.js?v=139"></script>
-  <script src="js/players.js?v=139"></script>
-  <script src="js/picks.js?v=139"></script>
-  <script src="js/chat.js?v=139"></script>
-  <script src="js/crowd.js?v=139"></script>
-  <script src="js/charts.js?v=139"></script>
-  <script src="js/insights.js?v=139"></script>
-  <script src="js/main.js?v=139"></script>
+  <script src="js/core.js?v=140"></script>
+  <script src="js/stats.js?v=140"></script>
+  <script src="js/players.js?v=140"></script>
+  <script src="js/picks.js?v=140"></script>
+  <script src="js/chat.js?v=140"></script>
+  <script src="js/crowd.js?v=140"></script>
+  <script src="js/charts.js?v=140"></script>
+  <script src="js/insights.js?v=140"></script>
+  <script src="js/main.js?v=140"></script>
   
   </div><!-- end wrap -->
 

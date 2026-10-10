@@ -124,7 +124,7 @@
         '<span class="gp-pn">' + (prev ? '<button class="adm-btn" onclick="openGame(\'' + prev.year + '\',\'' + prev.game + '\')" title="Previous game">‹</button>' : '') +
         (next ? '<button class="adm-btn" onclick="openGame(\'' + next.year + '\',\'' + next.game + '\')" title="Next game">›</button>' : '') + '</span></div>';
       // Hero: matchup + score (score filled in from ESPN)
-      h += '<div class="gp-hero" style="background:linear-gradient(120deg,' + hexA(ac, 0.55) + ' 0%,#111318 50%,' + hexA(hc, 0.55) + ' 100%)">' +
+      h += '<div class="dk gp-hero" style="background:linear-gradient(120deg,' + hexA(ac, 0.55) + ' 0%,#111318 50%,' + hexA(hc, 0.55) + ' 100%)">' +
         '<div class="gp-team">' + teamLogo(away, 'gp-logo') + '<div class="gp-tn">' + nick(away) + '</div><div class="gp-pts" id="gp-as">–</div></div>' +
         '<div class="gp-mid"><div class="gp-at">@</div><div class="gp-status" id="gp-status">' + (settled ? 'Final' : '') + '</div><div class="gp-date" id="gp-date"></div></div>' +
         '<div class="gp-team">' + teamLogo(home, 'gp-logo') + '<div class="gp-tn">' + nick(home) + '</div><div class="gp-pts" id="gp-hs">–</div></div></div>';

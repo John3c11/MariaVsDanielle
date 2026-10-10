@@ -1,0 +1,51 @@
+/* gamepage.light.css: the light theme for css/gamepage.css. Made by a script, don't edit by hand. */
+html[data-theme="light"] .gp-when:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .gp-hero:not(.dk, .dk *) { border-radius: 18px; border: 1px solid rgba(17,24,39,0.09); }
+html[data-theme="light"] .gp-tn:not(.dk, .dk *) { color: var(--t1); }
+html[data-theme="light"] .gp-pts:not(.dk, .dk *) { color: rgba(26,26,26,0.6); }
+html[data-theme="light"] .gp-pts.win:not(.dk, .dk *) { color: #1A1A1A; }
+html[data-theme="light"] .gp-at:not(.dk, .dk *) { color: rgba(26,26,26,0.4); }
+html[data-theme="light"] .gp-status:not(.dk, .dk *) { color: var(--t1); }
+html[data-theme="light"] .gp-date:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .gp-ftd:not(.dk, .dk *) { background: rgba(17,24,39,0.033); border: 1px solid rgba(17,24,39,0.072); }
+html[data-theme="light"] .gp-ftd.hit:not(.dk, .dk *) { border-color: var(--pc); background: linear-gradient(120deg, rgba(17,24,39,0.052), rgba(17,24,39,0.013)); box-shadow: inset 4px 0 0 var(--pc); }
+html[data-theme="light"] .gp-k:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .gp-ftd-n:not(.dk, .dk *) { color: #14191F; }
+html[data-theme="light"] .gp-ftd-s:not(.dk, .dk *) { color: var(--t2); }
+html[data-theme="light"] .gp-col:not(.dk, .dk *) { border-top: 3px solid var(--pc); }
+html[data-theme="light"] .gp-pick + .gp-pick:not(.dk, .dk *) { border-top: 0.5px solid rgba(17,24,39,0.054); }
+html[data-theme="light"] .gp-pick.hit .gp-pk-n:not(.dk, .dk *) { color: #1A9E69; }
+html[data-theme="light"] .gp-pk-n:not(.dk, .dk *) { color: var(--t1); }
+html[data-theme="light"] .gp-pk-s:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .gp-u span:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .gp-dim:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .gp-mc:not(.dk, .dk *) { border-radius: 14px; background: rgba(167,139,250,0.07); border: 1px solid rgba(63,9,220,0.25); }
+html[data-theme="light"] .gp-ch-n:not(.dk, .dk *) { color: #282C34; }
+html[data-theme="light"] .gp-ch-bar:not(.dk, .dk *) { border-radius: 4px; background: rgba(17,24,39,0.046); }
+html[data-theme="light"] .gp-ch-bar i:not(.dk, .dk *) { background: #A78BFA; border-radius: 4px; }
+html[data-theme="light"] .gp-ch-v:not(.dk, .dk *) { color: var(--t2); }
+html[data-theme="light"] .gp-fr-r:not(.dk, .dk *) { border-radius: 10px; background: rgba(17,24,39,0.026); }
+html[data-theme="light"] .gp-fr-r span:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .gp-fr-r u:not(.dk, .dk *) { color: #1A9E69; text-decoration: none; }
+html[data-theme="light"] .gp-fr-r.hit:not(.dk, .dk *) { background: rgba(52,211,153,0.08); }
+html[data-theme="light"] .gp-drive:not(.dk, .dk *) { border-left: 3px solid var(--tc); }
+html[data-theme="light"] .gp-play:not(.dk, .dk *) { color: var(--t2); }
+html[data-theme="light"] .gp-play-t:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .gp-play-t i:not(.dk, .dk *) { color: var(--t4); }
+html[data-theme="light"] .gp-play.td .gp-play-x:not(.dk, .dk *) { color: #B38A03; }
+html[data-theme="light"] .gp-msg:not(.dk, .dk *) { border-radius: 12px; background: rgba(17,24,39,0.026); border-left: 3px solid var(--pc); color: #282C34; }
+html[data-theme="light"] .gp-msg-h:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .gp-root:not(.dk, .dk *) { background: radial-gradient(120% 60% at 50% 0%, #EFF0F2 0%, #FAFBFB 70%) fixed, #FAFBFB; }
+html[data-theme="light"] .gp-x:not(.dk, .dk *) { background: rgba(17,24,39,0.052); border: 1px solid rgba(17,24,39,0.144); color: var(--t1); border-radius: 50%; }
+html[data-theme="light"] .gl-wk:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .gl-g:not(.dk, .dk *) { color: #282C34; }
+html[data-theme="light"] .gl-slot:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .gl-match i:not(.dk, .dk *) { color: rgba(26,26,26,0.4); }
+html[data-theme="light"] .gl-ftd:not(.dk, .dk *) { color: var(--t2); }
+html[data-theme="light"] .gl-go:not(.dk, .dk *) { color: var(--t4); }
+@media (max-width: 560px) { html[data-theme="light"] .gl-ftd:not(.dk, .dk *) { color: var(--t3); } }
+html[data-theme="light"] [style^="color:#34D399" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#34D399" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#34D399" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #34D399" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #34D399" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #34D399" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: rgb(52, 211, 153)"]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: rgb(52, 211, 153)"]:not(.dk, .dk *) { color: #1F8F66 !important; }
+html[data-theme="light"] [style^="color:#374151" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#374151" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#374151" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #374151" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #374151" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #374151" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: rgb(55, 65, 81)"]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: rgb(55, 65, 81)"]:not(.dk, .dk *) { color: #CED4DE !important; }
+html[data-theme="light"] [style^="color:#A1A9B6" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#A1A9B6" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#A1A9B6" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #A1A9B6" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #A1A9B6" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #A1A9B6" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: rgb(161, 169, 182)"]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: rgb(161, 169, 182)"]:not(.dk, .dk *) { color: #707C90 !important; }
+html[data-theme="light"] [style^="color:#A78BFA" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#A78BFA" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#A78BFA" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #A78BFA" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #A78BFA" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #A78BFA" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: rgb(167, 139, 250)"]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: rgb(167, 139, 250)"]:not(.dk, .dk *) { color: #3408B6 !important; }
+html[data-theme="light"] [style^="color:#F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: rgb(248, 113, 113)"]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: rgb(248, 113, 113)"]:not(.dk, .dk *) { color: #B10909 !important; }

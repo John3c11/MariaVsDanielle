@@ -1,0 +1,24 @@
+/* market.light.css: the light theme for css/market.css. Made by a script, don't edit by hand. */
+html[data-theme="light"] .mk-sub:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .mk-card:not(.dk, .dk *) { background: rgba(17,24,39,0.033); border: 1px solid rgba(17,24,39,0.072); border-radius: 16px; }
+html[data-theme="light"] .mk-close:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .mk-bar:not(.dk, .dk *) { border-radius: 12px; background: rgba(17,24,39,0.052); }
+html[data-theme="light"] .mk-odds small:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .mk-meta:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .mk-trade:not(.dk, .dk *) { border-top: 1px solid rgba(17,24,39,0.072); }
+html[data-theme="light"] .mk-chips button:not(.dk, .dk *) { border-radius: 999px; border: 1px solid rgba(17,24,39,0.144); background: rgba(17,24,39,0.039); color: var(--t1); }
+html[data-theme="light"] .mk-amt span:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .mk-prev:not(.dk, .dk *) { color: var(--t2); }
+html[data-theme="light"] .mk-h:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .mk-tr:not(.dk, .dk *) { border-bottom: 1px solid rgba(17,24,39,0.045); }
+html[data-theme="light"] .mk-tr span:not(.dk, .dk *) { color: var(--t4); }
+html[data-theme="light"] .mk-row:not(.dk, .dk *) { border-bottom: 1px solid rgba(17,24,39,0.054); }
+html[data-theme="light"] .mk-rs:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .mk-fp:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .mk-lb:not(.dk, .dk *) { border-bottom: 1px solid rgba(17,24,39,0.054); }
+html[data-theme="light"] .mk-rank:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .mk-foot:not(.dk, .dk *) { color: var(--t4); }
+html[data-theme="light"] [style^="color:#34D399" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#34D399" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#34D399" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #34D399" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #34D399" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #34D399" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: rgb(52, 211, 153)"]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: rgb(52, 211, 153)"]:not(.dk, .dk *) { color: #1F8F66 !important; }
+html[data-theme="light"] [style^="color:#6EE7B7" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#6EE7B7" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#6EE7B7" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #6EE7B7" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #6EE7B7" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #6EE7B7" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: rgb(110, 231, 183)"]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: rgb(110, 231, 183)"]:not(.dk, .dk *) { color: #1A9E69 !important; }
+html[data-theme="light"] [style^="color:#F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: rgb(248, 113, 113)"]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: rgb(248, 113, 113)"]:not(.dk, .dk *) { color: #B10909 !important; }
+html[data-theme="light"] [stroke="rgba(255,255,255,0.15)" i]:not(.dk, .dk *) { stroke: rgba(17,24,39,0.135); }

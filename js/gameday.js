@@ -14,7 +14,7 @@
       if (!root) {
         root = document.createElement('div');
         root.id = 'gameday';
-        root.className = 'gd-root';
+        root.className = 'gd-root dk'; // .dk = stays dark in the light theme (v140)
         root.setAttribute('role', 'dialog');
         root.setAttribute('aria-label', 'Game Day');
         document.body.appendChild(root);

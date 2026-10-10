@@ -11,7 +11,7 @@
       if (!root) {
         root = document.createElement('div');
         root.id = 'story';
-        root.className = 'st-root';
+        root.className = 'st-root dk'; // .dk = stays dark in the light theme (v140)
         root.setAttribute('role', 'dialog');
         root.setAttribute('aria-label', 'Season Story');
         document.body.appendChild(root);

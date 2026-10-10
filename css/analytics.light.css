@@ -1,0 +1,33 @@
+/* analytics.light.css: the light theme for css/analytics.css. Made by a script, don't edit by hand. */
+html[data-theme="light"] .an-tabs:not(.dk, .dk *) { border-bottom: 1px solid rgba(17,24,39,0.072); }
+html[data-theme="light"] .an-h:not(.dk, .dk *) { color: var(--t1); border-bottom: 1.5px solid rgba(17,24,39,0.144); }
+html[data-theme="light"] .an-all:not(.dk, .dk *) { color: var(--t4); }
+html[data-theme="light"] .an-sub:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .ch-intro:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .u-bb-0-5px-solid-rgba-255-255-255-0-06:not(.dk, .dk *) { border-bottom: 0.5px solid var(--line) !important; }
+html[data-theme="light"] .u-bb-1px-solid-rgba-255-255-255-0-10:not(.dk, .dk *) { border-bottom: 1px solid var(--line-2) !important; }
+html[data-theme="light"] .u-bd-1px-solid-rgba-248-113-113-0-3:not(.dk, .dk *) { border: 1px solid rgba(219,11,11,0.3) !important; }
+html[data-theme="light"] .u-bg-a78bfa:not(.dk, .dk *) { background: var(--machine) !important; }
+html[data-theme="light"] .u-bg-rgba-167-139-250-0-18:not(.dk, .dk *) { background: rgba(167,139,250,0.18) !important; }
+html[data-theme="light"] .u-bg-rgba-248-113-113-0-12:not(.dk, .dk *) { background: rgba(248,113,113,0.12) !important; }
+html[data-theme="light"] .u-bg-rgba-251-191-36-0-15:not(.dk, .dk *) { background: rgba(251,191,36,0.15) !important; }
+html[data-theme="light"] .u-bg-rgba-255-255-255-0-06:not(.dk, .dk *) { background: var(--line) !important; }
+html[data-theme="light"] .u-bg-rgba-255-255-255-0-12:not(.dk, .dk *) { background: rgba(17,24,39,0.078) !important; }
+html[data-theme="light"] .u-bt-1px-solid-rgba-255-255-255-0-08:not(.dk, .dk *) { border-top: 1px solid var(--line) !important; }
+html[data-theme="light"] .u-c-bad2:not(.dk, .dk *) { color: var(--bad-2) !important; }
+html[data-theme="light"] .u-c-violet:not(.dk, .dk *) { color: #2C05BE !important; }
+html[data-theme="light"] .u-r-4px:not(.dk, .dk *) { border-radius: 4px !important; }
+html[data-theme="light"] .an-x:not(.dk, .dk *) { color: #282C34; background: rgba(167,139,250,0.1); border: 1px solid rgba(63,9,220,0.35); border-radius: 999px; }
+html[data-theme="light"] .an-x:hover:not(.dk, .dk *) { background: rgba(167,139,250,0.2); }
+html[data-theme="light"] .wi-card:not(.dk, .dk *) { background: var(--s1); border: 1px solid var(--line); border-top: 3px solid var(--pc); border-radius: var(--r); }
+html[data-theme="light"] .wi-row:not(.dk, .dk *) { border-top: 0.5px solid var(--line); color: var(--t2); }
+html[data-theme="light"] .wi-row:first-of-type:not(.dk, .dk *) { border-top: 0; }
+html[data-theme="light"] .wi-row small:not(.dk, .dk *) { color: var(--t4); }
+html[data-theme="light"] .wi-row b:not(.dk, .dk *) { color: var(--t1); }
+html[data-theme="light"] .wi-any:not(.dk, .dk *) { color: var(--t1); }
+html[data-theme="light"] .wi-foot:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .wi-verdict:not(.dk, .dk *) { color: var(--t2); }
+html[data-theme="light"] .mc-est:not(.dk, .dk *) { color: #2C05BE; background: rgba(167,139,250,0.15); border: 1px solid rgba(63,9,220,0.35); border-radius: 5px; }
+html[data-theme="light"] [style^="border-top:0.5px solid rgba(255,255,255,0.06)" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";border-top:0.5px solid rgba(255,255,255,0.06)" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; border-top:0.5px solid rgba(255,255,255,0.06)" i]:not(.dk, .dk *), html[data-theme="light"] [style^="border-top: 0.5px solid rgba(255,255,255,0.06)" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";border-top: 0.5px solid rgba(255,255,255,0.06)" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; border-top: 0.5px solid rgba(255,255,255,0.06)" i]:not(.dk, .dk *) { border-top: 0.5px solid rgba(17,24,39,0.054) !important; }
+html[data-theme="light"] [style^="color:#6B7280" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#6B7280" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#6B7280" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #6B7280" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #6B7280" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #6B7280" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: rgb(107, 114, 128)"]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: rgb(107, 114, 128)"]:not(.dk, .dk *) { color: #B2B6BF !important; }
+html[data-theme="light"] [style^="color:#E5E7EB" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#E5E7EB" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#E5E7EB" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #E5E7EB" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #E5E7EB" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #E5E7EB" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: rgb(229, 231, 235)"]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: rgb(229, 231, 235)"]:not(.dk, .dk *) { color: #282C34 !important; }

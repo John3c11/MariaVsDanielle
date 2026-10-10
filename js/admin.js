@@ -134,7 +134,7 @@
     // ── 📜 Which copy of each Apps Script file the website expects ─────────────
     // Bump these whenever a delivery includes that file. Status and the admin alert compare them
     // with what the live script says, so a file that didn't get pasted (or deployed) shows up.
-    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-23', Features: '2026-10-10', Automation: '2026-10-21', WeeklyRecap: '2026-10-06', Machine: '2026-10-22' };
+    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-24', Features: '2026-10-10', Automation: '2026-10-24', WeeklyRecap: '2026-10-06', Machine: '2026-10-22', Dashboard: '2026-10-24' };
     var OLD_SCRIPT_FILES = { Features: 'Market.gs, Museum.gs and Bracket.gs', Automation: 'FirstTD.gs, NFLPlayers.gs, Injuries.gs and Playoffs.gs' };
     var DEPLOY_STEPS = 'Deploy → Manage deployments → ✏️ → New version → Deploy';
     function scriptIssues(v) {

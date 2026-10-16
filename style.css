@@ -201,7 +201,7 @@ html.theme-jewish .holiday-pill { color: #FFFFFF; text-shadow: 0 1px 2px rgba(0,
   color: #0B0C10;
   cursor: pointer;
 }
-.primary-btn:disabled { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.4); cursor: default; }
+.primary-btn:disabled { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.56); cursor: default; }
 .link-btn {
   font-family: 'Inter', sans-serif;
   font-size: 12px;
@@ -484,13 +484,13 @@ header h1 {
 .vs-badge {
   font-size: 22px;
   font-weight: 700;
-  color: #4B5563;
+  color: #8A93A0;
   flex-shrink: 0;
 }
 
 .last-updated {
   font-size: 12px;
-  color: #4B5563;
+  color: #8A93A0;
   margin-top: 8px;
 }
 
@@ -522,7 +522,7 @@ header h1 {
 .sb-grid .stat-row { gap: 6px; }
 .streak-line { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 0; font-size: 13px; font-weight: 700; margin: 4px 0 16px; color: rgba(255,255,255,0.75); }
 .streak-line:empty { display: none; }
-.streak-line i { font-style: normal; color: rgba(255,255,255,0.3); margin: 0 8px; }
+.streak-line i { font-style: normal; color: rgba(255,255,255,0.5); margin: 0 8px; }
 /* Profiles: locked badges collapse */
 details.pf-locked { margin: 4px 0 18px; }
 details.pf-locked > summary { cursor: pointer; font-size: 12.5px; font-weight: 700; color: var(--t3); list-style: none; padding: 6px 0; }
@@ -563,7 +563,7 @@ details.pf-locked[open] > summary::before { content: '▾ '; }
 
 .stat-divider {
   font-size: 12px;
-  color: rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.5);
   font-weight: 400;
 }
 
@@ -642,7 +642,7 @@ details.pf-locked[open] > summary::before { content: '▾ '; }
 footer #last-updated { color: inherit; }
 footer {
   font-size: 12px;
-  color: #4B5563;
+  color: #8A93A0;
   margin-top: 48px;
   border-top: 0.5px solid rgba(255,255,255,0.10);
   padding-top: 20px;
@@ -703,14 +703,14 @@ footer {
 .sb .player img { border: 2px solid rgba(255,255,255,0.25); }
 .sb .maria .player-name { color: var(--m); }
 .sb .danielle .player-name { color: var(--d); }
-.sb .vs-badge { color: rgba(255,255,255,0.3); }
-.sb .last-updated { color: rgba(255,255,255,0.4); }
+.sb .vs-badge { color: rgba(255,255,255,0.5); }
+.sb .last-updated { color: rgba(255,255,255,0.56); }
 .sb .leader-banner { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); margin-bottom: 22px; font-size: 15px; }
 .sb .leader-banner span { color: #FFFFFF; }
 .sb .stat-label { color: rgba(255,255,255,0.55); }
 .sb .stat-value.maria { color: var(--m); }
 .sb .stat-value.danielle { color: var(--d); }
-.sb .stat-divider { color: rgba(255,255,255,0.25); }
+.sb .stat-divider { color: rgba(255,255,255,0.48); }
 .sb .bar.maria { background: var(--m); }
 .sb .bar.danielle { background: var(--d); }
 .sb .loading, .sb .no-live { color: rgba(255,255,255,0.55); }
@@ -871,7 +871,7 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
 .chat-msg.danielle { align-self: flex-end; background: linear-gradient(150deg, rgba(37,99,235,0.34), rgba(37,99,235,0.14)); border: 1px solid rgba(var(--danielle-rgb),0.3); border-bottom-right-radius: 5px; }
 .chat-meta { font-size: 11px; font-weight: 700; margin-bottom: 3px; display: flex; gap: 8px; align-items: baseline; }
 .chat-meta .chat-time { font-weight: 500; color: rgba(255,255,255,0.45); }
-.chat-day { align-self: center; font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin: 8px 0 2px; }
+.chat-day { align-self: center; font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.56); margin: 8px 0 2px; }
 .chat-msg[data-row] { cursor: pointer; position: relative; }
 .chat-reacts { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
 .chat-react { font-size: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.12); border-radius: 999px; padding: 1px 7px; }
@@ -943,7 +943,7 @@ html.theme-playoffs .sb#sb-main header h1 { color: #FCD34D; }
 .live-strip { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; }
 .ls-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .ls-score { font-size: 17px; font-weight: 800; letter-spacing: -0.2px; display: flex; align-items: center; gap: 8px; }
-.ls-score .ls-dash { color: rgba(255,255,255,0.35); font-weight: 500; }
+.ls-score .ls-dash { color: rgba(255,255,255,0.52); font-weight: 500; }
 .ls-status { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.65); display: flex; align-items: center; gap: 6px; }
 .ls-live { color: #F87171; letter-spacing: 0.1em; font-size: 11px; font-weight: 800; }
 .ls-dot { width: 7px; height: 7px; border-radius: 50%; background: #F87171; box-shadow: 0 0 0 0 rgba(248,113,113,0.7); animation: lsPulse 1.6s infinite; }
@@ -1502,7 +1502,7 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
    older rules were moved onto the same palette. u-* = small utilities (they win over component
    rules, like the inline styles they replaced); ui-* = shared components. */
 :root {
-  --t1: #F3F4F6; --t2: #D1D5DB; --t3: #A1A9B6; --t4: #6B7280;
+  --t1: #F3F4F6; --t2: #D1D5DB; --t3: #A1A9B6; --t4: #7E8694; /* v141: --t4 was #6B7280, too faint to read on dark */
   --good: #34D399; --good-2: #6EE7B7; --bad: #F87171; --bad-2: #FCA5A5; --warn: #FCD34D; --warn-2: #FDE68A; --machine: #A78BFA;
   --s1: rgba(255,255,255,0.045); --s2: rgba(255,255,255,0.07); --s3: rgba(255,255,255,0.1);
   --line: rgba(255,255,255,0.08); --line-2: rgba(255,255,255,0.14);
@@ -1667,7 +1667,7 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 }
 
 /* ── v129: 📨 invite / sign-up, friend home summary ── */
-:root { --css-v: "140"; } /* main.js compares this with the page version to catch an old style.css */
+:root { --css-v: "141"; } /* main.js compares this with the page version to catch an old style.css */
 .join-box { max-width: 340px; margin-left: auto; margin-right: auto; }
 .join-l { display: block; text-align: left; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t3); margin: 14px 0 6px; }
 .join-in { width: 100%; box-sizing: border-box; }
@@ -1723,9 +1723,34 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 .an-link { font-size: 12.5px; color: var(--t3); margin: 8px 0 14px; line-height: 1.6; }
 .an-link .link-btn { font-size: 12.5px; }
 
-/* ── v140: 🌗 the light/dark switch at the bottom of every page (light.css holds the light theme) ── */
-.look-sw { display: inline-flex; align-items: center; gap: 2px; margin-top: 10px; padding: 3px; border-radius: 999px; background: var(--s1); border: 1px solid var(--line); }
-.look-sw span { font-size: 12px; padding: 0 6px 0 4px; }
-.look-sw button { font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 700; color: var(--t3); background: none; border: 0; border-radius: 999px; padding: 5px 11px; cursor: pointer; }
-.look-sw button.on { background: var(--t1); color: var(--bg-ink, #0B0C10); }
-html[data-theme="light"] .look-sw button.on { color: #FFFFFF; }
+/* ── v141: ⚙️ Display panel (theme, text size, less motion; light.css holds the light theme) ── */
+.look-foot { margin-top: 10px; font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 700; color: var(--t3); background: var(--s1); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.look-foot:hover { color: var(--t1); }
+.tabs-nav > .look-btn { flex: 0 0 auto; margin-left: 4px; padding-left: 8px; padding-right: 8px; font-size: 14px; }
+.look-mini { display: none; }
+.hub-look { display: none; }
+.lk-back { position: fixed; inset: 0; z-index: 1200; display: none; align-items: flex-end; justify-content: center; background: rgba(0,0,0,0.5); padding: 16px; }
+.lk-back.open { display: flex; }
+@media (min-width: 701px) { .lk-back { align-items: center; } }
+.lk-card { width: 100%; max-width: 420px; background: #15171C; border: 1px solid var(--line-2); border-radius: 18px; padding: 16px 16px 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); margin-bottom: env(safe-area-inset-bottom); }
+.lk-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 16px; color: var(--t1); }
+.lk-x { width: 30px; height: 30px; border-radius: 50%; border: 0; background: var(--s2); color: var(--t2); font-size: 13px; cursor: pointer; }
+.lk-g { margin: 12px 0; }
+.lk-h { font-size: 12.5px; font-weight: 800; color: var(--t1); margin-bottom: 6px; }
+.lk-h small { font-weight: 600; color: var(--t3); }
+.lk-seg { display: flex; gap: 4px; padding: 3px; border-radius: 12px; background: var(--s1); border: 1px solid var(--line); }
+.lk-seg button { flex: 1 1 0; font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 700; color: var(--t3); background: none; border: 0; border-radius: 9px; padding: 9px 4px; cursor: pointer; }
+.lk-seg button.on { background: var(--t1); color: #0B0C10; }
+.lk-note { font-size: 11px; color: var(--t4); text-align: center; margin-top: 6px; }
+@media (max-width: 700px) {
+  .tabs-nav > .look-btn { display: none !important; }
+  .look-mini { display: block; position: absolute; top: 7px; left: 8px; z-index: 20; font-size: 13px; width: 30px; height: 30px; border-radius: 50%; color: #E5E7EB; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14); cursor: pointer; }
+  body.has-sub .look-mini { display: none; }
+  .hub-look { display: block; }
+}
+/* 🔠 Text size: everything scales, the layout reflows to fit */
+html[data-text="lg"] .wrap, html[data-text="lg"] .lk-card, html[data-text="lg"] #gp-root, html[data-text="lg"] .pc-backdrop { zoom: 1.12; }
+html[data-text="xl"] .wrap, html[data-text="xl"] .lk-card, html[data-text="xl"] #gp-root, html[data-text="xl"] .pc-backdrop { zoom: 1.25; }
+/* 🎞️ Less motion: animations jump to their end, and the falling extras don't run */
+html[data-motion="less"] *, html[data-motion="less"] *::before, html[data-motion="less"] *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important; transition-duration: 0.01ms !important; transition-delay: 0s !important; scroll-behavior: auto !important; }
+html[data-motion="less"] .holiday-fx, html[data-motion="less"] .egg-rain, html[data-motion="less"] .st-confetti { display: none !important; }

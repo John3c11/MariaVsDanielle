@@ -59,7 +59,7 @@
       var mini = document.getElementById('acct-mini');
       el.innerHTML = '<div class="hub-sub-row">' + tabs.map(function(t) {
         return '<button class="hub-sub-btn' + (t[0] === name || (name === 'lab' && t[0] === 'analytics') ? ' on' : '') + '" onclick="switchTab(\'' + t[0] + '\')">' + (t[0] === 'submit' ? loginLabel() : t[1]) + '</button>';
-      }).join('') + '</div>' + (h !== 'picks' ? '<button class="hub-acct" onclick="switchTab(\'submit\')" aria-label="' + (mini ? mini.getAttribute('aria-label') : 'Log in') + '">' + (mini ? mini.textContent.split(' ')[0] : '👤') + '</button>' : '');
+      }).join('') + '</div>' + '<button class="hub-acct hub-look" onclick="openLook()" aria-label="Display settings">⚙️</button>' + (h !== 'picks' ? '<button class="hub-acct" onclick="switchTab(\'submit\')" aria-label="' + (mini ? mini.getAttribute('aria-label') : 'Log in') + '">' + (mini ? mini.textContent.split(' ')[0] : '👤') + '</button>' : '');
       el.style.display = '';
       var row = el.querySelector('.hub-sub-row'), on = el.querySelector('.on');
       if (on && on.offsetLeft - row.offsetLeft + on.offsetWidth > row.clientWidth) row.scrollLeft = Math.max(0, on.offsetLeft - row.offsetLeft - 16); // only if it's off-screen
@@ -96,9 +96,47 @@
       if (link) link.disabled = !light;
       if (typeof CSS_LOADS !== 'undefined') Object.keys(CSS_LOADS).forEach(function(n) { if (light) loadLightCss(n); else if (LIGHT_CSS[n]) LIGHT_CSS[n].disabled = true; });
       var meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.setAttribute('content', light ? '#F4F5F7' : '#08090C');
-      document.querySelectorAll('[data-look]').forEach(function(b) { b.classList.toggle('on', b.getAttribute('data-look') === pick); });
+      if (typeof lookComfort === 'function') lookComfort();
     }
-    function setLook(v) { try { localStorage.setItem('mvd-look', v); } catch (e) {} lookApply(); }
+    function setLook(v) { try { localStorage.setItem('mvd-look', v); } catch (e) {} lookApply(); lookPanelDraw(); }
+    // ⚙️ Display panel (v141): light/dark, text size, less motion. All saved on this phone only.
+    function lookGet(k, d) { try { return localStorage.getItem(k) || d; } catch (e) { return d; } }
+    function lookSet(k, v) { try { if (v) localStorage.setItem(k, v); else localStorage.removeItem(k); } catch (e) {} }
+    function lookComfort() {
+      var t = lookGet('mvd-text', ''), m = lookGet('mvd-motion', ''), root = document.documentElement;
+      if (t === 'lg' || t === 'xl') root.setAttribute('data-text', t); else root.removeAttribute('data-text');
+      var less = m ? m === 'less' : !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+      if (less) root.setAttribute('data-motion', 'less'); else root.removeAttribute('data-motion');
+      var f = document.getElementById('look-foot');
+      if (f) f.textContent = '⚙️ Display · ' + ({ dark: 'Dark', light: 'Light', auto: 'Auto' })[lookPick()] + (t === 'lg' ? ' · Large text' : t === 'xl' ? ' · Larger text' : '') + (less ? ' · Less motion' : '');
+    }
+    function setComfort(k, v) { lookSet(k, v); lookComfort(); lookPanelDraw(); }
+    function openLook() {
+      var bd = document.getElementById('lk-back');
+      if (!bd) {
+        bd = document.createElement('div'); bd.id = 'lk-back'; bd.className = 'lk-back';
+        bd.innerHTML = '<div class="lk-card" role="dialog" aria-label="Display"><div class="lk-top"><b>⚙️ Display</b><button class="lk-x" aria-label="Close">✕</button></div><div id="lk-body"></div><div class="lk-note">Saved on this phone only.</div></div>';
+        document.body.appendChild(bd);
+        bd.addEventListener('click', function(e) { if (e.target === bd || e.target.closest('.lk-x')) bd.classList.remove('open'); });
+        document.addEventListener('keydown', function(e) { if (e.key === 'Escape') bd.classList.remove('open'); });
+      }
+      lookPanelDraw(); bd.classList.add('open');
+    }
+    function lookPanelDraw() {
+      var el = document.getElementById('lk-body'); if (!el) return;
+      var m = lookGet('mvd-motion', ''), osLess = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+      function seg(title, sub, opts, cur, fn) {
+        return '<div class="lk-g"><div class="lk-h">' + title + (sub ? ' <small>' + sub + '</small>' : '') + '</div><div class="lk-seg">' + opts.map(function(o) {
+          return '<button class="' + (o[0] === cur ? 'on' : '') + '" onclick="' + fn + '(\'' + o[0] + '\')">' + o[1] + '</button>';
+        }).join('') + '</div></div>';
+      }
+      el.innerHTML = seg('🌗 Theme', 'Auto follows your phone', [['dark', 'Dark'], ['light', 'Light'], ['auto', 'Auto']], lookPick(), 'setLook') +
+        seg('🔠 Text size', '', [['', 'Normal'], ['lg', 'Large'], ['xl', 'Larger']], lookGet('mvd-text', ''), 'setTextSize') +
+        seg('🎞️ Less motion', 'no confetti, falling snow or card flips', [['', 'Like my phone (' + (osLess ? 'on' : 'off') + ')'], ['less', 'On'], ['full', 'Off']], m, 'setMotion');
+    }
+    function setTextSize(v) { setComfort('mvd-text', v); }
+    function setMotion(v) { setComfort('mvd-motion', v); }
+    lookComfort();
     lookApply();
     if (window.matchMedia) { var LOOK_MQ = matchMedia('(prefers-color-scheme: light)'); if (LOOK_MQ.addEventListener) LOOK_MQ.addEventListener('change', function() { if (lookPick() === 'auto') lookApply(); }); }
 
@@ -143,6 +181,17 @@
       if (name === 'bracket') openBracket();
       if (name === 'machine') loadScriptOnce('js/machine.js').then(function() { loadMachineTab(); }).catch(function() {
         var el = document.getElementById('machine-content'); if (el) el.innerHTML = '<div class="loading">Couldn\'t load the Machine. Check your connection.</div>';
+      });
+    }
+    // ⏪ Replay one past game (or a whole week) on the Game Day screen (js/replay.js)
+    function replayGame(year, week, game) {
+      loadScriptOnce('js/replay.js').then(function() { openReplay(year, week, game); }).catch(function() { alert('Couldn\'t load Replay. Check your connection.'); });
+    }
+    // 🏆 Playoff Bracket Challenge (js/bracket.js, loaded the first time it opens)
+    function openBracket() {
+      loadScriptOnce('js/bracket.js').then(function() { loadBracketTab(true); }).catch(function() {
+        var el = document.getElementById('bracket-content');
+        if (el) el.innerHTML = '<div class="loading">Couldn\'t load the bracket. Check your connection. <button class="link-btn" onclick="openBracket()">Try again</button></div>';
       });
     }
     // The 🏆 Bracket menu item, Log In shortcut and Stats banner only exist while the challenge is on

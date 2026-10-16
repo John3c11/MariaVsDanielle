@@ -10,7 +10,7 @@
 .gp-pts { font-size: 34px; font-weight: 800; color: rgba(255,255,255,0.6); line-height: 1; }
 .gp-pts.win { color: #FFFFFF; }
 .gp-mid { text-align: center; }
-.gp-at { font-size: 18px; color: rgba(255,255,255,0.4); font-weight: 700; }
+.gp-at { font-size: 18px; color: rgba(255,255,255,0.56); font-weight: 700; }
 .gp-status { font-size: 12px; font-weight: 800; color: var(--t1); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
 .gp-date { font-size: 11px; color: var(--t3); margin-top: 3px; }
 .gp-ftd { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); margin-bottom: 18px; }
@@ -79,7 +79,7 @@
 }
 .gl-slot { font-size: 10.5px; font-weight: 800; color: var(--t3); text-transform: uppercase; letter-spacing: 0.06em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gl-match { font-weight: 700; display: flex; align-items: center; gap: 5px; white-space: nowrap; overflow: hidden; }
-.gl-match i { font-style: normal; color: rgba(255,255,255,0.4); }
+.gl-match i { font-style: normal; color: rgba(255,255,255,0.56); }
 .gl-match img { width: 18px; height: 18px; }
 .gl-ftd { color: var(--t2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gl-res { display: flex; gap: 8px; font-size: 12px; font-weight: 800; white-space: nowrap; }

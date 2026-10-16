@@ -136,6 +136,13 @@ html[data-theme="light"] .ml-t th.ml-live:not(.dk, .dk *) { color: #2C05BE; }
 html[data-theme="light"] .ml-t td.ml-rl:not(.dk, .dk *) { color: var(--t2); background: #F5F5F7; }
 html[data-theme="light"] .ml-t td.ml-best:not(.dk, .dk *) { color: #147B52; }
 html[data-theme="light"] .ml-cs:not(.dk, .dk *) { color: var(--t4); }
+html[data-theme="light"] .ml-live-card:not(.dk, .dk *) { border-radius: 12px; background: color-mix(in srgb, #34D399 8%, transparent); border: 1px solid color-mix(in srgb, #34D399 35%, transparent); }
+html[data-theme="light"] .ml-lc-h:not(.dk, .dk *) { color: var(--t1); }
+html[data-theme="light"] .ml-lc-d:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .ml-lc-log:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .ml-lc-log div:not(.dk, .dk *) { border-top: 1px solid var(--line); }
+html[data-theme="light"] .ml-on:not(.dk, .dk *) { color: #147B52; }
+@media (max-width: 700px) { html[data-theme="light"] .ml-tw:not(.dk, .dk *)::before { color: var(--t4); } }
 html[data-theme="light"] [style^="background:rgba(255,255,255,0.04)" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";background:rgba(255,255,255,0.04)" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; background:rgba(255,255,255,0.04)" i]:not(.dk, .dk *), html[data-theme="light"] [style^="background: rgba(255,255,255,0.04)" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";background: rgba(255,255,255,0.04)" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; background: rgba(255,255,255,0.04)" i]:not(.dk, .dk *) { background: rgba(17,24,39,0.026) !important; }
 html[data-theme="light"] [style^="border:1.5px solid rgba(255,255,255,0.10)" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";border:1.5px solid rgba(255,255,255,0.10)" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; border:1.5px solid rgba(255,255,255,0.10)" i]:not(.dk, .dk *), html[data-theme="light"] [style^="border: 1.5px solid rgba(255,255,255,0.10)" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";border: 1.5px solid rgba(255,255,255,0.10)" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; border: 1.5px solid rgba(255,255,255,0.10)" i]:not(.dk, .dk *) { border: 1.5px solid rgba(17,24,39,0.09) !important; }
 html[data-theme="light"] [style^="color:#F3F4F6" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#F3F4F6" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#F3F4F6" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #F3F4F6" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #F3F4F6" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #F3F4F6" i]:not(.dk, .dk *) { color: #191C22 !important; }

@@ -20,7 +20,7 @@
         (!L.on ? 'Not running. In Apps Script, run setupGameLibrary.' : ll.caught ? 'Every NFL game since 2023, up to date. Checks hourly for new ones.' : 'Still filling in (about ' + L.estimate + ' games total), up to ' + escHtml(ll.cursor || '…') + '.') +
         '</div></div></div>';
       h += '<div class="st-row"><span class="st-ic">' + (R ? '🧠' : '⏳') + '</span><div class="u-grow"><div class="st-l">' + (R ? 'Model trained ' + ago(R.at) : 'Model not trained yet') + '</div><div class="st-d">' +
-        (R ? 'On ' + R.games + ' games. It retrains itself when new games come in.' : 'It trains itself once the library is caught up, or press Train now (needs 100+ games).') +
+        (R ? 'On ' + R.games + ' games. It retrains itself when new games come in.' + (R.knobs ? ' Settings: <b>' + escHtml(mlabLabel(R.knobs)) + '</b> (<button class="link-btn" onclick="showAdmin(\'mlab\')">🧪 Lab</button>).' : '') : 'It trains itself once the library is caught up, or press Train now (needs 100+ games).') +
         '</div><button class="u-mt-8px adm-btn" id="mc-train">' + (R ? 'Retrain now' : 'Train now') + '</button>' +
         (R ? ' <button class="u-mt-8px adm-btn" id="mc-picks">Make its picks now</button>' : '') + '</div></div><div class="u-ta-left submit-msg" id="adm-msg"></div>' +
         (R ? '<div class="u-m-4px-0-6px mc-note">Its picks for upcoming games refresh every hour on their own and lock at kickoff. The 2026 games already played got "after the fact" picks once, and those never change. <button class="link-btn" onclick="switchTab(\'machine\')">See the 🤖 Machine tab →</button></div>' : '');
@@ -131,7 +131,8 @@
       function seg(id, opts, val) {
         return '<div class="lk-seg ml-seg">' + opts.map(function(o) { return '<button data-mls="' + id + '" data-v="' + o[0] + '" class="' + (String(val) === String(o[0]) ? 'on' : '') + '">' + o[1] + '</button>'; }).join('') + '</div>';
       }
-      var h = '<div class="ui-note u-mb">Try other settings on the same test as the accuracy report: every 2025–26 game, each one predicted by a model that never saw it. <b>Nothing here changes the live Machine.</b></div>';
+      var h = '<div class="ui-note u-mb">Try other settings on the same test as the accuracy report: every 2025–26 game, each one predicted by a model that never saw it. Running a test never changes the live Machine. Only 🚀 Make live does.</div>';
+      h += mlabLiveCard(D.status);
       h += '<div class="pf-h">🎛️ Knobs <small>live: ' + escHtml(D.liveLabel || 'Standard settings') + '</small></div><div class="ml-knobs">';
       MLAB_KNOBS.forEach(function(o) { h += slider(o, K[o.id]); });
       h += '<div class="ml-k"><div class="ml-kh"><b>Vegas spread</b></div><div class="ml-kd">which team scores first: the spread plus recent form, or recent form alone</div>' + seg('spread', [[true, 'Use it'], [false, 'Ignore it']], K.spread) + '</div>';
@@ -169,6 +170,15 @@
           picksApi({ pin: SUB.pin, action: 'mlabrm', id: b.getAttribute('data-ml-rm') }).then(function(x) { if (x.list) { MLAB.data.list = x.list; drawMachineLab(body); } });
         });
       });
+      body.querySelectorAll('[data-ml-live]').forEach(function(b) {
+        b.addEventListener('click', function() {
+          var e = MLAB.data.list.filter(function(x) { return x.id === b.getAttribute('data-ml-live'); })[0];
+          if (e) mlabGoLive(body, { action: 'mlablive', id: e.id }, 'Make "' + e.name + '" the live Machine?');
+        });
+      });
+      var rv = document.getElementById('ml-revert'), sd = document.getElementById('ml-std');
+      if (rv) rv.addEventListener('click', function() { mlabGoLive(body, { action: 'mlabrevert' }, 'Go back to the settings from before the last switch (' + D.status.prev.label + ')?'); });
+      if (sd) sd.addEventListener('click', function() { mlabGoLive(body, { action: 'mlabstd' }, 'Put the live Machine back on the standard settings?'); });
       body.querySelectorAll('[data-ml-load]').forEach(function(b) {
         b.addEventListener('click', function() {
           var e = MLAB.data.list.filter(function(x) { return x.id === b.getAttribute('data-ml-load'); })[0];
@@ -201,7 +211,8 @@
       });
       var h = '<div class="pf-h">📊 Results <small>best in each row is green · differences are vs 🤖 Live</small></div><div class="ml-tw"><table class="ml-t"><thead><tr><th></th>' + cols.map(function(c) {
         return '<th class="' + (c.live ? 'ml-live' : '') + '"><div class="ml-cn">' + escHtml(c.name) + '</div><div class="ml-cs">' + escHtml(c.sub) + '</div>' +
-          (c.e ? '<div class="ml-ca"><button class="link-btn" data-ml-load="' + c.e.id + '">Load</button> · <button class="link-btn" data-ml-rm="' + c.e.id + '">🗑</button></div>' : '') + '</th>';
+          (c.e ? '<div class="ml-ca"><button class="link-btn" data-ml-load="' + c.e.id + '">Load</button> · <button class="link-btn" data-ml-rm="' + c.e.id + '">🗑</button></div>' +
+            (mlabSame(c.e.k, D.live) ? '<div class="ml-on">● Live now</div>' : '<button class="adm-btn ml-golive" data-ml-live="' + c.e.id + '"' + (MLAB.busy ? ' disabled' : '') + '>🚀 Make live</button>') : '') + '</th>';
       }).join('') + '</tr></thead><tbody>' + rows.map(function(row) {
         var vals = cols.map(function(c) { var v = c.r ? row[1](c.r) : null; return v == null || isNaN(v) ? null : row[2] === pc ? Math.round(v * 1000) / 1000 : Math.round(v * 10) / 10; });
         var nums = vals.filter(function(v) { return v != null; }), best = nums.length > 1 ? Math.max.apply(null, nums) : null;
@@ -215,4 +226,47 @@
       }).join('') + '</tbody></table></div>' +
         '<div class="mc-note">Small differences (under a point or two) are mostly luck: a few hundred games is not a lot. Units use its estimated FanDuel price for each pick, so they\'re a rough guide.</div>';
       return h;
+    }
+    // Same settings? (an experiment that's what the live Machine uses right now)
+    function mlabSame(a, b) { return !!a && !!b && Object.keys(a).every(function(k) { return String(a[k]) === String(b[k]); }); }
+    // 🟢 What the live Machine runs on, with ↩ Revert and Back to standard (v145)
+    function mlabLiveCard(S) {
+      if (!S) return '';
+      var m = S.meta, when = m && m.at ? new Date(m.at).toLocaleDateString([], { month: 'short', day: 'numeric' }) : '';
+      var h = '<div class="ml-live-card"><div class="ml-lc-h">🟢 Live now: <b>' + escHtml(S.label) + '</b></div><div class="ml-lc-d">' +
+        (m && !S.standard ? (m.reverted ? 'Reverted to' : 'Made live') + (when ? ' ' + when : '') + (m.from && m.from !== S.label ? ' from "' + escHtml(m.from) + '"' : '') + '. ' : S.standard ? 'How the Machine has always worked. ' : '') +
+        (S.trainedAt ? 'Trained ' + new Date(S.trainedAt).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + '.' : '') + '</div>';
+      if (S.prev || !S.standard) h += '<div class="ml-lc-b">' + (S.prev ? '<button class="adm-btn" id="ml-revert"' + (MLAB.busy ? ' disabled' : '') + '>↩ Revert to ' + escHtml(S.prev.label) + '</button> ' : '') +
+        (!S.standard ? '<button class="adm-btn" id="ml-std"' + (MLAB.busy ? ' disabled' : '') + '>Back to standard</button>' : '') + '</div>';
+      if (S.log && S.log.length > 1) h += '<details class="ml-lc-log"><summary>History</summary>' + S.log.map(function(l) {
+        return '<div>' + new Date(l.at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' · ' + escHtml(l.label) + (l.from && l.from !== l.label ? ' <small>("' + escHtml(l.from) + '")</small>' : '') + '</div>';
+      }).join('') + '</details>';
+      return h + '</div>';
+    }
+    function mlabGoLive(body, params, question) {
+      if (MLAB.busy) return;
+      if (!confirm(question + '\n\nIt retrains the Machine with these settings (1–2 minutes) and remakes its picks for games that haven\'t kicked off. Picks already locked at kickoff, and the after-the-fact 2026 picks, don\'t change. You can revert any time.')) return;
+      MLAB.busy = true; drawMachineLab(body);
+      adminMsg('🚀 Retraining the Machine… (1–2 minutes, keep this open)', true);
+      params.pin = SUB.pin;
+      picksApi(params).then(function(x) {
+        MLAB.busy = false;
+        if (x.error) { drawMachineLab(body); adminMsg(x.error, false); return; }
+        MLAB.data.status = x.status; MLAB.data.live = x.status.k; MLAB.data.liveLabel = x.status.label;
+        if (typeof MACHINE !== 'undefined') MACHINE.data = null;
+        drawMachineLab(body);
+        var done = '✅ Live: ' + x.status.label + '. Retrained' + (x.made != null ? ' and remade ' + x.made + ' upcoming pick' + (x.made === 1 ? '' : 's') : '; upcoming picks refresh within the hour') + '. The 🤖 Live column now shows its new report.';
+        adminMsg(done, true);
+        picksApi({ pin: SUB.pin, action: 'mlab' }).then(function(r) { if (r && r.defaults && document.body.contains(body)) { MLAB.data = r; drawMachineLab(body); adminMsg(done, true); } });
+      }).catch(function() { MLAB.busy = false; drawMachineLab(body); adminMsg('It took too long to answer. Wait two minutes and reload this screen: it probably finished.', false); });
+    }
+    // The same short label the script uses (Machine.gs mKnobLabel_)
+    function mlabLabel(k) {
+      var d = { decay: 0.85, seasonDecay: 0.6 }, out = [];
+      if (k.decay !== d.decay) out.push('memory ' + k.decay);
+      if (k.seasonDecay !== d.seasonDecay) out.push('offseason ' + k.seasonDecay);
+      if (k.spread === false) out.push('no spread');
+      if (k.weights === 'fixed') out.push('weights TD ' + k.a + ' · GL ' + k.b + ' · touch ' + k.c + ' · sharp ' + k.tau);
+      if (k.nonoff === 'fixed') out.push('D/ST ' + Math.round(k.nonoffP * 100) + '%');
+      return out.length ? out.join(', ') : 'Standard settings';
     }

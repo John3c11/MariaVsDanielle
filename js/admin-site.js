@@ -149,6 +149,12 @@
               '<br>Last ran: ' + ago(ll.at) + (ll.added ? ' · added ' + ll.added : '') + (ll.err ? '<div class="st-log">' + escHtml(ll.err) + '</div>' : '') +
               (!ll.caught && lb.on ? '<div class="lib-bar"><i style="width:' + pct + '%"></i></div>' : ''));
           }
+          // 🧠 Which settings the live Machine runs on (🧪 Lab, v145)
+          var ms = s.machine;
+          if (ms) h += row(ms.standard ? 'ok' : 'info', '🧠 Machine settings: ' + escHtml(ms.label),
+            (ms.standard ? 'The standard settings.' : (ms.meta && ms.meta.at ? (ms.meta.reverted ? 'Reverted ' : 'Made live ') + ago(ms.meta.at) + (ms.meta.from && ms.meta.from !== ms.label ? ' from "' + escHtml(ms.meta.from) + '"' : '') + '.' : '')) +
+            (ms.trainedAt ? ' Trained ' + ago(ms.trainedAt) + '.' : '') + ' <button class="link-btn" onclick="showAdmin(\'mlab\')">🧪 Open the Lab</button>' +
+            (ms.prev ? '<br><span class="u-c-faint">↩ Revert there goes back to: ' + escHtml(ms.prev.label) + '</span>' : ''));
           var nl = s.nflLast;
           h += row(trig.indexOf('updateNFLPlayers') >= 0 && nl && !nl.kept ? 'ok' : nl ? 'warn' : 'bad', 'NFL Players list (daily, from ESPN)',
             (trig.indexOf('updateNFLPlayers') >= 0 ? 'On (every 2 hours)' : 'OFF: run setupNFLPlayersDaily in Apps Script') +

@@ -18,7 +18,7 @@
       function teamSel(id) {
         return '<select class="adm-input" id="' + id + '"><option value="">Pick a team</option>' + teams.map(function(t) { return '<option>' + escHtml(t) + '</option>'; }).join('') + '</select>';
       }
-      function nick(t) { return escHtml(resolveTeam(t).split(' ').pop()); }
+      function nick(t) { return escHtml(teamNick(t)); }
       var E = GAMES.edit;
       var h = '<div class="u-mt-xs pf-h">' + (E ? '✏️ Edit ' + weekName(E.week) + ': ' + nick(E.home) + ' vs ' + nick(E.away) : '➕ Add a game') + ' <small>' + CURRENT_YEAR + ' sheet</small></div>' +
         '<div class="ag-form">' +

@@ -20,8 +20,7 @@
     function loadPlayerDB() {
       if (PLAYER_DB_LOADING) return PLAYER_DB_LOADING;
       PLAYER_DB_LOADING = Promise.all(SEASONS.map(function(season) {
-        var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + season.sheetId +
-          '/values/' + encodeURIComponent(season.tab + '!A1:Q400') + '?key=' + API_KEY;
+        var url = betsUrl(season);
         return fetch(url).then(function(r) { return r.json(); }).then(function(d) {
           return readBets(d.values).map(function(b, i) {
             return {
@@ -312,20 +311,19 @@
         var inNFL = !!(nf && nf.team) || onRoster;
         var posTxt = onRoster && ri.pos ? ri.pos : (nf ? nf.pos : '');
         function abbr(t) { return (TEAM_ABBR[resolveTeam(t)] || t.split(' ').pop()).toUpperCase(); }
-        function nick(t) { return resolveTeam(t).split(' ').pop(); }
         // Team history, newest first: "2026 Patriots · 2025 Packers"
         var hist = stints.slice().reverse().map(function(s) {
           var same = stints.filter(function(x) { return x.year === s.year; }).length > 1;
-          return '<span style="color:' + ((TEAM_COLORS[s.team] || {}).dark || '#F3F4F6') + '">' + s.year + ' ' + nick(s.team) + (same ? ' ' + wkName(s.from) + '–' + (isPlayoffWeek(s.to) ? wkName(s.to) : s.to) : '') + '</span>';
+          return '<span style="color:' + ((TEAM_COLORS[s.team] || {}).dark || '#F3F4F6') + '">' + s.year + ' ' + teamNick(s.team) + (same ? ' ' + wkName(s.from) + '–' + (isPlayoffWeek(s.to) ? wkName(s.to) : s.to) : '') + '</span>';
         });
         var moved = stints.some(function(s) { return s.team !== team; });
-        if (team && lastStint && lastStint.team !== team) hist.unshift('<span style="color:' + ((TEAM_COLORS[team] || {}).dark || '#F3F4F6') + '">Now ' + nick(team) + '</span>');
+        if (team && lastStint && lastStint.team !== team) hist.unshift('<span style="color:' + ((TEAM_COLORS[team] || {}).dark || '#F3F4F6') + '">Now ' + teamNick(team) + '</span>');
         // The game it was opened from, if he was on a different team then
         var ctxLine = '';
         if (ctx && ctx.year && ctx.week) {
           var cg = null;
           p.gameOrder.forEach(function(gk) { var g = p.games[gk]; if (String(g.year) === String(ctx.year) && +g.week === +ctx.week && g.team) cg = g; });
-          if (cg && cg.team !== team) ctxLine = '<div class="pc-ctx">In that game: ' + teamLogo(cg.team) + '<b>' + nick(cg.team) + '</b> · ' + cg.year + ' ' + weekName(cg.week) + '</div>';
+          if (cg && cg.team !== team) ctxLine = '<div class="pc-ctx">In that game: ' + teamLogo(cg.team) + '<b>' + teamNick(cg.team) + '</b> · ' + cg.year + ' ' + weekName(cg.week) + '</div>';
         }
         var tc = TEAM_COLORS[team] || { bg: '#1F2937', text: '#FFFFFF', primary: '#1F2937', dark: '#F3F4F6' };
         var headBg = tc.bg === '#FFFFFF' ? tc.primary : tc.bg;

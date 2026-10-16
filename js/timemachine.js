@@ -11,7 +11,7 @@
       if (TM.loading) return TM.loading;
       var get = window.ASOF_RAW_FETCH || window.fetch;
       TM.loading = Promise.all(SEASONS_ALL.map(function(s) {
-        var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + s.sheetId + '/values/' + encodeURIComponent(s.tab + '!A1:Q400') + '?key=' + API_KEY;
+        var url = betsUrl(s);
         return get(url).then(function(r) { return r.json(); }).then(function(d) {
           var W = {};
           readBets(d.values).forEach(function(b) {

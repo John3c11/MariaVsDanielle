@@ -9,7 +9,7 @@
     var BR_WIN = 1, BR_TD = 3; // points × the round's multiplier (1, 2, 3, 5): a perfect bracket is 100
 
     function brSame(a, b) { return !!a && !!b && resolveTeam(a) === resolveTeam(b); }
-    function brNick(t) { return t ? resolveTeam(t).split(' ').pop() : 'TBD'; }
+    function brNick(t) { return t ? teamNick(t) : 'TBD'; }
 
     // ── The bracket's shape, from the seeds and someone's winner picks ──
     // NFL format: 2v7, 3v6, 4v5 (1 has a bye). Then 1 hosts the lowest seed left, the other two play.

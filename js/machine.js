@@ -179,7 +179,7 @@
       }).join('') + '</div></div>';
     }
     function mcGameHtml(g) {
-      function nick(t) { return escHtml(resolveTeam(t).split(' ').pop()); }
+      function nick(t) { return escHtml(teamNick(t)); }
       function pick(name, odds, est, settled) {
         var hit = settled && playerKey(name) === playerKey(g.scorer);
         return '<span class="mch-pk' + (hit ? ' hit' : settled ? ' miss' : '') + '">' + (hit ? '✅ ' : '') + escHtml(name) + (odds ? ' <small>+' + Math.round(odds) + (est ? ' est' : '') + '</small>' : '') + '</span>';

@@ -24,7 +24,7 @@
     function loadRosterHistory() {
       if (ROSTER_HIST) return Promise.resolve(ROSTER_HIST);
       return Promise.all(SEASONS.map(function(se) {
-        var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + se.sheetId + '/values/' + encodeURIComponent("'Roster History'!A1:M4000") + '?key=' + API_KEY;
+        var url = sheetUrl(se.sheetId, "'Roster History'!A1:M4000");
         return fetch(url).then(function(r) { return r.ok ? r.json() : { values: [] }; }).then(function(d) { return { year: se.year, rows: (d.values || []).slice(1) }; })
           .catch(function() { return { year: se.year, rows: [] }; });
       })).then(function(list) {

@@ -1,6 +1,7 @@
 // Charts: weekly units bars, hit grid, odds strip, form line and the all-time race.
 // Part of the MariaVsDanielle site. All js/ files share one global scope and load in the order listed in index.html.
-// Every chart is plain SVG/HTML. Marks carry data-tip="..." and the shared tooltip (bottom of this file) shows it.
+// Every chart is plain SVG/HTML. Marks carry data-tip="..." and the shared tooltip (core.js) shows it.
+// Loaded on demand (v146): loadScriptOnce brings it in first for every screen that draws charts (SCRIPT_DEPS in core.js).
 
     var CH = {
       grid: 'rgba(255,255,255,0.07)', zero: 'rgba(255,255,255,0.35)', axis: 'rgba(255,255,255,0.45)',
@@ -14,8 +15,7 @@
       var inner = wrap.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
       return Math.round(Math.min(600, Math.max(300, inner - 26)));
     }
-    function chTip(s) { return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
-    function chU(v) { v = Math.round(v * 10) / 10; return (v > 0 ? '+' : '') + v + 'u'; }
+    // (chTip, chU and the shared data-tip tooltip live in core.js: Home uses them before this file loads)
     function chLegend(items) {
       return '<div class="ch-legend">' + items.map(function(it) {
         return '<span><i class="ch-key ' + (it.cls || '') + '" style="' + (it.style || 'background:' + it.color) + '"></i>' + it.label + '</span>';
@@ -260,32 +260,3 @@
       return chLineChart({ n: G.length + 1, series: [{ name: 'Maria', color: SB_M, vals: m }, { name: 'Danielle', color: SB_D, vals: d }],
         xLabels: [], dividers: [{ i: 0, label: G[0].year }].concat(dv), tips: tips, fmt: function(v, axis) { return axis ? (v > 0 ? '+' : '') + v : chU(v); }, height: 250 });
     }
-
-    // ── Shared tooltip for anything with data-tip ───────────────────────────
-    (function() {
-      var tip = null, hideT = null;
-      function el() {
-        if (!tip) { tip = document.createElement('div'); tip.className = 'ch-tip'; document.body.appendChild(tip); }
-        return tip;
-      }
-      function show(t, cx, cy) {
-        var e = el(); e.textContent = t; e.style.display = 'block';
-        var w = e.offsetWidth, h = e.offsetHeight;
-        var left = Math.min(Math.max(8, cx - w / 2), window.innerWidth - w - 8);
-        var top = cy - h - 14; if (top < 8) top = cy + 18;
-        e.style.left = left + 'px'; e.style.top = top + 'px';
-      }
-      function hide() { if (tip) tip.style.display = 'none'; }
-      document.addEventListener('pointermove', function(ev) {
-        if (ev.pointerType === 'touch') return;
-        var t = ev.target.closest && ev.target.closest('[data-tip]');
-        if (t) show(t.getAttribute('data-tip'), ev.clientX, ev.clientY); else hide();
-      });
-      document.addEventListener('click', function(ev) {
-        var t = ev.target.closest && ev.target.closest('[data-tip]');
-        if (!t) { hide(); return; }
-        show(t.getAttribute('data-tip'), ev.clientX, ev.clientY);
-        clearTimeout(hideT); hideT = setTimeout(hide, 3500);
-      });
-      window.addEventListener('scroll', hide, { passive: true });
-    })();

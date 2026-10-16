@@ -147,9 +147,20 @@
       }
       return loadScriptOnly(path);
     }
+    // Files a lazy screen needs loaded first (v146: the charts only load once something draws one)
+    var SCRIPT_DEPS = { 'js/analytics.js': ['js/charts.js'], 'js/history.js': ['js/charts.js'], 'js/lab.js': ['js/charts.js'], 'js/machine.js': ['js/charts.js'], 'js/chalk.js': ['js/charts.js'], 'js/story.js': ['js/charts.js'] };
     function loadScriptOnly(path) {
       if (SCRIPT_LOADS[path]) return SCRIPT_LOADS[path];
-      SCRIPT_LOADS[path] = new Promise(function(res, rej) {
+      if (SCRIPT_DEPS[path]) {
+        SCRIPT_LOADS[path] = Promise.all(SCRIPT_DEPS[path].map(loadScriptOnly)).then(function() { return loadScriptFile(path); });
+        SCRIPT_LOADS[path].catch(function() { delete SCRIPT_LOADS[path]; });
+        return SCRIPT_LOADS[path];
+      }
+      return loadScriptFile(path);
+    }
+    function loadScriptFile(path) {
+      if (SCRIPT_LOADS[path] && !SCRIPT_DEPS[path]) return SCRIPT_LOADS[path];
+      var p = new Promise(function(res, rej) {
         var me = document.querySelector('script[src*="js/core.js"]');
         var v = me && /[?&]v=([^&]+)/.exec(me.getAttribute('src'));
         var sc = document.createElement('script');
@@ -158,7 +169,8 @@
         sc.onerror = function() { delete SCRIPT_LOADS[path]; sc.remove(); rej(new Error(path)); };
         document.body.appendChild(sc);
       });
-      return SCRIPT_LOADS[path];
+      if (!SCRIPT_DEPS[path]) SCRIPT_LOADS[path] = p;
+      return p;
     }
     // 📖 Season Story (js/story.js). year: '2025', or leave it out for this season
     function openStory(year) {
@@ -375,15 +387,20 @@
       return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
     }
 
+    function teamNick(t) { return resolveTeam(t || '').split(' ').pop(); }   // "Cleveland Browns" -> "Browns"
     // Full team name on desktop, nickname on phones ("Browns")
     function teamName2(t) { var r = resolveTeam(t); return TEAM_COLORS[r] ? '<span class="tn-full">' + t + '</span><span class="tn-short">' + r.split(' ').pop() + '</span>' : t; }
     function coloredGame(homeTeam, awayTeam) {
       return teamLogo(homeTeam) + coloredText(teamName2(homeTeam), homeTeam) + '<span style="color:#A1A9B6"> vs </span>' + teamLogo(awayTeam) + coloredText(teamName2(awayTeam), awayTeam);
     }
 
+    // ── One way to ask Google Sheets for a range (v146) ───────────────────────
+    // The exact same URL everywhere, so the request sharing above can match identical reads.
+    function sheetUrl(sheetId, range) { return 'https://sheets.googleapis.com/v4/spreadsheets/' + sheetId + '/values/' + encodeURIComponent(range) + '?key=' + API_KEY; }
+    function betsUrl(season) { return sheetUrl(season.sheetId, season.tab + '!A1:Q400'); }  // a season's Winnings rows
     async function fetchSheet(tabName, range) {
       const sid = ASOF && tabName !== 'Winnings' ? SEASONS_ALL[0].sheetId : SHEET_ID; // ⏳ rosters, players: always today's sheet
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sid}/values/${encodeURIComponent(tabName + '!' + range)}?key=${API_KEY}`;
+      const url = sheetUrl(sid, tabName + '!' + range);
       const res = await fetch(url);
       if (!res.ok) throw new Error(`Failed to fetch ${tabName}: ${res.status}`);
       const data = await res.json();
@@ -442,8 +459,7 @@
     function loadAllBets() {
       if (ALL_BETS_PROMISE) return ALL_BETS_PROMISE;
       ALL_BETS_PROMISE = Promise.all(SEASONS.map(function(s) {
-        var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + s.sheetId + '/values/' + encodeURIComponent(s.tab + '!A1:Q400') + '?key=' + API_KEY;
-        return fetch(url).then(function(r) { return r.json(); }).then(function(d) {
+        return fetch(betsUrl(s)).then(function(r) { return r.json(); }).then(function(d) {
           SEASON_RAW[s.year] = d.values || []; // the raw rows too (friend stats for past seasons, js/crowd.js)
           return readBets(d.values).map(function(b, i) { return statBet(b, s.year, i + 2); }).filter(isMDRow);
         }).catch(function() { return []; });
@@ -459,6 +475,7 @@
     function fmtU(n) { return (n >= 0 ? '+' : '') + n.toFixed(1) + 'u'; }                    // +12.5u
     function fmtD(n) { return (n >= 0 ? '+$' : '-$') + Math.abs(n).toFixed(2); }              // +$45.00
     function fmtOdds(n) { return '+' + Math.round(n < 100 ? n * 100 : n); }                  // 25 or 2500 -> +2500
+    function formatOdds(val) { var n = parseFloat(String(val == null ? '' : val).replace('+', '')); return !val || isNaN(n) ? '—' : fmtOdds(n); } // a sheet cell: '' -> —, 16 or +1600 -> +1600
     function fmtDWhole(n) { return (n >= 0 ? '+$' : '-$') + Math.round(Math.abs(n)).toLocaleString('en-US'); } // +$1,033
     // Full on desktop, shorter on phones
     function fmtDResp(n) { return '<span class="tn-full">' + fmtD(n) + '</span><span class="tn-short">' + fmtDWhole(n) + '</span>'; }
@@ -612,10 +629,42 @@
       return r;
     }
 
-    // 🔗 Share a link: the phone's share sheet, or copy it (v143)
+    // 🔗 Share a link: the phone's share sheet, or copy it (v143; every Share button uses this since v146)
     function shareUrl(btn, url, title) {
       function done(t) { var o = btn.textContent; btn.textContent = t; setTimeout(function() { btn.textContent = o; }, 1800); }
-      if (navigator.share) { navigator.share({ title: title, url: url }).catch(function() {}); return; }
+      if (navigator.share && /Mobi|iPhone|iPad|Android/i.test(navigator.userAgent)) { navigator.share({ title: title, url: url }).catch(function() {}); return; } // phones: the share sheet
       if (navigator.clipboard) navigator.clipboard.writeText(url).then(function() { done('✓ Link copied'); }, function() { prompt('Copy this link:', url); });
       else prompt('Copy this link:', url);
     }
+
+    // ── Chart text helpers + the shared tooltip for anything with data-tip (from charts.js, v146) ──
+    function chTip(s) { return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+    function chU(v) { v = Math.round(v * 10) / 10; return (v > 0 ? '+' : '') + v + 'u'; }
+    // ── Shared tooltip for anything with data-tip ───────────────────────────
+    (function() {
+      var tip = null, hideT = null;
+      function el() {
+        if (!tip) { tip = document.createElement('div'); tip.className = 'ch-tip'; document.body.appendChild(tip); }
+        return tip;
+      }
+      function show(t, cx, cy) {
+        var e = el(); e.textContent = t; e.style.display = 'block';
+        var w = e.offsetWidth, h = e.offsetHeight;
+        var left = Math.min(Math.max(8, cx - w / 2), window.innerWidth - w - 8);
+        var top = cy - h - 14; if (top < 8) top = cy + 18;
+        e.style.left = left + 'px'; e.style.top = top + 'px';
+      }
+      function hide() { if (tip) tip.style.display = 'none'; }
+      document.addEventListener('pointermove', function(ev) {
+        if (ev.pointerType === 'touch') return;
+        var t = ev.target.closest && ev.target.closest('[data-tip]');
+        if (t) show(t.getAttribute('data-tip'), ev.clientX, ev.clientY); else hide();
+      });
+      document.addEventListener('click', function(ev) {
+        var t = ev.target.closest && ev.target.closest('[data-tip]');
+        if (!t) { hide(); return; }
+        show(t.getAttribute('data-tip'), ev.clientX, ev.clientY);
+        clearTimeout(hideT); hideT = setTimeout(hide, 3500);
+      });
+      window.addEventListener('scroll', hide, { passive: true });
+    })();

@@ -12,8 +12,7 @@
     function isCurrentChat() { return !ASOF && chatSeason().year === CURRENT_YEAR; } // ⏳ the past is read only
 
     function fetchChatRows(season) {
-      var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + season.sheetId + '/values/' +
-        encodeURIComponent("'Trash Talk'!A1:E20000") + '?key=' + API_KEY;
+      var url = sheetUrl(season.sheetId, "'Trash Talk'!A1:E20000");
       return fetch(url).then(function(r) { if (!r.ok) throw new Error('no tab'); return r.json(); })
         .then(function(d) { return d.values || []; });
     }

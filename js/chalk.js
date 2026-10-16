@@ -76,7 +76,7 @@
       var swings = G.filter(function(g) { return g.realUnits !== g.chalkUnits; }).map(function(g) { return { g: g, d: g.realUnits - g.chalkUnits }; });
       swings.sort(function(a, b) { return b.d - a.d; });
       var best = swings.filter(function(s) { return s.d > 0; }).slice(0, 2), worst = swings.filter(function(s) { return s.d < 0; }).slice(-2).reverse();
-      function nick(t) { return escHtml(resolveTeam(t).split(' ').pop()); }
+      function nick(t) { return escHtml(teamNick(t)); }
       function swingHtml(s) {
         var g = s.g, when = g.year + ' ' + wkName(g.week) + ' · ' + nick(g.away) + ' @ ' + nick(g.home);
         var real = g.rows.filter(function(r) { return r.correct === 'Yes' && !isNotOffered(r); })[0];

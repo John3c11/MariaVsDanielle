@@ -12,7 +12,6 @@ html[data-theme="light"] .u-bg-rgba-167-139-250-0-18:not(.dk, .dk *) { backgroun
 html[data-theme="light"] .u-bg-rgba-248-113-113-0-12:not(.dk, .dk *) { background: rgba(248,113,113,0.12) !important; }
 html[data-theme="light"] .u-bg-rgba-251-191-36-0-15:not(.dk, .dk *) { background: rgba(251,191,36,0.15) !important; }
 html[data-theme="light"] .u-bg-rgba-255-255-255-0-06:not(.dk, .dk *) { background: var(--line) !important; }
-html[data-theme="light"] .u-bg-rgba-255-255-255-0-12:not(.dk, .dk *) { background: rgba(17,24,39,0.078) !important; }
 html[data-theme="light"] .u-bt-1px-solid-rgba-255-255-255-0-08:not(.dk, .dk *) { border-top: 1px solid var(--line) !important; }
 html[data-theme="light"] .u-c-bad2:not(.dk, .dk *) { color: var(--bad-2) !important; }
 html[data-theme="light"] .u-c-violet:not(.dk, .dk *) { color: #2C05BE !important; }

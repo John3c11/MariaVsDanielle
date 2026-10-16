@@ -126,8 +126,7 @@
 
     var ALL_LEGACY_BETS = [];
     function fetchLegacySeason(season) {
-      var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + season.sheetId +
-        '/values/' + encodeURIComponent(season.tab + '!A1:Q400') + '?key=' + API_KEY;
+      var url = betsUrl(season);
       return fetch(url).then(function(res) {
         if (!res.ok) throw new Error('HTTP ' + res.status);
         return res.json();
@@ -444,7 +443,7 @@
         var year = slot.getAttribute('data-year');
         var season = SEASONS.filter(function(s) { return String(s.year) === String(year); })[0];
         if (!season || !PICKS_URL) return;
-        var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + season.sheetId + '/values/' + encodeURIComponent(season.tab + '!A1:Q400') + '?key=' + API_KEY;
+        var url = betsUrl(season);
         Promise.all([picksApi({ action: 'crowd', season: year }), fetch(url).then(function(r) { return r.json(); })]).then(function(res) {
           slot.outerHTML = crowdWrappedCard(year, res[0], crowdGames(res[1].values || []));
         }).catch(function() { slot.remove(); });

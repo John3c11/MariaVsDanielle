@@ -112,7 +112,7 @@
       var t0 = Date.now();
       var browserEspn = espnGet('scoreboard').then(function() { return { ok: true, ms: Date.now() - t0 }; }).catch(function() { return { ok: false }; });
       var t1 = Date.now();
-      var sheets = fetch('https://sheets.googleapis.com/v4/spreadsheets/' + SHEET_ID + '/values/' + encodeURIComponent('Winnings!A1:A2') + '?key=' + API_KEY + '&_=' + Date.now())
+      var sheets = fetch(sheetUrl(SHEET_ID, 'Winnings!A1:A2') + '&_=' + Date.now())
         .then(function(r) { return { ok: r.ok, code: r.status, ms: Date.now() - t1 }; }).catch(function() { return { ok: false }; });
       Promise.all([picksApi({ pin: SUB.pin, action: 'status' }).catch(function(e) { return { error: 'Couldn\'t reach the script.' }; }), browserEspn, sheets]).then(function(res) {
         if (!document.body.contains(body)) return; // you moved to another admin tab while it was checking

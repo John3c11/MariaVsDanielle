@@ -51,7 +51,6 @@
       return chLineChart({ n: G.length + 1, series: [{ name: 'Maria', color: SB_M, vals: m }, { name: 'Danielle', color: SB_D, vals: d }],
         xLabels: lab.xl, dividers: lab.dv, tips: tips, fmt: function(v, axis) { return axis ? (v > 0 ? '+' : '') + v : chU(v); } });
     }
-    function teamNick(t) { return resolveTeam(t || '').split(' ').pop(); }
 
     // ── 🍀 Luck Meter: hits vs what the odds said ─────────────────────────────
     function luckData(rows, season) {

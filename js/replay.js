@@ -131,7 +131,7 @@
       var c = document.getElementById('rp-ctrl');
       if (!c) return;
       var g = RP.game, n = RP.plays.length;
-      var nick = function(t) { return escHtml(resolveTeam(t).split(' ').pop()); };
+      var nick = function(t) { return escHtml(teamNick(t)); };
       c.innerHTML = '<div class="rp-games">' + RP.queue.map(function(x, i) {
         return '<button class="rp-g' + (i === RP.gi ? ' on' : '') + '" data-rp-g="' + i + '">' + nick(x.away) + ' @ ' + nick(x.home) + '</button>';
       }).join('') + '</div>' +
@@ -274,7 +274,7 @@
           '<select class="adm-input" id="rpc-week">' + weeks.map(function(w) { return '<option value="' + w + '"' + (w === RPC.week ? ' selected' : '') + '>' + weekName(w) + '</option>'; }).join('') + '</select>' +
           '<button class="primary-btn" id="rpc-all">▶ Play the week</button></div>' +
           '<div class="rpc-list">' + games.map(function(g) {
-            var nick = function(t) { return escHtml(resolveTeam(t).split(' ').pop()); };
+            var nick = function(t) { return escHtml(teamNick(t)); };
             var hit = g.picks.filter(function(x) { return playerKey(x.name) === playerKey(g.scorer); }).map(function(x) { return x.who; });
             return '<button class="rpc-g" data-rpc="' + escHtml(String(g.game)) + '"><span>' + teamLogo(g.away) + nick(g.away) + ' @ ' + nick(g.home) + teamLogo(g.home) + '</span>' +
               '<small>🏈 ' + escHtml(g.scorer) + (hit.length ? ' · ' + hit.filter(function(n, i) { return hit.indexOf(n) === i; }).map(function(n) { return '<b style="color:' + personColor(n) + '">' + n + ' ✓</b>'; }).join(' ') : '') + '</small><span class="rpc-play">▶</span></button>';

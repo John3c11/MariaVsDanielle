@@ -508,10 +508,7 @@
     function labShare(btn) {
       var url = location.origin + location.pathname + '#lab' + (labQuery(LAB.q) ? '?' + labQuery(LAB.q) : '');
       var title = '🧪 ' + labWhoName(LAB.q.who) + ' · ' + labDescribe(LAB.q).join(' · ');
-      function done(t) { var o = btn.textContent; btn.textContent = t; setTimeout(function() { btn.textContent = o; }, 1800); }
-      if (navigator.share && /Mobi|iPhone|Android/i.test(navigator.userAgent)) { navigator.share({ title: title, url: url }).catch(function() {}); return; }
-      if (navigator.clipboard) navigator.clipboard.writeText(url).then(function() { done('✓ Link copied'); }).catch(function() { prompt('Copy this link', url); });
-      else prompt('Copy this link', url);
+      shareUrl(btn, url, title);
     }
 
     // ── 💡 Discoveries: the Lab checks thousands of questions on its own and keeps the surprising ones ──

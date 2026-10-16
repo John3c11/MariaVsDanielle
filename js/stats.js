@@ -68,12 +68,6 @@
         '<div class="ui-body">' + text + '</div></div>';
     }
 
-    function formatOdds(val) {
-      if (!val) return '—';
-      const n = parseFloat(val);
-      if (isNaN(n)) return '—';
-      return '+' + Math.round(n * 100);
-    }
 
     function getPickAndOdds(b) {
       if (!b) return { player: '—', odds: '—' };

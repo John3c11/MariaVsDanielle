@@ -110,7 +110,7 @@
       var order = gpOrder(all), at = order.findIndex(function(x) { return x.year === want.year && x.game === String(want.game); });
       var prev = order[at - 1], next = order[at + 1];
       var hc = (TEAM_COLORS[home] || {}).primary || '#374151', ac = (TEAM_COLORS[away] || {}).primary || '#374151';
-      function nick(t) { return escHtml(teamNick(t)); }
+      function nick(t) { return escHtml(teamNick(t)); } // safe for HTML
       function isScorer(n) { return !!scorer && !!n && (playerKey(n) === playerKey(scorer) || (typeof sameScorer === 'function' && sameScorer(scorer, n))); }
       // Who had the scorer
       var hitBy = ['Maria', 'Danielle'].filter(function(w) { var r = by[w]; return r && !vd && (isScorer(r.homePick) || isScorer(r.awayPick)); });
@@ -315,7 +315,5 @@
     function gpShare(btn, want, away, home) {
       var url = location.origin + location.pathname + '#game/' + want.year + '-' + want.game;
       var title = '🏈 ' + teamNick(away) + ' @ ' + teamNick(home) + ' · Maria vs Danielle';
-      if (navigator.share && /Mobi|iPhone|Android/i.test(navigator.userAgent)) { navigator.share({ title: title, url: url }).catch(function() {}); return; }
-      if (navigator.clipboard) navigator.clipboard.writeText(url).then(function() { var o = btn.textContent; btn.textContent = '✓ Link copied'; setTimeout(function() { btn.textContent = o; }, 1800); }).catch(function() { prompt('Copy this link', url); });
-      else prompt('Copy this link', url);
+      shareUrl(btn, url, title);
     }

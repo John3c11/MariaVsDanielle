@@ -96,3 +96,123 @@
         }).catch(function() { b.disabled = false; b.textContent = 'Train now'; adminMsg('It took too long to answer. Wait a minute and reload: it probably finished.', false); });
       });
     }
+
+    // ── 🧪 Machine Lab (v144): try other settings on the same backtest, saved side by side ──
+    // Nothing here touches the live Machine: each run fits fresh copies on the seasons before each test season
+    // (Machine.gs machineLab_), exactly like the accuracy report.
+    var MLAB = { k: null, data: null, busy: false };
+    var MLAB_KNOBS = [
+      { id: 'decay', t: 'Form memory', d: 'how fast old games fade (lower = only the last few games count)', lo: 0.7, hi: 0.95, st: 0.01 },
+      { id: 'seasonDecay', t: 'Offseason carry-over', d: 'how much of last season a team keeps (0 = fresh start)', lo: 0, hi: 1, st: 0.05 },
+    ];
+    var MLAB_W = [
+      { id: 'a', t: 'Recent TD share', lo: 0, hi: 3, st: 0.25 }, { id: 'b', t: 'Goal-line touches', lo: 0, hi: 3, st: 0.25 },
+      { id: 'c', t: 'All touches', lo: 0, hi: 3, st: 0.25 }, { id: 'tau', t: 'Sharpness', lo: 0.5, hi: 2.5, st: 0.05 },
+    ];
+    function adminMachineLab() {
+      var body = adminScreen('mlab', '<div class="loading">Loading the Lab…</div>');
+      picksApi({ pin: SUB.pin, action: 'mlab' }).then(function(r) {
+        if (!document.body.contains(body)) return;
+        if (r.error) { body.innerHTML = '<div class="inj-warn">' + escHtml(r.error) + '</div>'; return; }
+        if (!r.defaults) { body.innerHTML = '<div class="inj-warn">⚠️ Paste the new Machine.gs and PicksAPI.gs, then Deploy → Manage deployments → ✏️ → New version → Deploy.</div>'; return; }
+        MLAB.data = r;
+        if (!MLAB.k) MLAB.k = JSON.parse(JSON.stringify(r.live || r.defaults));
+        drawMachineLab(body);
+      }).catch(function() { body.innerHTML = '<div class="loading">Couldn\'t reach the script.</div>'; });
+    }
+    function drawMachineLab(body) {
+      var D = MLAB.data, K = MLAB.k, def = D.defaults;
+      function num(v, st) { return st < 0.05 ? Number(v).toFixed(2) : st < 0.25 ? Number(v).toFixed(2).replace(/0$/, '') : String(v); }
+      function slider(o, val) {
+        return '<div class="ml-k"><div class="ml-kh"><b>' + o.t + '</b> <span class="ml-kv" id="mlv-' + o.id + '">' + num(val, o.st) + '</span>' +
+          (val !== def[o.id] ? ' <small>standard ' + def[o.id] + '</small>' : '') + '</div>' + (o.d ? '<div class="ml-kd">' + o.d + '</div>' : '') +
+          '<input type="range" class="ml-range" data-mlk="' + o.id + '" min="' + o.lo + '" max="' + o.hi + '" step="' + o.st + '" value="' + val + '"></div>';
+      }
+      function seg(id, opts, val) {
+        return '<div class="lk-seg ml-seg">' + opts.map(function(o) { return '<button data-mls="' + id + '" data-v="' + o[0] + '" class="' + (String(val) === String(o[0]) ? 'on' : '') + '">' + o[1] + '</button>'; }).join('') + '</div>';
+      }
+      var h = '<div class="ui-note u-mb">Try other settings on the same test as the accuracy report: every 2025–26 game, each one predicted by a model that never saw it. <b>Nothing here changes the live Machine.</b></div>';
+      h += '<div class="pf-h">🎛️ Knobs <small>live: ' + escHtml(D.liveLabel || 'Standard settings') + '</small></div><div class="ml-knobs">';
+      MLAB_KNOBS.forEach(function(o) { h += slider(o, K[o.id]); });
+      h += '<div class="ml-k"><div class="ml-kh"><b>Vegas spread</b></div><div class="ml-kd">which team scores first: the spread plus recent form, or recent form alone</div>' + seg('spread', [[true, 'Use it'], [false, 'Ignore it']], K.spread) + '</div>';
+      h += '<div class="ml-k"><div class="ml-kh"><b>Who scores for his team</b></div><div class="ml-kd">Auto = it searches 256 mixes for the one that fits best</div>' + seg('weights', [['auto', 'Auto'], ['fixed', 'Set my own']], K.weights) +
+        (K.weights === 'fixed' ? '<div class="ml-sub">' + MLAB_W.map(function(o) { return slider(o, K[o.id]); }).join('') + '</div>' : '') + '</div>';
+      h += '<div class="ml-k"><div class="ml-kh"><b>Defense / return first TDs</b></div><div class="ml-kd">the share of first TDs nobody can pick</div>' + seg('nonoff', [['auto', 'Learn it'], ['fixed', 'Set it']], K.nonoff) +
+        (K.nonoff === 'fixed' ? '<div class="ml-sub">' + slider({ id: 'nonoffP', t: 'Share', lo: 0, hi: 0.15, st: 0.01 }, K.nonoffP) + '</div>' : '') + '</div>';
+      h += '</div><div class="ml-run"><input class="adm-input" id="ml-name" maxlength="40" placeholder="Name it (optional)"><button class="adm-btn green" id="ml-go"' + (MLAB.busy ? ' disabled' : '') + '>' + (MLAB.busy ? '⏳ Running… (about a minute)' : '▶ Run the test') + '</button>' +
+        '<button class="adm-btn" id="ml-reset">↺ Standard</button></div><div class="u-ta-left submit-msg" id="adm-msg"></div>';
+      h += mlabTable(D);
+      body.innerHTML = h;
+      // knobs
+      body.querySelectorAll('[data-mlk]').forEach(function(inp) {
+        inp.addEventListener('input', function() { var id = inp.getAttribute('data-mlk'); K[id] = parseFloat(inp.value); var v = document.getElementById('mlv-' + id); if (v) v.textContent = num(K[id], parseFloat(inp.step)); });
+      });
+      body.querySelectorAll('[data-mls]').forEach(function(b) {
+        b.addEventListener('click', function() { var id = b.getAttribute('data-mls'), v = b.getAttribute('data-v'); K[id] = v === 'true' ? true : v === 'false' ? false : v; drawMachineLab(body); });
+      });
+      document.getElementById('ml-reset').addEventListener('click', function() { MLAB.k = JSON.parse(JSON.stringify(def)); drawMachineLab(body); });
+      document.getElementById('ml-go').addEventListener('click', function() {
+        MLAB.busy = true;
+        var name = document.getElementById('ml-name').value;
+        drawMachineLab(body);
+        picksApi({ pin: SUB.pin, action: 'mlabrun', k: JSON.stringify(K), name: name }).then(function(x) {
+          MLAB.busy = false;
+          if (x.error) { drawMachineLab(body); adminMsg(x.error, false); return; }
+          MLAB.data.list = x.list;
+          drawMachineLab(body);
+          adminMsg('Done in ' + Math.round((x.exp.ms || 0) / 1000) + ' seconds. It\'s the first column below.', true);
+        }).catch(function() { MLAB.busy = false; drawMachineLab(body); adminMsg('It took too long to answer. Wait a minute and reload this screen: it was probably saved.', false); });
+      });
+      body.querySelectorAll('[data-ml-rm]').forEach(function(b) {
+        b.addEventListener('click', function() {
+          if (!confirm('Delete this experiment?')) return;
+          picksApi({ pin: SUB.pin, action: 'mlabrm', id: b.getAttribute('data-ml-rm') }).then(function(x) { if (x.list) { MLAB.data.list = x.list; drawMachineLab(body); } });
+        });
+      });
+      body.querySelectorAll('[data-ml-load]').forEach(function(b) {
+        b.addEventListener('click', function() {
+          var e = MLAB.data.list.filter(function(x) { return x.id === b.getAttribute('data-ml-load'); })[0];
+          if (e) { MLAB.k = JSON.parse(JSON.stringify(e.k)); drawMachineLab(body); window.scrollTo(0, 0); adminMsg('Loaded "' + e.name + '" into the knobs.', true); }
+        });
+      });
+    }
+    // Every experiment next to the live Machine's report; the best number in each row is green
+    function mlabTable(D) {
+      var L = D.report, cols = [];
+      if (L) cols.push({ live: true, name: '🤖 Live', sub: L.at ? 'report ' + new Date(L.at).toLocaleDateString([], { month: 'short', day: 'numeric' }) : '', r: L });
+      (D.list || []).forEach(function(e) { cols.push({ e: e, name: e.name, sub: new Date(e.at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }), r: e.r }); });
+      if (!cols.length) return '';
+      if (cols.length === 1 && cols[0].live) return '<div class="pf-h">📊 Results</div><div class="ui-note">No experiments yet. Press ▶ Run the test: first with the live settings (that also fills in 💰 units), then change a knob and run it again.</div>';
+      var years = {};
+      cols.forEach(function(c) { Object.keys((c.r && c.r.seasons) || {}).forEach(function(y) { years[y] = 1; }); });
+      function pc(x) { return x == null ? '—' : (x * 100).toFixed(1) + '%'; }
+      function un(x) { return x == null ? '—' : (x >= 0 ? '+' : '') + Number(x).toFixed(1) + 'u'; }
+      var rows = [
+        ['🎯 Hit on their games', function(r) { return r.their; }, pc, function(r) { return r.theirN ? r.theirN + ' games' : ''; }],
+        ['💰 Units on their games', function(r) { return r.units; }, un, function(r) { return r.bets ? 'at its est. prices' : ''; }],
+        ['🏈 Hit on every game', function(r) { return r.two; }, pc, function(r) { return r.tested ? r.tested + ' games' : ''; }],
+        ['🥇 Top pick scored first', function(r) { return r.top1; }, pc],
+        ['⚖️ Called the team', function(r) { return r.team; }, pc],
+        ['🧠 Sharper than guessing', function(r) { return r.sharp; }, pc],
+      ];
+      Object.keys(years).sort().forEach(function(y) {
+        rows.push([y + ': hit on their games', function(r) { return r.seasons && r.seasons[y] ? r.seasons[y].their : null; }, pc, function(r) { return r.seasons && r.seasons[y] ? r.seasons[y].theirN + ' games' : ''; }]);
+        rows.push([y + ': units', function(r) { return r.seasons && r.seasons[y] ? r.seasons[y].units : null; }, un]);
+      });
+      var h = '<div class="pf-h">📊 Results <small>best in each row is green · differences are vs 🤖 Live</small></div><div class="ml-tw"><table class="ml-t"><thead><tr><th></th>' + cols.map(function(c) {
+        return '<th class="' + (c.live ? 'ml-live' : '') + '"><div class="ml-cn">' + escHtml(c.name) + '</div><div class="ml-cs">' + escHtml(c.sub) + '</div>' +
+          (c.e ? '<div class="ml-ca"><button class="link-btn" data-ml-load="' + c.e.id + '">Load</button> · <button class="link-btn" data-ml-rm="' + c.e.id + '">🗑</button></div>' : '') + '</th>';
+      }).join('') + '</tr></thead><tbody>' + rows.map(function(row) {
+        var vals = cols.map(function(c) { var v = c.r ? row[1](c.r) : null; return v == null || isNaN(v) ? null : row[2] === pc ? Math.round(v * 1000) / 1000 : Math.round(v * 10) / 10; });
+        var nums = vals.filter(function(v) { return v != null; }), best = nums.length > 1 ? Math.max.apply(null, nums) : null;
+        var base = cols[0].live ? vals[0] : null;
+        return '<tr><td class="ml-rl">' + row[0] + '</td>' + vals.map(function(v, i) {
+          var d = base != null && v != null && i > 0 ? v - base : null;
+          var dTxt = d == null || Math.abs(d) < (row[2] === pc ? 0.0005 : 0.05) ? '' : '<small class="' + (d > 0 ? 'u-good' : 'u-bad') + '">' + (row[2] === pc ? (d > 0 ? '+' : '') + (d * 100).toFixed(1) : (d > 0 ? '+' : '') + d.toFixed(1)) + '</small>';
+          var note = row[3] && cols[i].r ? row[3](cols[i].r) : '';
+          return '<td class="' + (best != null && v === best ? 'ml-best' : '') + '">' + row[2](v) + dTxt + (note ? '<div class="ml-cs">' + note + '</div>' : '') + '</td>';
+        }).join('') + '</tr>';
+      }).join('') + '</tbody></table></div>' +
+        '<div class="mc-note">Small differences (under a point or two) are mostly luck: a few hundred games is not a lot. Units use its estimated FanDuel price for each pick, so they\'re a rough guide.</div>';
+      return h;
+    }

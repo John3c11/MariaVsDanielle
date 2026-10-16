@@ -1,0 +1,240 @@
+<!-- v144 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏈</text></svg>">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Maria vs Danielle</title>
+  <!-- Home screen app -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="app/apple-touch-icon.png">
+  <meta name="theme-color" content="#08090C">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="MvD">
+  <script>
+    // Holiday themes: picked by date for everyone. The admin 🎨 Theme screen can force one
+    // on this device only (saved as mvd-theme-force), ignoring the date. ?theme=name|off also works.
+    (function() {
+      var d = new Date(), m = d.getMonth(), day = d.getDate(), t = '';
+      var q = (location.search.match(/[?&]theme=(\w+)/) || [])[1];
+      // Thanksgiving = 4th Thursday of November; theme runs Mon–Sun of that week
+      var nov1 = new Date(d.getFullYear(), 10, 1).getDay();
+      var tg = 1 + ((4 - nov1 + 7) % 7) + 21;
+      // Super Bowl = 2nd Sunday of February; theme runs the Monday before through the Monday after
+      var feb1 = new Date(d.getFullYear(), 1, 1).getDay();
+      var sb = 1 + ((7 - feb1) % 7) + 7;
+      if (m === 9 && day >= 24) t = 'halloween';
+      else if (m === 10 && day >= tg - 3 && day <= tg + 3) t = 'thanksgiving';
+      else if (m === 11 && day >= 18 && day <= 26) t = 'christmas';
+      else if (m === 1 && day >= sb - 6 && day <= sb + 1) t = 'superbowl';
+      else if ((m === 0 && day >= 10) || (m === 1 && day <= 14)) t = 'playoffs';
+      window.HOLIDAY_AUTO = t;
+      // A theme admin gave the person who uses this phone (they can't change it)
+      var mine = null, forced = null;
+      try { mine = localStorage.getItem('mvd-theme-mine'); forced = localStorage.getItem('mvd-theme-force'); } catch (e) {}
+      if (mine) t = mine === 'off' ? '' : mine;
+      if (forced) t = forced === 'off' ? '' : forced;
+      if (q) t = q === 'off' ? '' : q;
+      window.HOLIDAY_FORCED = !!forced && !q;
+      if (t) document.documentElement.className += ' theme-' + t;
+      window.HOLIDAY_THEME = t;
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=144">
+  <script>
+    // 🌗 Light or dark (v140): picked on the ⚙️ Display panel, saved on this phone.
+    // Auto follows the phone's own setting. light.css only loads in light mode, so dark costs nothing.
+    (function() {
+      var pick = 'dark', text = '', motion = ''; try { pick = localStorage.getItem('mvd-look') || 'dark'; text = localStorage.getItem('mvd-text') || ''; motion = localStorage.getItem('mvd-motion') || ''; } catch (e) {}
+      var light = pick === 'light' || (pick === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches);
+      document.documentElement.setAttribute('data-theme', light ? 'light' : 'dark');
+      // ⚙️ Display (v141): text size and less motion (no choice = follow the phone's "reduce motion")
+      if (text === 'lg' || text === 'xl') document.documentElement.setAttribute('data-text', text);
+      var less = motion ? motion === 'less' : !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+      if (less) document.documentElement.setAttribute('data-motion', 'less');
+      if (light) document.write('<link rel="stylesheet" id="light-css" href="light.css?v=144">');
+    })();
+  </script>
+</head>
+<body>
+  <div class="page-layout">
+
+<div class="kalshi-ad dk">
+    <div class="kalshi-logo">Kalshi</div>
+    <div class="kalshi-tagline">Trade on real-world events. Sports, politics, economics — all on one platform.</div>
+    <div style="font-size:36px">📈</div>
+    <div class="kalshi-cta">Start Trading Free</div>
+    <div style="font-size:11px; color:rgba(255,255,255,0.7); margin-top:4px;">No experience needed</div>
+    <div class="kalshi-disclaimer">This is a fake advertisement. Kalshi is a real prediction market platform. This site is not affiliated with or sponsored by Kalshi in any way. Trading involves risk.</div>
+  </div>
+
+  <div class="wrap">
+    <nav class="tabs-nav">
+      <!-- 5 hubs. data-ic = the icon shown above the label in the phone bottom bar. Each hub's sub-tabs are drawn in #hub-sub (main.js HUBS). -->
+      <button class="tab-btn hub-btn active" data-hub="home" data-ic="🏈" onclick="switchTab('stats')">Home</button>
+      <button class="tab-btn hub-btn" data-hub="picks" data-ic="🎯" onclick="openHub('picks')">Picks</button>
+      <button class="tab-btn hub-btn" data-hub="rivalry" data-ic="⚔️" onclick="openHub('rivalry')">Rivalry</button>
+      <button class="tab-btn hub-btn" data-hub="numbers" data-ic="📊" onclick="openHub('numbers')">Numbers</button>
+      <button class="tab-btn hub-btn" data-hub="chat" data-ic="🗣️" onclick="switchTab('chat')">Trash Talk</button>
+      <button class="tab-btn look-btn" id="tab-look" onclick="openLook()" aria-label="Display settings" title="Display">⚙️</button>
+      <button class="tab-btn acct-btn" id="tab-login" data-ic="👤" onclick="switchTab('submit')">Log In</button>
+    </nav>
+    <button class="acct-mini" id="acct-mini" onclick="switchTab('submit')" aria-label="Log in">👤</button>
+    <button class="look-mini" id="look-mini" onclick="openLook()" aria-label="Display settings">⚙️</button>
+    <div class="hub-sub" id="hub-sub" style="display:none"></div>
+
+    <div id="tab-stats" class="tab-panel active">
+    <div id="announce-banner" class="announce-banner" style="display:none"></div>
+    <div id="visit-banner" class="visit-banner" style="display:none"></div>
+    <div id="gd-alert" class="gd-alert" style="display:none"></div>
+    <div id="offseason" class="offseason" style="display:none"></div>
+    <div id="br-banner" class="br-banner" style="display:none"></div>
+    <div class="stats-main"><!-- big screens: the left-hand column -->
+    <div class="sb" id="sb-main">
+    <header>
+      <h1 id="season-title">Touchdown Bets</h1>
+      <div class="vs-row">
+        <div class="player maria" onclick="openProfile('Maria')" title="Maria's profile" style="cursor:pointer">
+          <img src="pics/Maria.jpeg" alt="Maria">
+          <div class="player-name">Maria</div>
+        </div>
+        <div class="vs-badge">VS</div>
+        <div class="player danielle" onclick="openProfile('Danielle')" title="Danielle's profile" style="cursor:pointer">
+          <img src="pics/Danielle.jpeg" alt="Danielle">
+          <div class="player-name">Danielle</div>
+        </div>
+      </div>
+    </header>
+
+    <div id="leader-banner" class="leader-banner" style="display:none"></div>
+    <div id="pace-line" class="pace-line" style="display:none"></div>
+    <div id="machine-line" class="machine-line" style="display:none"></div>
+    <div id="crowd-line" class="machine-line crowd-line" style="display:none"></div>
+
+    <div id="stats-section"><div class="loading">Loading stats...</div></div>
+    <button class="story-btn" id="story-btn" onclick="openStory()">▶ Season Story</button>
+    </div><!-- end sb-main -->
+    </div><!-- end stats-main -->
+
+    <div class="stats-side"><!-- big screens: the right-hand column -->
+    <div class="sb sb-live">
+      <div class="section-title">Live Picks</div>
+      <div id="live-picks"><div class="loading">Loading...</div></div>
+    </div>
+
+    <div class="sb sb-live" id="ftd-wrap" style="display:none">
+      <div class="section-title" id="ftd-title">First Touchdowns</div>
+      <div id="ftd-list"></div>
+    </div>
+
+    <!-- 📅 This Week in History (under First Touchdowns; on big screens it may move to the left column) -->
+    <div class="sb sb-live" id="hist-wrap2">
+      <div class="section-title" id="hist-title2"></div>
+      <div id="hist-list2"></div>
+    </div>
+    </div><!-- end stats-side -->
+
+
+    </div><!-- end tab-stats -->
+
+    <div id="tab-crowd" class="tab-panel">
+      <div id="crowd-content"></div>
+    </div>
+
+    <div id="tab-schedule" class="tab-panel">
+      <div id="schedule-content"></div>
+    </div>
+
+    <div id="tab-profiles" class="tab-panel">
+      <div id="profiles-content"></div>
+    </div>
+
+    <div id="tab-chat" class="tab-panel">
+      <div id="chat-content"></div>
+    </div>
+
+    <div id="tab-submit" class="tab-panel">
+      <div id="submit-content"></div>
+    </div>
+
+    <div id="tab-bethistory" class="tab-panel">
+      <div id="bethistory-content"><div class="loading">Loading bet history...</div></div>
+    </div>
+
+    <div id="tab-rosters" class="tab-panel">
+      <div class="psearch">
+        <input id="psearch" class="psearch-in" type="search" placeholder="🔍 Find any player…" autocomplete="off" aria-label="Find a player">
+        <div id="psearch-res" class="psearch-res"></div>
+      </div>
+      <div id="rosters-content"><div class="loading">Loading rosters...</div></div>
+    </div>
+
+
+
+    <div id="tab-legacy" class="tab-panel">
+      <div id="legacy-content"><div class="loading">Loading legacy data...</div></div>
+    </div>
+
+
+    <div id="tab-game" class="tab-panel">
+      <div id="game-content"></div>
+    </div>
+
+    <div id="tab-lab" class="tab-panel">
+      <div class="nm-mode" role="tablist" aria-label="Numbers"><button role="tab" class="" onclick="switchTab('analytics')">📖 Stories</button><button role="tab" class="on" onclick="switchTab('lab')">🧪 Explore</button></div>
+      <div id="lab-content"></div>
+    </div>
+
+    <div id="tab-machine" class="tab-panel">
+      <div id="machine-content"></div>
+    </div>
+
+    <div id="tab-bracket" class="tab-panel">
+      <div id="bracket-content"></div>
+    </div>
+
+    <div id="tab-museum" class="tab-panel">
+      <div id="museum-content"></div>
+    </div>
+
+    <div id="tab-analytics" class="tab-panel">
+      <div class="nm-mode" role="tablist" aria-label="Numbers"><button role="tab" class="on" onclick="switchTab('analytics')">📖 Stories</button><button role="tab" class="" onclick="switchTab('lab')">🧪 Explore</button></div>
+      <div id="analytics-content"><div class="loading">Loading...</div></div>
+    </div>
+
+    <footer>
+      <div class="campbell-bottom">
+        <img src="pics/campbell.png" alt="Campbell Dingus">
+        <div class="cb-cap">Brought to you by Campbell Dingus</div>
+      </div>
+      <div class="foot-line"><span id="last-updated">Loading...</span> · Data from Google Sheets</div>
+      <button class="look-foot" id="look-foot" onclick="openLook()">⚙️ Display</button> <button class="look-foot" id="tm-foot" onclick="openTimeMachine()">⏳ Time Machine</button>
+    </footer>
+  </div>
+
+  <script src="config.js"></script>
+  <!-- Site code, split by tab. Bump ?v= on every file when any file changes. -->
+  <script src="js/core.js?v=144"></script>
+  <script src="js/stats.js?v=144"></script>
+  <script src="js/players.js?v=144"></script>
+  <script src="js/picks.js?v=144"></script>
+  <script src="js/chat.js?v=144"></script>
+  <script src="js/crowd.js?v=144"></script>
+  <script src="js/charts.js?v=144"></script>
+  <script src="js/insights.js?v=144"></script>
+  <script src="js/main.js?v=144"></script>
+  
+  </div><!-- end wrap -->
+
+  <div class="campbell-ad">
+    <img src="pics/fisch.png" alt="Fisch" style="width:220px;height:auto;border-radius:12px;object-fit:contain;">
+  </div>
+
+  </div><!-- end page-layout -->
+</body>
+</html>

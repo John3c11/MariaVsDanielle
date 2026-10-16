@@ -258,3 +258,31 @@
   .pl-g input { grid-area: c; } .pl-g .ck-slot { grid-area: s; } .pl-g .ck-match { grid-area: m; } .pl-g .ck-ko { grid-area: k; }
   .pl-quick .pl-amt { margin-left: 0; }
 }
+
+/* ── v144: 🧪 Machine Lab ── */
+.ml-knobs { display: grid; gap: 10px; }
+@media (min-width: 701px) { .ml-knobs { grid-template-columns: 1fr 1fr; } }
+.ml-k { background: var(--s1); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.ml-kh { font-size: 13px; color: var(--t1); }
+.ml-kh small { color: var(--t4); font-size: 11px; }
+.ml-kv { font-weight: 800; color: #C4B5FD; font-variant-numeric: tabular-nums; }
+.ml-kd { font-size: 11.5px; color: var(--t3); margin: 2px 0 8px; line-height: 1.4; }
+.ml-range { width: 100%; accent-color: #A78BFA; }
+.ml-seg { margin-top: 2px; }
+.ml-sub { margin-top: 8px; display: grid; gap: 6px; }
+.ml-sub .ml-k { background: none; border: 0; padding: 4px 0 0; }
+.ml-run { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 4px; align-items: center; }
+.ml-run .adm-input { flex: 1 1 180px; font-size: 13px; padding: 8px 10px; }
+.ml-run .adm-btn { font-size: 12.5px; padding: 9px 12px; }
+.ml-tw { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -2px 8px; }
+.ml-t { border-collapse: collapse; font-size: 12.5px; min-width: 100%; }
+.ml-t th, .ml-t td { padding: 7px 9px; border-bottom: 1px solid var(--line); text-align: right; vertical-align: top; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ml-t th { min-width: 96px; max-width: 150px; white-space: normal; text-align: right; font-weight: 700; color: var(--t1); }
+.ml-t th.ml-live { color: #C4B5FD; }
+.ml-t td.ml-rl { text-align: left; color: var(--t2); font-weight: 600; position: sticky; left: 0; background: #111318; }
+.ml-t td small { margin-left: 4px; font-size: 10.5px; }
+.ml-t td.ml-best { color: #6EE7B7; font-weight: 800; }
+.ml-cn { font-size: 12px; line-height: 1.3; }
+.ml-cs { font-size: 10.5px; font-weight: 500; color: var(--t4); margin-top: 1px; white-space: normal; }
+.ml-ca { font-size: 11px; margin-top: 3px; }
+.ml-ca .link-btn { font-size: 11px; }

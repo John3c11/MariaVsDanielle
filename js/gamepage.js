@@ -151,7 +151,8 @@
         return '<div class="gp-col" style="--pc:' + c + '"><div class="gp-col-h" style="color:' + c + '">' + w + '</div>' + picks + u + '</div>';
       }).join('') + '</div>';
       h += '<div id="gp-machine"></div><div id="gp-friends"></div><div id="gp-drive"></div><div id="gp-chat"></div><div id="gp-museum"></div>';
-      h += '<div class="gp-foot"><button class="adm-btn" id="gp-share">🔗 Share this game</button> ' + (settled ? '<button class="adm-btn" onclick="replayGame(\'' + want.year + '\',' + week + ',\'' + escHtml(String(want.game)) + '\')">⏪ Replay it</button>' : '') + '</div></div>';
+      h += '<div class="gp-foot"><button class="adm-btn" id="gp-share">🔗 Share this game</button> ' + (settled ? '<button class="adm-btn" onclick="replayGame(\'' + want.year + '\',' + week + ',\'' + escHtml(String(want.game)) + '\')">⏪ Replay it</button>' : '') +
+        (settled && !(ASOF && ASOF.year === String(want.year) && ASOF.week === parseInt(week, 10)) ? ' <button class="adm-btn" onclick="asofGo(\'' + want.year + '\',' + parseInt(week, 10) + ')" title="The whole site the way it looked right after this week">⏳ The site after this week</button>' : '') + '</div></div>';
       el.innerHTML = h;
       if (typeof fillHeadshots === 'function') fillHeadshots(el);
       document.getElementById('gp-share').addEventListener('click', function() { gpShare(this, want, away, home); });

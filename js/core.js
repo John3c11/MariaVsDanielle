@@ -611,3 +611,11 @@
       }
       return r;
     }
+
+    // 🔗 Share a link: the phone's share sheet, or copy it (v143)
+    function shareUrl(btn, url, title) {
+      function done(t) { var o = btn.textContent; btn.textContent = t; setTimeout(function() { btn.textContent = o; }, 1800); }
+      if (navigator.share) { navigator.share({ title: title, url: url }).catch(function() {}); return; }
+      if (navigator.clipboard) navigator.clipboard.writeText(url).then(function() { done('✓ Link copied'); }, function() { prompt('Copy this link:', url); });
+      else prompt('Copy this link:', url);
+    }

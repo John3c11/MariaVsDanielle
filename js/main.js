@@ -317,13 +317,7 @@
       loadScriptOnce('js/timemachine.js').then(function() { tmOpen(); }).catch(function() { alert('Couldn\'t open the Time Machine. Check your connection.'); });
     }
     function tmStep(d) { loadScriptOnce('js/timemachine.js').then(function() { tmStepGo(d); }).catch(function() {}); }
-    function tmShare(btn) {
-      var url = location.origin + location.pathname + '?asof=' + ASOF.year + '-w' + ASOF.week, title = 'Maria vs Danielle, ' + asofLabel();
-      function done(t) { var o = btn.textContent; btn.textContent = t; setTimeout(function() { btn.textContent = o; }, 1800); }
-      if (navigator.share) { navigator.share({ title: title, url: url }).catch(function() {}); return; }
-      if (navigator.clipboard) navigator.clipboard.writeText(url).then(function() { done('✓ Link copied'); }, function() { prompt('Copy this link:', url); });
-      else prompt('Copy this link:', url);
-    }
+    function tmShare(btn) { shareUrl(btn, location.origin + location.pathname + '?asof=' + ASOF.year + '-w' + ASOF.week, 'Maria vs Danielle, ' + asofLabel()); }
     (function() {
       // Going to a week (or back to now) brings you back to the page you were on
       var t = ''; try { t = sessionStorage.getItem('mvd-tm-tab') || ''; sessionStorage.removeItem('mvd-tm-tab'); } catch (e) {}

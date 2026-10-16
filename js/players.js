@@ -366,12 +366,18 @@
           var res = !g.scorer ? '<span class="u-faint">Pending</span>'
                   : playerKey(g.scorer) === k ? '<span class="u-good u-bold">🏈 Scored first</span>'
                   : '<span class="u-faint">—</span>';
-          return '<div class="pc-game"><span class="u-muted">' + g.year + ' ' + wkName(g.week) + '</span>' +
+          return '<div class="pc-game"><span class="u-muted"><span ' + gameLinkAttr(g.year, gk.split('_').slice(2).join('_')) + '>' + g.year + ' ' + wkName(g.week) + '</span></span>' +
             '<span>' + vs + ' ' + chips + '</span><span>' + res + '</span></div>';
         });
 
-        var html = '<div class="pc-backdrop" id="pc-backdrop"><div class="pc-card" role="dialog" aria-label="' + p.name + '">' +
-          '<div class="pc-head" style="background:linear-gradient(150deg,' + hexA(headBg, 0.95) + ' 0%,' + hexA(headBg, 0.35) + ' 70%, rgba(17,19,24,1) 100%)">' +
+        // 🃏 Card art (v143): the team's logo behind him, and a foil edge by rarity = the longest odds he ever paid off at
+        // for Maria or Danielle (same tiers as the Card Collection)
+        var bestHit = (p.oddsHist || []).filter(function(h) { return h.hit; }).reduce(function(a, h) { return Math.max(a, h.odds); }, 0);
+        var tier = !bestHit ? '' : bestHit >= 2500 ? 'legendary' : bestHit >= 1500 ? 'epic' : bestHit >= 800 ? 'rare' : 'common';
+        var art = team ? teamLogoUrl(team).replace('&h=64&w=64', '&h=240&w=240') : '';
+        var html = '<div class="pc-backdrop" id="pc-backdrop"><div class="pc-card' + (tier ? ' pc-t-' + tier : '') + '" role="dialog" aria-label="' + p.name + '">' +
+          '<div class="pc-head dk" style="background:linear-gradient(150deg,' + hexA(headBg, 0.95) + ' 0%,' + hexA(headBg, 0.35) + ' 70%, rgba(17,19,24,1) 100%)">' +
+            (art ? '<img class="pc-art" src="' + art + '" alt="" onerror="this.remove()">' : '') +
             '<button class="pc-close" id="pc-close" aria-label="Close">×</button>' +
             (team ? '<div class="pc-hs">' + headshot(p.name, team, 76) + '</div>' : '') +
             (team ? '<span class="pc-now">' + (inNFL ? 'Now' : 'Last seen') + '</span>' + teamPill((posTxt ? posTxt + ' · ' : '') + team + (inNFL || !lastStint ? '' : ' (' + lastStint.year + ')'), team) : '') +
@@ -380,6 +386,7 @@
             '<div class="pc-name">' + p.name + outBadge(p.name) + '</div>' +
  (moved || (hist.length && !inNFL) ? '<div class="pc-teams">' + hist.join(' · ') + '</div>' : '') + ctxLine +
             (p.lastOdds ? '<div class="pc-sub">Last odds ' + formatOdds(p.lastOdds.odds) + ' (' + p.lastOdds.year + ' ' + wkName(p.lastOdds.week) + ')</div>' : '') +
+            (tier ? '<div class="pc-tier">🃏 ' + tier.charAt(0).toUpperCase() + tier.slice(1) + ' card <span>· best hit +' + Math.round(bestHit) + '</span></div>' : '') +
           '</div>' +
           '<div class="pc-body">' +
             '<div class="pc-tiles">' +
@@ -387,17 +394,113 @@
               '<div class="pc-tile"><div class="pc-label">When Picked</div><div class="pc-big">' + (pickedGames.length ? Math.round(hitGames / pickedGames.length * 100) + '%' : '—') + '</div>' +
                 '<div class="pc-small">' + (pickedGames.length ? 'scored first in ' + hitGames + ' of ' + pickedGames.length : 'no picked games yet') + '</div></div>' +
             '</div>' +
-            person('Maria') + person('Danielle') + oddsHistoryHtml(p.oddsHist || []) +
+            person('Maria') + person('Danielle') +
+            '<div id="pc-extra" data-k="' + k + '"></div>' +
+            oddsHistoryHtml(p.oddsHist || []) +
             (games.length ? '<div class="pc-games"><div class="pc-label">Recent games</div>' + moreList(games, 6) + '</div>' : '') +
+            '<div class="pc-foot"><button class="adm-btn" id="pc-share">🔗 Share ' + escHtml(p.name.split(' ')[0]) + '\'s card</button></div>' +
           '</div></div></div>';
 
         closePlayerCard();
         document.body.insertAdjacentHTML('beforeend', html);
         var bd = document.getElementById('pc-backdrop');
         bd.addEventListener('click', function(e) { if (e.target === bd) closePlayerCard(); });
+        bd.addEventListener('click', function(e) { if (e.target.closest && e.target.closest('.game-link, .fr-link')) setTimeout(closePlayerCard, 0); }, true); // off to a Game Page / a friend
         document.getElementById('pc-close').addEventListener('click', closePlayerCard);
         fillHeadshots(bd);
+        // 🔗 #player/tyler-warren opens this card (v143)
+        if (!/^#player\//.test(location.hash)) PC_HASH.prev = location.hash;
+        try { history.replaceState(null, '', location.pathname + location.search + '#player/' + playerSlug(p.name)); } catch (e) {}
+        document.getElementById('pc-share').addEventListener('click', function() {
+          shareUrl(this, location.origin + location.pathname + location.search + '#player/' + playerSlug(p.name), p.name + ' · Maria vs Danielle');
+        });
+        pcExtras(p, k);
       });
+    }
+    var PC_HASH = { prev: '' };
+    function playerSlug(n) { return String(n || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
+    (function() {
+      var m = /^#player\/([a-z0-9-]+)/i.exec(location.hash || '');
+      if (!m) return;
+      PC_HASH.prev = '';
+      setTimeout(function() {
+        loadPlayerDB().then(function(db) {
+          var hit = db[playerKey(m[1].replace(/-/g, ' '))];
+          openPlayerCard(hit ? hit.name : m[1].split('-').map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' '));
+        });
+      }, 0);
+    })();
+
+    // ── The card's extra sections (v143), filled in as their data arrives ─────
+    // 💔 TDs that weren't first, 🤖 the Machine's chances for him, 🏅 friends who picked him
+    function pcExtras(p, k) {
+      var parts = { beats: '', machine: '', crowd: '' };
+      function draw() {
+        var s = document.getElementById('pc-extra');
+        if (s && s.getAttribute('data-k') === k) s.innerHTML = parts.beats + parts.machine + parts.crowd;
+      }
+      function sec(ic, t, body) { return '<div class="pc-x"><div class="pc-label">' + ic + ' ' + t + '</div>' + body + '</div>'; }
+      // 💔 Every TD of the games they picked him (the script's 🔮 Every TD list; no ESPN calls from here)
+      if (typeof loadAllTDs === 'function') loadAllTDs().then(function(server) {
+        var n = 0, any = 0, firsts = 0, beats = [];
+        p.gameOrder.forEach(function(gk) {
+          var g = p.games[gk];
+          if (!g.by.length || !g.scorer) return;
+          var tds = server[tdKey(g.year, g.week, g.home, g.away)];
+          if (!tds || !tds.length) return;
+          n++;
+          var first = playerKey(g.scorer) === k, later = tds.filter(function(t, i) { return i > 0 && sameScorer(t.n, p.name); })[0];
+          if (first) firsts++;
+          if (first || later) any++;
+          if (!first && later) beats.push({ g: g, q: later.p > 4 ? 'OT' : 'Q' + later.p, c: later.c, gap: Math.max(0, Math.round((later.t - tds[0].t) / 60)) });
+        });
+        if (!n) return;
+        var b = '<div class="pc-xl">Scored <b>first</b> in ' + firsts + ' of ' + n + ' · scored <b>any time</b> in ' + any + ' of ' + n + ' <span class="u-faint">(games they picked him)</span></div>';
+        if (beats.length) b += beats.slice().reverse().slice(0, 4).map(function(x) {
+          return '<div class="pc-xr"><span>' + x.g.year + ' ' + wkName(x.g.week) + ' ' + x.g.by.map(function(n2) { return '<span class="pc-chip" style="color:' + personColor(n2) + ';background:' + hexA(personColor(n2), 0.15) + '">' + n2.charAt(0) + '</span>'; }).join('') + '</span>' +
+            '<span>💔 ' + x.q + ' ' + escHtml(x.c) + ' · ' + (x.gap ? x.gap + ' min after ' : 'right after ') + escHtml(x.g.scorer.split(' ').pop()) + '</span></div>';
+        }).join('') + (beats.length > 4 ? '<div class="pc-xl u-faint">+' + (beats.length - 4) + ' more</div>' : '');
+        parts.beats = beats.length ? sec('💔', 'Bad beats · ' + beats.length + ' <small>scored, just not first</small>', b) : sec('🏈', 'Any-time TDs', b);
+        draw();
+      });
+      // 🤖 The Machine: its chance for him in every game it played (only games that have kicked off ever reach the site)
+      if (PICKS_URL) loadScriptOnce('js/machine.js').then(function() { return loadMachine(); }).then(function(M) {
+        var G = (M.games || []).map(function(g) { return { g: g, c: mcChance((g.p && g.p.chances) || {}, p.name), mine: (g.picks || []).filter(function(x) { return playerKey(x.name) === k; })[0] }; })
+          .filter(function(x) { return x.c > 0 || x.mine; });
+        if (!G.length) return;
+        var avg = G.reduce(function(a, x) { return a + x.c; }, 0) / G.length, best = G.reduce(function(a, x) { return x.c > a.c ? x : a; }, G[0]);
+        var picked = G.filter(function(x) { return x.mine; }), hit = picked.filter(function(x) { return x.g.settled && playerKey(x.g.scorer) === k; }).length;
+        var b = '<div class="pc-xl">Gave him <b>' + Math.round(avg * 100) + '%</b> on average to score first (' + G.length + ' game' + (G.length > 1 ? 's' : '') + '), best ' + Math.round(best.c * 100) + '% in ' + wkName(best.g.week) + '.' +
+          (picked.length ? ' Picked him <b>' + picked.length + '×</b>' + (hit ? ', hit ' + hit : '') + '.' : ' Never picked him.') + '</div>';
+        b += G.slice().sort(function(a, b2) { return b2.g.week - a.g.week; }).slice(0, 4).map(function(x) {
+          var s = x.g.settled && playerKey(x.g.scorer) === k;
+          return '<div class="pc-xr"><span>' + M.year + ' ' + wkName(x.g.week) + '</span><span><b style="color:' + MC_COLOR + '">' + Math.round(x.c * 100) + '%</b>' + (x.mine ? ' · 🤖 picked' : '') + (s ? ' · 🏈' : '') + '</span></div>';
+        }).join('');
+        parts.machine = sec('🤖', 'The Machine', b);
+        draw();
+      }).catch(function() {});
+      // 🏅 Friends who picked him, every season (picks only show once that game kicked off)
+      if (PICKS_URL) Promise.all([loadAllBets(), Promise.all(SEASONS.map(function(s) {
+        return (s.year === CURRENT_YEAR ? getCrowd() : picksApi({ action: 'crowd', season: s.year })).then(function(d) { return { y: s.year, d: d || {} }; }).catch(function() { return { y: s.year, d: {} }; });
+      }))]).then(function(res) {
+        var sc = {}, F = {}, styles = {};
+        res[0].forEach(function(b) { if (b.firstScorer) sc[b.year + '|' + b.week + '|' + b.game] = b.firstScorer; });
+        res[1].forEach(function(x) {
+          var st = x.d.styles || {}; Object.keys(st).forEach(function(n) { styles[n] = st[n]; });
+          (x.d.picks || []).forEach(function(pk) {
+            if (![pk.homePick, pk.awayPick].some(function(n) { return n && playerKey(n) === k; })) return;
+            var f = F[pk.friend] || (F[pk.friend] = { n: 0, hit: 0 }), s2 = sc[x.y + '|' + parseInt(pk.week, 10) + '|' + pk.game];
+            f.n++; if (s2 && playerKey(s2) === k) f.hit++;
+          });
+        });
+        var names = Object.keys(F).sort(function(a, b) { return F[b].hit - F[a].hit || F[b].n - F[a].n; });
+        if (!names.length) return;
+        parts.crowd = sec('🏅', 'Friends who picked him', '<div class="pc-fr">' + names.map(function(n) {
+          var st = styles[n] || {}, c = st.color || FRIEND_COLOR;
+          return '<span class="pc-frc" style="--fc:' + c + '"><a class="fr-link" data-fname="' + escHtml(n) + '" style="color:' + c + '">' + (st.emoji ? st.emoji + ' ' : '') + escHtml(n) + '</a> ×' + F[n].n + (F[n].hit ? ' · 🏈' + (F[n].hit > 1 ? F[n].hit : '') : '') + '</span>';
+        }).join('') + '</div>');
+        draw();
+      }).catch(function() {});
     }
 
 
@@ -447,6 +550,7 @@
     function closePlayerCard() {
       var bd = document.getElementById('pc-backdrop');
       if (bd) bd.remove();
+      if (/^#player\//.test(location.hash)) { try { history.replaceState(null, '', location.pathname + location.search + (PC_HASH.prev || '')); } catch (e) {} }
     }
 
     document.addEventListener('click', function(e) {

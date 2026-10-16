@@ -1667,7 +1667,7 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 }
 
 /* ── v129: 📨 invite / sign-up, friend home summary ── */
-:root { --css-v: "142"; } /* main.js compares this with the page version to catch an old style.css */
+:root { --css-v: "143"; } /* main.js compares this with the page version to catch an old style.css */
 .join-box { max-width: 340px; margin-left: auto; margin-right: auto; }
 .join-l { display: block; text-align: left; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t3); margin: 14px 0 6px; }
 .join-in { width: 100%; box-sizing: border-box; }
@@ -1784,3 +1784,27 @@ html[data-motion="less"] .holiday-fx, html[data-motion="less"] .egg-rain, html[d
 .tm-go { flex: 1 1 0; font: 800 14px/1 Inter, sans-serif; color: #0B0C10; background: #FBBF24; border: 0; border-radius: 12px; padding: 13px 10px; cursor: pointer; }
 .tm-go[disabled] { opacity: 0.55; cursor: default; }
 .tm-go.tm-go-now { flex: 0 0 auto; color: var(--t1); background: var(--s2); border: 1px solid var(--line); }
+
+/* ── v143: player card 2.0 (card art, rarity foil, Bad Beats, the Machine, friends) ── */
+.pc-head { overflow: hidden; }
+.pc-head > *:not(.pc-art) { position: relative; z-index: 1; }
+.pc-head > .pc-close, .pc-head > .pc-hs { position: absolute; z-index: 2; }
+.pc-art { position: absolute; z-index: 0; right: -38px; bottom: -46px; width: 210px; height: 210px; opacity: 0.16; transform: rotate(-12deg); pointer-events: none; filter: saturate(1.2); }
+.pc-head::after { content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none; background: repeating-linear-gradient(135deg, rgba(255,255,255,0.045) 0 2px, transparent 2px 13px); }
+.pc-tier { display: inline-block; margin-top: 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--tc, #E5E7EB); background: rgba(0,0,0,0.32); border: 1px solid var(--tc, rgba(255,255,255,0.3)); border-radius: 999px; padding: 3px 10px; }
+.pc-tier span { font-weight: 700; letter-spacing: 0; text-transform: none; opacity: 0.85; }
+.pc-card.pc-t-common { --tc: #D1D5DB; }
+.pc-card.pc-t-rare { --tc: #60A5FA; border-color: rgba(96,165,250,0.55); }
+.pc-card.pc-t-epic { --tc: #C084FC; border-color: rgba(192,132,252,0.6); box-shadow: 0 0 0 1px rgba(192,132,252,0.25), 0 30px 80px -10px rgba(0,0,0,0.8); }
+.pc-card.pc-t-legendary { --tc: #FCD34D; border: 2px solid transparent; background: linear-gradient(#111318, #111318) padding-box, linear-gradient(135deg, #FCD34D, #F59E0B 30%, #FDE68A 50%, #D97706 70%, #FCD34D) border-box; box-shadow: 0 0 34px -8px rgba(252,211,77,0.55), 0 30px 80px -10px rgba(0,0,0,0.8); }
+.pc-x { margin-top: 14px; padding: 11px 12px; border-radius: 12px; background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.07); }
+.pc-x .pc-label { margin-bottom: 5px; }
+.pc-xl { font-size: 12.5px; line-height: 1.5; color: rgba(255,255,255,0.78); }
+.pc-xl b { color: var(--t1); }
+.pc-xr { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0 0; margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 12px; color: rgba(255,255,255,0.75); }
+.pc-fr { display: flex; flex-wrap: wrap; gap: 6px; }
+.pc-frc { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.75); padding: 4px 9px; border-radius: 999px; background: color-mix(in srgb, var(--fc) 13%, transparent); border: 1px solid color-mix(in srgb, var(--fc) 35%, transparent); }
+.pc-frc .fr-link { font-weight: 800; cursor: pointer; }
+.pc-foot { margin-top: 16px; text-align: center; }
+.pc-game .game-link { cursor: pointer; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.25); text-underline-offset: 2px; }
+.pc-label small { font-size: 10px; font-weight: 600; letter-spacing: 0; text-transform: none; opacity: 0.8; }

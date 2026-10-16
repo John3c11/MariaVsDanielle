@@ -269,6 +269,7 @@
         if (!isMD(b.picker) || !b.home) return;
         if (b.scored) units[b.picker] += b.units; else if (!b.scorer) left[b.picker]++;
       });
+      if (ASOF && ASOF.year === CURRENT_YEAR) { left.Maria += ASOF.left.Maria; left.Danielle += ASOF.left.Danielle; } // ⏳ the bets they still had coming
       if (!left.Maria && !left.Danielle) return null;
       var P = {};
       ['Maria', 'Danielle'].forEach(function(n) {

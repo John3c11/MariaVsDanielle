@@ -30,7 +30,7 @@
       var currentWeek = Math.max.apply(null, allWeeks);
       var keys = Object.keys(weeks).filter(function(k) {
         var w = weeks[k];
-        return parseInt(k) < currentWeek && w.pending === 0 && w.Maria.t + w.Danielle.t > 0;
+        return (parseInt(k) < currentWeek || ASOF) && w.pending === 0 && w.Maria.t + w.Danielle.t > 0;
       }).sort(function(a, b) { return parseInt(b) - parseInt(a); });
       if (!keys.length) return '';
 
@@ -290,11 +290,11 @@
         renderFirstTDs(rows);
         renderHistory(rows);
         renderVisitBanner(rows);
-        if (!VISIT.trophiesChecked) { VISIT.trophiesChecked = true; setTimeout(function() { loadScriptOnce('js/profiles.js').then(checkNewTrophies).catch(function() {}); }, 1500); } // profiles.js has the trophy rules
+        if (!VISIT.trophiesChecked && !ASOF) { VISIT.trophiesChecked = true; setTimeout(function() { loadScriptOnce('js/profiles.js').then(checkNewTrophies).catch(function() {}); }, 1500); } // profiles.js has the trophy rules
 
         if (navigator.onLine) {
           try { localStorage.setItem('mvd-last-online', String(Date.now())); } catch (e) {}
-          document.getElementById('last-updated').textContent = `Last refreshed ${new Date().toLocaleString()}`;
+          document.getElementById('last-updated').textContent = ASOF ? '⏳ Time Machine: ' + asofLabel() : `Last refreshed ${new Date().toLocaleString()}`;
         } else {
           showOfflineNote();
         }
@@ -482,7 +482,7 @@
       var el = document.getElementById('offseason');
       if (!el) return;
       clearInterval(OFF.timer);
-      var st = offseasonState(rows, Date.now());
+      var st = offseasonState(rows, asofEnd()); // ⏳ "now" is that week in the Time Machine
       if (!st) { el.style.display = 'none'; el.innerHTML = ''; return; }
       function draw(s) {
         var champ = s.champ;
@@ -652,7 +652,7 @@
 
     // ── "Since your last visit" ──────────────────────────────────────────────
     // Each phone remembers which games were already scored the last time it opened the site.
-    var VISIT = { shown: false, parts: [], chat: 0 };
+    var VISIT = { shown: !!ASOF, parts: [], chat: 0 }; // ⏳ no "since your last visit" from the past
     function renderVisitBanner(rows) {
       var G = {}, order = [];
       rows.forEach(function(b) {

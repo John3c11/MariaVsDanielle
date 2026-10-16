@@ -310,3 +310,40 @@
       if (typeof LAB !== 'undefined') LAB.q = null;
       switchTab('lab');
     }
+
+    // ── ⏳ Time Machine (v142): the whole site the way it looked right after any week ──
+    // core.js (ASOF) leaves out everything after that week; js/timemachine.js is the picker.
+    function openTimeMachine() {
+      loadScriptOnce('js/timemachine.js').then(function() { tmOpen(); }).catch(function() { alert('Couldn\'t open the Time Machine. Check your connection.'); });
+    }
+    function tmStep(d) { loadScriptOnce('js/timemachine.js').then(function() { tmStepGo(d); }).catch(function() {}); }
+    function tmShare(btn) {
+      var url = location.origin + location.pathname + '?asof=' + ASOF.year + '-w' + ASOF.week, title = 'Maria vs Danielle, ' + asofLabel();
+      function done(t) { var o = btn.textContent; btn.textContent = t; setTimeout(function() { btn.textContent = o; }, 1800); }
+      if (navigator.share) { navigator.share({ title: title, url: url }).catch(function() {}); return; }
+      if (navigator.clipboard) navigator.clipboard.writeText(url).then(function() { done('✓ Link copied'); }, function() { prompt('Copy this link:', url); });
+      else prompt('Copy this link:', url);
+    }
+    (function() {
+      // Going to a week (or back to now) brings you back to the page you were on
+      var t = ''; try { t = sessionStorage.getItem('mvd-tm-tab') || ''; sessionStorage.removeItem('mvd-tm-tab'); } catch (e) {}
+      if (t && t !== 'stats' && t !== 'submit' && /^[a-z]+$/.test(t) && document.getElementById('tab-' + t) && !location.hash) setTimeout(function() { switchTab(t); }, 0);
+      if (!ASOF) return;
+      var when = new Date(asofEnd()).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+      var card = document.createElement('div');
+      card.className = 'tm-bar'; card.id = 'tm-bar';
+      function both(full, short) { return '<span class="tn-full">' + full + '</span><span class="tn-short">' + short + '</span>'; }
+      card.innerHTML = '<div class="tm-bar-t"><span class="tm-kick">⏳ Time Machine</span> The site the way it looked after <b>' + asofLabel() + '</b> <small>(' + when + ')</small>.<span class="tm-long"> Nothing after that shows, and nothing can be changed.</span></div>' +
+        '<div class="tm-btns"><button class="tm-b" onclick="tmStep(-1)">‹ Earlier</button><button class="tm-b" onclick="tmStep(1)">Later ›</button>' +
+        '<button class="tm-b" onclick="openTimeMachine()" aria-label="Pick a week">' + both('📅 Pick a week', '📅') + '</button><button class="tm-b" onclick="tmShare(this)" aria-label="Share">' + both('🔗 Share', '🔗') + '</button>' +
+        '<button class="tm-b tm-now" onclick="asofGo()">' + both('✕ Back to now', '✕ Now') + '</button></div>';
+      var hs = document.getElementById('hub-sub');
+      hs.parentNode.insertBefore(card, hs.nextSibling);
+      // Always on screen: a small pill (tap = pick a week, ✕ = back to now)
+      var pill = document.createElement('div');
+      pill.className = 'tm-pill';
+      pill.innerHTML = '<button class="tm-pill-a" onclick="openTimeMachine()">⏳ ' + asofLabel(true) + '</button><button class="tm-pill-x" onclick="asofGo()" aria-label="Back to now">✕</button>';
+      document.body.appendChild(pill);
+      document.getElementById('tm-foot').textContent = '⏳ Back to now';
+      document.getElementById('tm-foot').setAttribute('onclick', 'asofGo()');
+    })();

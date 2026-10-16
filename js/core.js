@@ -176,6 +176,39 @@
       });
     }
 
+    // ── ⏳ Time Machine (v142): the whole site the way it looked after one week ──
+    // ?asof=2025-w9 (a #asof=2025-w9 link works too) = every page only knows what was known after 2025 Week 9:
+    // later seasons are gone, and later weeks' bets, Trash Talk and friends' picks are left out (the filter is
+    // below the Seasons list). Nothing can be changed while it's on: no log in, no picks, no posting.
+    var ASOF = (function() {
+      var m = /(?:^|[?&#])asof=(\d{4})-w(\d{1,2})(?=[&#]|$)/i.exec(location.search + '#' + location.hash.replace(/^#/, ''));
+      if (!m) return null;
+      var w = parseInt(m[2], 10);
+      if (!(w >= 1 && w <= 23)) return null;
+      if (/asof=/i.test(location.hash)) { try { history.replaceState(null, '', location.pathname + '?asof=' + m[1] + '-w' + w); } catch (e) {} }
+      return { year: m[1], week: w, left: { Maria: 0, Danielle: 0 } };
+    })();
+    // When "after that week" was: the Tuesday after it, 10 AM Eastern (Week 1 = the Thursday after Labor Day)
+    function weekEnd(year, week) {
+      var y = parseInt(year, 10), d = new Date(Date.UTC(y, 8, 1)), mon = 1 + ((8 - d.getUTCDay()) % 7);
+      return Date.UTC(y, 8, mon + 3, 15) + ((week - 1) * 7 + 5) * 864e5;
+    }
+    function asofEnd() { return ASOF ? weekEnd(ASOF.year, ASOF.week) : Date.now(); }
+    function asofLabel(short) { return ASOF ? ASOF.year + ' ' + (short ? wkName(ASOF.week) : weekName(ASOF.week)) : ''; }
+    // Go to a week (or back to now with no arguments). The tab you're on comes along.
+    function asofGo(year, week) {
+      var a = document.querySelector('.tab-panel.active');
+      try { if (a) sessionStorage.setItem('mvd-tm-tab', a.id.replace('tab-', '')); } catch (e) {}
+      location.href = location.pathname + (year ? '?asof=' + year + '-w' + week : '');
+    }
+    // Things a visit normally remembers ("new since last time", chat read count…) aren't saved from the past
+    if (ASOF) (function() {
+      try {
+        var real = Storage.prototype.setItem, NO = /^mvd-(visit|trophies|records|chat-seen|last-online|announce|revealed|gd-td|br-banner|lab-disc-seen|me|theme-mine)$/;
+        Storage.prototype.setItem = function(k) { if (this === window.localStorage && NO.test(k)) return; return real.apply(this, arguments); };
+      } catch (e) {}
+    })();
+
     // ── Google Sheets request sharing ───────────────────────────────────────
     // Google allows about 60 reads a minute. Many tabs read the same sheet, so identical
     // requests made within 30 seconds share one answer, and a "too many requests" reply
@@ -190,8 +223,8 @@
       var refreshed = {}; // once per page load
       var PAST_KEY = 'mvd-past:', PAST_MAX = 1500000; // skip anything bigger than ~1.5 MB
       function isPast(url) {
-        if (typeof SEASONS === 'undefined' || !SEASONS.length) return false;
-        return SEASONS.some(function(s, i) { return i > 0 && url.indexOf('/spreadsheets/' + s.sheetId + '/') >= 0; });
+        if (typeof SEASONS_ALL === 'undefined' || !SEASONS_ALL.length) return false;
+        return SEASONS_ALL.some(function(s, i) { return i > 0 && url.indexOf('/spreadsheets/' + s.sheetId + '/') >= 0; });
       }
       function readPast(url) {
         try { var x = localStorage.getItem(PAST_KEY + url); return x ? { status: 200, body: x } : null; } catch (e) { return null; }
@@ -243,12 +276,52 @@
     // ── Seasons ─────────────────────────────────────────────────────────────
     // Set in config.js as CONFIG.SEASONS (newest first). The first one is the current season.
     // New season = add one line there. These are only used if config.js doesn't list any.
-    var SEASONS = ((CONFIG.SEASONS && CONFIG.SEASONS.length) ? CONFIG.SEASONS : [
+    var SEASONS_ALL = ((CONFIG.SEASONS && CONFIG.SEASONS.length) ? CONFIG.SEASONS : [
       { year: '2026', sheetId: '1eokxqa-RCuH4qNh486OMSnIeZdXbhHnw_FygbzUwGj4' },
       { year: '2025', sheetId: '1DWLYS9RYuOv97ajIcsak69Z97ODtegnBXvlDKJgpwYc' },
     ]).map(function(x) { return { year: String(x.year), sheetId: x.sheetId, tab: x.tab || 'Winnings' }; })
       .sort(function(a, b) { return parseInt(b.year) - parseInt(a.year); });
+    var REAL_YEAR = SEASONS_ALL[0].year;
+    if (ASOF && !SEASONS_ALL.some(function(x) { return x.year === ASOF.year; })) { ASOF = null; try { history.replaceState(null, '', location.pathname); } catch (e) {} }
+    // ⏳ In the Time Machine the site only has the seasons up to that one, so "this season" is that season
+    var SEASONS = ASOF ? SEASONS_ALL.filter(function(x) { return parseInt(x.year, 10) <= parseInt(ASOF.year, 10); }) : SEASONS_ALL;
     var CURRENT_YEAR = SEASONS[0].year;
+    if (ASOF) document.documentElement.classList.add('asof');
+    // ⏳ The sheet filter: that season's Winnings stop after that week, Trash Talk stops at that moment,
+    // and later seasons' Winnings and Trash Talk come back empty. Other tabs (rosters, players) are today's.
+    if (ASOF) (function() {
+      var inner = window.fetch, end = asofEnd(), W = ASOF.week;
+      window.ASOF_RAW_FETCH = inner; // the real thing (the ⏳ picker needs every week)
+      function sheetOf(url) { return SEASONS_ALL.filter(function(x) { return url.indexOf('/spreadsheets/' + x.sheetId + '/') >= 0; })[0]; }
+      function json(d) { return new Response(JSON.stringify(d), { status: 200, headers: { 'Content-Type': 'application/json' } }); }
+      window.fetch = function(input, init) {
+        var url = typeof input === 'string' ? input : (input && input.url) || '';
+        if (url.indexOf('sheets.googleapis.com') < 0 || (init && init.method && init.method !== 'GET')) return inner(input, init);
+        var se = sheetOf(url), tab = '';
+        try { tab = decodeURIComponent(url.split('/values/')[1].split('?')[0]).split('!')[0].replace(/^'|'$/g, ''); } catch (e) {}
+        var bets = se && tab === se.tab, chat = tab === 'Trash Talk';
+        if (!se || !(bets || chat)) return inner(input, init);
+        if (parseInt(se.year, 10) > parseInt(ASOF.year, 10)) return Promise.resolve(json({ values: [] }));
+        return inner(input, init).then(function(res) {
+          if (!res.ok) return res;
+          return res.json().then(function(d) {
+            var v = d.values || [], left = { Maria: 0, Danielle: 0 };
+            if (bets) {
+              d.values = v.filter(function(r, i) {
+                if (i === 0 || !(parseInt(r[COL.week], 10) > W)) return true;
+                var who = String(r[COL.picker] || '').trim();
+                if ((who === 'Maria' || who === 'Danielle') && r[COL.home]) left[who]++;
+                return false;
+              });
+              ASOF.left = left; // their bets still to come that season (the 📊 chance to win plays those out)
+            } else {
+              d.values = v.filter(function(r, i) { var t = i && typeof parseSheetTime === 'function' ? parseSheetTime(r[0]) : null; return i === 0 || (t && t.getTime() <= end); });
+            }
+            return json(d);
+          });
+        });
+      };
+    })();
     const SHEET_ID = SEASONS[0].sheetId;
     // Maria's and Danielle's colors. Change them here and the whole site follows
     // (style.css has the same two colors as --maria and --danielle).
@@ -309,7 +382,8 @@
     }
 
     async function fetchSheet(tabName, range) {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(tabName + '!' + range)}?key=${API_KEY}`;
+      const sid = ASOF && tabName !== 'Winnings' ? SEASONS_ALL[0].sheetId : SHEET_ID; // ⏳ rosters, players: always today's sheet
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sid}/values/${encodeURIComponent(tabName + '!' + range)}?key=${API_KEY}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`Failed to fetch ${tabName}: ${res.status}`);
       const data = await res.json();
@@ -503,3 +577,37 @@
     };
 
     const DIVISIONS = {"NFC East": ["Philadelphia Eagles", "New York Giants", "Dallas Cowboys", "Washington Commanders"], "NFC North": ["Detroit Lions", "Green Bay Packers", "Minnesota Vikings", "Chicago Bears"], "NFC South": ["Tampa Bay Buccaneers", "Atlanta Falcons", "Carolina Panthers", "New Orleans Saints"], "NFC West": ["Los Angeles Rams", "Seattle Seahawks", "San Francisco 49ers", "Arizona Cardinals"], "AFC East": ["Buffalo Bills", "New York Jets", "New England Patriots", "Miami Dolphins"], "AFC North": ["Baltimore Ravens", "Cincinnati Bengals", "Pittsburgh Steelers", "Cleveland Browns"], "AFC South": ["Indianapolis Colts", "Jacksonville Jaguars", "Houston Texans", "Tennessee Titans"], "AFC West": ["Kansas City Chiefs", "Los Angeles Chargers", "Denver Broncos", "Las Vegas Raiders"]};
+
+    // ── ⏳ Time Machine and the picks script ─────────────────────────────────
+    // Only the public reads go out, and their answers are cut at that week. Anything else (logging in,
+    // picking, posting, the Market) is turned down with a message.
+    var ASOF_READS = { crowd: 1, site: 1, museum: 1, alltds: 1, machinepub: 1 };
+    function asofApi(params, send) {
+      if (!ASOF_READS[params.action] || params.pin) return Promise.reject(new Error('⏳ The Time Machine is on, so nothing can be changed. Tap ✕ Back to now first.'));
+      var p = {}; Object.keys(params).forEach(function(k) { p[k] = params[k]; });
+      if (p.action === 'crowd' && !p.season) p.season = ASOF.year;
+      return send(p).then(function(r) { return asofTrim(p, r); });
+    }
+    function asofAfter(season, week) {
+      var y = parseInt(season, 10), Y = parseInt(ASOF.year, 10);
+      return y > Y || (y === Y && parseInt(week, 10) > ASOF.week);
+    }
+    function asofTrim(p, r) {
+      if (!r || r.error) return r;
+      if (p.action === 'crowd') {
+        var yr = r.season || p.season;
+        r.picks = (r.picks || []).filter(function(x) { return !asofAfter(yr, x.week); });
+        var c = {}; Object.keys(r.counts || {}).forEach(function(k) { if (!asofAfter(yr, k)) c[k] = r.counts[k]; }); r.counts = c;
+        var has = {}; r.picks.forEach(function(x) { has[x.friend] = 1; });
+        r.friends = (r.friends || []).filter(function(n) { return has[n]; }); // friends who hadn't joined yet aren't there
+      } else if (p.action === 'site') {
+        r.announce = null; r.bracket = null;
+      } else if (p.action === 'museum') {
+        r.items = (r.items || []).filter(function(m) { return !asofAfter(m.season, m.week); });
+      } else if (p.action === 'machinepub') {
+        if (String(r.season) !== ASOF.year) r.picks = [];
+        r.picks = (r.picks || []).filter(function(x) { return !asofAfter(ASOF.year, x.week); });
+        r.season = ASOF.year; r.sealed = 0; r.made = r.picks.length;
+      }
+      return r;
+    }

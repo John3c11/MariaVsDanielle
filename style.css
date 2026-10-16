@@ -1667,7 +1667,7 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 }
 
 /* ── v129: 📨 invite / sign-up, friend home summary ── */
-:root { --css-v: "141"; } /* main.js compares this with the page version to catch an old style.css */
+:root { --css-v: "142"; } /* main.js compares this with the page version to catch an old style.css */
 .join-box { max-width: 340px; margin-left: auto; margin-right: auto; }
 .join-l { display: block; text-align: left; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t3); margin: 14px 0 6px; }
 .join-in { width: 100%; box-sizing: border-box; }
@@ -1754,3 +1754,33 @@ html[data-text="xl"] .wrap, html[data-text="xl"] .lk-card, html[data-text="xl"] 
 /* 🎞️ Less motion: animations jump to their end, and the falling extras don't run */
 html[data-motion="less"] *, html[data-motion="less"] *::before, html[data-motion="less"] *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important; transition-duration: 0.01ms !important; transition-delay: 0s !important; scroll-behavior: auto !important; }
 html[data-motion="less"] .holiday-fx, html[data-motion="less"] .egg-rain, html[data-motion="less"] .st-confetti { display: none !important; }
+
+/* ── v142: ⏳ Time Machine (the banner, the pill, the picker) ── */
+.tm-bar { margin: 0 0 16px; padding: 12px 14px; border-radius: var(--r); background: color-mix(in srgb, #FBBF24 9%, transparent); border: 1px solid color-mix(in srgb, #FBBF24 45%, transparent); font-size: 13px; line-height: 1.5; color: var(--t2); }
+.tm-bar b { color: var(--t1); }
+.tm-bar small { color: var(--t3); }
+.tm-kick { display: inline-block; margin-right: 6px; font-size: 10.5px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #FBBF24; }
+.tm-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.tm-b { white-space: nowrap; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; color: var(--t1); background: var(--s2); border: 1px solid var(--line); border-radius: 999px; padding: 6px 11px; cursor: pointer; }
+.tm-b:hover { border-color: color-mix(in srgb, #FBBF24 55%, transparent); }
+.tm-b.tm-now { color: #0B0C10; background: #FBBF24; border-color: #FBBF24; margin-left: auto; }
+.tm-pill { position: fixed; right: 12px; bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 950; display: flex; border-radius: 999px; overflow: hidden; background: #FBBF24; box-shadow: 0 8px 26px rgba(0,0,0,0.45); }
+.tm-pill button { font: 800 12px/1 Inter, sans-serif; color: #0B0C10; background: #FBBF24; border: 0; padding: 9px 12px; cursor: pointer; }
+.tm-pill .tm-pill-x { padding-left: 9px; border-left: 1px solid rgba(0,0,0,0.2); }
+@media (max-width: 700px) { .tm-pill { bottom: calc(76px + env(safe-area-inset-bottom)); } body.kb-open .tm-pill { display: none; } .tm-bar { padding: 10px 12px; font-size: 12.5px; } .tm-long { display: none; } .tm-btns { gap: 5px; } .tm-b { padding: 6px 8px; font-size: 11.5px; } }
+.tm-locked { text-align: center; padding: 34px 18px; color: var(--t2); font-size: 14px; }
+.tm-locked .tm-ic { font-size: 34px; margin-bottom: 6px; }
+.tm-locked b { display: block; font-size: 17px; color: var(--t1); }
+.tm-locked p { margin: 8px auto 16px; max-width: 320px; line-height: 1.5; color: var(--t3); }
+.tm-sub { font-size: 12.5px; color: var(--t3); line-height: 1.5; margin: -2px 0 4px; }
+.tm-weeks { display: grid; grid-template-columns: repeat(auto-fill, minmax(42px, 1fr)); gap: 5px; }
+.tm-weeks button { font: 700 12.5px/1 Inter, sans-serif; color: var(--t2); background: var(--s1); border: 1px solid var(--line); border-bottom: 3px solid var(--wc); border-radius: 9px; padding: 9px 2px 7px; cursor: pointer; }
+.tm-weeks button.on { color: #0B0C10; background: #FBBF24; border-color: #FBBF24; border-bottom-color: var(--wc); }
+.tm-prev { margin: 12px 0 10px; padding: 11px 12px; border-radius: 12px; background: var(--s1); border: 1px solid var(--line); text-align: center; font-size: 14px; }
+.tm-prev-h { font-size: 12px; font-weight: 800; color: var(--t1); margin-bottom: 5px; }
+.tm-prev-h small { font-weight: 600; color: var(--t3); }
+.tm-lead { font-size: 12px; color: var(--t3); margin-top: 3px; }
+.tm-go-row { display: flex; gap: 6px; }
+.tm-go { flex: 1 1 0; font: 800 14px/1 Inter, sans-serif; color: #0B0C10; background: #FBBF24; border: 0; border-radius: 12px; padding: 13px 10px; cursor: pointer; }
+.tm-go[disabled] { opacity: 0.55; cursor: default; }
+.tm-go.tm-go-now { flex: 0 0 auto; color: var(--t1); background: var(--s2); border: 1px solid var(--line); }

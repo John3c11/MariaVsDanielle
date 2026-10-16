@@ -9,7 +9,7 @@
     function chatSeason() {
       return SEASONS.filter(function(x) { return x.year === CHAT.season; })[0] || SEASONS.filter(function(x) { return x.year === CURRENT_YEAR; })[0] || SEASONS[0];
     }
-    function isCurrentChat() { return chatSeason().year === CURRENT_YEAR; }
+    function isCurrentChat() { return !ASOF && chatSeason().year === CURRENT_YEAR; } // ⏳ the past is read only
 
     function fetchChatRows(season) {
       var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + season.sheetId + '/values/' +
@@ -83,7 +83,7 @@
       var box = document.getElementById('chat-compose');
       if (!PICKS_URL) { box.innerHTML = ''; return; }
       if (!isCurrentChat()) {
-        box.innerHTML = '<div class="u-ta-center u-fs-12px u-c-muted u-mb-16px">📜 ' + CHAT.season + ' archive. Read only.</div>';
+        box.innerHTML = '<div class="u-ta-center u-fs-12px u-c-muted u-mb-16px">' + (ASOF && CHAT.season === CURRENT_YEAR ? '⏳ Messages up to ' + asofLabel() + '. Read only.' : '📜 ' + CHAT.season + ' archive. Read only.') + '</div>';
         return;
       }
       // Everyone else just reads, so the box stays folded behind a button
@@ -251,6 +251,7 @@
       });
     }
     function checkChatUnread() {
+      if (ASOF) return;
       var season = SEASONS.filter(function(x) { return x.year === CURRENT_YEAR; })[0];
       if (!season) return;
       fetchChatRows(season).then(function(rows) {

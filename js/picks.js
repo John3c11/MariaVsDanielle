@@ -22,6 +22,10 @@
     // Google's script servers occasionally drop the reply even though the write went through,
     // so every call gets one quiet retry. Submitting the same picks twice is safe.
     function picksApi(params) {
+      if (ASOF) return asofApi(params, picksApiLive); // ⏳ read-only, cut at that week (core.js)
+      return picksApiLive(params);
+    }
+    function picksApiLive(params) {
       return picksApiOnce(params).catch(function() {
         return new Promise(function(res) { setTimeout(res, 1500); })
           .then(function() { return picksApiOnce(params); });
@@ -30,6 +34,11 @@
 
 
     function loadSubmitTab() {
+      if (ASOF) { // ⏳ no logging in from the past
+        document.getElementById('submit-content').innerHTML = '<div class="tm-locked"><div class="tm-ic">⏳</div><b>The Time Machine is on</b>' +
+          '<p>You\'re looking at ' + asofLabel() + '. Logging in and picking only work in the present.</p><button class="os-btn" onclick="asofGo()">✕ Back to now</button></div>';
+        return;
+      }
       if (!SUB.pin) { if (joinCode()) renderJoinScreen(''); else renderPinScreen(''); }
     }
 

@@ -379,7 +379,7 @@
 
         var winner = s.mUnits > s.dUnits ? 'Maria leads all-time' : s.dUnits > s.mUnits ? 'Danielle leads all-time' : 'All-time tied';
 
-        var html = '<div class="ui-intro u-mb-l">' + winner + ' · ' + SEASONS.length + ' seasons of data</div>';
+        var html = '<div class="ui-intro u-mb-l">' + winner + ' · ' + SEASONS.length + ' seasons of data · <button class="link-btn" onclick="openTimeMachine()">⏳ Go back to any week</button></div>';
 
         // Big screens: totals + earnings on the left, Record Book on the right (no effect elsewhere)
         html += '<div class="wide-cols"><div class="wide-col">';

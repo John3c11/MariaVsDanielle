@@ -727,6 +727,7 @@
         draw(r.announce);
         applyMyTheme(r.themes || {});
         if (typeof setBracketState === 'function') setBracketState(r.bracket);
+        if (typeof setFuturesState === 'function') setFuturesState(r.futures);
       }).catch(function() {});
     }
 

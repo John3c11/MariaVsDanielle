@@ -1667,7 +1667,7 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 }
 
 /* ── v129: 📨 invite / sign-up, friend home summary ── */
-:root { --css-v: "148"; } /* main.js compares this with the page version to catch an old style.css */
+:root { --css-v: "149"; } /* main.js compares this with the page version to catch an old style.css */
 .join-box { max-width: 340px; margin-left: auto; margin-right: auto; }
 .join-l { display: block; text-align: left; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t3); margin: 14px 0 6px; }
 .join-in { width: 100%; box-sizing: border-box; }
@@ -1808,3 +1808,8 @@ html[data-motion="less"] .holiday-fx, html[data-motion="less"] .egg-rain, html[d
 .pc-foot { margin-top: 16px; text-align: center; }
 .pc-game .game-link { cursor: pointer; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.25); text-underline-offset: 2px; }
 .pc-label small { font-size: 10px; font-weight: 600; letter-spacing: 0; text-transform: none; opacity: 0.8; }
+
+/* ── v149: 🔮 Futures card on Home (the tab's styles are in css/futures.css) ── */
+.fut-home { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 0 0 14px; padding: 10px 13px; border-radius: var(--r); font-size: 13px; line-height: 1.4; color: var(--t2);
+  background: color-mix(in srgb, #A78BFA 10%, transparent); border: 1px solid color-mix(in srgb, #A78BFA 38%, transparent); }
+.fut-home b { color: var(--t1); }

@@ -339,3 +339,10 @@
 .nt-seg { margin: 6px 0; }
 .nt-hr { font-size: 12.5px; color: var(--t2); margin: 6px 0; }
 .nt-hr .adm-input { font-size: 12.5px; padding: 6px 8px; margin-left: 6px; }
+/* v149: 🔮 Futures admin */
+.fu-adm { display: grid; gap: 8px; }
+.fu-adm label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 700; color: var(--t2); }
+.fu-fix { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 12.5px; color: var(--t2); }
+.fu-fix span { flex: 1 1 180px; }
+.fu-fix .adm-input { flex: 1 1 160px; font-size: 12.5px; padding: 7px 9px; }
+.fu-adm-c { font-size: 12.5px; color: var(--t2); padding: 5px 0; border-top: 1px solid var(--line); }

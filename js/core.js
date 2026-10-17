@@ -111,7 +111,7 @@
     var SCRIPT_LOADS = {};
     // Styles that only one lazy-loaded screen uses live in css/<name>.css (v132) and load with its script,
     // so the first visit downloads a much smaller style.css. The screen waits for both before drawing.
-    var CSS_SPLIT = ['admin', 'analytics', 'bracket', 'cards', 'chalk', 'eggs', 'gameday', 'gamepage', 'lab', 'machine', 'market', 'museum', 'replay', 'story'];
+    var CSS_SPLIT = ['admin', 'analytics', 'bracket', 'cards', 'chalk', 'eggs', 'futures', 'gameday', 'gamepage', 'lab', 'machine', 'market', 'museum', 'replay', 'story'];
     var CSS_LOADS = {};
     function loadCssOnce(name) {
       if (CSS_LOADS[name]) return CSS_LOADS[name];
@@ -618,7 +618,7 @@
         var has = {}; r.picks.forEach(function(x) { has[x.friend] = 1; });
         r.friends = (r.friends || []).filter(function(n) { return has[n]; }); // friends who hadn't joined yet aren't there
       } else if (p.action === 'site') {
-        r.announce = null; r.bracket = null;
+        r.announce = null; r.bracket = null; r.futures = null;
       } else if (p.action === 'museum') {
         r.items = (r.items || []).filter(function(m) { return !asofAfter(m.season, m.week); });
       } else if (p.action === 'machinepub') {

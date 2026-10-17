@@ -459,6 +459,7 @@
     function playerHeader(name, active) {
       var pc = personColor(name);
       var sections = SUB.role === 'friend' ? FRIEND_SECTIONS : PLAYER_SECTIONS;
+      if (typeof FUTURES_ON !== 'undefined' && FUTURES_ON) sections = sections.concat([['futures', '🔮 Futures']]);
       if (typeof BRACKET_ON !== 'undefined' && BRACKET_ON) sections = sections.concat([['bracket', '🏆 Bracket']]);
       if (SUB.role === 'friend') pc = '#2DD4BF';
       return '<div class="u-between u-mb-xs">' +
@@ -500,6 +501,7 @@
       if (section === 'fprofile') openProfile(SUB.name);
       if (section === 'crowd') switchTab('crowd');
       if (section === 'bracket') switchTab('bracket');
+      if (section === 'futures') switchTab('futures');
       if (section === 'market') {
         var mb = playerScreen('market', '<div class="loading">Loading the market…</div>');
         loadScriptOnce('js/market.js').then(function() { mb.innerHTML = ''; renderMarket(mb, { trade: true, fresh: true }); })

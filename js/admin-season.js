@@ -416,3 +416,63 @@
       body.querySelectorAll('[data-fill]').forEach(function(sel) { sel.addEventListener('change', function() { act({ action: 'setfill', name: sel.getAttribute('data-fill'), fill: sel.value }); }); });
     }
     function refreshAfterInjury() { clearSheetCache(); ROSTERS_READY = loadRosters(); }
+
+    // ── 🔮 Futures (v149): open a round, lock it, fix an answer, finish it (Futures.gs) ──
+    function adminFutures() {
+      var body = adminScreen('futures', '<div class="loading">Loading Futures…</div>');
+      picksApi({ pin: SUB.pin, action: 'futadmin' }).then(function(r) { drawAdminFutures(body, r); })
+        .catch(function() { body.innerHTML = '<div class="loading">Couldn\'t reach the script.</div>'; });
+    }
+    function drawAdminFutures(body, r) {
+      if (!document.body.contains(body)) return;
+      if (r.error) { body.innerHTML = '<div class="inj-warn">' + escHtml(r.error) + '</div>'; return; }
+      var F = r.futures || {}, V = r.view || {}, cats = r.cats || [], on = V.state && V.state !== 'off';
+      function dl(d) { var p = function(n) { return ('0' + n).slice(-2); }; return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes()); }
+      // Default deadline: the next Thursday, 7 PM (before TNF)
+      var nx = new Date(); nx.setHours(19, 0, 0, 0); while (nx.getDay() !== 4 || nx < new Date()) nx.setDate(nx.getDate() + 1);
+      var cw = r.currentWeek > 0 && r.currentWeek < 99 ? r.currentWeek : 1;
+      var h = '<div class="ui-note u-mb">Season-long calls for Maria, Danielle and every friend, sealed until the deadline, then scored from the data (every NFL game from the 🤖 Machine\'s library, and the season sheet for 💰 TD MVP).</div>';
+      var form = '<div class="fu-adm"><label>Deadline <input type="datetime-local" class="adm-input" id="fa-lock" value="' + (F.lockAt && on && V.state === 'open' ? dl(new Date(F.lockAt)) : dl(nx)) + '"></label>' +
+        '<label>Count from <select class="adm-input" id="fa-from">' + [1].concat(Array.apply(null, Array(22)).map(function(x, i) { return i + 2; })).filter(function(w) { return w !== 22; }).map(function(w) {
+          return '<option value="' + w + '"' + (w === (on ? F.fromWeek : cw) ? ' selected' : '') + '>' + (w === 1 ? 'Week 1 (preseason edition)' : weekName(w) + (w === cw ? ' (this week)' : '')) + '</option>';
+        }).join('') + '</select></label></div>';
+      if (!on) {
+        h += '<div class="pf-h">🔮 Start a round</div>' + form + '<button class="adm-btn green u-mt-8px" id="fa-open">🔮 Open Futures</button>' +
+          '<div class="ui-note u-mt-8px">Mid-season, count from the week the deadline is in: only games from then on count. Next August, pick Week 1 for the full preseason edition.</div>';
+      } else {
+        var E = Object.keys(F.picks || {});
+        h += '<div class="st-row"><span class="st-ic">' + (V.state === 'open' ? '🔓' : V.state === 'final' ? '🏁' : '🔒') + '</span><div class="u-grow"><div class="st-l">' + escHtml(V.label || '') + ': ' + (V.state === 'open' ? 'open until ' + new Date(F.lockAt).toLocaleString() : V.state === 'final' ? 'final' : 'locked, counting') + '</div>' +
+          '<div class="st-d">' + E.length + ' in: ' + (E.map(escHtml).join(', ') || 'nobody yet') + '</div></div></div>';
+        if (V.state === 'open') h += '<div class="pf-h">Change the deadline</div>' + form + '<button class="adm-btn u-mt-8px" id="fa-open">Save</button> <button class="adm-btn red u-mt-8px" id="fa-lock-now">🔒 Lock now</button>';
+        else {
+          h += '<div class="pf-h">📊 Standings</div>' + (V.error ? '<div class="inj-warn">' + escHtml(V.error) + '</div>' : (V.standings || []).map(function(s) { return '<div class="nt-wr"><b>' + escHtml(s.name) + '</b> · ' + s.pts + ' pt' + (s.pts === 1 ? '' : 's') + '</div>'; }).join('')) +
+            '<button class="adm-btn u-mt-8px" id="fa-refresh">🔄 Recount now</button> <button class="adm-btn u-mt-8px" id="fa-final">' + (V.state === 'final' ? 'Reopen counting' : '🏁 Mark final') + '</button>';
+          h += '<div class="pf-h">✔︎ Set an answer <small>only if the data gets one wrong; leave blank to go by the data</small></div>' + cats.map(function(c) {
+            return '<div class="fu-fix"><span>' + c.ic + ' ' + escHtml(c.t) + '</span><input class="adm-input" data-fa-fix="' + c.id + '" value="' + escHtml((F.fix || {})[c.id] || '') + '" placeholder="By the data"><button class="adm-btn" data-fa-save="' + c.id + '">Save</button></div>';
+          }).join('');
+        }
+        if (E.length) h += '<details class="u-mt-8px an-more"><summary>Everyone\'s calls (' + E.length + ')' + (V.state === 'open' ? ', sealed for everyone else' : '') + '</summary>' + E.map(function(n) {
+          var P = F.picks[n];
+          return '<div class="fu-adm-c"><b>' + escHtml(n) + '</b> ' + cats.filter(function(c) { return P[c.id]; }).map(function(c) { return c.ic + ' ' + escHtml(P[c.id]); }).join(' · ') + ' <button class="link-btn" data-fa-rm="' + escHtml(n) + '">remove</button></div>';
+        }).join('') + '</details>';
+        h += '<div class="u-mt-18px"><button class="adm-btn red" id="fa-off">Turn Futures off</button></div>';
+      }
+      h += '<div class="u-ta-left submit-msg" id="adm-msg"></div>';
+      body.innerHTML = h;
+      function call(params, ok) {
+        params.pin = SUB.pin;
+        picksApi(params).then(function(x) {
+          if (x.error) { adminMsg(x.error, false); return; }
+          drawAdminFutures(body, x); adminMsg(ok, true);
+          picksApi({ action: 'site' }).then(function(s) { if (typeof setFuturesState === 'function') setFuturesState(s.futures); }).catch(function() {});
+        }).catch(function() { adminMsg('Couldn\'t reach the script.', false); });
+      }
+      function on2(id, fn) { var b = document.getElementById(id); if (b) b.addEventListener('click', fn); }
+      on2('fa-open', function() { var d = new Date(document.getElementById('fa-lock').value); call({ action: 'futopen', lockAt: isNaN(d) ? '' : d.toISOString(), fromWeek: document.getElementById('fa-from').value }, 'Open. Everyone sees 🔮 Futures under Picks, and a card on Home.'); });
+      on2('fa-lock-now', function() { if (confirm('Lock Futures now? Nobody can change their calls after this.')) call({ action: 'futlock' }, 'Locked. Everyone\'s calls are public now.'); });
+      on2('fa-refresh', function() { call({ action: 'futrefresh' }, 'Recounted.'); });
+      on2('fa-final', function() { call({ action: 'futfinal' }, 'Done.'); });
+      on2('fa-off', function() { if (confirm('Turn Futures off? The calls are kept, but the tab and the Home card go away.')) call({ action: 'futoff' }, 'Off.'); });
+      body.querySelectorAll('[data-fa-save]').forEach(function(b) { b.addEventListener('click', function() { var id = b.getAttribute('data-fa-save'); call({ action: 'futfix', cat: id, value: body.querySelector('[data-fa-fix="' + id + '"]').value }, 'Saved.'); }); });
+      body.querySelectorAll('[data-fa-rm]').forEach(function(b) { b.addEventListener('click', function() { var n = b.getAttribute('data-fa-rm'); if (confirm('Remove ' + n + '\'s calls?')) call({ action: 'futrm', name: n }, 'Removed.'); }); });
+    }

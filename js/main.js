@@ -35,7 +35,7 @@
     // Each tab panel (#tab-<name>) belongs to one hub. Tapping a hub opens the sub-tab you last used there.
     var HUBS = {
       home:    [['stats', 'Home']],
-      picks:   [['submit', ''], ['schedule', '🗓️ Schedule'], ['rosters', '📋 Rosters'], ['crowd', '🏅 Crowd'], ['bracket', '🏆 Bracket']],
+      picks:   [['submit', ''], ['schedule', '🗓️ Schedule'], ['rosters', '📋 Rosters'], ['crowd', '🏅 Crowd'], ['futures', '🔮 Futures'], ['bracket', '🏆 Bracket']],
       rivalry: [['profiles', '⭐ Profiles'], ['legacy', '📜 All-Time'], ['bethistory', '🧾 Bet Log'], ['museum', '🏛️ Museum'], ['game', '🏈 Games']],
       numbers: [['analytics', '📊 Numbers'], ['machine', '🤖 Machine']], // 📊 Numbers = Stories (analytics) + Explore (lab), v134
       chat:    [['chat', 'Trash Talk']],
@@ -43,7 +43,7 @@
     var HUB_OF = {}, HUB_LAST = {};
     Object.keys(HUBS).forEach(function(h) { HUBS[h].forEach(function(t) { HUB_OF[t[0]] = h; }); });
     HUB_OF.lab = 'numbers'; // 🧪 Explore: the second half of 📊 Numbers
-    function hubTabs(h) { return HUBS[h].filter(function(t) { return t[0] !== 'bracket' || BRACKET_ON; }); }
+    function hubTabs(h) { return HUBS[h].filter(function(t) { return (t[0] !== 'bracket' || BRACKET_ON) && (t[0] !== 'futures' || FUTURES_ON); }); }
     function openHub(h) {
       var last = HUB_LAST[h];
       if (!last || (last !== 'lab' && !hubTabs(h).some(function(t) { return t[0] === last; }))) last = h === 'picks' ? (SUB.pin ? 'submit' : 'schedule') : hubTabs(h)[0][0];
@@ -179,6 +179,7 @@
       // A shared #lab?… link only stays in the address bar while the Lab is open (#game/… belongs to the game overlay)
       if ((location.hash || '').indexOf('#lab') === 0 && name !== 'lab') { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
       if (name === 'bracket') openBracket();
+      if (name === 'futures') openFutures();
       if (name === 'machine') loadScriptOnce('js/machine.js').then(function() { loadMachineTab(); }).catch(function() {
         var el = document.getElementById('machine-content'); if (el) el.innerHTML = '<div class="loading">Couldn\'t load the Machine. Check your connection.</div>';
       });
@@ -193,6 +194,23 @@
         var el = document.getElementById('bracket-content');
         if (el) el.innerHTML = '<div class="loading">Couldn\'t load the bracket. Check your connection. <button class="link-btn" onclick="openBracket()">Try again</button></div>';
       });
+    }
+    // 🔮 Futures (js/futures.js): the Picks hub's 🔮 tab and the card on Home, only while Futures are on (v149)
+    var FUTURES_ON = null; // { state: open | locked | final, lockAt, label } from the script, or null
+    function openFutures() {
+      loadScriptOnce('js/futures.js').then(function() { loadFuturesTab(); }).catch(function() {
+        var el = document.getElementById('futures-content');
+        if (el) el.innerHTML = '<div class="loading">Couldn\'t load Futures. Check your connection. <button class="link-btn" onclick="openFutures()">Try again</button></div>';
+      });
+    }
+    function setFuturesState(f) {
+      FUTURES_ON = f && f.state ? f : null;
+      var cur = document.querySelector('.tab-panel.active');
+      if (cur) drawHubSub(cur.id.replace('tab-', ''));
+      var el = document.getElementById('fut-home');
+      if (!el) return;
+      if (!FUTURES_ON) { el.style.display = 'none'; el.innerHTML = ''; return; }
+      loadScriptOnce('js/futures.js').then(function() { drawFuturesHome(el); }).catch(function() {});
     }
     // The 🏆 Bracket menu item, Log In shortcut and Stats banner only exist while the challenge is on
     var BRACKET_ON = null; // { state, lockAt } from the script, or null

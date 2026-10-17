@@ -143,6 +143,30 @@ html[data-theme="light"] .ml-lc-log:not(.dk, .dk *) { color: var(--t3); }
 html[data-theme="light"] .ml-lc-log div:not(.dk, .dk *) { border-top: 1px solid var(--line); }
 html[data-theme="light"] .ml-on:not(.dk, .dk *) { color: #147B52; }
 @media (max-width: 700px) { html[data-theme="light"] .ml-tw:not(.dk, .dk *)::before { color: var(--t4); } }
+html[data-theme="light"] .nt-need:not(.dk, .dk *) { border-radius: 12px; background: color-mix(in srgb, #FBBF24 9%, transparent); border: 1px solid color-mix(in srgb, #FBBF24 40%, transparent); }
+html[data-theme="light"] .nt-need.ok:not(.dk, .dk *) { background: color-mix(in srgb, #34D399 8%, transparent); border-color: color-mix(in srgb, #34D399 35%, transparent); }
+html[data-theme="light"] .nt-need-h:not(.dk, .dk *) { color: var(--t1); }
+html[data-theme="light"] .nt-i:not(.dk, .dk *) { border-top: 1px solid var(--line); }
+html[data-theme="light"] .nt-i b:not(.dk, .dk *) { color: var(--t1); }
+html[data-theme="light"] .nt-i span:not(.dk, .dk *) { color: var(--t2); }
+html[data-theme="light"] .nt-i small:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .nt-g:not(.dk, .dk *) { border-radius: 14px; background: var(--s1); border: 1px solid var(--line); }
+html[data-theme="light"] .nt-g.live:not(.dk, .dk *) { border-color: color-mix(in srgb, #DB0B0B 55%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, rgba(248,113,113,0.6) 20%, transparent); }
+html[data-theme="light"] .nt-gt:not(.dk, .dk *) { color: var(--t1); }
+html[data-theme="light"] .nt-gt small:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .nt-when:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .nt-live:not(.dk, .dk *) { color: #B10909; }
+html[data-theme="light"] .nt-score:not(.dk, .dk *) { color: var(--t1); }
+html[data-theme="light"] .nt-p:not(.dk, .dk *) { border-bottom: 1px solid var(--line); color: var(--t2); }
+html[data-theme="light"] .nt-bad:not(.dk, .dk *) { color: #BB0606; }
+html[data-theme="light"] .nt-ftd:not(.dk, .dk *) { color: var(--t2); }
+html[data-theme="light"] .nt-wr:not(.dk, .dk *) { color: var(--t2); }
+html[data-theme="light"] .nt-wr small:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .nt-now:not(.dk, .dk *) { color: var(--t2); }
+html[data-theme="light"] .nt-sug:not(.dk, .dk *) { border-radius: 12px; border: 1px solid var(--line); background: var(--s1); color: var(--t1); }
+html[data-theme="light"] .nt-sug span:not(.dk, .dk *) { color: #147B52; }
+html[data-theme="light"] .nt-sug:hover:not(.dk, .dk *) { border-color: color-mix(in srgb, #34D399 45%, transparent); }
+html[data-theme="light"] .nt-hr:not(.dk, .dk *) { color: var(--t2); }
 html[data-theme="light"] [style^="background:rgba(255,255,255,0.04)" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";background:rgba(255,255,255,0.04)" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; background:rgba(255,255,255,0.04)" i]:not(.dk, .dk *), html[data-theme="light"] [style^="background: rgba(255,255,255,0.04)" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";background: rgba(255,255,255,0.04)" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; background: rgba(255,255,255,0.04)" i]:not(.dk, .dk *) { background: rgba(17,24,39,0.026) !important; }
 html[data-theme="light"] [style^="border:1.5px solid rgba(255,255,255,0.10)" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";border:1.5px solid rgba(255,255,255,0.10)" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; border:1.5px solid rgba(255,255,255,0.10)" i]:not(.dk, .dk *), html[data-theme="light"] [style^="border: 1.5px solid rgba(255,255,255,0.10)" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";border: 1.5px solid rgba(255,255,255,0.10)" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; border: 1.5px solid rgba(255,255,255,0.10)" i]:not(.dk, .dk *) { border: 1.5px solid rgba(17,24,39,0.09) !important; }
 html[data-theme="light"] [style^="color:#F3F4F6" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#F3F4F6" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#F3F4F6" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #F3F4F6" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #F3F4F6" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #F3F4F6" i]:not(.dk, .dk *) { color: #191C22 !important; }

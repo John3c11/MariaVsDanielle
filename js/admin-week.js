@@ -313,3 +313,201 @@ function drawPlanner(body) {
   var pb = document.getElementById('pl-past');
   if (pb) pb.addEventListener('click', function() { PLAN.past = !PLAN.past; drawPlanner(body); });
 }
+
+    // ── 📟 Game Night (v147): every game of the week, live, with one-tap fixes ─────────
+    // The script (Commish.gs nightGames_) sends the sheet's side: picks, odds, first TD, grades, and what needs you.
+    // This screen adds live scores from ESPN (every minute while it's open) and one-tap announcements.
+    var NIGHT = { data: null, timer: null, board: null, fix: null };
+    function adminNight() {
+      var body = adminScreen('night', '<div class="loading">Loading game night…</div>');
+      picksApi({ pin: SUB.pin, action: 'night' }).then(function(r) {
+        if (!document.body.contains(body)) return;
+        if (r.error) { body.innerHTML = '<div class="inj-warn">' + escHtml(r.error) + '</div>'; return; }
+        if (!r.games) { body.innerHTML = '<div class="inj-warn">⚠️ Paste Commish.gs and the new PicksAPI.gs, then Deploy → Manage deployments → ✏️ → New version → Deploy.</div>'; return; }
+        NIGHT.data = r; drawNight(body); nightLive(body);
+      }).catch(function() { body.innerHTML = '<div class="loading">Couldn\'t reach the script.</div>'; });
+    }
+    // Live scores from ESPN for the games on screen
+    function nightLive(body) {
+      clearInterval(NIGHT.timer);
+      function tick() {
+        if (!document.body.contains(body)) { clearInterval(NIGHT.timer); return; }
+        if (document.visibilityState !== 'visible') return;
+        var D = NIGHT.data, w = D && D.week;
+        if (!w) return;
+        espnGet(w > 18 ? 'scoreboard?seasontype=3&week=' + (w - 18) : 'scoreboard?seasontype=2&week=' + w).then(function(b) {
+          NIGHT.board = b.events || []; if (document.body.contains(body)) drawNight(body);
+        }).catch(function() {});
+      }
+      tick(); NIGHT.timer = setInterval(tick, 60000);
+    }
+    function nightEvent(g) {
+      var hk = espnTeamKey(g.home), ak = espnTeamKey(g.away);
+      return (NIGHT.board || []).filter(function(e) {
+        var c = e.competitions && e.competitions[0]; if (!c) return false;
+        var ks = c.competitors.map(function(x) { return espnTeamKey(x.team.displayName); });
+        return ks.indexOf(hk) >= 0 && ks.indexOf(ak) >= 0;
+      })[0] || null;
+    }
+    function drawNight(body) {
+      var D = NIGHT.data, h = '';
+      // What needs you
+      var I = D.issues || [];
+      h += '<div class="nt-need' + (I.length ? '' : ' ok') + '"><div class="nt-need-h">' + (I.length ? '📟 ' + I.length + ' thing' + (I.length === 1 ? '' : 's') + ' need' + (I.length === 1 ? 's' : '') + ' you' : '✅ Nothing needs you right now') + '</div>' +
+        I.map(function(i) { return '<div class="nt-i"><b>' + i.icon + ' ' + escHtml(i.title) + '</b>' + (i.detail ? '<span>' + escHtml(i.detail) + '</span>' : '') + (i.fix ? '<small>→ ' + escHtml(i.fix) + '</small>' : '') + '</div>'; }).join('') + '</div>';
+      h += '<div class="nt-top"><div class="pf-h">🏈 ' + escHtml(D.weekName) + ' <small>' + D.games.length + ' game' + (D.games.length === 1 ? '' : 's') + '</small></div>' +
+        '<button class="adm-btn" id="nt-ftd">🔄 Check first TDs now</button></div><div class="u-ta-left submit-msg" id="adm-msg"></div>';
+      if (!D.games.length) h += '<div class="ui-note">No games in the sheet for this week yet. Add them from the <button class="link-btn" onclick="showAdmin(\'check\')">✅ Checklist</button>.</div>';
+      h += D.games.map(nightCard).join('');
+      if (D.ftdLast && D.ftdLast.at) h += '<details class="u-mt-8px an-more"><summary>First TD tracker: last ran ' + new Date(D.ftdLast.at).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + '</summary><div class="st-log">' + (D.ftdLast.log || []).map(escHtml).join('<br>') + '</div></details>';
+      h += nightWrap(D);
+      h += nightAnnounce(D);
+      h += nightSettings(D.settings || {});
+      body.innerHTML = h;
+      bindNight(body);
+    }
+    function nightCard(g) {
+      var ev = nightEvent(g), c = ev && ev.competitions[0], st = ev ? ev.status.type : null;
+      var H = c && c.competitors.filter(function(x) { return x.homeAway === 'home'; })[0], A = c && c.competitors.filter(function(x) { return x.homeAway === 'away'; })[0];
+      var state = st ? st.state : g.state, ko = g.kickoff ? new Date(g.kickoff) : null;
+      var when = state === 'in' ? '<span class="nt-live">● LIVE</span> ' + escHtml(st.shortDetail || '') : state === 'post' ? 'Final' : ko ? ko.toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : 'Kickoff time unknown';
+      var score = H && A && state !== 'pre' ? '<span class="nt-score">' + teamNick(g.away) + ' ' + A.score + ' · ' + teamNick(g.home) + ' ' + H.score + '</span>' : '';
+      // Picks + odds
+      var picks = ['Maria', 'Danielle'].map(function(w) {
+        var r = g.rows[w];
+        if (!r || !(r.homePick || r.awayPick)) return '<div class="nt-p"><b style="color:' + personColor(w) + '">' + w + '</b><span class="u-faint">no picks</span></div>';
+        var odds = [[r.homePick, r.homeOdds], [r.awayPick, r.awayOdds]].filter(function(x) { return x[0]; }).map(function(x) {
+          var ok = parseFloat(String(x[1]).replace('+', '')) > 0;
+          return escHtml(x[0]) + ' <span class="' + (ok ? 'u-faint' : 'nt-bad') + '">' + (ok ? formatOdds(x[1]) : 'no odds') + '</span>';
+        }).join(' · ');
+        var res = r.correct === 'Yes' ? ' <span class="u-good">✅ ' + fmtU(parseFloat(String(r.units).replace(/[^0-9.-]/g, '')) || 0) + '</span>' : r.correct === 'No' ? ' <span class="u-faint">❌</span>' : '';
+        return '<div class="nt-p"><b style="color:' + personColor(w) + '">' + w + '</b><span>' + odds + res + '</span></div>';
+      }).join('');
+      // First TD
+      var key = g.week + '_' + g.game, fixing = NIGHT.fix === key;
+      var ftd = g.scorer ? '<span>🏈 <b>' + escHtml(g.scorer) + '</b> ' + (g.side ? '<span class="u-faint">(' + g.side + ')</span>' : '<span class="nt-bad">Home/Away missing</span>') + '</span>'
+        : state === 'post' ? '<span class="nt-bad">⚠️ Game over, no first TD yet</span>' : state === 'in' ? '<span class="u-faint">⏳ The tracker fills it in within 30 min of the TD</span>' : '<span class="u-faint">Not started</span>';
+      var form = '';
+      if (fixing) {
+        var names = {};
+        [g.home, g.away].forEach(function(t) { Object.keys(ROSTER_INFO).forEach(function(k) { var r = ROSTER_INFO[k]; if (r && r.name && resolveTeam(r.team) === resolveTeam(t)) names[r.name] = 1; }); });
+        ['Maria', 'Danielle'].forEach(function(w) { var r = g.rows[w]; if (r) [r.homePick, r.awayPick].forEach(function(n) { if (n) names[n] = 1; }); });
+        form = '<div class="nt-fix"><input class="adm-input" id="nt-sc" list="nt-names" placeholder="Who scored first?" value="' + escHtml(g.scorer) + '"><datalist id="nt-names">' + Object.keys(names).sort().map(function(n) { return '<option value="' + escHtml(n) + '">'; }).join('') + '</datalist>' +
+          '<select class="adm-input" id="nt-side"><option value="">Home or Away?</option><option' + (g.side === 'Home' ? ' selected' : '') + ' value="Home">Home (' + escHtml(teamNick(g.home)) + ')</option><option' + (g.side === 'Away' ? ' selected' : '') + ' value="Away">Away (' + escHtml(teamNick(g.away)) + ')</option></select>' +
+          '<button class="adm-btn green" data-nt-save="' + key + '">Save</button> <button class="adm-btn" data-nt-cancel="1">Cancel</button></div>';
+      }
+      return '<div class="nt-g' + (state === 'in' ? ' live' : '') + '"><div class="nt-gh"><span class="nt-gt">' + teamLogo(g.away) + escHtml(teamNick(g.away)) + ' @ ' + teamLogo(g.home) + escHtml(teamNick(g.home)) +
+        (g.slot ? ' <small>' + escHtml(g.slot) + '</small>' : '') + (g.week !== NIGHT.data.week ? ' <small>' + escHtml(weekName(g.week)) + '</small>' : '') + '</span><span class="nt-when">' + when + '</span></div>' +
+        (score ? '<div>' + score + '</div>' : '') + picks + '<div class="nt-ftd">' + ftd + (fixing ? '' : ' <button class="link-btn" data-nt-fix="' + key + '">' + (g.scorer ? 'Fix' : 'Set it') + '</button>') + '</div>' + form + '</div>';
+    }
+    // 🏁 Week wrap: once every game of the week is settled
+    function nightWrap(D) {
+      var W = D.wrap;
+      if (!W) return '';
+      var u = W.units || {}, m = u.Maria || 0, d = u.Danielle || 0;
+      var ok = function(b, t, f) { return '<div class="nt-wr">' + (b ? '✅ ' : '⚠️ ') + t + (b ? '' : ' <small>' + f + '</small>') + '</div>'; };
+      return '<div class="nt-wrap"><div class="pf-h">🏁 ' + escHtml(D.weekName) + ' wrap</div>' +
+        ok(W.graded, 'Every game graded', 'a first TD is in but Correct? is blank') + ok(W.odds, 'Every pick has its odds', 'see 💲 Odds') + ok(W.sides, 'Home/Away set for every first TD', 'fix it on the game above') +
+        '<div class="nt-wr">📊 <b style="color:' + SB_M + '">Maria ' + W.hits.Maria + ' hit' + (W.hits.Maria === 1 ? '' : 's') + ', ' + fmtU(m) + '</b> · <b style="color:' + SB_D + '">Danielle ' + W.hits.Danielle + ' hit' + (W.hits.Danielle === 1 ? '' : 's') + ', ' + fmtU(d) + '</b></div>' +
+        '<div class="nt-wr">🗓️ Next: <button class="link-btn" onclick="showAdmin(\'check\')">✅ Checklist</button> for next week\'s games and odds</div></div>';
+    }
+    // 📣 One-tap announcements written from what just happened (they show on Home until tomorrow)
+    function nightSuggestions(D) {
+      var out = [];
+      D.games.forEach(function(g) {
+        var lbl = teamNick(g.away) + ' @ ' + teamNick(g.home);
+        if (g.scorer) {
+          var hits = ['Maria', 'Danielle'].filter(function(w) { return g.rows[w] && g.rows[w].correct === 'Yes'; }).map(function(w) {
+            var r = g.rows[w], o = playerKey(r.homePick) === playerKey(g.scorer) ? r.homeOdds : r.awayOdds;
+            return w + ' cashed at ' + formatOdds(o);
+          });
+          out.push('🏈 ' + g.scorer + ' scored first in ' + lbl + '. ' + (hits.length ? hits.join(' and ') + '!' : 'Nobody had him.'));
+        } else if ((function() { var ev = nightEvent(g), st = ev ? ev.status.type.state : g.state; return st === 'pre' || !st; })() && ['Maria', 'Danielle'].every(function(w) { return g.rows[w] && (g.rows[w].homePick || g.rows[w].awayPick); }) && g.kickoff) {
+          out.push('🔒 Both picks are in for ' + (g.slot ? g.slot + ' ' : '') + lbl + '. Kickoff ' + new Date(g.kickoff).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + '.');
+        }
+      });
+      if (D.wrap) {
+        var u = D.wrap.units, m = u.Maria || 0, d = u.Danielle || 0, win = m > d ? 'Maria' : d > m ? 'Danielle' : '';
+        out.push('🏁 ' + D.weekName + ' is in the books: ' + (win ? win + ' took it, ' + fmtU(Math.max(m, d)) + ' to ' + fmtU(Math.min(m, d)) + '.' : 'dead even at ' + fmtU(m) + '.'));
+      }
+      return out.slice(-4);
+    }
+    function nightAnnounce(D) {
+      var S = nightSuggestions(D);
+      return '<div class="nt-ann"><div class="pf-h">📣 Announcement <small>shows on Home until tomorrow</small></div>' +
+        (D.announce ? '<div class="nt-now">Up now: “' + escHtml(D.announce.text) + '”</div>' : '<div class="nt-now u-faint">Nothing up right now.</div>') +
+        (S.length ? S.map(function(t, i) { return '<button class="nt-sug" data-nt-ann="' + i + '">' + escHtml(t) + '<span>Post</span></button>'; }).join('') : '<div class="ui-note">Suggestions show up here as the games play out.</div>') + '</div>';
+    }
+    function nightSettings(S) {
+      function seg(id, opts, val) { return '<div class="lk-seg nt-seg">' + opts.map(function(o) { return '<button data-nt-set="' + id + '" data-v="' + o[0] + '" class="' + (String(val) === String(o[0]) ? 'on' : '') + '">' + o[1] + '</button>'; }).join('') + '</div>'; }
+      var hours = ''; for (var i = 6; i <= 22; i++) hours += '<option value="' + i + '"' + (i === S.hour ? ' selected' : '') + '>' + ((i % 12) || 12) + (i < 12 ? ' AM' : ' PM') + '</option>';
+      return '<div class="nt-set"><div class="pf-h">📧 "Needs you" emails <small>only when something needs you</small></div>' +
+        '<div class="ui-note u-mb-s">It checks every 30 minutes: a finished game with no first TD scorer, picks without odds close to kickoff, Home/Away missing, a broken background job, a new error on someone\'s phone, a friend waiting to join, and next week\'s games missing by Wednesday.</div>' +
+        seg('on', [[true, 'On'], [false, 'Off']], S.on) + (S.on ? seg('mode', [['instant', 'Right away'], ['daily', 'Once a day']], S.mode) +
+          (S.mode === 'daily' ? '<div class="nt-hr">Send it at <select class="adm-input" id="nt-hour">' + hours + '</select></div>' : '') +
+          '<button class="adm-btn u-mt-8px" id="nt-test">📧 Send me a test email</button>' : '') + '</div>';
+    }
+    function bindNight(body) {
+      var D = NIGHT.data;
+      function after(x, okMsg) {
+        if (x.error) { adminMsg(x.error, false); return false; }
+        if (x.night) { NIGHT.data = x.night; NIGHT.fix = null; drawNight(body); }
+        if (okMsg) adminMsg(okMsg, true);
+        return true;
+      }
+      var f = document.getElementById('nt-ftd');
+      if (f) f.addEventListener('click', function() {
+        f.disabled = true; f.textContent = '🔄 Checking ESPN…';
+        picksApi({ pin: SUB.pin, action: 'ftdnow' }).then(function(x) { after(x, 'Checked. ' + ((x.night && x.night.ftdLast && x.night.ftdLast.log || []).slice(-1)[0] || '')); })
+          .catch(function() { f.disabled = false; f.textContent = '🔄 Check first TDs now'; adminMsg('It took too long to answer. Try again in a minute.', false); });
+      });
+      body.querySelectorAll('[data-nt-fix]').forEach(function(b) { b.addEventListener('click', function() { NIGHT.fix = b.getAttribute('data-nt-fix'); drawNight(body); var i = document.getElementById('nt-sc'); if (i) i.focus(); }); });
+      body.querySelectorAll('[data-nt-cancel]').forEach(function(b) { b.addEventListener('click', function() { NIGHT.fix = null; drawNight(body); }); });
+      body.querySelectorAll('[data-nt-save]').forEach(function(b) {
+        b.addEventListener('click', function() {
+          var k = b.getAttribute('data-nt-save').split('_'), name = document.getElementById('nt-sc').value.trim(), side = document.getElementById('nt-side').value;
+          if (!name) { adminMsg('Type who scored first.', false); return; }
+          var force = b.getAttribute('data-force') === '1';
+          b.disabled = true;
+          picksApi({ pin: SUB.pin, action: 'setscorer', week: k[0], game: k.slice(1).join('_'), scorer: name, side: side, force: force ? '1' : '' }).then(function(x) {
+            b.disabled = false;
+            if (x.confirm) { b.setAttribute('data-force', '1'); b.textContent = 'Replace it'; adminMsg(x.error, false); return; }
+            if (after(x, 'Saved: ' + name + (side ? ' (' + side + ')' : '') + '. The grades update in the sheet right away.')) { clearSheetCache(); if (typeof ALL_BETS_PROMISE !== 'undefined') ALL_BETS_PROMISE = null; }
+          }).catch(function() { b.disabled = false; adminMsg('Couldn\'t reach the script.', false); });
+        });
+      });
+      var sug = nightSuggestions(D);
+      body.querySelectorAll('[data-nt-ann]').forEach(function(b) {
+        b.addEventListener('click', function() {
+          var text = sug[+b.getAttribute('data-nt-ann')], t = new Date(Date.now() + 864e5);
+          var until = t.getFullYear() + '-' + ('0' + (t.getMonth() + 1)).slice(-2) + '-' + ('0' + t.getDate()).slice(-2);
+          b.disabled = true;
+          picksApi({ pin: SUB.pin, action: 'announce', text: text, until: until }).then(function(x) {
+            if (x.error) { b.disabled = false; adminMsg(x.error, false); return; }
+            NIGHT.data.announce = x.announce; drawNight(body); adminMsg('Posted. It shows on Home until tomorrow.', true);
+          }).catch(function() { b.disabled = false; adminMsg('Couldn\'t reach the script.', false); });
+        });
+      });
+      body.querySelectorAll('[data-nt-set]').forEach(function(b) {
+        b.addEventListener('click', function() {
+          var S = Object.assign({}, D.settings || {}), id = b.getAttribute('data-nt-set'), v = b.getAttribute('data-v');
+          S[id] = v === 'true' ? true : v === 'false' ? false : v;
+          nightSave(body, S);
+        });
+      });
+      var hr = document.getElementById('nt-hour');
+      if (hr) hr.addEventListener('change', function() { nightSave(body, Object.assign({}, D.settings, { hour: parseInt(hr.value, 10) })); });
+      var te = document.getElementById('nt-test');
+      if (te) te.addEventListener('click', function() {
+        te.disabled = true;
+        picksApi({ pin: SUB.pin, action: 'commishtest' }).then(function(x) { te.disabled = false; if (x.error) adminMsg(x.error, false); else adminMsg('Sent to ' + (x.to || 'you') + (x.n ? ' (' + x.n + ' open thing' + (x.n === 1 ? '' : 's') + ')' : ' (all clear)') + '.', true); })
+          .catch(function() { te.disabled = false; adminMsg('Couldn\'t reach the script.', false); });
+      });
+    }
+    function nightSave(body, S) {
+      picksApi({ pin: SUB.pin, action: 'commishset', on: S.on ? '1' : '', mode: S.mode || 'instant', hour: S.hour == null ? 9 : S.hour, site: location.origin + location.pathname }).then(function(x) {
+        if (x.error) { adminMsg(x.error, false); return; }
+        NIGHT.data.settings = x.settings; drawNight(body);
+        adminMsg(x.settings.on ? (x.settings.mode === 'daily' ? 'On: one email a day, only if something needs you.' : 'On: you\'ll get an email when something needs you.') : 'Off: no emails.', true);
+      }).catch(function() { adminMsg('Couldn\'t reach the script.', false); });
+    }

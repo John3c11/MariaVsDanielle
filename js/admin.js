@@ -134,7 +134,7 @@
     // ── 📜 Which copy of each Apps Script file the website expects ─────────────
     // Bump these whenever a delivery includes that file. Status and the admin alert compare them
     // with what the live script says, so a file that didn't get pasted (or deployed) shows up.
-    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-27', Features: '2026-10-10', Automation: '2026-10-24', WeeklyRecap: '2026-10-06', Machine: '2026-10-27', Dashboard: '2026-10-24' };
+    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-28', Features: '2026-10-10', Automation: '2026-10-24', WeeklyRecap: '2026-10-06', Machine: '2026-10-27', Dashboard: '2026-10-24', Commish: '2026-10-28' };
     var OLD_SCRIPT_FILES = { Features: 'Market.gs, Museum.gs and Bracket.gs', Automation: 'FirstTD.gs, NFLPlayers.gs, Injuries.gs and Playoffs.gs' };
     var DEPLOY_STEPS = 'Deploy → Manage deployments → ✏️ → New version → Deploy';
     function scriptIssues(v) {
@@ -156,7 +156,7 @@
 
     // ── Admin layout (v131): 5 sections, each with its own row of screens ──
     var ADM_SECTIONS = [
-      ['week', '✅ This Week', [['check', '✅ Checklist'], ['odds', '💲 Odds'], ['games', '🏈 Games'], ['plan', '🗓️ Planner'], ['mlines', '🎯 Machine Lines']]],
+      ['week', '✅ This Week', [['night', '📟 Game Night'], ['check', '✅ Checklist'], ['odds', '💲 Odds'], ['games', '🏈 Games'], ['plan', '🗓️ Planner'], ['mlines', '🎯 Machine Lines']]],
       ['people', '👥 People', [['friends', '👥 Friends'], ['chat', '🗣️ Trash Talk']]],
       ['season', '🏈 Season', [['season', '🆕 New Season'], ['bracket', '🏆 Bracket'], ['injuries', '🚑 Injuries'], ['museum', '🏛️ Museum']]],
       ['machine', '🤖 Machine', [['machine', '🤖 Machine'], ['mlab', '🧪 Lab']]],
@@ -319,7 +319,22 @@
       if (section === 'mlab') adminMachineLab();
       if (section === 'mlines') adminMachineLines();
       if (section === 'check') adminChecklist();
+      if (section === 'night') adminNight();
       if (section === 'plan') adminPlanner();
       if (section === 'eggs') adminEggs();
       if (section === 'status') adminStatus();
+    }
+    // Game night = one of the week's unfinished games is tonight (its slot's day). Admin opens on 📟 Game Night then.
+    function isGameNight(bets) {
+      var now = new Date(), day = now.getDay(), hr = now.getHours();
+      var open = bets.filter(function(b) { return b.year === CURRENT_YEAR && (b.picker === 'Maria' || b.picker === 'Danielle') && b.homeTeam && !b.firstScorer; });
+      if (!open.length) return false;
+      var wk = Math.min.apply(null, open.map(function(b) { return b.week; }));
+      var DAY = { TNF: 4, Thanksgiving: 4, 'Black Friday': 5, FNF: 5, Saturday: 6, SNF: 0, Sunday: 0, International: 0, MNF: 1, Tuesday: 2, WNF: 3 };
+      return open.some(function(b) {
+        if (b.week !== wk) return false;
+        if (b.slot === 'Christmas') return now.getMonth() === 11 && now.getDate() === 25;
+        var d = DAY[b.slot]; if (d == null) d = b.week > 18 ? day : -1; // playoff rounds: any day that week
+        return (d === day && hr >= 12) || ((d + 1) % 7 === day && hr < 3);
+      });
     }

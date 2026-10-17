@@ -301,3 +301,41 @@
   .ml-t th { min-width: 84px; }
   .ml-tw::before { content: 'Swipe the table sideways to see every experiment →'; display: block; font-size: 11px; color: var(--t4); margin: 0 0 4px 2px; }
 }
+
+/* ── v147: 📟 Game Night ── */
+.nt-need { margin: 0 0 14px; padding: 11px 13px; border-radius: 12px; background: color-mix(in srgb, #FBBF24 9%, transparent); border: 1px solid color-mix(in srgb, #FBBF24 40%, transparent); }
+.nt-need.ok { background: color-mix(in srgb, #34D399 8%, transparent); border-color: color-mix(in srgb, #34D399 35%, transparent); }
+.nt-need-h { font-size: 14px; font-weight: 800; color: var(--t1); }
+.nt-i { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); font-size: 12.5px; line-height: 1.45; }
+.nt-i b { display: block; color: var(--t1); }
+.nt-i span { display: block; color: var(--t2); }
+.nt-i small { display: block; color: var(--t3); }
+.nt-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.nt-top .pf-h { margin: 0; }
+.nt-g { margin: 10px 0; padding: 12px 13px; border-radius: 14px; background: var(--s1); border: 1px solid var(--line); }
+.nt-g.live { border-color: color-mix(in srgb, #F87171 55%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, #F87171 20%, transparent); }
+.nt-gh { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.nt-gt { font-size: 15px; font-weight: 800; color: var(--t1); }
+.nt-gt .tlogo { width: 18px; height: 18px; vertical-align: -3px; margin: 0 4px 0 0; }
+.nt-gt small { font-size: 11px; font-weight: 700; color: var(--t3); margin-left: 4px; }
+.nt-when { font-size: 12px; font-weight: 700; color: var(--t3); }
+.nt-live { color: #F87171; font-weight: 800; }
+.nt-score { display: inline-block; margin-top: 4px; font-size: 13px; font-weight: 800; color: var(--t1); font-variant-numeric: tabular-nums; }
+.nt-p { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 12.5px; color: var(--t2); }
+.nt-p > span { text-align: right; }
+.nt-bad { color: #FCA5A5; font-weight: 700; }
+.nt-ftd { margin-top: 8px; font-size: 13px; color: var(--t2); }
+.nt-fix { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; }
+.nt-fix .adm-input { flex: 1 1 160px; font-size: 13px; padding: 8px 10px; }
+.nt-fix .adm-btn { font-size: 12px; padding: 8px 11px; }
+.nt-wrap, .nt-ann, .nt-set { margin-top: 16px; }
+.nt-wr { font-size: 13px; color: var(--t2); padding: 4px 0; }
+.nt-wr small { color: var(--t3); }
+.nt-now { font-size: 12.5px; color: var(--t2); margin-bottom: 8px; }
+.nt-sug { display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 10px; text-align: left; margin: 6px 0; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--s1); color: var(--t1); font: 600 13px/1.4 Inter, sans-serif; cursor: pointer; }
+.nt-sug span { flex: 0 0 auto; font-size: 11px; font-weight: 800; color: #6EE7B7; }
+.nt-sug:hover { border-color: color-mix(in srgb, #34D399 45%, transparent); }
+.nt-sug[disabled] { opacity: 0.5; }
+.nt-seg { margin: 6px 0; }
+.nt-hr { font-size: 12.5px; color: var(--t2); margin: 6px 0; }
+.nt-hr .adm-input { font-size: 12.5px; padding: 6px 8px; margin-left: 6px; }

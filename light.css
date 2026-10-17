@@ -1,6 +1,6 @@
 /* light.css: the light theme (🌗 in the footer). Loaded only when someone picks Light (or Auto on a phone set to light).
    Made by a script from style.css, so every rule here is a light copy of a rule there. Don't edit by hand:
-   it's rebuilt whenever style.css changes. (v146) */
+   it's rebuilt whenever style.css changes. (v147) */
 html[data-theme="light"] { color-scheme: light;
   --t1: #111827; --t2: #374151; --t3: #4B5563; --t4: #5F6672;
   --good: #047857; --good-2: #065F46; --bad: #DC2626; --bad-2: #B91C1C; --warn: #B45309; --warn-2: #92400E; --machine: #7C3AED;

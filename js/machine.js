@@ -295,6 +295,11 @@
         .sort(function(a, b) { return w[b[0]] - w[a[0]]; }).slice(0, 2);
       if (m.length) out.push('He gets ' + m.map(function(k) { return '<b>' + Math.round(w[k[0]] * 100) + '%</b> ' + k[1]; }).join(' and ') + '.');
       if (w.pri >= 0.5) out.push('Not much history with the ' + escHtml(team) + ' yet, so it leaned on what a typical ' + escHtml(w.slot || 'player in his spot') + ' gets.');
+      // 🧠 Machine 2.0 (v148): only shows for the settings the live Machine uses
+      if (w.od) out.push('🛡️ The ' + escHtml(opp) + ' defense has allowed ' + w.od.a.toFixed(1) + ' TDs a game lately, ' + Math.round(w.od.r * 100) + '% of them runs. He\'s mostly a ' + (w.od.me >= 0.6 ? 'runner' : w.od.me <= 0.4 ? 'pass catcher' : 'bit of both') + '.');
+      if (w.hot && Math.abs(w.hot.td - w.hot.long) >= 0.05) out.push((w.hot.td > w.hot.long ? '🔥 Hot lately: ' : '🧊 Cooled off: ') + '<b>' + Math.round(w.hot.td * 100) + '%</b> of their TDs the last couple of games (' + Math.round(w.hot.long * 100) + '% over the longer stretch).');
+      if (w.miss && w.miss.length) out.push('🩹 With ' + w.miss.map(escHtml).join(' and ') + ' sitting out last game, part of ' + (w.miss.length > 1 ? 'their' : 'his') + ' share went to the teammates most like ' + (w.miss.length > 1 ? 'them' : 'him') + '.');
+      if (w.pr) out.push('🌙 Night game: it used its prime-time numbers for the home edge and for defense or return scores.');
       if (w.nx) out.push('That made him ' + mcPct(w.s) + ' of the ' + escHtml(team) + (/s$/.test(team) ? '\'' : '\'s') + ' chance. Next was ' + escHtml(w.nx[0]) + ' at ' + mcPct(w.nx[1]) + ' (he was ' + mcPct(x.pct) + ').');
       return out;
     }

@@ -105,6 +105,12 @@
       { id: 'decay', t: 'Form memory', d: 'how fast old games fade (lower = only the last few games count)', lo: 0.7, hi: 0.95, st: 0.01 },
       { id: 'seasonDecay', t: 'Offseason carry-over', d: 'how much of last season a team keeps (0 = fresh start)', lo: 0, hi: 1, st: 0.05 },
     ];
+    // 🧠 Machine 2.0 (v148): 0 = off
+    var MLAB_NEW = [
+      { id: 'defW', t: '🛡️ Opponent defense', d: 'how much the other defense\'s recent TDs allowed count, and whether it gives up runs or catches', lo: 0, hi: 1.5, st: 0.1, off: true },
+      { id: 'missW', t: '🩹 Who\'s missing', d: 'when a regular sat out, how much of his share goes to the teammate most like him (runner for runner)', lo: 0, hi: 1, st: 0.1, off: true },
+      { id: 'hotW', t: '🔥 Hot hand', d: 'how much the last couple of games count on top of the longer form', lo: 0, hi: 1, st: 0.1, off: true },
+    ];
     var MLAB_W = [
       { id: 'a', t: 'Recent TD share', lo: 0, hi: 3, st: 0.25 }, { id: 'b', t: 'Goal-line touches', lo: 0, hi: 3, st: 0.25 },
       { id: 'c', t: 'All touches', lo: 0, hi: 3, st: 0.25 }, { id: 'tau', t: 'Sharpness', lo: 0.5, hi: 2.5, st: 0.05 },
@@ -124,8 +130,8 @@
       var D = MLAB.data, K = MLAB.k, def = D.defaults;
       function num(v, st) { return st < 0.05 ? Number(v).toFixed(2) : st < 0.25 ? Number(v).toFixed(2).replace(/0$/, '') : String(v); }
       function slider(o, val) {
-        return '<div class="ml-k"><div class="ml-kh"><b>' + o.t + '</b> <span class="ml-kv" id="mlv-' + o.id + '">' + num(val, o.st) + '</span>' +
-          (val !== def[o.id] ? ' <small>standard ' + def[o.id] + '</small>' : '') + '</div>' + (o.d ? '<div class="ml-kd">' + o.d + '</div>' : '') +
+        return '<div class="ml-k"><div class="ml-kh"><b>' + o.t + '</b> <span class="ml-kv" id="mlv-' + o.id + '">' + (o.off && !val ? 'off' : num(val, o.st)) + '</span>' +
+          (val !== (def[o.id] == null ? 0 : def[o.id]) ? ' <small>standard ' + (def[o.id] == null ? 0 : def[o.id]) + '</small>' : '') + '</div>' + (o.d ? '<div class="ml-kd">' + o.d + '</div>' : '') +
           '<input type="range" class="ml-range" data-mlk="' + o.id + '" min="' + o.lo + '" max="' + o.hi + '" step="' + o.st + '" value="' + val + '"></div>';
       }
       function seg(id, opts, val) {
@@ -140,13 +146,16 @@
         (K.weights === 'fixed' ? '<div class="ml-sub">' + MLAB_W.map(function(o) { return slider(o, K[o.id]); }).join('') + '</div>' : '') + '</div>';
       h += '<div class="ml-k"><div class="ml-kh"><b>Defense / return first TDs</b></div><div class="ml-kd">the share of first TDs nobody can pick</div>' + seg('nonoff', [['auto', 'Learn it'], ['fixed', 'Set it']], K.nonoff) +
         (K.nonoff === 'fixed' ? '<div class="ml-sub">' + slider({ id: 'nonoffP', t: 'Share', lo: 0, hi: 0.15, st: 0.01 }, K.nonoffP) + '</div>' : '') + '</div>';
+      h += '</div><div class="pf-h">🧠 Machine 2.0 <small>new in v148 · all off in the standard settings</small></div><div class="ml-knobs">';
+      MLAB_NEW.forEach(function(o) { h += slider(o, K[o.id] || 0); });
+      h += '<div class="ml-k"><div class="ml-kh"><b>🌙 Prime-time tilt</b></div><div class="ml-kd">night games (and every Thursday and Monday game) get their own home edge and defense/return rate</div>' + seg('prime', [[false, 'Off'], [true, 'On']], !!K.prime) + '</div>';
       h += '</div><div class="ml-run"><input class="adm-input" id="ml-name" maxlength="40" placeholder="Name it (optional)"><button class="adm-btn green" id="ml-go"' + (MLAB.busy ? ' disabled' : '') + '>' + (MLAB.busy ? '⏳ Running… (about a minute)' : '▶ Run the test') + '</button>' +
         '<button class="adm-btn" id="ml-reset">↺ Standard</button></div><div class="u-ta-left submit-msg" id="adm-msg"></div>';
       h += mlabTable(D);
       body.innerHTML = h;
       // knobs
       body.querySelectorAll('[data-mlk]').forEach(function(inp) {
-        inp.addEventListener('input', function() { var id = inp.getAttribute('data-mlk'); K[id] = parseFloat(inp.value); var v = document.getElementById('mlv-' + id); if (v) v.textContent = num(K[id], parseFloat(inp.step)); });
+        inp.addEventListener('input', function() { var id = inp.getAttribute('data-mlk'); K[id] = parseFloat(inp.value); var v = document.getElementById('mlv-' + id); if (v) v.textContent = !K[id] && MLAB_NEW.some(function(o) { return o.id === id; }) ? 'off' : num(K[id], parseFloat(inp.step)); });
       });
       body.querySelectorAll('[data-mls]').forEach(function(b) {
         b.addEventListener('click', function() { var id = b.getAttribute('data-mls'), v = b.getAttribute('data-v'); K[id] = v === 'true' ? true : v === 'false' ? false : v; drawMachineLab(body); });
@@ -268,5 +277,9 @@
       if (k.spread === false) out.push('no spread');
       if (k.weights === 'fixed') out.push('weights TD ' + k.a + ' · GL ' + k.b + ' · touch ' + k.c + ' · sharp ' + k.tau);
       if (k.nonoff === 'fixed') out.push('D/ST ' + Math.round(k.nonoffP * 100) + '%');
+      if (k.defW) out.push('defense ' + k.defW);
+      if (k.missW) out.push('missing ' + k.missW);
+      if (k.prime) out.push('prime time');
+      if (k.hotW) out.push('hot hand ' + k.hotW);
       return out.length ? out.join(', ') : 'Standard settings';
     }

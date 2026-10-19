@@ -139,7 +139,7 @@
       var text = ta.value.trim();
       var pin = chatPin();
       if (!text) return;
-      if (!pin) { msg.style.color = '#F87171'; msg.textContent = 'Enter your PIN to post.'; return; }
+      if (!pin) { msg.style.color = 'var(--bad)'; msg.textContent = 'Enter your PIN to post.'; return; }
       btn.disabled = true; btn.textContent = 'Posting…'; msg.textContent = '';
       picksApi({ pin: pin, action: 'chat', text: text }).then(function(res) {
         btn.disabled = false; btn.textContent = 'Post';
@@ -148,10 +148,10 @@
           try { localStorage.removeItem('mvd-chat-pin'); localStorage.removeItem('mvd-chat-name'); } catch (e) {}
           renderComposer();
           var ta2 = document.getElementById('chat-text'); if (ta2) ta2.value = text; // keep what they typed
-          var m2 = document.getElementById('chat-msg'); if (m2) { m2.style.color = '#F87171'; m2.textContent = 'Your PIN changed. Type the new one and post again.'; }
+          var m2 = document.getElementById('chat-msg'); if (m2) { m2.style.color = 'var(--bad)'; m2.textContent = 'Your PIN changed. Type the new one and post again.'; }
           return;
         }
-        if (res.error) { msg.style.color = '#F87171'; msg.textContent = res.error; return; }
+        if (res.error) { msg.style.color = 'var(--bad)'; msg.textContent = res.error; return; }
         var hadPin = !!CHAT.pin;
         rememberChatUser(pin, res.name);
         addLocalMessage(res.name, text);
@@ -160,7 +160,7 @@
         setTimeout(refreshChat, 1500);
       }).catch(function() {
         btn.disabled = false; btn.textContent = 'Post';
-        msg.style.color = '#F87171'; msg.textContent = 'Couldn\'t reach the sheet. Try again.';
+        msg.style.color = 'var(--bad)'; msg.textContent = 'Couldn\'t reach the sheet. Try again.';
       });
     }
 
@@ -213,7 +213,7 @@
       if (!pin) {
         if (!CHAT.open) { CHAT.open = true; renderComposer(); msg = document.getElementById('chat-msg'); }
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        if (msg) { msg.style.color = '#F87171'; msg.textContent = 'Enter your PIN above to react.'; }
+        if (msg) { msg.style.color = 'var(--bad)'; msg.textContent = 'Enter your PIN above to react.'; }
         var pinBox = document.getElementById('chat-pin'); if (pinBox) pinBox.focus();
         return;
       }
@@ -224,7 +224,7 @@
         drawChat(CHAT.msgs);
       }
       picksApi({ pin: pin, action: 'react', row: row, emoji: emoji }).then(function(res) {
-        if (res.error) { if (msg) { msg.style.color = '#F87171'; msg.textContent = res.error; } CHAT.lastKey = ''; refreshChat(); return; }
+        if (res.error) { if (msg) { msg.style.color = 'var(--bad)'; msg.textContent = res.error; } CHAT.lastKey = ''; refreshChat(); return; }
         if (!CHAT.name || !CHAT.pin) rememberChatUser(pin, res.name);
         if (m) { m.reactions = res.reactions || {}; drawChat(CHAT.msgs); }
       }).catch(function() { CHAT.lastKey = ''; refreshChat(); });

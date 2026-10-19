@@ -71,10 +71,10 @@
     function luckTxt(v) { return (v >= 0 ? '+' : '') + v.toFixed(1); }
     function luckVerdict(o) {
       var diff = o.hits - o.exp;
-      if (o.n < 4) return { t: 'Not enough bets yet', c: '#A1A9B6' };
-      if (diff >= 1) return { t: '🔥 Running hot', c: '#34D399' };
+      if (o.n < 4) return { t: 'Not enough bets yet', c: 'var(--t3)' };
+      if (diff >= 1) return { t: '🔥 Running hot', c: 'var(--good)' };
       if (diff <= -1) return { t: '🧊 Running cold (she\'s due)', c: '#93C5FD' };
-      return { t: '⚖️ Right where the odds say', c: '#D1D5DB' };
+      return { t: '⚖️ Right where the odds say', c: 'var(--t2)' };
     }
     function luckSection(rows, season) {
       var L = luckData(rows, season);
@@ -342,7 +342,7 @@
         var d = p.hits - p.exp;
         return '<div class="ob-row"><div class="ob-name">' + coloredText(escHtml(p.name), p.team) +
           '<div class="ob-meta">picked ' + p.n + '× · ' + p.hits + ' hit' + (p.hits === 1 ? '' : 's') + ' vs ' + p.exp.toFixed(1) + ' expected</div></div>' +
-          '<span class="ob-d" style="color:' + (d >= 0 ? '#34D399' : '#F87171') + '">' + luckTxt(d) + '</span></div>';
+          '<span class="ob-d" style="color:' + (d >= 0 ? 'var(--good)' : 'var(--bad)') + '">' + luckTxt(d) + '</span></div>';
       }
       var over = L.filter(function(p) { return p.hits - p.exp >= 0.3; }).sort(function(a, b) { return (b.hits - b.exp) - (a.hits - a.exp); }).slice(0, 5);
       var bust = L.filter(function(p) { return p.hits - p.exp <= -0.3; }).sort(function(a, b) { return (a.hits - a.exp) - (b.hits - b.exp); }).slice(0, 5);
@@ -375,7 +375,7 @@
         if (list.length >= 6) {
           var mid = list[Math.floor(list.length / 2)].avg;
           var safe = list.filter(function(b) { return b.avg < mid; }), bold = list.filter(function(b) { return b.avg >= mid; });
-          function line(lbl, L) { var hits = L.filter(function(b) { return b.hit; }).length, u = L.reduce(function(a, b) { return a + b.u; }, 0); return '<div class="bm-l"><span>' + lbl + '</span><b style="color:' + (u >= 0 ? '#34D399' : '#F87171') + '">' + fmtU(u) + '</b> <i>' + hits + '/' + L.length + '</i></div>'; }
+          function line(lbl, L) { var hits = L.filter(function(b) { return b.hit; }).length, u = L.reduce(function(a, b) { return a + b.u; }, 0); return '<div class="bm-l"><span>' + lbl + '</span><b style="color:' + (u >= 0 ? 'var(--good)' : 'var(--bad)') + '">' + fmtU(u) + '</b> <i>' + hits + '/' + L.length + '</i></div>'; }
           h = line('🛡️ Safer', safe) + line('🎲 Bolder', bold);
         }
         return '<div class="lk-card" style="--pc:' + personColor(n) + '"><div class="lk-name">' + n + '</div>' +
@@ -422,10 +422,10 @@
     }
     function pressureVerdict(s) {
       var b = s.behind, base = s.all.n ? s.all.h / s.all.n : 0;
-      return b.n < 4 ? { t: 'Not enough pressure spots yet', c: '#A1A9B6' }
+      return b.n < 4 ? { t: 'Not enough pressure spots yet', c: 'var(--t3)' }
         : b.h / b.n - base >= 0.08 ? { t: '🧊 Ice in her veins', c: '#93C5FD' }
-        : b.h / b.n - base <= -0.08 ? { t: '😰 Feels the pressure', c: '#FCA5A5' }
-        : { t: '😐 Same either way', c: '#D1D5DB' };
+        : b.h / b.n - base <= -0.08 ? { t: '😰 Feels the pressure', c: 'var(--bad-2)' }
+        : { t: '😐 Same either way', c: 'var(--t2)' };
     }
     function pressureSection(rows, season) {
       var S = pressureStats(rows, season);
@@ -482,7 +482,7 @@
         function person(n) {
           var m = me[n], c = personColor(n);
           return '<div class="pc-person"><span style="color:' + c + ';font-weight:700">' + n + '</span><span class="u-soft">' +
-            (m.picked ? 'picked ' + m.picked + 'x · paid ' + m.paid + 'x · <span style="font-weight:700;color:' + (m.u > 0 ? '#34D399' : m.u < 0 ? '#F87171' : '#A1A9B6') + '">' + fmtU(m.u) + '</span>'
+            (m.picked ? 'picked ' + m.picked + 'x · paid ' + m.paid + 'x · <span style="font-weight:700;color:' + (m.u > 0 ? 'var(--good)' : m.u < 0 ? 'var(--bad)' : 'var(--t3)') + '">' + fmtU(m.u) + '</span>'
               : '<span class="u-faint">never picked from them</span>') + '</span></div>';
         }
         // Offered right now (Rosters tab)
@@ -512,7 +512,7 @@
           var oc = TEAM_COLORS[opp];
           var ftd = r.firstScorer ? (scorerTeam(r) === team ? '<b style="color:' + tc.dark + '">' + escHtml(r.firstScorer) + '</b>' : '<span class="u-muted">' + escHtml(r.firstScorer) + '</span>') : '<span class="u-faint">Not played</span>';
           return '<div class="pc-game tc-game"><span class="u-muted">' + r.year + ' ' + wkName(r.week) + '</span>' +
-            '<span>' + (r.homeTeam === team ? 'vs ' : '@ ') + '<b style="color:' + (oc ? oc.dark : '#F3F4F6') + '">' + (TEAM_ABBR[opp] || opp).toUpperCase() + '</b> · ' + ftd + '</span>' +
+            '<span>' + (r.homeTeam === team ? 'vs ' : '@ ') + '<b style="color:' + (oc ? oc.dark : 'var(--t1)') + '">' + (TEAM_ABBR[opp] || opp).toUpperCase() + '</b> · ' + ftd + '</span>' +
             '<span>' + res1(g.by.Maria) + res1(g.by.Danielle) + '</span></div>';
         }).join('');
         var nfl = Object.keys(NFL).filter(function(k) { return NFL[k].team === team && SKILL_POS[NFL[k].pos] && NFL[k].inj; }).map(function(k) { return NFL[k]; });

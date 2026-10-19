@@ -354,9 +354,9 @@
         nb.disabled = true;
         picksApi({ pin: SUB.pin, action: 'weeklynote', key: key, text: text }).then(function(x) {
           nb.disabled = false;
-          if (x.error) { msg.style.color = '#F87171'; msg.textContent = x.error; return; }
-          window.WEEKLY_NOTES = x.notes || {}; msg.style.color = '#6EE7B7'; msg.textContent = 'Saved.';
-        }).catch(function() { nb.disabled = false; msg.style.color = '#F87171'; msg.textContent = 'Couldn\'t reach the script.'; });
+          if (x.error) { msg.style.color = 'var(--bad)'; msg.textContent = x.error; return; }
+          window.WEEKLY_NOTES = x.notes || {}; msg.style.color = 'var(--good-2)'; msg.textContent = 'Saved.';
+        }).catch(function() { nb.disabled = false; msg.style.color = 'var(--bad)'; msg.textContent = 'Couldn\'t reach the script.'; });
       });
       var fu = document.getElementById('wk-fut');
       if (fu) loadScriptOnce('js/futures.js').then(function() { return futLoad(); }).then(function(F) {

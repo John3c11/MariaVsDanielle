@@ -69,7 +69,7 @@
             '<div class="mc-pc"><div class="mc-pc-r mc-pc-h"><span>Real price</span><span>Picks</span><span>Typical real</span><span>Its estimate</span></div>' +
             P.ranges.filter(function(r) { return r.n; }).map(function(r) {
               var off = r.est && r.real ? Math.round((r.est - r.real) / r.real * 100) : 0;
-              return '<div class="mc-pc-r"><span>' + r.label + '</span><span>' + r.n + '</span><span>+' + r.real + '</span><span>+' + r.est + ' <small style="color:' + (Math.abs(off) <= 20 ? '#6EE7B7' : '#FCA5A5') + '">' + (off > 0 ? '+' : '') + off + '%</small></span></div>';
+              return '<div class="mc-pc-r"><span>' + r.label + '</span><span>' + r.n + '</span><span>+' + r.real + '</span><span>+' + r.est + ' <small style="color:' + (Math.abs(off) <= 20 ? 'var(--good-2)' : 'var(--bad-2)') + '">' + (off > 0 ? '+' : '') + off + '%</small></span></div>';
             }).join('') + '</div>';
           if (P.check && P.check.length) h += '<details class="u-mt-8px an-more"><summary>Biggest misses (' + P.check.length + ')</summary>' +
             '<div class="mc-pc">' + P.check.map(function(c) {

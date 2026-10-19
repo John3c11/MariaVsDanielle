@@ -309,7 +309,7 @@
         sp.style.setProperty('--drift', (Math.random() * 80 - 40) + 'px');
         sp.style.setProperty('--spin', th.snow ? '0deg' : (Math.random() * 360 - 180) + 'deg');
         if (th.snow) sp.style.color = '#FFFFFF';
-        if (window.HOLIDAY_THEME === 'playoffs') sp.style.color = '#FCD34D';
+        if (window.HOLIDAY_THEME === 'playoffs') sp.style.color = 'var(--warn)';
         if (th.tint && sp.textContent === '✡') sp.style.color = th.tint;
         fx.appendChild(sp);
       }

@@ -299,7 +299,7 @@
         var S = R[0].S, c = labWhoColor(R[0].who);
         h += '<div class="pf-tiles lab-tiles">' +
           labTile('Correct', S.h + '/' + S.n, (S.n ? Math.round(S.h / S.n * 100) + '% hit rate' : '') + (S.v ? ' · ' + S.v + ' void' : ''), c) +
-          (S.money ? labTile('Units', '<span style="color:' + (S.u >= 0 ? '#34D399' : '#F87171') + '">' + fmtU(S.u) + '</span>', fmtD(S.d) + (R[0].who === 'Machine' && R[0].S.list.some(function(p) { return p.est && p.hit; }) ? ' · some est. odds' : ''), c) :
+          (S.money ? labTile('Units', '<span style="color:' + (S.u >= 0 ? 'var(--good)' : 'var(--bad)') + '">' + fmtU(S.u) + '</span>', fmtD(S.d) + (R[0].who === 'Machine' && R[0].S.list.some(function(p) { return p.est && p.hit; }) ? ' · some est. odds' : ''), c) :
             labTile('Units', '—', 'friends don\'t have odds', c)) +
           labTile('Avg odds', S.oddsN ? fmtOdds(S.oddsSum / S.oddsN) : '—', S.gamesN + ' game' + (S.gamesN === 1 ? '' : 's'), c) +
           labTile('Best hit', S.best ? escHtml(S.best.name) : '—', S.best ? (S.best.odds ? fmtOdds(S.best.odds) + ' · ' : '') + S.best.year + ' ' + wkName(S.best.week) : '', c) +
@@ -373,7 +373,7 @@
         h += '<button class="lab-st-r" style="' + cols + '" data-lab-split="' + escHtml(k) + '"><span class="lab-st-l">' + labSplitLabel(k, key) + '</span>' + g.by.map(function(b, i) {
           if (!b.n) return '<span class="lab-st-c dim">—</span>';
           return '<span class="lab-st-c' + (R.length > 1 && i === bi ? ' lead' : '') + '"><b>' + b.h + '/' + b.n + '</b> <i>' + Math.round(b.h / b.n * 100) + '%</i>' +
-            (b.money ? '<em style="color:' + (b.u > 0 ? '#34D399' : b.u < 0 ? '#F87171' : '#A1A9B6') + '">' + fmtU(b.u) + '</em>' : '') + '</span>';
+            (b.money ? '<em style="color:' + (b.u > 0 ? 'var(--good)' : b.u < 0 ? 'var(--bad)' : 'var(--t3)') + '">' + fmtU(b.u) + '</em>' : '') + '</span>';
         }).join('') + '</button>';
       });
       return h + '</div>' + (more > 0 ? '<div class="u-m-2px-0-12px mc-note">Top ' + cut + ' by picks. ' + more + ' more aren\'t shown.</div>' : '');
@@ -392,7 +392,7 @@
     function labPickHtml(p) {
       var c = labWhoColor(p.who);
       var res = p.void ? '<span class="lab-r void">void</span>' : p.hit ? '<span class="lab-r hit">✅</span>' : '<span class="lab-r miss">❌</span>';
-      var u = p.units === null ? '' : '<b class="lab-u" style="color:' + (p.units > 0 ? '#34D399' : p.units < 0 ? '#F87171' : '#A1A9B6') + '">' + (p.units ? fmtU(p.units) : '0') + '</b>';
+      var u = p.units === null ? '' : '<b class="lab-u" style="color:' + (p.units > 0 ? 'var(--good)' : p.units < 0 ? 'var(--bad)' : 'var(--t3)') + '">' + (p.units ? fmtU(p.units) : '0') + '</b>';
       return '<div class="lab-pk" style="--pc:' + c + '"><div class="lab-pk-m"><div class="lab-pk-n">' + res + ' ' + escHtml(p.name) + (p.odds ? ' <small>' + fmtOdds(p.odds) + (p.est ? ' est' : '') + '</small>' : '') + '</div>' +
         '<div class="lab-pk-s"><span style="color:' + c + ';font-weight:700">' + escHtml(p.who) + '</span> · ' + p.year + ' ' + wkName(p.week) + (p.slot ? ' · ' + escHtml(p.slot) : '') + ' · ' +
         (typeof gameLinkAttr === 'function' ? '<span ' + gameLinkAttr(p.year, p.game) + '>' + escHtml(teamNick(p.awayTeam)) + ' @ ' + escHtml(teamNick(p.homeTeam)) + ' ›</span>' : escHtml(teamNick(p.awayTeam)) + ' @ ' + escHtml(teamNick(p.homeTeam))) + (!p.hit && p.scorer ? ' · 🏈 ' + escHtml(p.scorer) : '') + '</div></div>' + u +

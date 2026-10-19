@@ -386,7 +386,7 @@
           function bar(label, v, c) {
             return '<div class="u-d-grid u-gtc-62px-1fr-38px u-gap-8px u-ai-center u-fs-11px u-p-2px-0">' +
               '<span style="color:' + c + ';font-weight:700">' + label + '</span>' +
-              '<div class="u-h-7px u-r-4px u-bg-rgba-255-255-255-0-06"><div style="width:' + Math.round(v * 100) + '%;height:7px;border-radius:4px;background:' + c + '"></div></div>' +
+              '<div class="u-h-7px u-r-4px u-bg-rgba-255-255-255-0-06"><div style="width:' + Math.round(v * 100) + '%;height:7px;border-radius:var(--r-xs);background:' + c + '"></div></div>' +
               '<span class="u-ta-right u-fw-700">' + Math.round(v * 100) + '%</span></div>';
           }
           var inner = '<div class="u-bg-rgba-255-255-255-0-05 u-r-10px u-p-8px-14px">';
@@ -527,8 +527,8 @@
 
         function tdTag(pickedBy) {
           if (pickedBy.has('Maria') && pickedBy.has('Danielle')) return '<span class="u-fs-10px u-fw-600 u-c-violet u-bg-rgba-167-139-250-0-18 u-r-4px u-p-2px-6px">Both</span>';
-          if (pickedBy.has('Maria')) return '<span style="font-size:10px;font-weight:600;color:' + SB_M + ';background:' + hexA(SB_M, 0.15) + ';border-radius:4px;padding:2px 6px">Maria</span>';
-          if (pickedBy.has('Danielle')) return '<span style="font-size:10px;font-weight:600;color:' + SB_D + ';background:' + hexA(SB_D, 0.16) + ';border-radius:4px;padding:2px 6px">Danielle</span>';
+          if (pickedBy.has('Maria')) return '<span style="font-size:10px;font-weight:600;color:' + SB_M + ';background:' + hexA(SB_M, 0.15) + ';border-radius:var(--r-xs);padding:2px 6px">Maria</span>';
+          if (pickedBy.has('Danielle')) return '<span style="font-size:10px;font-weight:600;color:' + SB_D + ';background:' + hexA(SB_D, 0.16) + ';border-radius:var(--r-xs);padding:2px 6px">Danielle</span>';
           return '<span class="ui-tiny">—</span>';
         }
 

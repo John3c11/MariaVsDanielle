@@ -51,7 +51,7 @@
     function jobsHtml(J, ago) {
       function dur(ms) { return ms == null ? '' : ms < 1000 ? ms + ' ms' : ms < 60000 ? (ms / 1000).toFixed(1) + ' s' : Math.floor(ms / 60000) + ' min ' + Math.round(ms % 60000 / 1000) + ' s'; }
       function bar(label, v, max, unit) {
-        var p = Math.min(100, Math.round(v / max * 100)), c = p >= 80 ? '#F87171' : p >= 50 ? '#FCD34D' : '#34D399';
+        var p = Math.min(100, Math.round(v / max * 100)), c = p >= 80 ? 'var(--bad)' : p >= 50 ? 'var(--warn)' : 'var(--good)';
         return '<div class="jb-q"><div class="jb-ql"><span>' + label + '</span><b>' + v.toLocaleString('en-US') + ' / ' + max.toLocaleString('en-US') + unit + '</b></div><div class="jb-bar"><i style="width:' + Math.max(2, p) + '%;background:' + c + '"></i></div></div>';
       }
       var bad = 0;
@@ -90,8 +90,8 @@
         b.disabled = true; b.textContent = 'Fixing…';
         picksApi({ pin: SUB.pin, action: 'fixtrig' }).then(function(r) {
           var m = document.getElementById('jb-msg');
-          if (r.error) { b.disabled = false; b.textContent = '🔧 Fix timers'; if (m) { m.style.color = '#F87171'; m.textContent = r.error; } return; }
-          if (m) { m.style.color = '#6EE7B7'; m.innerHTML = r.done.map(escHtml).join('<br>'); }
+          if (r.error) { b.disabled = false; b.textContent = '🔧 Fix timers'; if (m) { m.style.color = 'var(--bad)'; m.textContent = r.error; } return; }
+          if (m) { m.style.color = 'var(--good-2)'; m.innerHTML = r.done.map(escHtml).join('<br>'); }
           b.textContent = 'Done ✓';
           setTimeout(adminStatus, 2500);
         }).catch(function() { b.disabled = false; b.textContent = '🔧 Fix timers'; });
@@ -320,11 +320,11 @@
       }).join('') + '<div class="u-ta-left submit-msg" id="pt-msg"></div>';
       box.querySelectorAll('[data-pt]').forEach(function(sel) {
         sel.addEventListener('change', function() {
-          var m = document.getElementById('pt-msg'); m.style.color = '#A1A9B6'; m.textContent = 'Saving…';
+          var m = document.getElementById('pt-msg'); m.style.color = 'var(--t3)'; m.textContent = 'Saving…';
           picksApi({ pin: SUB.pin, action: 'settheme', name: sel.getAttribute('data-pt'), theme: sel.value }).then(function(r) {
-            if (r.error) { m.style.color = '#F87171'; m.textContent = r.error; return; }
-            m.style.color = '#6EE7B7'; m.textContent = '✅ ' + sel.getAttribute('data-pt') + ': ' + THEME_NAMES[sel.value] + '. It shows the next time they open the site.';
-          }).catch(function() { m.style.color = '#F87171'; m.textContent = 'Couldn\'t reach the script.'; });
+            if (r.error) { m.style.color = 'var(--bad)'; m.textContent = r.error; return; }
+            m.style.color = 'var(--good-2)'; m.textContent = '✅ ' + sel.getAttribute('data-pt') + ': ' + THEME_NAMES[sel.value] + '. It shows the next time they open the site.';
+          }).catch(function() { m.style.color = 'var(--bad)'; m.textContent = 'Couldn\'t reach the script.'; });
         });
       });
     }
@@ -498,7 +498,7 @@
           h += '<div class="u-fs-13px u-fw-700 u-mb-12px">' + issues.length + ' thing' + (issues.length > 1 ? 's' : '') + ' to look at' + (bad ? ' · ' + bad + ' affect the totals' : '') + '</div>';
           issues.sort(function(a, b) { return (a.level === 'bad' ? 0 : 1) - (b.level === 'bad' ? 0 : 1); });
           var card = function(x) {
-            return '<div class="adm-issue ' + (x.level === 'bad' ? 'bad' : '') + '"><div class="t" style="color:' + (x.level === 'bad' ? '#FCA5A5' : '#FCD34D') + '">' + x.title + '</div>' +
+            return '<div class="adm-issue ' + (x.level === 'bad' ? 'bad' : '') + '"><div class="t" style="color:' + (x.level === 'bad' ? 'var(--bad-2)' : 'var(--warn)') + '">' + x.title + '</div>' +
               (x.where ? '<div class="u-fs-11px u-c-muted u-mb-3px">' + x.where + '</div>' : '') +
               '<div>' + escHtml(x.text) + '</div><div class="fix">→ ' + escHtml(x.fix) + '</div>' +
               '<div class="dc-act"><button class="adm-btn green" data-dcok="' + x.key + '" data-dclabel="' + escHtml((x.title + ': ' + x.text).slice(0, 90)) + '">✓ It\'s fine</button>' +

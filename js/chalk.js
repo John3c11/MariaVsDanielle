@@ -99,9 +99,9 @@
             ? 'Going with their gut is <b>' + fmtU(diff) + '</b> better than playing it safe.'
             : 'Playing it safe would\'ve been <b>' + fmtU(-diff) + '</b> better.') + '</div>' +
           '<div class="ck-vs">' +
-            '<div class="ck-side"><div class="ck-k" style="color:' + DUO_C + '">Maria + Danielle</div><div class="ck-u" style="color:' + (ru >= 0 ? '#34D399' : '#F87171') + '">' + fmtU(ru) + '</div><div class="ck-s">' + fmtDWhole(rd) +  ' · ' + rh + ' of ' + rn + ' bets hit (' + (rn ? Math.round(rh / rn * 100) : 0) + '%)</div></div>' +
+            '<div class="ck-side"><div class="ck-k" style="color:' + DUO_C + '">Maria + Danielle</div><div class="ck-u" style="color:' + (ru >= 0 ? 'var(--good)' : 'var(--bad)') + '">' + fmtU(ru) + '</div><div class="ck-s">' + fmtDWhole(rd) +  ' · ' + rh + ' of ' + rn + ' bets hit (' + (rn ? Math.round(rh / rn * 100) : 0) + '%)</div></div>' +
             '<div class="ck-mid">vs</div>' +
-            '<div class="ck-side"><div class="ck-k" style="color:' + CHALK_C + '">The Chalk Team</div><div class="ck-u" style="color:' + (cu >= 0 ? '#34D399' : '#F87171') + '">' + fmtU(cu) + '</div><div class="ck-s">' + fmtDWhole(cd) + ' · ' + ch + ' of ' + cn + ' bets hit (' + (cn ? Math.round(ch / cn * 100) : 0) + '%)</div></div>' +
+            '<div class="ck-side"><div class="ck-k" style="color:' + CHALK_C + '">The Chalk Team</div><div class="ck-u" style="color:' + (cu >= 0 ? 'var(--good)' : 'var(--bad)') + '">' + fmtU(cu) + '</div><div class="ck-s">' + fmtDWhole(cd) + ' · ' + ch + ' of ' + cn + ' bets hit (' + (cn ? Math.round(ch / cn * 100) : 0) + '%)</div></div>' +
           '</div>' + chart +
           (best.length || worst.length ? '<div class="ck-swings">' + best.map(swingHtml).join('') + worst.map(swingHtml).join('') + '</div>' : '') +
           '<div class="ck-note">For every game, the Chalk Team is both of them taking the shorter-priced of their two picks on each side (the sheet only has odds for players they picked). Same bets, same stakes: a hit pays the odds, a miss costs a unit per pick, and "not offered" doesn\'t count.</div>' +

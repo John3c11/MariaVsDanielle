@@ -59,7 +59,7 @@
         '<label class="join-l" for="jn-pin2">Type it again</label>' +
         '<input id="jn-pin2" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password">' +
         '<div class="u-mt"><button class="primary-btn" id="jn-go">Ask to join</button></div>' +
-        '<div class="submit-msg" id="jn-msg" style="color:#F87171">' + escHtml(msg || '') + '</div>' +
+        '<div class="submit-msg" id="jn-msg" style="color:var(--bad)">' + escHtml(msg || '') + '</div>' +
         '<div class="u-mt"><button class="link-btn" id="jn-login">Already in? Log in</button></div>' +
       '</div>';
       document.getElementById('jn-name').focus();
@@ -71,7 +71,7 @@
       if (SUB.busy) return;
       var name = document.getElementById('jn-name').value.trim(), pin = document.getElementById('jn-pin').value.trim(),
         pin2 = document.getElementById('jn-pin2').value.trim(), msg = document.getElementById('jn-msg');
-      function say(t, ok) { msg.style.color = ok ? '#A1A9B6' : '#F87171'; msg.textContent = t; }
+      function say(t, ok) { msg.style.color = ok ? 'var(--t3)' : 'var(--bad)'; msg.textContent = t; }
       if (name.length < 2) return say('Pick a name with at least 2 letters.');
       if (!/^\d{4}$/.test(pin)) return say('Your PIN has to be 4 digits.');
       if (pin !== pin2) return say('The two PINs don\'t match.');
@@ -105,7 +105,7 @@
           '<div class="ui-intro u-mb-m">Enter your PIN to see what you can do</div>' +
           '<input id="pin-input" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off">' +
           '<div class="u-mt"><button class="primary-btn" id="pin-go">Enter</button></div>' +
-          '<div class="submit-msg" id="pin-msg" style="color:#F87171">' + (msg || '') + '</div>' +
+          '<div class="submit-msg" id="pin-msg" style="color:var(--bad)">' + (msg || '') + '</div>' +
         '</div>';
       var input = document.getElementById('pin-input');
       if (!successHtml) input.focus();
@@ -120,7 +120,7 @@
       var pin = (input.value || '').trim();
       if (pin.length !== 4) { document.getElementById('pin-msg').textContent = 'PINs are 4 digits.'; return; }
       SUB.busy = true;
-      document.getElementById('pin-msg').style.color = '#A1A9B6';
+      document.getElementById('pin-msg').style.color = 'var(--t3)';
       document.getElementById('pin-msg').textContent = 'Checking…';
       picksApi({ pin: pin }).then(function(res) {
         SUB.busy = false;
@@ -190,7 +190,7 @@
       function column(side, team, players) {
         var tc = TEAM_COLORS[team] || { bg: '#1C1C1E', text: '#FFFFFF', primary: '#1C1C1E' };
         var out = '<div>' +
-          '<div class="team-header-bar" style="background:' + (tc.bg || tc.primary) + ';color:' + tc.text + ';border-radius:8px;margin-bottom:8px">' + team + '</div>';
+          '<div class="team-header-bar" style="background:' + (tc.bg || tc.primary) + ';color:' + tc.text + ';border-radius:var(--r-s);margin-bottom:8px">' + team + '</div>';
         if (!players.length) out += '<div class="ui-note u-pad-s">No players listed on the Rosters tab.</div>';
         var taken = g.taken || [];
         players.forEach(function(name, i) {
@@ -237,7 +237,7 @@
         var tc = TEAM_COLORS[team] || { bg: '#1C1C1E', text: '#FFFFFF', primary: '#1C1C1E' };
         var selected = (side === 'home' ? SUB.homeSel : SUB.awaySel) === name;
         btn.style.background = selected ? (tc.bg || tc.primary) : 'rgba(255,255,255,0.04)';
-        btn.style.color = selected ? tc.text : '#F3F4F6';
+        btn.style.color = selected ? tc.text : 'var(--t1)';
         btn.style.borderColor = selected ? (tc.dark || tc.primary) : 'rgba(255,255,255,0.12)';
         btn.style.fontWeight = selected ? '700' : '500';
         btn.classList.toggle('chip-on', selected);
@@ -264,7 +264,7 @@
         SUB.busy = false;
         btn.textContent = 'Submit Picks';
         var msg = document.getElementById('sub-msg');
-        msg.style.color = '#F87171';
+        msg.style.color = 'var(--bad)';
         msg.textContent = text;
         updateChips();
       }
@@ -414,7 +414,7 @@
       var body = playerScreen('fpick', '');
       function column(side, team, players) {
         var tc = TEAM_COLORS[team] || { bg: '#1C1C1E', text: '#FFFFFF', primary: '#1C1C1E' };
-        return '<div><div class="team-header-bar" style="background:' + (tc.bg || tc.primary) + ';color:' + tc.text + ';border-radius:8px;margin-bottom:8px">' + team + '</div>' +
+        return '<div><div class="team-header-bar" style="background:' + (tc.bg || tc.primary) + ';color:' + tc.text + ';border-radius:var(--r-s);margin-bottom:8px">' + team + '</div>' +
           players.map(function(n) {
             return '<button class="pick-chip fr-chip" data-fs="' + side + '" data-fn="' + escHtml(n) + '">' + escHtml(n) + '</button>';
           }).join('') + '</div>';
@@ -430,7 +430,7 @@
           var side = b.getAttribute('data-fs'), on = sel[side] === b.getAttribute('data-fn');
           var tc = TEAM_COLORS[side === 'home' ? g.home : g.away] || { bg: '#1F2937', text: '#FFFFFF', primary: '#1F2937' };
           b.style.background = on ? (tc.bg || tc.primary) : 'rgba(255,255,255,0.04)';
-          b.style.color = on ? tc.text : '#F3F4F6';
+          b.style.color = on ? tc.text : 'var(--t1)';
           b.style.borderColor = on ? (tc.dark || tc.primary) : 'rgba(255,255,255,0.12)';
           b.classList.toggle('chip-on', on);
         });
@@ -444,13 +444,13 @@
         var btn = this, msg = document.getElementById('fr-msg');
         btn.disabled = true; btn.textContent = 'Saving…';
         picksApi({ pin: SUB.pin, action: 'fpick', week: g.week, game: g.game, home: sel.home, away: sel.away }).then(function(r) {
-          if (r.error) { btn.disabled = false; btn.textContent = 'Save Picks'; msg.style.color = '#F87171'; msg.textContent = r.error; return; }
+          if (r.error) { btn.disabled = false; btn.textContent = 'Save Picks'; msg.style.color = 'var(--bad)'; msg.textContent = r.error; return; }
           g.myHome = r.homePick; g.myAway = r.awayPick;
           CROWD.data = null;
           renderFriendHome(res);
           var m = document.getElementById('fr-msg');
-          if (m) { m.style.color = '#6EE7B7'; m.textContent = '✅ Saved ' + weekName(r.week) + ': ' + r.homePick + ' / ' + r.awayPick; }
-        }).catch(function() { btn.disabled = false; btn.textContent = 'Save Picks'; msg.style.color = '#F87171'; msg.textContent = 'Couldn\'t reach the sheet. Try again.'; });
+          if (m) { m.style.color = 'var(--good-2)'; m.textContent = '✅ Saved ' + weekName(r.week) + ': ' + r.homePick + ' / ' + r.awayPick; }
+        }).catch(function() { btn.disabled = false; btn.textContent = 'Save Picks'; msg.style.color = 'var(--bad)'; msg.textContent = 'Couldn\'t reach the sheet. Try again.'; });
       });
       paint();
     }
@@ -560,7 +560,7 @@
 
         var h = '<div class="u-mb-m pf-big">' +
           '<div><b>' + wins + '/' + counted.length + '</b><span>' + CURRENT_YEAR + ' record</span></div>' +
-          '<div><b style="color:' + (units >= 0 ? '#34D399' : '#F87171') + '">' + fmtU(units) + '</b><span>Units</span></div>' +
+          '<div><b style="color:' + (units >= 0 ? 'var(--good)' : 'var(--bad)') + '">' + fmtU(units) + '</b><span>Units</span></div>' +
           '<div><b>' + open.length + '</b><span>Games left to pick</span></div></div>';
 
         if (open.length) {
@@ -573,7 +573,7 @@
           var otherIn = o && o.homePick;
           return '<div class="adm-row"><div><div class="ui-label">' + weekName(r.week).toUpperCase() + ' · ' + escHtml(r.slot).toUpperCase() + '</div>' +
             '<div class="u-mt-xs">' + picksOf(r) + '</div><div class="ui-small">' + oddsOf(r) + '</div></div>' +
-            '<span class="sch-chip" style="' + (otherIn ? 'color:#6EE7B7;background:rgba(52,211,153,0.14)">🔒 Locked' : 'color:#FCD34D;background:rgba(251,191,36,0.14)">✏️ Can change') + '</span></div>';
+            '<span class="sch-chip" style="' + (otherIn ? 'color:var(--good-2);background:rgba(52,211,153,0.14)">🔒 Locked' : 'color:var(--warn);background:rgba(251,191,36,0.14)">✏️ Can change') + '</span></div>';
         }).join('') : '<div class="ui-intro u-pad-s">Nothing pending.</div>';
 
         h += '<div class="ui-label u-mt">RECENT RESULTS</div>';
@@ -581,8 +581,8 @@
           var win = r.correct === 'Yes', u = r.units, no = r.notOffered;
           return '<div class="adm-row"><div><div class="ui-label">' + weekName(r.week).toUpperCase() + ' · ' + escHtml(r.slot).toUpperCase() + '</div>' +
             '<div class="u-mt-xs">' + picksOf(r) + '</div><div class="ui-small">First TD: ' + escHtml(r.scorer) + '</div></div>' +
-            '<div class="u-right"><div style="font-weight:800;color:' + (no ? '#A1A9B6' : win ? '#34D399' : '#F87171') + '">' + (no ? 'NOT OFFERED' : win ? 'WIN' : 'LOSS') + '</div>' +
-            '<div style="font-size:12px;color:' + (u > 0 ? '#34D399' : u < 0 ? '#F87171' : '#A1A9B6') + '">' + (u > 0 ? '+' : '') + u + 'u</div></div></div>';
+            '<div class="u-right"><div style="font-weight:800;color:' + (no ? 'var(--t3)' : win ? 'var(--good)' : 'var(--bad)') + '">' + (no ? 'NOT OFFERED' : win ? 'WIN' : 'LOSS') + '</div>' +
+            '<div style="font-size:12px;color:' + (u > 0 ? 'var(--good)' : u < 0 ? 'var(--bad)' : 'var(--t3)') + '">' + (u > 0 ? '+' : '') + u + 'u</div></div></div>';
         }).join('') : '<div class="ui-intro u-pad-s">No results yet.</div>';
 
         body.innerHTML = h;

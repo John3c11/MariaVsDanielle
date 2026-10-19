@@ -190,7 +190,7 @@
       var done = RP.i === RP.plays.length - 1;
       function side(c, pts) {
         var t = resolveTeam(c.team.displayName), tc = TEAM_COLORS[t] || {}, has = !done && p.offName && espnTeamKey(p.offName) === espnTeamKey(c.team.displayName);
-        return '<div class="gd-team" style="--tc:' + (tc.dark || '#F3F4F6') + '">' + teamLogo(t, 'gd-logo') +
+        return '<div class="gd-team" style="--tc:' + (tc.dark || 'var(--t1)') + '">' + teamLogo(t, 'gd-logo') +
           '<div class="gd-abbr">' + escHtml(c.team.abbreviation || teamNick(t)) + (has ? ' <span class="gd-ball">🏈</span>' : '') + '</div><div class="gd-pts">' + pts + '</div></div>';
       }
       var h = '<div class="gd-score">' + side(H, p.hs) + '<div class="gd-mid"><span class="rp-tag">REPLAY</span><div class="gd-clock">' + (done ? 'Final' : (p.q ? (p.q > 4 ? 'OT' : 'Q' + p.q) + ' ' : '') + escHtml(p.clock)) + '</div>' +
@@ -245,7 +245,7 @@
       var names = who.map(function(x) { return x.who; }).filter(function(n, i, a) { return a.indexOf(n) === i; });
       var p0 = who[0], el = document.createElement('div');
       el.className = 'gd-takeover' + (p0 ? ' win' : '');
-      el.style.setProperty('--pc', p0 ? personColor(p0.who) : '#A1A9B6');
+      el.style.setProperty('--pc', p0 ? personColor(p0.who) : 'var(--t3)');
       var team = p0 ? p0.team : (typeof ROSTER_INFO !== 'undefined' && ROSTER_INFO[playerKey(first)] ? ROSTER_INFO[playerKey(first)].team : '');
       el.innerHTML = '<div class="gd-to-in"><div class="gd-to-k">TOUCHDOWN</div>' + (team ? headshot(first, team, 120) : '') +
         '<div class="gd-to-n">' + escHtml(first) + '</div><div class="gd-to-r">' +

@@ -355,7 +355,7 @@
           var opp = myTeam === g.home ? g.away : myTeam === g.away ? g.home : '';
           var oppTc = TEAM_COLORS[opp];
           var myTc = TEAM_COLORS[myTeam];
-          var vs = opp ? '<span style="color:' + (myTc ? myTc.dark : '#F3F4F6') + ';font-weight:700">' + abbr(myTeam) + '</span> vs <span style="color:' + (oppTc ? oppTc.dark : '#F3F4F6') + ';font-weight:600">' + abbr(opp) + '</span>'
+          var vs = opp ? '<span style="color:' + (myTc ? myTc.dark : 'var(--t1)') + ';font-weight:700">' + abbr(myTeam) + '</span> vs <span style="color:' + (oppTc ? oppTc.dark : 'var(--t1)') + ';font-weight:600">' + abbr(opp) + '</span>'
                        : (abbr(g.home) + ' vs ' + abbr(g.away));
           var chips = g.by.map(function(n) {
             var c = personColor(n);
@@ -529,7 +529,7 @@
         if (p.picks.Danielle) bits.push('<span style="color:' + SB_D + '">Danielle x' + p.picks.Danielle + '</span>');
         if (tds) bits.push('<span class="u-good">🏈 ' + tds + ' first TD' + (tds > 1 ? 's' : '') + '</span>');
         return '<div class="u-p-5px-0 u-bb-1px-solid-rgba-255-255-255-0-05 u-ai-center player-row">' +
-          '<span class="pos-label" style="min-width:74px;color:' + (tc ? tc.dark : '#A1A9B6') + '">' + nick + '</span>' +
+          '<span class="pos-label" style="min-width:74px;color:' + (tc ? tc.dark : 'var(--t3)') + '">' + nick + '</span>' +
           '<span class="u-grow player-name-text"><span>' + p.name + '</span></span>' +
           '<span class="ui-tiny u-right">' + bits.join(' <span class="u-faint">·</span> ') +
           (p.last ? ' <span class="u-faint">· last ' + p.last.year + ' ' + wkName(p.last.week) + '</span>' : '') + '</span>' +

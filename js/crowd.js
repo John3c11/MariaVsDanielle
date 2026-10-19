@@ -187,7 +187,7 @@
             var g = G[k], sk = playerKey(g.scorer);
             function pk(p, team) {
               var hit = g.scorer && playerKey(p) === sk;
-              return '<span style="' + (hit ? 'color:#34D399;font-weight:800' : '') + '">' + escHtml(p) + (hit ? ' ✅' : '') + '</span>';
+              return '<span style="' + (hit ? 'color:var(--good);font-weight:800' : '') + '">' + escHtml(p) + (hit ? ' ✅' : '') + '</span>';
             }
             return '<div class="sch-game"><div class="sch-top"><span class="sch-slot">' + weekName(g.week) + ' · ' + escHtml(g.slot) + '</span>' +
               '<span class="sch-ko">' + (g.scorer ? '🏈 ' + escHtml(g.scorer) : '⏳ In progress') + '</span></div>' +

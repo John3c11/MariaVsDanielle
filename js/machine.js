@@ -198,7 +198,7 @@
           if (g.settled) units = r.netUnits;
         }
         h += '<div class="mch-line"><span class="mch-who" style="color:' + mcColor(w) + '">' + (w === 'Machine' ? '🤖 Machine' : w) + '</span><span class="mch-picks">' + line + '</span>' +
-          (units === null ? '' : '<b class="mch-units" style="color:' + (units > 0 ? '#34D399' : units < 0 ? '#F87171' : '#A1A9B6') + '">' + fmtU(units) + '</b>') + '</div>';
+          (units === null ? '' : '<b class="mch-units" style="color:' + (units > 0 ? 'var(--good)' : units < 0 ? 'var(--bad)' : 'var(--t3)') + '">' + fmtU(units) + '</b>') + '</div>';
       });
       return h + mcWhyHtml(g) + '</div>';
     }

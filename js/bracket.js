@@ -193,15 +193,15 @@
       if (!go) return;
       function tryPin() {
         var pin = inp.value.trim(), msg = document.getElementById('br-pin-msg');
-        if (!/^\d{4}$/.test(pin)) { msg.style.color = '#F87171'; msg.textContent = 'PINs are 4 digits.'; return; }
-        go.disabled = true; msg.style.color = '#A1A9B6'; msg.textContent = 'Checking…';
+        if (!/^\d{4}$/.test(pin)) { msg.style.color = 'var(--bad)'; msg.textContent = 'PINs are 4 digits.'; return; }
+        go.disabled = true; msg.style.color = 'var(--t3)'; msg.textContent = 'Checking…';
         picksApi({ pin: pin, action: 'brmine' }).then(function(r) {
           go.disabled = false;
-          if (r.error) { msg.style.color = '#F87171'; msg.textContent = r.error; return; }
+          if (r.error) { msg.style.color = 'var(--bad)'; msg.textContent = r.error; return; }
           BR.pin = pin; BR.name = r.name; BR.picks = r.picks || {}; BR.tb = r.tb || '';
           if (r.bracket) BR.data = r.bracket;
           drawBracketPage(el);
-        }).catch(function() { go.disabled = false; msg.style.color = '#F87171'; msg.textContent = 'Couldn\'t reach the script. Try again.'; });
+        }).catch(function() { go.disabled = false; msg.style.color = 'var(--bad)'; msg.textContent = 'Couldn\'t reach the script. Try again.'; });
       }
       go.addEventListener('click', tryPin);
       inp.addEventListener('keydown', function(e) { if (e.key === 'Enter') tryPin(); });
@@ -292,14 +292,14 @@
         btn.disabled = true; btn.textContent = 'Saving…';
         picksApi({ pin: BR.pin, action: 'brsave', picks: JSON.stringify(picks), tb: BR.tb || '' }).then(function(r) {
           btn.disabled = false; btn.textContent = 'Save';
-          if (r.error) { msg.style.color = '#F87171'; msg.textContent = r.error; return; }
+          if (r.error) { msg.style.color = 'var(--bad)'; msg.textContent = r.error; return; }
           BR.picks = r.picks; BR.tb = r.tb; BR.dirty = false;
           var me = (BR.data.entries || []).filter(function(e) { return e.who === BR.name; })[0];
           var nw = BR_ORDER.filter(function(k) { return r.picks[k] && r.picks[k].w; }).length, ns = BR_ORDER.filter(function(k) { return r.picks[k] && r.picks[k].s; }).length;
           if (me) { me.filled = nw; me.scorers = ns; } else (BR.data.entries = BR.data.entries || []).push({ who: BR.name, filled: nw, scorers: ns });
           drawBracketPage(document.getElementById('bracket-content'));
           var m2 = document.querySelector('.br-prog');
-          if (m2) m2.innerHTML = nw + '/13 winners · ' + ns + '/13 first TDs<br><b style="color:#6EE7B7">' + (nw === 13 && ns === 13 ? '✅ Saved and complete. Change it any time before kickoff.' : '✅ Saved') + '</b>';
-        }).catch(function() { btn.disabled = false; btn.textContent = 'Save'; msg.style.color = '#F87171'; msg.textContent = 'Couldn\'t reach the script. Try again.'; });
+          if (m2) m2.innerHTML = nw + '/13 winners · ' + ns + '/13 first TDs<br><b style="color:var(--good-2)">' + (nw === 13 && ns === 13 ? '✅ Saved and complete. Change it any time before kickoff.' : '✅ Saved') + '</b>';
+        }).catch(function() { btn.disabled = false; btn.textContent = 'Save'; msg.style.color = 'var(--bad)'; msg.textContent = 'Couldn\'t reach the script. Try again.'; });
       });
     }

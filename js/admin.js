@@ -28,7 +28,7 @@
 
       function oddsInput(row, side, val, pick) {
         return '<span class="odds-wrap"><input class="odds-input" data-row="' + row + '" data-side="' + side + '" data-pick="' + escHtml(pick || '') + '" inputmode="decimal" autocomplete="off" placeholder="+" value="' + (val || '') + '" ' +
-          'style="width:84px;font-family:Inter,sans-serif;font-size:14px;padding:7px 10px;border:1.5px solid rgba(255,255,255,0.10);border-radius:8px;background:rgba(255,255,255,0.04);color:#F3F4F6;text-align:right">' +
+          'style="width:84px;font-family:Inter,sans-serif;font-size:14px;padding:7px 10px;border:1.5px solid rgba(255,255,255,0.10);border-radius:var(--r-s);background:rgba(255,255,255,0.04);color:var(--t1);text-align:right">' +
           '<span class="odds-hint"></span></span>';
       }
 
@@ -91,14 +91,14 @@
       });
       var items = Object.keys(byRow).map(function(k) { return byRow[k]; });
       var msg = document.getElementById('odds-msg');
-      if (!items.length) { msg.style.color = '#F87171'; msg.textContent = 'Nothing entered yet.'; return; }
+      if (!items.length) { msg.style.color = 'var(--bad)'; msg.textContent = 'Nothing entered yet.'; return; }
       var bad = [], odd = [];
       document.querySelectorAll('.odds-input').forEach(function(inp) {
         var c = oddsCheck(inp.value), who = inp.getAttribute('data-pick') || 'a pick';
         if (c.bad) bad.push(who + ' ("' + inp.value.trim() + '")');
         else if (c.odd) odd.push(who + ' at ' + c.american);
       });
-      if (bad.length) { msg.style.color = '#F87171'; msg.textContent = 'Can\'t read: ' + bad.join(', ') + '. Type it like 15 or +1500.'; return; }
+      if (bad.length) { msg.style.color = 'var(--bad)'; msg.textContent = 'Can\'t read: ' + bad.join(', ') + '. Type it like 15 or +1500.'; return; }
       if (odd.length && !confirm('These look unusual:\n\n' + odd.join('\n') + '\n\nSave anyway?')) return;
 
       SUB.busy = true;
@@ -111,7 +111,7 @@
           if (res.error || (res.bad && res.bad.length)) {
             btn.disabled = false;
             btn.textContent = 'Save Odds';
-            msg.style.color = '#F87171';
+            msg.style.color = 'var(--bad)';
             msg.textContent = res.error || ('Couldn\'t read: ' + res.bad.join(', ') + '. Everything else was saved.');
             return;
           }
@@ -125,7 +125,7 @@
           SUB.busy = false;
           btn.disabled = false;
           btn.textContent = 'Save Odds';
-          msg.style.color = '#F87171';
+          msg.style.color = 'var(--bad)';
           msg.textContent = 'Couldn\'t reach the sheet. Check the sheet, then try again.';
         });
     }
@@ -279,7 +279,7 @@
     }
     function adminMsg(text, ok) {
       var m = document.getElementById('adm-msg');
-      if (m) { m.style.color = ok ? '#6EE7B7' : '#F87171'; m.textContent = text; }
+      if (m) { m.style.color = ok ? 'var(--good-2)' : 'var(--bad)'; m.textContent = text; }
     }
 
     // Each section's screens live in their own file (v133), loaded the first time you open that section

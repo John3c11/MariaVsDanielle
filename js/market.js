@@ -109,7 +109,7 @@
         h += '<div class="mk-h">Leaderboard <small>coins on hand + riding</small></div>' + board.map(function(b, i) {
           var tot = b.cash + b.riding, diff = tot - M.start;
           return '<div class="mk-lb"><span class="mk-rank">' + (i === 0 ? '👑' : i + 1) + '</span><span class="mk-who">' + mkName(b.friend, M) + '</span>' +
-            '<span class="mk-tot">' + mkCoins(tot) + '<small style="color:' + (diff >= 0 ? '#34D399' : '#F87171') + '">' + (diff >= 0 ? '+' : '') + mkCoins(diff) + '</small></span></div>';
+            '<span class="mk-tot">' + mkCoins(tot) + '<small style="color:' + (diff >= 0 ? 'var(--good)' : 'var(--bad)') + '">' + (diff >= 0 ? '+' : '') + mkCoins(diff) + '</small></span></div>';
         }).join('');
       }
       h += '<div class="mk-foot">Everyone starts the season with ' + mkCoins(M.start) + ' coins. Prices move as people buy, so a price is the crowd\'s chance she wins. Trading closes at each week\'s first kickoff.</div></div>';
@@ -148,11 +148,11 @@
         if (c >= 500 && !confirm('Spend ' + mkCoins(c) + ' coins on ' + MKT.side + ' winning ' + weekName(wk.week) + '?')) return;
         buy.disabled = true; buy.textContent = 'Buying…'; msg.textContent = '';
         picksApiOnce({ pin: SUB.pin, action: 'mbuy', week: wk.week, side: MKT.side, coins: c }).then(function(r) { // once: a retry could buy twice
-          if (r.error) { msg.style.color = '#F87171'; msg.textContent = r.error; buy.disabled = false; preview(); return; }
+          if (r.error) { msg.style.color = 'var(--bad)'; msg.textContent = r.error; buy.disabled = false; preview(); return; }
           MKT.data = r.market; MKT.at = Date.now();
           drawMarket(el, r.market, opts);
           var m2 = el.querySelector('#mk-msg');
-          if (m2) { m2.style.color = '#6EE7B7'; m2.textContent = '✅ Bought ' + r.shares.toFixed(1) + ' ' + r.side + ' shares for ' + mkCoins(r.coins) + ' coins.'; }
-        }).catch(function() { msg.style.color = '#F87171'; msg.textContent = 'Couldn\'t reach the market. Reload before trying again, it may have gone through.'; buy.disabled = false; });
+          if (m2) { m2.style.color = 'var(--good-2)'; m2.textContent = '✅ Bought ' + r.shares.toFixed(1) + ' ' + r.side + ' shares for ' + mkCoins(r.coins) + ' coins.'; }
+        }).catch(function() { msg.style.color = 'var(--bad)'; msg.textContent = 'Couldn\'t reach the market. Reload before trying again, it may have gone through.'; buy.disabled = false; });
       });
     }

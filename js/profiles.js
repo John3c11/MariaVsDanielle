@@ -314,7 +314,7 @@
           b.n++; var x = hitRow(r), y = !!g.hit;
           if (x && !y) b.me++; else if (y && !x) b.them++; else if (x && y) b.both++;
         });
-        if (b.n) out.push(line('vs 🤖 The Machine', '#A78BFA', b.me, b.them, b.both, b.n, D.year));
+        if (b.n) out.push(line('vs 🤖 The Machine', 'var(--machine)', b.me, b.them, b.both, b.n, D.year));
       }).catch(function() {}));
       // vs each friend, every season
       if (PICKS_URL) ps.push(Promise.all(SEASONS.map(function(s) { return (s.year === CURRENT_YEAR ? getCrowd() : picksApi({ action: 'crowd', season: s.year })).then(function(d) { return { y: s.year, d: d || {} }; }).catch(function() { return { y: s.year, d: {} }; }); })).then(function(list) {
@@ -417,7 +417,7 @@
               var me = e.status === 'hit', it = !!mg.hit; b.n++;
               if (me && !it) b.me++; else if (it && !me) b.them++; else if (me) b.both++;
             });
-            if (b.n) mch.outerHTML = fpfLine('vs 🤖 The Machine', '#A78BFA', b, CURRENT_YEAR);
+            if (b.n) mch.outerHTML = fpfLine('vs 🤖 The Machine', 'var(--machine)', b, CURRENT_YEAR);
             else mch.remove();
           }).catch(function() { mch.remove(); });
         }
@@ -585,7 +585,7 @@
         document.getElementById('fr-style-save').addEventListener('click', function() {
           var btn = this; btn.disabled = true; btn.textContent = 'Saving…';
           picksApi({ pin: SUB.pin, action: 'fstyle', emoji: sel.emoji, color: sel.color }).then(function(r) {
-            if (r.error) { btn.disabled = false; btn.textContent = 'Save'; var m = document.getElementById('fr-style-msg'); m.style.color = '#F87171'; m.textContent = r.error; return; }
+            if (r.error) { btn.disabled = false; btn.textContent = 'Save'; var m = document.getElementById('fr-style-msg'); m.style.color = 'var(--bad)'; m.textContent = r.error; return; }
             CROWD.data.styles = CROWD.data.styles || {};
             CROWD.data.styles[name] = { emoji: r.emoji, color: r.color };
             renderFriendProfile(name);

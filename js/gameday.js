@@ -122,7 +122,7 @@
       var A = comp.competitors.filter(function(c) { return c.homeAway === 'away'; })[0] || comp.competitors[1];
       function side(c) {
         var t = resolveTeam(c.team.displayName), tc = TEAM_COLORS[t] || {}, has = sit.possession && String(sit.possession) === String(c.id || c.team.id);
-        return '<div class="gd-team" style="--tc:' + (tc.dark || '#F3F4F6') + '">' + teamLogo(t, 'gd-logo') +
+        return '<div class="gd-team" style="--tc:' + (tc.dark || 'var(--t1)') + '">' + teamLogo(t, 'gd-logo') +
           '<div class="gd-abbr">' + escHtml(c.team.abbreviation || teamNick(t)) + (has && st.state === 'in' ? ' <span class="gd-ball">🏈</span>' : '') + '</div>' +
           '<div class="gd-pts">' + (st.state === 'pre' ? '–' : (c.score || 0)) + '</div></div>';
       }
@@ -201,7 +201,7 @@
       try { localStorage.setItem('mvd-gd-td', JSON.stringify(seen)); } catch (e) {}
       var who = GD.picks.filter(function(p) { return sameScorer(first, p.name); });
       var p0 = who[0];
-      var color = p0 ? personColor(p0.who) : '#A1A9B6';
+      var color = p0 ? personColor(p0.who) : 'var(--t3)';
       var team = p0 ? p0.team : '';
       var el = document.createElement('div');
       el.className = 'gd-takeover' + (p0 ? ' win' : '');

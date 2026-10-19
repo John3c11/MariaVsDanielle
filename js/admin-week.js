@@ -193,7 +193,7 @@
       if (add) add.addEventListener('click', function() {
         var it = r.items[+add.getAttribute('data-ck-i')], amt = document.getElementById('ck-amt').value.trim(), msg = document.getElementById('ck-msg');
         var picked = it.proposals.filter(function(p, k) { var c = body.querySelector('[data-ck-p="' + k + '"]'); return c && c.checked; });
-        if (!picked.length) { msg.style.color = '#F87171'; msg.textContent = 'Tick at least one game.'; return; }
+        if (!picked.length) { msg.style.color = 'var(--bad)'; msg.textContent = 'Tick at least one game.'; return; }
         add.disabled = true; add.textContent = 'Adding…';
         var done = [], fail = [];
         picked.reduce(function(chain, p) {
@@ -203,7 +203,7 @@
             }).catch(function() { fail.push(teamNick(p.away) + ' @ ' + teamNick(p.home) + ': couldn\'t reach the script'); });
           });
         }, Promise.resolve()).then(function() {
-          msg.style.color = fail.length ? '#FCD34D' : '#6EE7B7';
+          msg.style.color = fail.length ? 'var(--warn)' : 'var(--good-2)';
           msg.innerHTML = (done.length ? '✅ Added ' + done.map(escHtml).join(', ') + '.' : '') + (fail.length ? '<br>⚠️ ' + fail.map(escHtml).join('<br>⚠️ ') : '');
           add.textContent = 'Done';
           if (done.length) setTimeout(adminChecklist, 2500);
@@ -232,15 +232,15 @@ function planState(w) { var g = w.games || []; return { up: !g.length || g.some(
 function planWeek(w) { var P = PLAN.r.plan; return P.weeks[w] || (P.weeks[w] = { g: [] }); }
 function planSave(msg) {
   var el = document.getElementById('pl-msg');
-  if (el) { el.style.color = '#A1A9B6'; el.textContent = 'Saving…'; }
+  if (el) { el.style.color = 'var(--t3)'; el.textContent = 'Saving…'; }
   clearTimeout(PLAN.t);
   PLAN.t = setTimeout(function() {
     picksApi({ pin: SUB.pin, action: 'planset', data: JSON.stringify(PLAN.r.plan) }).then(function(x) {
       var m = document.getElementById('pl-msg'); if (!m) return;
-      if (x.error) { m.style.color = '#F87171'; m.textContent = x.error; return; }
+      if (x.error) { m.style.color = 'var(--bad)'; m.textContent = x.error; return; }
       PLAN.r.plan = x.plan; PLAN.r.plan.weeks = PLAN.r.plan.weeks || {};
-      m.style.color = '#6EE7B7'; m.textContent = '✓ Saved' + (msg ? ': ' + msg : '');
-    }).catch(function() { var m = document.getElementById('pl-msg'); if (m) { m.style.color = '#F87171'; m.textContent = 'Couldn\'t save. Check your connection.'; } });
+      m.style.color = 'var(--good-2)'; m.textContent = '✓ Saved' + (msg ? ': ' + msg : '');
+    }).catch(function() { var m = document.getElementById('pl-msg'); if (m) { m.style.color = 'var(--bad)'; m.textContent = 'Couldn\'t save. Check your connection.'; } });
   }, 600);
 }
 function drawPlanner(body) {

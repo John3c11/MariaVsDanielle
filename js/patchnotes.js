@@ -3,6 +3,9 @@
 // Loaded on demand (openPatchNotes in main.js). Part of the MariaVsDanielle site; shares the global scope.
 
     var PATCH_ERAS = [
+      { t: '🧹 The cleanup', r: 'v151–', d: 'Making the whole site look and work like one thing.', v: [
+        [151, 'One system: a set text-size scale, four corner sizes, and named colors everywhere so light mode follows along'],
+      ] },
       { t: '🌗 MvD 2.0', r: 'v140–v150', d: 'Light mode, a Time Machine, a smarter Machine, Futures, and a magazine.', v: [
         [150, '🗞️ The Weekly: a magazine issue for every week and season · 🎬 Highlight Reels you can save as a video · 📜 these Patch Notes · the 150 reveal'],
         [149, '🔮 Futures: season-long sealed calls (rest-of-2026 edition), a live board and standings, a card on Home'],
@@ -74,15 +77,15 @@
 
     function openPatchNotesTab() {
       var el = document.getElementById('patch-content'), q = (PATCH_Q || '').toLowerCase();
-      var n = PATCH_ERAS.reduce(function(a, e) { return a + e.v.length; }, 0);
-      var h = '<div class="pn-head"><div class="pn-k">📜 Patch Notes</div><div class="pn-t">150 versions of Maria vs Danielle</div>' +
+      var n = PATCH_ERAS.reduce(function(a, e) { return a + e.v.length; }, 0), top = PATCH_ERAS[0].v[0][0];
+      var h = '<div class="pn-head"><div class="pn-k">📜 Patch Notes</div><div class="pn-t">' + top + ' versions of Maria vs Danielle</div>' +
         '<div class="pn-d">' + n + ' of them written up here, in eras, newest first. The little fix-up versions in between are left out.</div>' +
         '<input class="adm-input pn-q" id="pn-q" placeholder="Search (Machine, Bracket, cards…)" value="' + escHtml(PATCH_Q) + '"></div>';
       PATCH_ERAS.forEach(function(e) {
         var V = e.v.filter(function(x) { return !q || x[1].toLowerCase().indexOf(q) >= 0 || ('v' + x[0]) === q; });
         if (q && !V.length) return;
         h += '<section class="pn-era"><div class="pn-eh"><b>' + e.t + '</b><span>' + e.r + '</span></div><div class="pn-ed">' + escHtml(e.d) + '</div>' +
-          V.map(function(x) { return '<div class="pn-v' + (x[0] === 150 ? ' now' : '') + '"><span class="pn-n">v' + x[0] + '</span><span class="pn-x">' + escHtml(x[1]) + '</span></div>'; }).join('') + '</section>';
+          V.map(function(x) { return '<div class="pn-v' + (x[0] === top ? ' now' : '') + '"><span class="pn-n">v' + x[0] + '</span><span class="pn-x">' + escHtml(x[1]) + '</span></div>'; }).join('') + '</section>';
       });
       el.innerHTML = h;
       var inp = document.getElementById('pn-q');

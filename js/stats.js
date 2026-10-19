@@ -891,7 +891,7 @@
         var H = find(hk), A = find(ak);
         var team = function(c) {
           var tc = TEAM_COLORS[resolveTeam(c.team.displayName)];
-          return '<span style="color:' + (tc ? tc.dark : '#F3F4F6') + '">' + c.team.abbreviation + '</span>';
+          return '<span style="color:' + (tc ? tc.dark : 'var(--t1)') + '">' + c.team.abbreviation + '</span>';
         };
 
         var scoreHtml, statusHtml;

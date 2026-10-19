@@ -391,7 +391,7 @@
     // Full team name on desktop, nickname on phones ("Browns")
     function teamName2(t) { var r = resolveTeam(t); return TEAM_COLORS[r] ? '<span class="tn-full">' + t + '</span><span class="tn-short">' + r.split(' ').pop() + '</span>' : t; }
     function coloredGame(homeTeam, awayTeam) {
-      return teamLogo(homeTeam) + coloredText(teamName2(homeTeam), homeTeam) + '<span style="color:#A1A9B6"> vs </span>' + teamLogo(awayTeam) + coloredText(teamName2(awayTeam), awayTeam);
+      return teamLogo(homeTeam) + coloredText(teamName2(homeTeam), homeTeam) + '<span style="color:var(--t3)"> vs </span>' + teamLogo(awayTeam) + coloredText(teamName2(awayTeam), awayTeam);
     }
 
     // ── One way to ask Google Sheets for a range (v146) ───────────────────────

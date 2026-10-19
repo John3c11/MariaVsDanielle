@@ -146,7 +146,7 @@
           return '<div class="gp-pick' + (hit ? ' hit' : settled ? ' miss' : '') + '">' + headshot(x[0], x[2], 40) + '<div class="gp-pk-m"><div class="gp-pk-n">' + (hit ? '✅ ' : '') + escHtml(x[0]) + '</div>' +
             '<div class="gp-pk-s">' + nick(x[2]) + (x[1] ? ' · ' + fmtOdds(x[1]) : '') + '</div></div></div>';
         }).join('');
-        var u = settled ? '<div class="gp-u"><b style="color:' + (r.netUnits > 0 ? '#34D399' : r.netUnits < 0 ? '#F87171' : '#A1A9B6') + '">' + fmtU(r.netUnits) + '</b> <span>' + fmtD(r.netDollars) + '</span>' +
+        var u = settled ? '<div class="gp-u"><b style="color:' + (r.netUnits > 0 ? 'var(--good)' : r.netUnits < 0 ? 'var(--bad)' : 'var(--t3)') + '">' + fmtU(r.netUnits) + '</b> <span>' + fmtD(r.netDollars) + '</span>' +
           (grade ? ' <span class="mc-grade g-' + grade.g.replace('+', 'p') + '" title="Pick grade from the Machine: the price vs the players\' real chances">' + grade.g + '</span>' : '') + '</div>' : '';
         return '<div class="gp-col" style="--pc:' + c + '"><div class="gp-col-h" style="color:' + c + '">' + w + '</div>' + picks + u + '</div>';
       }).join('') + '</div>';
@@ -240,13 +240,13 @@
         var h = '<div class="pf-h">🤖 The Machine <small>' + (mg.retro ? 'picked after the fact, using only what was known before kickoff' : 'picked before kickoff') + '</small></div>' +
           '<div class="gp-mc">' + mg.picks.map(function(x) {
             var hit = ctx.settled && !ctx.vd && ctx.isScorer(x.name);
-            return '<div class="gp-pick' + (hit ? ' hit' : ctx.settled ? ' miss' : '') + '" style="--pc:#A78BFA">' + headshot(x.name, x.team, 40) + '<div class="gp-pk-m"><div class="gp-pk-n">' + (hit ? '✅ ' : '') + escHtml(x.name) + '</div>' +
+            return '<div class="gp-pick' + (hit ? ' hit' : ctx.settled ? ' miss' : '') + '" style="--pc:var(--machine)">' + headshot(x.name, x.team, 40) + '<div class="gp-pk-m"><div class="gp-pk-n">' + (hit ? '✅ ' : '') + escHtml(x.name) + '</div>' +
               '<div class="gp-pk-s">' + escHtml(teamNick(x.team)) + ' · +' + Math.round(x.price) + (x.real ? '' : ' est') + (x.pct ? ' · ' + Math.round(x.pct * 100) + '% chance' : '') + '</div></div></div>';
-          }).join('') + (mg.settled ? '<div class="gp-u"><b style="color:' + (mg.units > 0 ? '#34D399' : mg.units < 0 ? '#F87171' : '#A1A9B6') + '">' + fmtU(mg.units) + '</b></div>' : '') + '</div>';
+          }).join('') + (mg.settled ? '<div class="gp-u"><b style="color:' + (mg.units > 0 ? 'var(--good)' : mg.units < 0 ? 'var(--bad)' : 'var(--t3)') + '">' + fmtU(mg.units) + '</b></div>' : '') + '</div>';
         if (list.some(function(x) { return x.c !== null; })) {
           var top = Math.max.apply(null, list.map(function(x) { return x.c || 0; })) || 1;
           h += '<div class="gp-ch"><div class="gp-k">Its chances for every pick in this game</div>' + list.map(function(x) {
-            return '<div class="gp-ch-r"><span class="gp-ch-n">' + (ctx.isScorer(x.n) ? '🏈 ' : '') + escHtml(x.n) + ' <small>' + x.who.map(function(w) { return '<b style="color:' + (w === 'Machine' ? '#A78BFA' : personColor(w)) + '">' + (w === 'Machine' ? '🤖' : w.charAt(0)) + '</b>'; }).join('') + '</small></span>' +
+            return '<div class="gp-ch-r"><span class="gp-ch-n">' + (ctx.isScorer(x.n) ? '🏈 ' : '') + escHtml(x.n) + ' <small>' + x.who.map(function(w) { return '<b style="color:' + (w === 'Machine' ? 'var(--machine)' : personColor(w)) + '">' + (w === 'Machine' ? '🤖' : w.charAt(0)) + '</b>'; }).join('') + '</small></span>' +
               '<span class="gp-ch-bar"><i style="width:' + Math.round((x.c || 0) / top * 100) + '%"></i></span><span class="gp-ch-v">' + (x.c !== null ? (x.c * 100).toFixed(1) + '%' : '—') + '</span></div>';
           }).join('') + '</div>';
         }

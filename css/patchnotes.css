@@ -1,14 +1,14 @@
 /* 📜 Patch Notes (v150): js/patchnotes.js */
 .pn-head { text-align: center; margin-bottom: 18px; }
-.pn-k { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #FCD34D; }
-.pn-t { font-family: Georgia, serif; font-size: 30px; font-weight: 700; color: var(--t1); margin: 4px 0; }
+.pn-k { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--warn); }
+.pn-t { font-family: Georgia, serif; font-size: 32px; font-weight: 700; color: var(--t1); margin: 4px 0; }
 .pn-d { font-size: 13px; color: var(--t3); }
 .pn-q { margin-top: 12px; width: 100%; max-width: 420px; box-sizing: border-box; }
 .pn-era { position: relative; margin: 0 0 22px; padding-left: 16px; border-left: 2px solid var(--line-2); }
-.pn-eh { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 17px; color: var(--t1); }
+.pn-eh { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 18px; color: var(--t1); }
 .pn-eh span { font-size: 12px; font-weight: 800; color: var(--t3); }
 .pn-ed { font-size: 13px; color: var(--t2); margin: 4px 0 8px; line-height: 1.5; }
-.pn-v { display: grid; grid-template-columns: 52px 1fr; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; line-height: 1.45; color: var(--t2); }
+.pn-v { display: grid; grid-template-columns: 52px 1fr; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 14px; line-height: 1.45; color: var(--t2); }
 .pn-v.now { color: var(--t1); }
 .pn-n { font-weight: 800; color: var(--t3); font-variant-numeric: tabular-nums; }
-.pn-v.now .pn-n { color: #FCD34D; }
+.pn-v.now .pn-n { color: var(--warn); }

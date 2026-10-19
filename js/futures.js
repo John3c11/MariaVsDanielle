@@ -107,14 +107,14 @@
         el.querySelectorAll('[data-fu]').forEach(function(i) { data[i.getAttribute('data-fu')] = i.value.trim(); });
         var miss = Object.keys(data).filter(function(k) { return !data[k]; });
         var msg = document.getElementById('fu-msg');
-        if (miss.length) { msg.style.color = '#F87171'; msg.textContent = 'Make every call first.'; return; }
+        if (miss.length) { msg.style.color = 'var(--bad)'; msg.textContent = 'Make every call first.'; return; }
         b.disabled = true; b.textContent = 'Saving…';
         picksApi({ pin: SUB.pin, action: 'futsave', data: JSON.stringify(data) }).then(function(x) {
-          if (x.error) { b.disabled = false; b.textContent = '🔒 Lock in my calls'; msg.style.color = '#F87171'; msg.textContent = x.error; return; }
+          if (x.error) { b.disabled = false; b.textContent = '🔒 Lock in my calls'; msg.style.color = 'var(--bad)'; msg.textContent = x.error; return; }
           FUT.mine = Object.assign({}, FUT.mine, { mine: x.mine }); FUT.msg = '✅ Saved. You can change them until the deadline.';
           if (FUT.data && FUT.data.entrants && FUT.data.entrants.indexOf(SUB.name) < 0) FUT.data.entrants.push(SUB.name);
           drawFutures(el); FUT.msg = '';
-        }).catch(function() { b.disabled = false; b.textContent = '🔒 Lock in my calls'; msg.style.color = '#F87171'; msg.textContent = 'Couldn\'t reach the script. Try again.'; });
+        }).catch(function() { b.disabled = false; b.textContent = '🔒 Lock in my calls'; msg.style.color = 'var(--bad)'; msg.textContent = 'Couldn\'t reach the script. Try again.'; });
       });
     }
 

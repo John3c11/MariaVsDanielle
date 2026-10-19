@@ -46,7 +46,7 @@
         var resultColor = noOffer ? '#A1A9B6' : b.correct === 'Yes' ? '#34D399' : b.correct === 'No' ? '#F87171' : '#A1A9B6';
         var resultText = b.firstScorer ? escHtml(b.firstScorer) : '⏳';
         var pickerColor = personColor(b.picker);
-        var unitColor = b.netUnits > 0 ? '#34D399' : b.netUnits < 0 ? '#F87171' : '#A1A9B6';
+        var unitColor = b.netUnits > 0 ? 'var(--good)' : b.netUnits < 0 ? 'var(--bad)' : 'var(--t3)';
         var unitStr = b.netUnits !== 0 ? (b.netUnits > 0 ? '+' : '') + b.netUnits + 'u' : '0u';
         var homeColored = b.homePick ? coloredText(b.homePick, b.homeTeam) : '';
         var awayColored = b.awayPick ? coloredText(b.awayPick, b.awayTeam) : '';
@@ -54,13 +54,13 @@
         var gameDisplay = b.homeTeam && b.awayTeam ? (b.gameNo && typeof gameLinkAttr === 'function' ? '<span ' + gameLinkAttr(b.year, b.gameNo) + ' title="Open this game">' + coloredGame(b.homeTeam, b.awayTeam) + '</span>' : coloredGame(b.homeTeam, b.awayTeam)) : (b.game || '—');
         if (b.firstScorer && b.homeTeam) gameDisplay += ' <button class="rp-mini" title="Replay this game" aria-label="Replay this game" onclick="replayGame(\'' + b.year + '\',' + parseInt(b.week, 10) + ',\'' + escHtml(String(b.gameNo)) + '\')">⏪</button>';
         return '<div class="bh-grid bh-row" data-ctx-year="' + b.year + '" data-ctx-week="' + b.week + '">' +
-          '<span style="font-size:11px;font-weight:600;color:' + (b.year === CURRENT_YEAR ? '#60A5FA' : '#34D399') + '">' + b.year + '</span>' +
+          '<span style="font-size:11px;font-weight:600;color:' + (b.year === CURRENT_YEAR ? 'var(--danielle)' : 'var(--good)') + '">' + b.year + '</span>' +
           '<span class="u-muted u-center">' + (PLAYOFF_SHORT[parseInt(b.week, 10)] || b.week) + '</span>' +
           '<span class="u-medium">' + gameDisplay + '</span>' +
           '<span style="font-weight:500;color:' + pickerColor + '">' + b.picker + '</span>' +
           '<span>' + players + '</span>' +
           '<span class="u-muted">' + b.odds + (window.MACHINE_GRADES && MACHINE_GRADES[b.year + '|' + b.gameNo + '|' + b.picker] ? ' <span class="mc-grade g-' + MACHINE_GRADES[b.year + '|' + b.gameNo + '|' + b.picker].g.replace('+', 'p') + '" title="Pick grade from the Machine: the price vs the players\' real chances">' + MACHINE_GRADES[b.year + '|' + b.gameNo + '|' + b.picker].g + '</span>' : '') + '</span>' +
-          '<span class="bh-ftd" title="' + (noOffer ? 'Not offered, bet did not count' : '') + '" style="font-size:11px;font-weight:600;padding:3px 7px;border-radius:5px;text-align:center;line-height:1.3;background:' + resultBg + ';color:' + resultColor + '">' + resultText + '</span>' +
+          '<span class="bh-ftd" title="' + (noOffer ? 'Not offered, bet did not count' : '') + '" style="font-size:11px;font-weight:600;padding:3px 7px;border-radius:var(--r-xs);text-align:center;line-height:1.3;background:' + resultBg + ';color:' + resultColor + '">' + resultText + '</span>' +
           '<span style="text-align:right;font-weight:500;color:' + unitColor + '">' + unitStr + '</span>' +
           '</div>';
       }).join('');
@@ -564,7 +564,7 @@
           fmt: function(v, axis) { return axis ? (v < 0 ? '-$' : '$') + Math.abs(Math.round(v)).toLocaleString('en-US') : fmtDWhole(v); } });
         var line;
         if (D.done) line = 'If nothing had hit, this season would have ended <b>$' + Math.round(Math.abs(start)).toLocaleString('en-US') + '</b> in the hole. ' + (outAt > 0 ? 'Out of the hole in <b>' + weekName(D.weeks[outAt - 1]) + '</b>. ' : last < 0 ? 'Never got out of the hole. ' : '') + 'Finished at <b>' + fmtDWhole(last) + '</b>.';
-        else line = 'If nothing else hits, ' + CLIMB.year + ' ends at <b style="color:' + (last >= 0 ? '#34D399' : '#F87171') + '">' + fmtDWhole(last) + '</b>' +
+        else line = 'If nothing else hits, ' + CLIMB.year + ' ends at <b style="color:' + (last >= 0 ? 'var(--good)' : 'var(--bad)') + '">' + fmtDWhole(last) + '</b>' +
           (last >= 0 ? ', so this season is already guaranteed to finish up' + (outAt > 0 ? ' (out of the hole in ' + weekName(D.weeks[outAt - 1]) + ')' : '') + '.' : '. Every hit from here pulls that up.') +
           ' Weeks not entered in the sheet yet (like the playoffs) aren\'t counted.';
         box.innerHTML = h + '<div class="u-mb mc-note">' + line + '</div><div class="u-mb-l ch-box">' + chart + '</div>';
@@ -602,7 +602,7 @@
         const totalUnits = results.reduce(function(a, r) { return a + r.units; }, 0);
         const totalDollars = results.reduce(function(a, r) { return a + r.dollars; }, 0);
 
-        function uColor(n) { return n > 0 ? "#34D399" : n < 0 ? "#F87171" : "#A1A9B6"; }
+        function uColor(n) { return n > 0 ? "var(--good)" : n < 0 ? "var(--bad)" : "var(--t3)"; }
 
         function row(label, r, isTotal) {
           function cell(n, w, fmt) {

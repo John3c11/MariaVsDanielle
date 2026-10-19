@@ -9,7 +9,7 @@
         ADMIN.friends = res.friends || [];
         var list = ADMIN.friends;
         var h = '<div class="u-mt-0 pf-h">👥 Friends</div>' +
-          '<div class="ui-note u-mb">Friends log in with their PIN to make their own picks. PINs are stored in the script, not the sheet. Text each friend their PIN.</div>' +
+          '<div class="ui-note u-mb">Friends log in with their PIN to make their own picks. PINs are stored in the script, not the sheet, and never shown again after you save one, so text each friend their PIN when you add them. Forgot it? Tap PIN to give them a new one.</div>' +
           '<div class="u-d-flex u-gap-8px u-fwrap-wrap u-mb-6px">' +
             '<input class="u-f-2 u-minw-140px adm-input" id="fr-name" placeholder="Name" maxlength="24">' +
             '<input class="u-w-90px u-ls-0-2em u-ta-center adm-input" id="fr-pin" placeholder="PIN" maxlength="4" inputmode="numeric">' +
@@ -19,16 +19,15 @@
           inviteHtml(res) +
           '<div class="u-fs-11px u-fw-800 u-ls-0-12em u-muted u-m-14px-0-4px">FRIENDS (' + list.length + ')</div>';
         h += list.length ? list.map(function(f) {
-          return '<div class="adm-row"><div><b style="color:' + fStyle(f.name).color + '">' + (fStyle(f.name).emoji ? fStyle(f.name).emoji + ' ' : '') + escHtml(f.name) + '</b> <span class="u-muted u-ls-0-15em u-ml-6px">' + f.pin + '</span></div>' +
+          return '<div class="adm-row"><div><b style="color:' + fStyle(f.name).color + '">' + (fStyle(f.name).emoji ? fStyle(f.name).emoji + ' ' : '') + escHtml(f.name) + '</b></div>' +
             '<div class="u-d-flex u-gap-6px"><button class="adm-btn" data-fprof="' + escHtml(f.name) + '">Profile</button>' +
             '<button class="adm-btn" data-fpin="' + escHtml(f.name) + '">PIN</button>' +
             '<button class="adm-btn red" data-frm="' + escHtml(f.name) + '">Remove</button></div></div>';
         }).join('') : '<div class="empty">No friends yet.</div>';
         body.innerHTML = h;
         document.getElementById('fr-rand').addEventListener('click', function() {
-          var taken = list.map(function(f) { return f.pin; }), pin;
-          do { pin = String(Math.floor(Math.random() * 10000)).padStart(4, '0'); } while (taken.indexOf(pin) >= 0);
-          document.getElementById('fr-pin').value = pin;
+          // The site doesn't know anyone's PIN (v155); if this one is taken, Add Friend says so and you roll again
+          document.getElementById('fr-pin').value = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
         });
         document.getElementById('fr-add').addEventListener('click', function() {
           var name = document.getElementById('fr-name').value.trim(), pin = document.getElementById('fr-pin').value.trim();

@@ -4,6 +4,7 @@
 
     var PATCH_ERAS = [
       { t: '🧹 The cleanup', r: 'v151–', d: 'Making the whole site look and work like one thing.', v: [
+        [155, '🔑 PINs stay in the script: the admin screens can change any PIN but never show one, plus a one-command release check'],
         [154, 'Code cleanup: style.css sorted by part of the site, fixed inline styles moved into classes, color-named classes renamed, PicksAPI.gs split into PicksAPI.gs + Admin.gs'],
         [153, 'Screen polish: a title on every tab, a cleaner Bet Log on phones, the footer as one row of links, matching corner buttons'],
         [152, 'One kit: every page header, section header, chip, segmented switch, button, card and empty message now comes from one shared set'],

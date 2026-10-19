@@ -4,28 +4,21 @@
     // 🔑 PINs screen (⚙️ Site): rarely changed, so it lives out of the way
     function adminPins() {
       adminScreen('pins', '<div class="u-mt-0 pf-h">🔑 Main PINs <small>no code edits needed</small></div>' +
-        '<div class="ui-note u-mb">Maria\'s, Danielle\'s and your login. Changing one works right away. Friends\' PINs are on 👥 People → Friends.</div>' +
+        '<div class="ui-note u-mb">Maria\'s, Danielle\'s and your login. PINs are never shown, only changed: if someone forgets theirs, give them a new one. Changing one works right away. Friends\' PINs are on 👥 People → Friends.</div>' +
         '<div id="main-pins"><div class="loading">Loading…</div></div><div class="u-ta-left submit-msg" id="adm-msg"></div>');
       drawMainPins();
     }
-    // 🔑 Maria's, Danielle's and John's PINs (kept in the script's settings, changeable here)
+    // 🔑 Maria's, Danielle's and John's PINs (kept in the script's settings). v155: change only, the script never sends them
     function drawMainPins() {
       var box = document.getElementById('main-pins');
       if (!box) return;
       picksApi({ pin: SUB.pin, action: 'pins' }).then(function(r) {
-        if (!r.pins) { box.innerHTML = '<div class="u-m-0 inj-warn">Changing these needs the newest PicksAPI.gs (Deploy → Manage deployments → ✏️ → New version → Deploy).</div>'; return; }
+        if (r.error || !(r.who || r.pins)) { box.innerHTML = '<div class="u-m-0 inj-warn">Changing these needs the newest PicksAPI.gs and Admin.gs (Deploy → Manage deployments → ✏️ → New version → Deploy).</div>'; return; }
         var who = [['Maria', SB_M], ['Danielle', SB_D], ['ADMIN', '#E5E7EB']];
         box.innerHTML = who.map(function(w) {
-          return '<div class="adm-row"><div><b style="color:' + w[1] + '">' + (w[0] === 'ADMIN' ? 'You (admin)' : w[0]) + '</b> <span class="u-muted u-ls-0-15em u-ml-6px mp-pin">••••</span></div>' +
-            '<div class="u-d-flex u-gap-6px"><button class="adm-btn" data-mp-show="' + w[0] + '">Show</button><button class="adm-btn" data-mp-set="' + w[0] + '">Change</button></div></div>';
+          return '<div class="adm-row"><div><b style="color:' + w[1] + '">' + (w[0] === 'ADMIN' ? 'You (admin)' : w[0]) + '</b></div>' +
+            '<div class="u-d-flex u-gap-6px"><button class="adm-btn" data-mp-set="' + w[0] + '">Change</button></div></div>';
         }).join('');
-        box.querySelectorAll('[data-mp-show]').forEach(function(b) {
-          b.addEventListener('click', function() {
-            var sp = b.closest('.adm-row').querySelector('.mp-pin');
-            var on = sp.textContent === '••••';
-            sp.textContent = on ? r.pins[b.getAttribute('data-mp-show')] : '••••'; b.textContent = on ? 'Hide' : 'Show';
-          });
-        });
         box.querySelectorAll('[data-mp-set]').forEach(function(b) {
           b.addEventListener('click', function() {
             var w = b.getAttribute('data-mp-set'), label = w === 'ADMIN' ? 'your admin' : w + '\'s';
@@ -37,7 +30,6 @@
             picksApi({ pin: SUB.pin, action: 'setpin', who: w, newpin: pin }).then(function(x) {
               if (x.error) return adminMsg(x.error);
               if (w === 'ADMIN') SUB.pin = pin; // stay logged in
-              r.pins = x.pins;
               adminMsg((w === 'ADMIN' ? 'Your' : w + '\'s') + ' new PIN is saved.', true);
             }).catch(function() { adminMsg('Couldn\'t reach the script.'); });
           });

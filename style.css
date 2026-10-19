@@ -1667,7 +1667,7 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 }
 
 /* ── v129: 📨 invite / sign-up, friend home summary ── */
-:root { --css-v: "149"; } /* main.js compares this with the page version to catch an old style.css */
+:root { --css-v: "150"; } /* main.js compares this with the page version to catch an old style.css */
 .join-box { max-width: 340px; margin-left: auto; margin-right: auto; }
 .join-l { display: block; text-align: left; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t3); margin: 14px 0 6px; }
 .join-in { width: 100%; box-sizing: border-box; }
@@ -1813,3 +1813,17 @@ html[data-motion="less"] .holiday-fx, html[data-motion="less"] .egg-rain, html[d
 .fut-home { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 0 0 14px; padding: 10px 13px; border-radius: var(--r); font-size: 13px; line-height: 1.4; color: var(--t2);
   background: color-mix(in srgb, #A78BFA 10%, transparent); border: 1px solid color-mix(in srgb, #A78BFA 38%, transparent); }
 .fut-home b { color: var(--t1); }
+
+/* ── v150: 🗞️ The Weekly dot + Home card, and the 🎉 150 reveal ── */
+.wk-home { background: color-mix(in srgb, #FBBF24 9%, transparent); border-color: color-mix(in srgb, #FBBF24 38%, transparent); }
+.tab-btn.wk-dot { position: relative; }
+.tab-btn.wk-dot::after { content: ''; position: absolute; top: 6px; right: 10px; width: 8px; height: 8px; border-radius: 50%; background: #FBBF24; box-shadow: 0 0 0 2px #0B0C10; }
+.v150 { position: fixed; inset: 0; z-index: 1250; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(4,5,8,0.88); animation: pcFade 0.25s ease; }
+.v150-card { width: 100%; max-width: 420px; text-align: center; padding: 22px 18px 18px; border-radius: 22px; background: radial-gradient(120% 80% at 50% 0%, #2A2210 0%, #111318 60%); border: 1px solid rgba(251,191,36,0.45); box-shadow: 0 30px 80px rgba(0,0,0,0.6); color: #F3F4F6; }
+.v150-n { font: 900 92px/1 Georgia, serif; letter-spacing: -3px; background: linear-gradient(180deg, #FDE68A, #F59E0B); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.v150-t { font-size: 20px; font-weight: 800; margin-top: 4px; }
+.v150-s { font-size: 13px; color: #A1A9B6; margin: 4px 0 12px; }
+.v150-f { display: block; width: 100%; text-align: left; margin: 6px 0; padding: 11px 13px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.05); color: #D1D5DB; font: 500 12.5px/1.4 Inter, sans-serif; cursor: pointer; }
+.v150-f b { display: block; font-size: 14px; color: #F3F4F6; margin-bottom: 2px; }
+.v150-f:hover { border-color: rgba(251,191,36,0.5); }
+.v150-go { margin-top: 10px; width: 100%; font: 800 15px/1 Inter, sans-serif; color: #0B0C10; background: #FBBF24; border: 0; border-radius: 14px; padding: 14px; cursor: pointer; }

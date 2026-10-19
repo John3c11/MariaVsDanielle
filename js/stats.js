@@ -728,6 +728,7 @@
         applyMyTheme(r.themes || {});
         if (typeof setBracketState === 'function') setBracketState(r.bracket);
         if (typeof setFuturesState === 'function') setFuturesState(r.futures);
+        window.WEEKLY_NOTES = r.notes || {}; // 🗞️ The Weekly's editor's notes
       }).catch(function() {});
     }
 

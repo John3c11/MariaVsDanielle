@@ -36,7 +36,7 @@
     var HUBS = {
       home:    [['stats', 'Home']],
       picks:   [['submit', ''], ['schedule', '🗓️ Schedule'], ['rosters', '📋 Rosters'], ['crowd', '🏅 Crowd'], ['futures', '🔮 Futures'], ['bracket', '🏆 Bracket']],
-      rivalry: [['profiles', '⭐ Profiles'], ['legacy', '📜 All-Time'], ['bethistory', '🧾 Bet Log'], ['museum', '🏛️ Museum'], ['game', '🏈 Games']],
+      rivalry: [['profiles', '⭐ Profiles'], ['weekly', '🗞️ The Weekly'], ['legacy', '📜 All-Time'], ['bethistory', '🧾 Bet Log'], ['museum', '🏛️ Museum'], ['game', '🏈 Games']],
       numbers: [['analytics', '📊 Numbers'], ['machine', '🤖 Machine']], // 📊 Numbers = Stories (analytics) + Explore (lab), v134
       chat:    [['chat', 'Trash Talk']],
     };
@@ -180,6 +180,9 @@
       if ((location.hash || '').indexOf('#lab') === 0 && name !== 'lab') { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
       if (name === 'bracket') openBracket();
       if (name === 'futures') openFutures();
+      if (name === 'weekly') loadScriptOnce('js/weekly.js').then(function() { loadWeeklyTab(); }).catch(function() { var el = document.getElementById('weekly-content'); if (el) el.innerHTML = '<div class="loading">Couldn\'t load The Weekly. Check your connection.</div>'; });
+      if (name === 'patch') loadScriptOnce('js/patchnotes.js').then(function() { openPatchNotesTab(); }).catch(function() {});
+      if ((location.hash || '').indexOf('#weekly') === 0 && name !== 'weekly') { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
       if (name === 'machine') loadScriptOnce('js/machine.js').then(function() { loadMachineTab(); }).catch(function() {
         var el = document.getElementById('machine-content'); if (el) el.innerHTML = '<div class="loading">Couldn\'t load the Machine. Check your connection.</div>';
       });
@@ -358,4 +361,45 @@
       document.body.appendChild(pill);
       document.getElementById('tm-foot').textContent = '⏳ Back to now';
       document.getElementById('tm-foot').setAttribute('onclick', 'asofGo()');
+    })();
+
+    // ── 🗞️ The Weekly, 🎬 Highlight Reels and 📜 Patch Notes (v150) ─────────────────
+    function openWeekly(year, week) {
+      loadScriptOnce('js/weekly.js').then(function() { WK.view = year ? { year: String(year), week: week || 0 } : null; switchTab('weekly'); }).catch(function() {});
+    }
+    function openReel(year, week) {
+      loadScriptOnce('js/weekly.js').then(function() { return loadScriptOnce('js/reels.js'); }).then(function() { startReel(String(year), week || 0); })
+        .catch(function() { alert('Couldn\'t load the reel. Check your connection.'); });
+    }
+    function openPatchNotes() { switchTab('patch'); }
+    if ((location.hash || '').indexOf('#weekly') === 0) setTimeout(function() { switchTab('weekly'); }, 0);
+    if ((location.hash || '').indexOf('#patch') === 0) setTimeout(function() { switchTab('patch'); }, 0);
+    // 🔴 A new issue of The Weekly: a dot on Rivalry and a card on Home until it's read
+    setTimeout(function() { loadScriptOnce('js/weekly.js').then(function() { return wkLight(); }).then(function(D) { wkBadge(D); }).catch(function() {}); }, 3500);
+
+    // ── 🎉 The v150 reveal: once per phone ──
+    (function() {
+      var seen = ''; try { seen = localStorage.getItem('mvd-v150') || ''; } catch (e) {}
+      if (seen || ASOF || /#(weekly|player|game|lab|join|patch)/.test(location.hash || '')) return;
+      setTimeout(function() {
+        if (document.querySelector('.pc-backdrop, .lk-back.open, #rl-root, .st-root[style*="flex"]')) return;
+        var el = document.createElement('div');
+        el.className = 'v150 dk';
+        el.innerHTML = '<div class="v150-card"><div class="v150-n">150</div><div class="v150-t">Version 150 is here</div>' +
+          '<div class="v150-s">The biggest update yet. A few things to try:</div>' +
+          '<button class="v150-f" data-v150="weekly"><b>🗞️ The Weekly</b><span>A magazine issue for every week of every season, back to 2025.</span></button>' +
+          '<button class="v150-f" data-v150="reel"><b>🎬 Highlight Reels</b><span>Any week or season as a video you can drop in the group chat.</span></button>' +
+          '<button class="v150-f" data-v150="patch"><b>📜 Patch Notes</b><span>How the site got here, all 150 versions.</span></button>' +
+          '<button class="v150-go" data-v150="close">Let\'s go</button></div>';
+        document.body.appendChild(el);
+        try { localStorage.setItem('mvd-v150', '1'); } catch (e) {}
+        el.addEventListener('click', function(e) {
+          var b = e.target.closest('[data-v150]'), k = b ? b.getAttribute('data-v150') : (e.target === el ? 'close' : '');
+          if (!k) return;
+          el.remove();
+          if (k === 'weekly') openWeekly();
+          if (k === 'patch') openPatchNotes();
+          if (k === 'reel') openReel(CURRENT_YEAR, 0);
+        });
+      }, 2500);
     })();

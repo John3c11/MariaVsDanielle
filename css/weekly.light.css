@@ -1,0 +1,41 @@
+/* weekly.light.css: the light theme for css/weekly.css. Made by a script, don't edit by hand. */
+html[data-theme="light"] .wk-mast:not(.dk, .dk *) { border-bottom: 3px double var(--line-2); }
+html[data-theme="light"] .wk-mast-t:not(.dk, .dk *) { color: var(--t1); }
+html[data-theme="light"] .wk-mast-s:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .wk-sea:not(.dk, .dk *) { border-radius: var(--r); color: var(--t2); background: linear-gradient(135deg, color-mix(in srgb, #FBBF24 12%, transparent), transparent); border: 1px solid color-mix(in srgb, #FBBF24 38%, transparent); }
+html[data-theme="light"] .wk-sea-k:not(.dk, .dk *) { color: #816302; }
+html[data-theme="light"] .wk-sea b:not(.dk, .dk *) { color: var(--t1); }
+html[data-theme="light"] .wk-item:not(.dk, .dk *) { border-radius: 12px; background: var(--s1); border: 1px solid var(--line); color: var(--t2); }
+html[data-theme="light"] .wk-item:hover:not(.dk, .dk *) { border-color: var(--line-2); }
+html[data-theme="light"] .wk-no:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .wk-it b:not(.dk, .dk *) { color: var(--t1); }
+html[data-theme="light"] .wk-new:not(.dk, .dk *) { color: #0B0C10; background: #FBBF24; border-radius: 4px; }
+html[data-theme="light"] .wk-cover:not(.dk, .dk *) { border-radius: var(--r); background: linear-gradient(160deg, color-mix(in srgb, var(--wc) 20%, transparent), transparent 70%); border: 1px solid color-mix(in srgb, var(--wc) 40%, transparent); }
+html[data-theme="light"] .wk-kick:not(.dk, .dk *) { color: var(--wc); }
+html[data-theme="light"] .wk-head:not(.dk, .dk *) { color: var(--t1); }
+html[data-theme="light"] .wk-deck:not(.dk, .dk *) { color: var(--t2); }
+html[data-theme="light"] .wk-bar:not(.dk, .dk *) { border-radius: 6px; background: var(--s2); }
+html[data-theme="light"] .wk-bar i:not(.dk, .dk *) { border-radius: 6px; }
+html[data-theme="light"] .wk-su:not(.dk, .dk *) { color: var(--t2); }
+html[data-theme="light"] .wk-sec h3:not(.dk, .dk *) { color: var(--t1); border-bottom: 1px solid var(--line); }
+html[data-theme="light"] .wk-sec p:not(.dk, .dk *) { color: var(--t2); }
+html[data-theme="light"] .wk-g:not(.dk, .dk *) { border-bottom: 1px solid var(--line); }
+html[data-theme="light"] .wk-gh:not(.dk, .dk *) { color: var(--t1); }
+html[data-theme="light"] .wk-gh small:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .wk-gs:not(.dk, .dk *) { color: var(--t2); }
+html[data-theme="light"] .wk-gp:not(.dk, .dk *) { color: var(--t2); }
+html[data-theme="light"] .wk-gp small:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .wk-gu:not(.dk, .dk *) { color: var(--t1); }
+html[data-theme="light"] .wk-hit:not(.dk, .dk *) { color: var(--t1); }
+html[data-theme="light"] .wk-q:not(.dk, .dk *) { border-left: 3px solid var(--pc); color: var(--t1); }
+html[data-theme="light"] .wk-q cite:not(.dk, .dk *) { color: var(--pc); }
+html[data-theme="light"] .wk-zero:not(.dk, .dk *) { stroke: var(--line-2); }
+html[data-theme="light"] .wk-foot:not(.dk, .dk *) { border-top: 3px double var(--line-2); }
+html[data-theme="light"] .rl-root:not(.dk, .dk *) { background: rgba(252,252,253,0.96); }
+html[data-theme="light"] .rl-stage:not(.dk, .dk *) { border-radius: 18px; box-shadow: 0 30px 80px rgba(17,24,39,0.15); }
+html[data-theme="light"] .rl-bar button:not(.dk, .dk *) { color: #191C22; background: rgba(17,24,39,0.065); border: 1px solid rgba(17,24,39,0.162); border-radius: 999px; }
+html[data-theme="light"] .rl-bar #rl-save:not(.dk, .dk *) { background: #FBBF24; color: #0B0C10; border-color: #FBBF24; }
+html[data-theme="light"] .rl-msg:not(.dk, .dk *) { color: #3E454F; }
+html[data-theme="light"] [style^="color:#6EE7B7" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#6EE7B7" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#6EE7B7" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #6EE7B7" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #6EE7B7" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #6EE7B7" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: rgb(110, 231, 183)"]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: rgb(110, 231, 183)"]:not(.dk, .dk *) { color: #147B52 !important; }
+html[data-theme="light"] [style^="color:#E5E7EB" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#E5E7EB" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#E5E7EB" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #E5E7EB" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #E5E7EB" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #E5E7EB" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: rgb(229, 231, 235)"]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: rgb(229, 231, 235)"]:not(.dk, .dk *) { color: #282C34 !important; }
+html[data-theme="light"] [style^="color:#F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #F87171" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: rgb(248, 113, 113)"]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: rgb(248, 113, 113)"]:not(.dk, .dk *) { color: #B10909 !important; }

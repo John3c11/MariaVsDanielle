@@ -1,0 +1,13 @@
+/* patchnotes.light.css: the light theme for css/patchnotes.css. Made by a script, don't edit by hand. */
+html[data-theme="light"] .pn-k:not(.dk, .dk *) { color: #816302; }
+html[data-theme="light"] .pn-t:not(.dk, .dk *) { color: var(--t1); }
+html[data-theme="light"] .pn-d:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .pn-era:not(.dk, .dk *) { border-left: 2px solid var(--line-2); }
+html[data-theme="light"] .pn-eh:not(.dk, .dk *) { color: var(--t1); }
+html[data-theme="light"] .pn-eh span:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .pn-ed:not(.dk, .dk *) { color: var(--t2); }
+html[data-theme="light"] .pn-v:not(.dk, .dk *) { border-bottom: 1px solid var(--line); color: var(--t2); }
+html[data-theme="light"] .pn-v.now:not(.dk, .dk *) { color: var(--t1); }
+html[data-theme="light"] .pn-n:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .pn-v.now .pn-n:not(.dk, .dk *) { color: #816302; }
+

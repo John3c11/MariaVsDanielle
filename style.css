@@ -42,8 +42,6 @@
 }
 
 /* Analytics layout: season picker, sub-tabs, sections */
-.an-tab { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04); color: var(--t3); cursor: pointer; white-space: nowrap; }
-.an-tab.on { background: var(--t1); color: #0F0F12; border-color: var(--t1); }
 
 details.an-more { margin-top: 14px; }
 details.an-more > summary { cursor: pointer; font-size: 13px; font-weight: 600; color: #93C5FD; list-style: none; padding: 6px 0; }
@@ -55,7 +53,6 @@ details.an-more[open] > summary::before { content: '▾ '; }
 .ch-box { padding: 12px 12px 10px; margin-bottom: 8px; }
 .ch-svg { width: 100%; height: auto; display: block; overflow: visible; }
 .ch-note { font-size: 12px; color: var(--t3); margin-top: 8px; line-height: 1.5; }
-.ch-empty { font-size: 13px; color: var(--t3); text-align: center; padding: 18px 0; }
 .ch-legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--t2); margin-bottom: 8px; }
 .ch-legend span { display: inline-flex; align-items: center; gap: 6px; }
 .ch-key { width: 10px; height: 10px; border-radius: var(--r-xs); display: inline-block; box-sizing: border-box; }
@@ -190,27 +187,7 @@ html.theme-jewish .holiday-pill { color: #FFFFFF; text-shadow: 0 1px 2px rgba(0,
   color: var(--t1);
 }
 .pin-input:focus { border-color: rgba(255,255,255,0.6); }
-.primary-btn {
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  padding: 12px 28px;
-  border: none;
-  border-radius: var(--r);
-  background: var(--t1);
-  color: #0B0C10;
-  cursor: pointer;
-}
-.primary-btn:disabled { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.56); cursor: default; }
-.link-btn {
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  color: var(--t3);
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-decoration: underline;
-}
+.link-btn { text-decoration: underline; }
 .pick-chip {
   display: block;
   width: 100%;
@@ -649,8 +626,6 @@ footer {
   text-align: center;
 }
 
-.loading { color: var(--t3); font-size: 14px; text-align: center; padding: 24px; }
-
 .team-block {
   margin-bottom: 16px;
   padding: 0;
@@ -669,18 +644,6 @@ footer {
   padding: 10px 16px 14px;
   background: rgba(255,255,255,0.05);
 }
-
-.filter-btn {
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  padding: 5px 12px;
-  border: 1px solid var(--line-2);
-  background: rgba(255,255,255,0.04);
-  color: var(--t3);
-  cursor: pointer;
-}
-.filter-btn.active { background: var(--t1); color: #0B0C10; border-color: var(--t1); }
 .filter-btn.maria-btn.active { background: var(--maria); border-color: var(--maria); color: white; }
 .filter-btn.danielle-btn.active { background: var(--danielle); border-color: var(--danielle); color: white; }
 .filter-btn.win-btn.active { background: var(--good); border-color: var(--good); color: white; }
@@ -820,8 +783,7 @@ html.theme-playoffs .sb#sb-main header h1 { color: var(--warn); }
 .pf-tile .l { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 5px; }
 .pf-tile .v { font-size: 16px; font-weight: 700; line-height: 1.25; }
 .pf-tile .s { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 3px; }
-.pf-h { color: var(--t1); display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; font-weight: 800; margin: 6px 0 10px; padding-bottom: 8px; border-bottom: 1.5px solid rgba(255,255,255,0.16); }
-.pf-h small { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); }
+.pf-h { margin: 6px 0 10px; }
 .pf-badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(150px, 45%), 1fr)); gap: 10px; margin-bottom: 24px; }
 .pf-badge { border-radius: var(--r); padding: 14px 12px 12px; text-align: center; position: relative; }
 .pf-badge.got { background: linear-gradient(160deg, rgba(251,191,36,0.20), rgba(251,191,36,0.05)); border: 1px solid rgba(251,191,36,0.45); }
@@ -840,10 +802,7 @@ html.theme-playoffs .sb#sb-main header h1 { color: var(--warn); }
 
 /* Admin tools */
 .adm-nav { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 18px; }
-.adm-nav button { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; padding: 7px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04); color: var(--t3); cursor: pointer; }
-.adm-nav button.on { background: var(--t1); color: #0B0C10; border-color: var(--t1); }
 .adm-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 13px; }
-.adm-btn { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700; padding: 6px 10px; border-radius: var(--r-s); border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.06); color: var(--t1); cursor: pointer; white-space: nowrap; }
 .adm-btn.red { border-color: rgba(248,113,113,0.5); color: var(--bad-2); }
 .adm-btn.green { border-color: rgba(52,211,153,0.5); color: var(--good-2); }
 .adm-input { font-family: 'Inter', sans-serif; font-size: 14px; color: var(--t1); background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.14); border-radius: var(--r); padding: 9px 12px; outline: none; }
@@ -1034,7 +993,6 @@ html.theme-playoffs .sb#sb-main header h1 { color: var(--warn); }
 
 /* ── v84 cleanup ─────────────────────────────────────────────────────────── */
 /* One heading style: Analytics, Profiles, All-Time, admin all use this */
-.pf-h { gap: 8px; flex-wrap: wrap; }
 #legacy-content .pf-h { margin-top: 4px; }
 
 /* All-Time totals tiles: always fit, even on small phones */
@@ -1055,8 +1013,6 @@ html.theme-playoffs .sb#sb-main header h1 { color: var(--warn); }
 
 /* Trash Talk: folded post box */
 .chat-fold { text-align: center; margin-bottom: 18px; }
-.chat-fold-btn { font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; color: var(--t1); background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14); border-radius: 999px; padding: 10px 20px; cursor: pointer; }
-.chat-fold-btn:hover { background: rgba(255,255,255,0.12); }
 
 /* Footer: Campbell + last refreshed, compact on phones */
 @media (max-width: 700px) {
@@ -1436,10 +1392,6 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 .mll-src.ok { color: var(--good-2); }
 
 /* 🧪 Stat Lab */
-.lab-title { font-size: 20px; font-weight: 800; color: var(--t1); }
-.lab-sub { font-size: 13px; color: var(--t3); margin-top: 2px; }
-.lab-pre { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; color: #E5E7EB; background: rgba(167,139,250,0.10); border: 1px solid rgba(167,139,250,0.35); padding: 5px 11px; cursor: pointer; }
-.lab-pre:hover { background: rgba(167,139,250,0.2); }
 .lab-pre.mine { background: rgba(252,211,77,0.10); border-color: rgba(252,211,77,0.4); }
 .lab-chips .filter-btn.lab-m.active { background: var(--maria); border-color: var(--maria); color: #fff; }
 .lab-chips .filter-btn.lab-d.active { background: var(--danielle); border-color: var(--danielle); color: #fff; }
@@ -1460,20 +1412,7 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 .hub-sub-row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; }
 .hub-sub-row::-webkit-scrollbar { display: none; }
 .hub-acct { display: none; }
-.hub-sub-btn {
-  flex: 0 0 auto;
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--t2);
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  padding: 7px 13px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.hub-sub-btn:hover { background: rgba(255,255,255,0.09); color: #FFFFFF; }
-.hub-sub-btn.on { background: var(--t1); color: #0B0C10; border-color: var(--t1); }
+.hub-sub-btn { flex: 0 0 auto; }
 @media (max-width: 700px) {
   .tabs-nav > .acct-btn { display: none !important; }
   .acct-mini { display: block; position: absolute; top: 7px; right: 8px; z-index: 20; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700;
@@ -1506,6 +1445,7 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
   --good: #34D399; --good-2: #6EE7B7; --bad: #F87171; --bad-2: #FCA5A5; --warn: #FCD34D; --warn-2: #FDE68A; --machine: #A78BFA;
   --s1: rgba(255,255,255,0.045); --s2: rgba(255,255,255,0.07); --s3: rgba(255,255,255,0.1);
   --line: rgba(255,255,255,0.08); --line-2: rgba(255,255,255,0.14);
+  --ink: #0B0C10;   /* text on a light-filled button or chip */
   --r-xs: 4px; --r-s: 8px; --r: 12px; --r-l: 18px;   /* the only four corner sizes (plus 999px for pills) */
   /* type scale (v151): 9 10 11 12 13 14 15 16 18 20 22 24 28 32 36 40, display sizes above that */
 }
@@ -1531,7 +1471,6 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 .ui-small { font-size: 11px; color: var(--t3); margin-top: 2px; }
 .ui-tiny { font-size: 10px; color: var(--t3); }
 .ui-body { font-size: 13px; color: var(--t2); line-height: 1.8; }
-.ui-empty { text-align: center; padding: 30px 0; color: var(--t3); font-size: 14px; }
 /* Boxes */
 .ui-box { background: var(--s2); border-radius: var(--r); padding: 14px 16px; font-size: 13px; color: var(--t2); }
 .ui-box-row { display: flex; justify-content: center; gap: 24px; margin-bottom: 20px; padding: 12px; flex-wrap: wrap; }
@@ -1554,7 +1493,6 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 .pf-tile, .ch-box, .gp-col, .gp-ch, .lab-pk, .gl-g, .mll-row, .lab-q, .rpc-g { background: var(--s1); }
 .pf-tile, .ch-box, .gl-g, .mll-row, .lab-q { border: 1px solid var(--line); }
 /* Pills: filters, sub-tabs, presets */
-.filter-btn, .hub-sub-btn, .lab-pre { border-radius: 999px; }
 
 /* v127: utilities generated from the inline styles that used to sit in the scripts (Analytics, Admin, Stat Lab, Machine, …).
    Colors go through the palette tokens; layout utilities win over component rules, like the inline styles did.
@@ -1668,7 +1606,7 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 }
 
 /* ── v129: 📨 invite / sign-up, friend home summary ── */
-:root { --css-v: "151"; } /* main.js compares this with the page version to catch an old style.css */
+:root { --css-v: "152"; } /* main.js compares this with the page version to catch an old style.css */
 .join-box { max-width: 340px; margin-left: auto; margin-right: auto; }
 .join-l { display: block; text-align: left; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t3); margin: 14px 0 6px; }
 .join-in { width: 100%; box-sizing: border-box; }
@@ -1714,10 +1652,8 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 /* ── v131: admin in 5 sections ── */
 
 /* ── v134: 📊 Numbers = 📖 Stories + 🧪 Explore ── */
-.nm-mode { display: flex; gap: 4px; padding: 4px; margin: 0 0 16px; border-radius: var(--r); background: var(--s1); border: 1px solid var(--line); }
-.nm-mode button { flex: 1 1 0; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; color: var(--t3); background: none; border: 0; border-radius: var(--r); padding: 10px 8px; cursor: pointer; }
-.nm-mode button:hover { color: var(--t1); }
-.nm-mode button.on { color: #0B0B0E; background: var(--t1); }
+.nm-mode { display: flex; gap: 4px; margin: 0 0 16px; }
+.nm-mode button { flex: 1 1 0; }
 
 /* ── v135: one "Show all / Show less" for every list, and links between the pages ── */
 .ml.ml-folded .ml-x { display: none !important; }
@@ -1739,9 +1675,8 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 .lk-g { margin: 12px 0; }
 .lk-h { font-size: 13px; font-weight: 800; color: var(--t1); margin-bottom: 6px; }
 .lk-h small { font-weight: 600; color: var(--t3); }
-.lk-seg { display: flex; gap: 4px; padding: 3px; border-radius: var(--r); background: var(--s1); border: 1px solid var(--line); }
-.lk-seg button { flex: 1 1 0; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700; color: var(--t3); background: none; border: 0; border-radius: var(--r-s); padding: 9px 4px; cursor: pointer; }
-.lk-seg button.on { background: var(--t1); color: #0B0C10; }
+.lk-seg { display: flex; gap: 4px; }
+.lk-seg button { flex: 1 1 0; }
 .lk-note { font-size: 11px; color: var(--t4); text-align: center; margin-top: 6px; }
 @media (max-width: 700px) {
   .tabs-nav > .look-btn { display: none !important; }
@@ -1828,3 +1763,61 @@ html[data-motion="less"] .holiday-fx, html[data-motion="less"] .egg-rain, html[d
 .v150-f b { display: block; font-size: 14px; color: var(--t1); margin-bottom: 2px; }
 .v150-f:hover { border-color: rgba(251,191,36,0.5); }
 .v150-go { margin-top: 10px; width: 100%; font: 800 15px/1 Inter, sans-serif; color: #0B0C10; background: #FBBF24; border: 0; border-radius: var(--r); padding: 14px; cursor: pointer; }
+
+/* ══ 🧰 The kit (v152) ══════════════════════════════════════════════════════════════
+   Every screen builds from these pieces. Old class names that mean the same thing are listed
+   next to the new ones, so they all look identical. New markup should use the first name. */
+
+/* Page header: the title at the top of a tab. <div class="page-head"><div class="ph-t">🧪 Explore</div><div class="ph-s">…</div></div> */
+.page-head { margin: 2px 0 14px; }
+.page-head.c { text-align: center; }
+.ph-t { font-size: 20px; font-weight: 800; color: var(--t1); line-height: 1.25; }
+.ph-s { font-size: 13px; color: var(--t3); margin-top: 3px; line-height: 1.45; }
+
+/* Hero: a tinted card with a big emoji, for the special screens (Museum, Bracket, Machine). Set the tint on the screen's own class. */
+.hero, .mu-hero, .br-hero, .mch-hero { display: flex; gap: 14px; align-items: center; padding: 16px 18px; margin-bottom: 14px; border-radius: var(--r-l); }
+.hero-ic, .mu-hero-ic, .br-hero-ic, .mch-bot { font-size: 40px; line-height: 1; flex: none; }
+.hero-t, .mu-hero-t, .br-hero-t, .mch-t { font-size: 22px; font-weight: 800; line-height: 1.2; }
+.hero-s, .mu-hero-s, .br-hero-s, .mch-s { font-size: 13px; color: var(--t2); margin-top: 4px; line-height: 1.45; }
+
+/* Section header: a bold line with a rule under it, optional <small> note on the right */
+.sec-h, .pf-h, .an-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  font-size: 13px; font-weight: 800; color: var(--t1); padding-bottom: 8px; border-bottom: 1.5px solid var(--line-2); }
+.sec-h { margin: 22px 0 10px; }
+.sec-h small, .pf-h small, .an-h small { font-size: 11px; font-weight: 600; color: var(--t3); }
+
+/* Chip: filters and sub-tabs. .on (or .active) = picked. .accent = a Machine-purple suggestion chip. */
+.chip, .filter-btn, .an-tab, .adm-nav button, .mk-chips button, .hub-sub-btn, .lab-pre, .an-x {
+  font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; line-height: 1.2; padding: 6px 12px; border-radius: 999px;
+  border: 1px solid var(--line-2); background: var(--s1); color: var(--t2); cursor: pointer; white-space: nowrap; }
+.chip:hover, .filter-btn:hover, .an-tab:hover, .adm-nav button:hover, .mk-chips button:hover, .hub-sub-btn:hover { background: var(--s2); color: var(--t1); }
+.chip.on, .filter-btn.active, .an-tab.on, .adm-nav button.on, .hub-sub-btn.on { background: var(--t1); color: var(--ink); border-color: var(--t1); }
+.chip.lg, .hub-sub-btn { font-size: 13px; padding: 7px 13px; }   /* the sub-tabs under each hub */
+.chip.accent, .lab-pre, .an-x { background: rgba(167,139,250,0.10); border-color: rgba(167,139,250,0.35); color: var(--t1); }
+.chip.accent:hover, .lab-pre:hover, .an-x:hover { background: rgba(167,139,250,0.2); }
+
+/* Segmented control: one choice out of a few, in a track. <div class="seg"><button class="on">Dark</button>…</div> */
+.seg, .lk-seg, .nm-mode, .adm-secs { display: flex; gap: 4px; padding: 3px; border-radius: var(--r); background: var(--s1); border: 1px solid var(--line); }
+.seg button, .lk-seg button, .nm-mode button, .adm-secs button { flex: 1 1 0; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700; color: var(--t3);
+  background: none; border: 0; border-radius: var(--r-s); padding: 9px 6px; cursor: pointer; }
+.seg button:hover, .lk-seg button:hover, .nm-mode button:hover, .adm-secs button:hover { color: var(--t1); }
+.seg button.on, .lk-seg button.on, .nm-mode button.on, .adm-secs button.on { background: var(--t1); color: var(--ink); }
+
+/* Buttons, three kinds: primary (the one main action), secondary (everything else), link (quiet text) */
+.btn-primary, .primary-btn { font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; padding: 11px 22px; border: 0; border-radius: var(--r);
+  background: var(--t1); color: var(--ink); cursor: pointer; }
+.btn-primary:disabled, .primary-btn:disabled { background: var(--s3); color: var(--t4); cursor: default; }
+.btn, .adm-btn, .chat-fold-btn { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; padding: 7px 12px; border-radius: var(--r-s);
+  border: 1px solid var(--line-2); background: var(--s2); color: var(--t1); cursor: pointer; white-space: nowrap; }
+.btn:hover, .adm-btn:hover, .chat-fold-btn:hover { background: var(--s3); }
+.btn:disabled, .adm-btn:disabled { opacity: 0.55; cursor: default; }
+.btn.lg, .chat-fold-btn { font-size: 14px; padding: 10px 18px; }
+.link-btn { font-family: 'Inter', sans-serif; font-size: 12px; color: var(--t3); background: none; border: 0; padding: 0; cursor: pointer; }
+.link-btn:hover { color: var(--t1); }
+
+/* Card: the plain box most lists are made of */
+.card, .mu-card, .ck-card, .mch-g, .wk-item { background: var(--s1); border: 1px solid var(--line); border-radius: var(--r); }
+.card { padding: 12px 14px; }
+
+/* Empty state and loading: centered, quiet */
+.empty, .ui-empty, .ch-empty, .loading { text-align: center; color: var(--t3); font-size: 13px; line-height: 1.5; padding: 28px 12px; }

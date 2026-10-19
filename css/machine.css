@@ -3,15 +3,13 @@
 .pf-hero { border-radius: var(--r-l); padding: 24px 20px 20px; text-align: center; margin-bottom: 16px; }
 .pf-hero img { width: 108px; height: 108px; border-radius: 50%; object-fit: cover; border: 3px solid var(--pc); box-shadow: 0 0 30px -4px var(--pc); }
 .mc-est { display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #C4B5FD; background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.35); border-radius: var(--r-xs); padding: 0 4px; vertical-align: 1px; }
-.mch-hero { display: flex; gap: 14px; align-items: center; padding: 18px; margin-bottom: 14px; border-radius: var(--r-l);
-  background: radial-gradient(circle at 0 0, rgba(167,139,250,0.25), transparent 60%), linear-gradient(135deg, #15102A, #101114); border: 1px solid rgba(167,139,250,0.35); }
-.mch-bot { font-size: 44px; line-height: 1; }
-.mch-t { font-size: 22px; font-weight: 800; color: #DDD6FE; }
-.mch-s { font-size: 13px; color: var(--t2); margin-top: 4px; line-height: 1.45; }
+.mch-hero { background: radial-gradient(circle at 0 0, rgba(167,139,250,0.25), transparent 60%), linear-gradient(135deg, #15102A, #101114); border: 1px solid rgba(167,139,250,0.35); }
+.mch-t { color: #DDD6FE; }
+.mch-s { margin-top: 4px; }
 .mch-who { color: var(--c); }
 .mch-wk { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #DDD6FE; margin: 14px 0 6px; }
 .mch-retro { font-size: 10px; letter-spacing: 0.04em; color: var(--t3); border: 1px dashed rgba(255,255,255,0.25); border-radius: var(--r-xs); padding: 1px 5px; text-transform: none; font-weight: 700; }
-.mch-g { border-radius: var(--r); background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); padding: 9px 11px; margin-bottom: 7px; }
+.mch-g { padding: 9px 11px; margin-bottom: 7px; }
 .mch-gh { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; color: #E5E7EB; margin-bottom: 4px; }
 .mch-gh > span:first-child { display: flex; align-items: center; gap: 5px; }
 .mch-gh .tlogo { width: 18px; height: 18px; }

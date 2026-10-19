@@ -1,10 +1,8 @@
 /* bracket.css: styles only the bracket screens use. Loaded with js/bracket.js (loadScriptOnce), not at startup. */
-.br-hero { display: flex; gap: 14px; align-items: center; padding: 18px; margin-bottom: 14px; border-radius: var(--r-l);
-  background: radial-gradient(circle at 0 0, rgba(251,191,36,0.20), transparent 60%), linear-gradient(135deg, #1A1407, #101114); border: 1px solid rgba(251,191,36,0.3); }
-.br-hero-ic { font-size: 42px; line-height: 1; }
-.br-hero-t { font-size: 20px; font-weight: 800; color: var(--warn-2); }
+.br-hero { background: radial-gradient(circle at 0 0, rgba(251,191,36,0.20), transparent 60%), linear-gradient(135deg, #1A1407, #101114); border: 1px solid rgba(251,191,36,0.3); }
+.br-hero-t { color: var(--warn-2); }
 .br-yr { font-size: 13px; color: var(--t3); font-weight: 700; margin-left: 4px; }
-.br-hero-s { font-size: 13px; color: var(--t2); margin-top: 4px; line-height: 1.45; }
+.br-hero-s { margin-top: 4px; }
 .br-left { display: inline-block; font-size: 11px; font-weight: 800; color: #111; background: #FBBF24; border-radius: var(--r-s); padding: 1px 6px; margin-left: 4px; }
 .br-rules-btn { margin-top: 6px; font-size: 12px; }
 .br-rules { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--r); padding: 10px 12px; margin-bottom: 14px; }

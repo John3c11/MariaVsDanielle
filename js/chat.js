@@ -103,7 +103,7 @@
             : '<div class="u-d-flex u-ai-center u-gap-8px"><input class="chat-pin" id="chat-pin" type="password" inputmode="numeric" maxlength="4" placeholder="PIN" autocomplete="off">' +
               '<label class="u-fs-11px u-c-muted u-d-flex u-ai-center u-gap-5px"><input type="checkbox" id="chat-remember" checked> Remember me</label></div>') +
           '<div class="u-d-flex u-ai-center u-gap-10px"><span id="chat-count" style="font-size:11px;color:rgba(255,255,255,0.4)">280</span>' +
-          '<button class="u-p-10px-22px primary-btn" id="chat-send">Post</button></div>' +
+          '<button class="primary-btn" id="chat-send">Post</button></div>' +
         '</div>' +
         '<div class="submit-msg" id="chat-msg"></div></div>';
       var ta = document.getElementById('chat-text');
@@ -310,7 +310,7 @@
         return '<div class="chat-pinned">📌 <b style="color:' + (personColor(m.who)) + '">' + m.who + ':</b> ' + escHtml(m.text) + '</div>';
       }).join('');
       if (!msgs.length) {
-        feed.innerHTML = '<div class="u-ta-center u-c-muted u-p-28px-0 chat-empty">' +
+        feed.innerHTML = '<div class="empty chat-empty">' +
           (isCurrentChat() ? 'No trash talk yet. Somebody start it. 👀' : 'No trash talk saved for ' + CHAT.season + '.') + '</div>';
         return;
       }

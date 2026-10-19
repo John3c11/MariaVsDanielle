@@ -186,7 +186,7 @@
     function brPinHtml() {
       return '<div class="br-pin"><div style="font-size:13px;color:#C4C9D2;margin-bottom:8px">Maria, Danielle and every friend can play. Enter your PIN to fill yours out.</div>' +
         '<div class="u-d-flex u-gap-8px"><input class="u-w-110px u-ta-center u-ls-0-3em adm-input" id="br-pin" type="password" inputmode="numeric" maxlength="4" placeholder="PIN">' +
-        '<button class="u-p-9px-18px primary-btn" id="br-go">Open my bracket</button></div><div class="u-ta-left submit-msg" id="br-pin-msg"></div></div>';
+        '<button class="primary-btn" id="br-go">Open my bracket</button></div><div class="u-ta-left submit-msg" id="br-pin-msg"></div></div>';
     }
     function bindBrPin(el) {
       var go = document.getElementById('br-go'), inp = document.getElementById('br-pin');

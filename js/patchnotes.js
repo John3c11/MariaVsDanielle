@@ -4,6 +4,7 @@
 
     var PATCH_ERAS = [
       { t: '🧹 The cleanup', r: 'v151–', d: 'Making the whole site look and work like one thing.', v: [
+        [152, 'One kit: every page header, section header, chip, segmented switch, button, card and empty message now comes from one shared set'],
         [151, 'One system: a set text-size scale, four corner sizes, and named colors everywhere so light mode follows along'],
       ] },
       { t: '🌗 MvD 2.0', r: 'v140–v150', d: 'Light mode, a Time Machine, a smarter Machine, Futures, and a magazine.', v: [

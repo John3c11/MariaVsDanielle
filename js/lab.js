@@ -218,7 +218,7 @@
       var saved = labSaved();
       var nMore = (q.side ? 1 : 0) + (q.team ? 1 : 0) + (q.player ? 1 : 0) + q.odds.length + (q.same ? 1 : 0) + (q.res ? 1 : 0) + (q.wk1 || q.wk2 ? 1 : 0);
       var players = {}; LAB.picks.forEach(function(p) { players[p.name] = 1; });
-      var h = '<div class="lab-hero"><div class="lab-title">🧪 Explore</div><div class="lab-sub">Ask your own question. The answer comes from every bet since ' + (yrs.slice().sort()[0] || '2023') + '.</div></div>';
+      var h = '<div class="page-head"><div class="ph-t">🧪 Explore</div><div class="ph-s">Ask your own question. The answer comes from every bet since ' + (yrs.slice().sort()[0] || '2023') + '.</div></div>';
       h += '<div class="lab-try"><span class="lab-l">Try</span>' + LAB_PRESETS.map(function(p, i) { return '<button class="lab-pre" data-lab-pre="' + i + '">' + p.t + '</button>'; }).join('') +
         saved.map(function(s, i) { return '<span class="lab-saved"><button class="lab-pre mine" data-lab-saved="' + i + '">⭐ ' + escHtml(s.name) + '</button><button class="lab-unsave" data-lab-unsave="' + i + '" aria-label="Remove">✕</button></span>'; }).join('') + '</div>';
       h += '<div id="lab-disc"></div>';
@@ -279,7 +279,7 @@
         var c = labWhoColor(x.who);
         return '<div class="lab-head" style="--pc:' + c + '"><div class="lab-head-who" style="color:' + c + '">' + escHtml(labWhoName(x.who)) + '</div><div class="lab-head-v">' + escHtml(labHeadline(x.S)) + '</div></div>';
       }).join('') + '</div>';
-      if (R.every(function(x) { return !x.S.n && !x.S.v; })) return h + '</div><div class="u-ta-center u-m-20px-0-30px mc-note">Nothing matches that. Try taking a filter off.</div>';
+      if (R.every(function(x) { return !x.S.n && !x.S.v; })) return h + '</div><div class="empty">Nothing matches that. Try taking a filter off.</div>';
       if (q.split) h += labSplitHtml(R, q.split);
       if (side) {
         var A = R[0].S, B = R[1].S;

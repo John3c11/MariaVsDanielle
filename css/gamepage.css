@@ -62,7 +62,6 @@
 .gp-root.open { display: block; }
 .gp-frame { max-width: 720px; margin: 0 auto; padding: calc(14px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom)); box-sizing: border-box; }
 .gp-x { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16); color: var(--t1); border-radius: 50%; width: 34px; height: 34px; font-size: 15px; cursor: pointer; flex: 0 0 auto; }
-.gl-head { margin: 2px 0 12px; }
 .gl-wk { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t3); margin: 16px 0 6px; }
 .gl-list { display: flex; flex-direction: column; gap: 6px; }
 .gl-g {

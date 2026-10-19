@@ -131,10 +131,10 @@
         : Promise.all([getCrowd(), fetchSheet('Winnings', 'A1:Q400')]);
       src.then(function(res) {
         var crowd = res[0], G = crowdGames(res[1]);
-        var h = '<div class="u-center u-mb-m"><div class="ui-big">🏅 The Crowd' + (past ? ' · ' + yr : '') + '</div>' +
-          '<div class="ui-note u-mt-xs">' + (past ? 'Final standings. Ranked by win % (' + CROWD_MIN + '+ games to qualify).' : 'Friends make their own picks each game. Ranked by win % (' + CROWD_MIN + '+ games to qualify). Picks show at kickoff.') + '</div></div>' +
+        var h = '<div class="page-head c"><div class="ph-t">🏅 The Crowd' + (past ? ' · ' + yr : '') + '</div>' +
+          '<div class="ph-s">' + (past ? 'Final standings. Ranked by win % (' + CROWD_MIN + '+ games to qualify).' : 'Friends make their own picks each game. Ranked by win % (' + CROWD_MIN + '+ games to qualify). Picks show at kickoff.') + '</div></div>' +
           '<div id="cr-seasons"></div>';
-        if (!crowd.friends || !crowd.friends.length) { el.innerHTML = h + '<div class="loading">No friends have joined yet.</div>'; crowdSeasonChips(yr); return; }
+        if (!crowd.friends || !crowd.friends.length) { el.innerHTML = h + '<div class="empty">No friends have joined yet.</div>'; crowdSeasonChips(yr); return; }
         var R = rankFriends(crowd, G);
         var ref = ['Maria', 'Danielle'].map(function(n) { var s = mdStats(n, G); s.ref = true; return s; });
 

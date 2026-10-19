@@ -29,7 +29,7 @@
           '<label>Amount bet<input class="adm-input" id="ag-amt" type="number" min="1" step="any" value="' + escHtml(r.amount || '5') + '"></label>' +
         '</div>' +
         '<div class="ag-note" id="ag-note"></div>' +
-        '<button class="u-p-10px-20px primary-btn" id="ag-add">' + (E ? 'Save changes' : 'Add game') + '</button>' +
+        '<button class="primary-btn" id="ag-add">' + (E ? 'Save changes' : 'Add game') + '</button>' +
         (E ? ' <button class="u-ml-s link-btn" id="ag-cancel">Cancel</button>' : '') +
         '<div class="u-ta-left submit-msg" id="adm-msg"></div>' +
         '<div class="u-fs-11px u-c-faint u-m-8px-0-20px">' + (E
@@ -41,7 +41,7 @@
       weeks.sort(function(a, b) { return b - a; });
       var shown = GAMES.showAll ? weeks : weeks.slice(0, 2);
       h += '<div class="pf-h">📋 Games in the sheet <small>' + r.games.length + ' games</small></div>';
-      if (!weeks.length) h += '<div class="u-fs-13px u-c-muted">No games yet.</div>';
+      if (!weeks.length) h += '<div class="empty">No games yet.</div>';
       shown.forEach(function(w) {
         h += '<div class="ag-wk">' + weekName(w) + '</div>';
         byWeek[w].forEach(function(g) {
@@ -131,7 +131,7 @@
       var h = '<div class="ui-note u-mb">The Machine\'s correct picks in ' + escHtml(r.season) + '. A miss costs 1 unit at any price, so only these need real odds. ' +
         'Type FanDuel\'s price to replace its estimate. Clear the box to go back to the estimate.</div>';
       if (!r.lines.length) {
-        body.innerHTML = h + '<div class="u-ta-center u-m-18px-0 mc-note">No correct picks yet this season.</div>';
+        body.innerHTML = h + '<div class="empty">No correct picks yet this season.</div>';
         return;
       }
       h += '<div class="mll-sum">' + (need ? '⚠️ <b>' + need + '</b> still on an estimate' : '✅ Every correct pick has real odds') + '</div><div class="u-ta-left submit-msg" id="adm-msg"></div>';

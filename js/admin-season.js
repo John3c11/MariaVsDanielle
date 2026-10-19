@@ -35,7 +35,7 @@
               return '<option value="' + escHtml(x) + '"' + (resolveTeam(t) === x ? ' selected' : '') + '>' + escHtml(x.split(' ').pop()) + '</option>'; }).join('') + '</select></label>';
           }).join('') + '</div>';
         }).join('') + '</div>' +
-        '<button class="u-p-10px-20px primary-btn" id="bra-save">' + (S && S.opened ? 'Save the field' : 'Save and open the bracket') + '</button>' +
+        '<button class="primary-btn" id="bra-save">' + (S && S.opened ? 'Save the field' : 'Save and open the bracket') + '</button>' +
         (S && !S.opened ? ' <button class="u-ml-8px link-btn" id="bra-save-only">Save without opening</button>' : '') +
         '<div class="u-ta-left submit-msg" id="adm-msg"></div>';
       var E = r.entries || [];
@@ -144,7 +144,7 @@
           '</div></label>' +
           '<label class="u-fd-row u-ai-center u-gap-8px u-fs-13px u-c-t1 wide"><input type="checkbox" id="mua-star"' + (E && E.star ? ' checked' : '') + '> ⭐ Feature it (gold card, bigger with a photo)</label>' +
         '</div>' +
-        '<button class="u-p-10px-20px primary-btn" id="mua-save">' + (E ? 'Save changes' : 'Add to the Museum') + '</button>' +
+        '<button class="primary-btn" id="mua-save">' + (E ? 'Save changes' : 'Add to the Museum') + '</button>' +
         (E ? ' <button class="u-ml-s link-btn" id="mua-cancel">Cancel</button>' : '') +
         '<div class="u-ta-left submit-msg" id="adm-msg"></div>';
 
@@ -346,7 +346,7 @@
       h += '<div class="u-d-flex u-gap-8px u-fwrap-wrap u-m-12px-0-6px">' +
           '<input class="u-f-2 u-minw-160px adm-input" id="inj-name" list="inj-players" placeholder="Mark someone out by hand">' +
           '<input class="u-f-1-4 u-minw-120px adm-input" id="inj-note" placeholder="Note (optional)">' +
-          '<button class="u-p-9px-18px primary-btn" id="inj-add">Mark OUT</button>' +
+          '<button class="primary-btn" id="inj-add">Mark OUT</button>' +
         '</div><datalist id="inj-players">' + names.map(function(n) { return '<option value="' + escHtml(n) + '">'; }).join('') + '</datalist>' +
         '<div class="u-ta-left submit-msg" id="adm-msg"></div>';
       if (st.needFill && st.needFill.length) h += '<div class="inj-warn">⚠️ No fill-in found for: <b>' + st.needFill.map(escHtml).join(', ') + '</b>. Pick one below, or leave the slot empty.</div>';
@@ -374,7 +374,7 @@
             (auto ? '<button class="adm-btn" data-keep="' + escHtml(r.name) + '" title="Ignore ESPN for him until his status changes">Keep him in</button>'
                   : '<button class="adm-btn green" data-heal="' + escHtml(r.name) + '">Healthy ✓</button>') + '</div>' +
           '<div class="inj-fillrow"><span>Fill-in:</span>' + sel + '</div></div>';
-      }).join('') : '<div class="u-c-muted u-fs-13px u-p-10px-0">Nobody is out.</div>';
+      }).join('') : '<div class="empty">Nobody is out.</div>';
 
       if (st.shifted && st.shifted.length) {
         h += '<div class="inj-h">🔒 Shifted teams <small>don\'t hand-edit these columns until they\'re back to normal</small></div>';

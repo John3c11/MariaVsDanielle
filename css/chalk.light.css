@@ -1,5 +1,4 @@
 /* chalk.light.css: the light theme for css/chalk.css. Made by a script, don't edit by hand. */
-html[data-theme="light"] .ck-card:not(.dk, .dk *) { background: rgba(17,24,39,0.026); border: 1px solid rgba(17,24,39,0.072); border-radius: var(--r); }
 html[data-theme="light"] .ck-verdict:not(.dk, .dk *) { color: #282C34; border-radius: var(--r); }
 html[data-theme="light"] .ck-verdict.up:not(.dk, .dk *) { background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.25); }
 html[data-theme="light"] .ck-verdict.down:not(.dk, .dk *) { background: rgba(248,113,113,0.1); border: 1px solid rgba(219,11,11,0.25); }

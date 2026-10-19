@@ -69,7 +69,7 @@
         if (!GL.year || years.indexOf(GL.year) < 0) GL.year = years[0];
         var list = Object.keys(G).map(function(k) { return G[k]; }).filter(function(g) { return g.year === GL.year; })
           .sort(function(a, b) { return b.week - a.week || b.idx - a.idx; });
-        var h = '<div class="gl-head"><div class="lab-title">🏈 Games</div><div class="lab-sub">Every game they\'ve bet on. Tap one for everything about it.</div></div>' +
+        var h = '<div class="page-head"><div class="ph-t">🏈 Games</div><div class="ph-s">Every game they\'ve bet on. Tap one for everything about it.</div></div>' +
           '<div class="u-mb af-bar"><span class="af-bar-label">Season</span>' + years.map(function(y) { return '<button class="filter-btn' + (y === GL.year ? ' active' : '') + '" data-gl-y="' + y + '">' + y + '</button>'; }).join('') + '</div>';
         var wk = null;
         list.forEach(function(g) {

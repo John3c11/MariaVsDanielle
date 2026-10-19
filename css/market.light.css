@@ -6,7 +6,6 @@ html[data-theme="light"] .mk-bar:not(.dk, .dk *) { border-radius: var(--r); back
 html[data-theme="light"] .mk-odds small:not(.dk, .dk *) { color: var(--t3); }
 html[data-theme="light"] .mk-meta:not(.dk, .dk *) { color: var(--t3); }
 html[data-theme="light"] .mk-trade:not(.dk, .dk *) { border-top: 1px solid rgba(17,24,39,0.072); }
-html[data-theme="light"] .mk-chips button:not(.dk, .dk *) { border-radius: 999px; border: 1px solid rgba(17,24,39,0.144); background: rgba(17,24,39,0.039); color: var(--t1); }
 html[data-theme="light"] .mk-amt span:not(.dk, .dk *) { color: var(--t3); }
 html[data-theme="light"] .mk-prev:not(.dk, .dk *) { color: var(--t2); }
 html[data-theme="light"] .mk-h:not(.dk, .dk *) { color: var(--t3); }

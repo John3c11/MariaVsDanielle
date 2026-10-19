@@ -1,5 +1,4 @@
 /* lab.css: styles only the lab screens use. Loaded with js/lab.js (loadScriptOnce), not at startup. */
-.lab-hero { margin: 2px 0 12px; }
 .lab-try { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 12px; }
 .lab-saved { display: inline-flex; align-items: center; }
 .lab-unsave { background: none; border: 0; color: var(--t3); cursor: pointer; font-size: 11px; padding: 2px 4px; }

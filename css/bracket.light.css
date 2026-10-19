@@ -1,8 +1,7 @@
 /* bracket.light.css: the light theme for css/bracket.css. Made by a script, don't edit by hand. */
-html[data-theme="light"] .br-hero:not(.dk, .dk *) { border-radius: var(--r-l); background: radial-gradient(circle at 0 0, rgba(251,191,36,0.2), transparent 60%), linear-gradient(135deg, #F5F0E5, #F6F7F7); border: 1px solid rgba(251,191,36,0.3); }
+html[data-theme="light"] .br-hero:not(.dk, .dk *) { background: radial-gradient(circle at 0 0, rgba(251,191,36,0.2), transparent 60%), linear-gradient(135deg, #F5F0E5, #F6F7F7); border: 1px solid rgba(251,191,36,0.3); }
 html[data-theme="light"] .br-hero-t:not(.dk, .dk *) { color: var(--warn-2); }
 html[data-theme="light"] .br-yr:not(.dk, .dk *) { color: var(--t3); }
-html[data-theme="light"] .br-hero-s:not(.dk, .dk *) { color: var(--t2); }
 html[data-theme="light"] .br-left:not(.dk, .dk *) { color: #111; background: #FBBF24; border-radius: var(--r-s); }
 html[data-theme="light"] .br-rules:not(.dk, .dk *) { background: rgba(17,24,39,0.026); border: 1px solid rgba(17,24,39,0.072); border-radius: var(--r); }
 html[data-theme="light"] .br-rt span:not(.dk, .dk *) { color: var(--t2); }

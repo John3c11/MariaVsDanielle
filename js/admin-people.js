@@ -14,7 +14,7 @@
             '<input class="u-f-2 u-minw-140px adm-input" id="fr-name" placeholder="Name" maxlength="24">' +
             '<input class="u-w-90px u-ls-0-2em u-ta-center adm-input" id="fr-pin" placeholder="PIN" maxlength="4" inputmode="numeric">' +
             '<button class="adm-btn" id="fr-rand" title="Random PIN">🎲</button>' +
-            '<button class="u-p-9px-18px primary-btn" id="fr-add">Add Friend</button>' +
+            '<button class="primary-btn" id="fr-add">Add Friend</button>' +
           '</div><div class="u-ta-left submit-msg" id="adm-msg"></div>' +
           inviteHtml(res) +
           '<div class="u-fs-11px u-fw-800 u-ls-0-12em u-c-muted u-m-14px-0-4px">FRIENDS (' + list.length + ')</div>';
@@ -23,7 +23,7 @@
             '<div class="u-d-flex u-gap-6px"><button class="adm-btn" data-fprof="' + escHtml(f.name) + '">Profile</button>' +
             '<button class="adm-btn" data-fpin="' + escHtml(f.name) + '">PIN</button>' +
             '<button class="adm-btn red" data-frm="' + escHtml(f.name) + '">Remove</button></div></div>';
-        }).join('') : '<div class="u-c-muted u-fs-13px u-p-10px-0">No friends yet.</div>';
+        }).join('') : '<div class="empty">No friends yet.</div>';
         body.innerHTML = h;
         document.getElementById('fr-rand').addEventListener('click', function() {
           var taken = list.map(function(f) { return f.pin; }), pin;
@@ -78,7 +78,7 @@
           (navigator.share ? '<button class="adm-btn" id="inv-share">📤 Share</button>' : '') +
           '<button class="adm-btn" id="inv-new">🔄 New link</button><button class="adm-btn red" id="inv-off">Turn off</button></div>'
         : '<div class="ui-note u-mb">No invite link right now. Make one to let friends sign themselves up (you still approve each one).</div>' +
-          '<button class="u-p-9px-18px primary-btn u-mb-6px" id="inv-new">Make an invite link</button>';
+          '<button class="primary-btn u-mb-6px" id="inv-new">Make an invite link</button>';
       if (pend.length) {
         h += '<div class="u-fs-11px u-fw-800 u-ls-0-12em u-c-warn u-m-14px-0-4px">WAITING FOR YOU (' + pend.length + ')</div>' +
           pend.map(function(r) {
@@ -148,7 +148,7 @@
               '<span class="u-c-soft">' + escHtml(m.text) + '</span></div>' +
               '<div class="u-d-flex u-gap-6px"><button class="adm-btn" data-pin="' + m.row + '">' + (m.pinned ? 'Unpin' : 'Pin') + '</button>' +
               '<button class="adm-btn red" data-del="' + m.row + '" data-text="' + escHtml(m.text) + '">Delete</button></div></div>';
-          }).join('') : '<div class="u-c-muted u-fs-13px">No messages yet.</div>');
+          }).join('') : '<div class="empty">No messages yet.</div>');
         body.querySelectorAll('[data-pin]').forEach(function(b) {
           b.addEventListener('click', function() {
             b.disabled = true;
@@ -169,6 +169,6 @@
           });
         });
       }).catch(function() {
-        body.innerHTML = '<div class="u-c-muted u-fs-13px">No Trash Talk tab yet. It appears after the first post.</div>';
+        body.innerHTML = '<div class="empty">No Trash Talk tab yet. It appears after the first post.</div>';
       });
     }

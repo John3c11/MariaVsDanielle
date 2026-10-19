@@ -59,7 +59,7 @@ html[class*="theme-"] .wrap { border-top: 2px solid var(--h1); }
   /* type scale (v151): 9 10 11 12 13 14 15 16 18 20 22 24 28 32 36 40, display sizes above that */
 }
 /* 📨 invite / sign-up, friend home summary */
-:root { --css-v: "155"; } /* main.js compares this with the page version to catch an old style.css */
+:root { --css-v: "156"; } /* main.js compares this with the page version to catch an old style.css */
 @media (max-width: 700px) {
   .page-layout { padding: calc(24px + env(safe-area-inset-top)) 12px calc(60px + env(safe-area-inset-bottom)); }
   .wrap { padding: 20px 14px; border-radius: var(--r); }

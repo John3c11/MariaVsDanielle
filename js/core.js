@@ -428,6 +428,9 @@
       };
       b.weekN = parseInt(b.week, 10) || 0;
       b.scored = b.correct === 'Yes' || b.correct === 'No';
+      // A game that hasn't been played counts 0 here (v156). The sheet writes its stake off ahead of time
+      // (-2u, -$10) so John can see the worst case through each week; the site only counts played games.
+      if (!b.scored && !b.scorer) { b.units = 0; b.dollars = 0; }
       b.notOffered = isNotOffered(b);
       return b;
     }

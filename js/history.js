@@ -46,8 +46,9 @@
         var resultColor = noOffer ? '#A1A9B6' : b.correct === 'Yes' ? '#34D399' : b.correct === 'No' ? '#F87171' : '#A1A9B6';
         var resultText = b.firstScorer ? escHtml(b.firstScorer) : '⏳';
         var pickerColor = personColor(b.picker);
+        var played = b.correct === 'Yes' || b.correct === 'No' || !!b.firstScorer; // not played yet: no units (v156)
         var unitColor = b.netUnits > 0 ? 'var(--good)' : b.netUnits < 0 ? 'var(--bad)' : 'var(--t3)';
-        var unitStr = b.netUnits !== 0 ? (b.netUnits > 0 ? '+' : '') + b.netUnits + 'u' : '0u';
+        var unitStr = !played ? '—' : b.netUnits !== 0 ? (b.netUnits > 0 ? '+' : '') + b.netUnits + 'u' : '0u';
         var homeColored = b.homePick ? coloredText(b.homePick, b.homeTeam) : '';
         var awayColored = b.awayPick ? coloredText(b.awayPick, b.awayTeam) : '';
         var players = [homeColored, awayColored].filter(Boolean).join('<span class="u-muted"> / </span>') || '—';

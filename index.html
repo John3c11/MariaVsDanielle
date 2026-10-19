@@ -1,4 +1,4 @@
-<!-- v152 -->
+<!-- v153 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -45,7 +45,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=152">
+  <link rel="stylesheet" href="style.css?v=153">
   <script>
     // 🌗 Light or dark (v140): picked on the ⚙️ Display panel, saved on this phone.
     // Auto follows the phone's own setting. light.css only loads in light mode, so dark costs nothing.
@@ -57,7 +57,7 @@
       if (text === 'lg' || text === 'xl') document.documentElement.setAttribute('data-text', text);
       var less = motion ? motion === 'less' : !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
       if (less) document.documentElement.setAttribute('data-motion', 'less');
-      if (light) document.write('<link rel="stylesheet" id="light-css" href="light.css?v=152">');
+      if (light) document.write('<link rel="stylesheet" id="light-css" href="light.css?v=153">');
     })();
   </script>
 </head>
@@ -149,10 +149,12 @@
     </div>
 
     <div id="tab-schedule" class="tab-panel">
+      <div class="page-head"><div class="ph-t">🗓️ Schedule</div><div class="ph-s">Every game they bet on this season, and whose picks are in.</div></div>
       <div id="schedule-content"></div>
     </div>
 
     <div id="tab-profiles" class="tab-panel">
+      <div class="page-head"><div class="ph-t">⭐ Profiles</div><div class="ph-s">Each of them on their own: record, best hits, cards and trophies.</div></div>
       <div id="profiles-content"></div>
     </div>
 
@@ -165,10 +167,12 @@
     </div>
 
     <div id="tab-bethistory" class="tab-panel">
+      <div class="page-head"><div class="ph-t">🧾 Bet Log</div><div class="ph-s">Every pick ever made. Filter it or search it.</div></div>
       <div id="bethistory-content"><div class="loading">Loading bet history...</div></div>
     </div>
 
     <div id="tab-rosters" class="tab-panel">
+      <div class="page-head"><div class="ph-t">📋 Rosters</div><div class="ph-s">Every team's players, with injuries. Search for anyone.</div></div>
       <div class="psearch">
         <input id="psearch" class="psearch-in" type="search" placeholder="🔍 Find any player…" autocomplete="off" aria-label="Find a player">
         <div id="psearch-res" class="psearch-res"></div>
@@ -179,6 +183,7 @@
 
 
     <div id="tab-legacy" class="tab-panel">
+      <div class="page-head"><div class="ph-t">📜 All-Time</div><div class="ph-s">Every season side by side, the record book and the race.</div></div>
       <div id="legacy-content"><div class="loading">Loading legacy data...</div></div>
     </div>
 
@@ -215,6 +220,7 @@
 
     <div id="tab-analytics" class="tab-panel">
       <div class="nm-mode" role="tablist" aria-label="Numbers"><button role="tab" class="on" onclick="switchTab('analytics')">📖 Stories</button><button role="tab" class="" onclick="switchTab('lab')">🧪 Explore</button></div>
+      <div class="page-head"><div class="ph-t">📖 Stories</div><div class="ph-s">Charts and stories from every bet, picked by season.</div></div>
       <div id="analytics-content"><div class="loading">Loading...</div></div>
     </div>
 
@@ -224,20 +230,20 @@
         <div class="cb-cap">Brought to you by Campbell Dingus</div>
       </div>
       <div class="foot-line"><span id="last-updated">Loading...</span> · Data from Google Sheets</div>
-      <button class="look-foot" id="look-foot" onclick="openLook()">⚙️ Display</button> <button class="look-foot" id="tm-foot" onclick="openTimeMachine()">⏳ Time Machine</button> <button class="look-foot" onclick="openPatchNotes()">📜 Patch Notes</button>
+      <nav class="foot-links" aria-label="Site"><button class="look-foot" id="look-foot" onclick="openLook()">⚙️ Display</button><button class="look-foot" id="tm-foot" onclick="openTimeMachine()">⏳ Time Machine</button><button class="look-foot" onclick="openPatchNotes()">📜 Patch Notes</button></nav>
     </footer>
   </div>
 
   <script src="config.js"></script>
   <!-- Site code, split by tab. Bump ?v= on every file when any file changes. -->
-  <script src="js/core.js?v=152"></script>
-  <script src="js/stats.js?v=152"></script>
-  <script src="js/players.js?v=152"></script>
-  <script src="js/picks.js?v=152"></script>
-  <script src="js/chat.js?v=152"></script>
-  <script src="js/crowd.js?v=152"></script>
-  <script src="js/insights.js?v=152"></script>
-  <script src="js/main.js?v=152"></script>
+  <script src="js/core.js?v=153"></script>
+  <script src="js/stats.js?v=153"></script>
+  <script src="js/players.js?v=153"></script>
+  <script src="js/picks.js?v=153"></script>
+  <script src="js/chat.js?v=153"></script>
+  <script src="js/crowd.js?v=153"></script>
+  <script src="js/insights.js?v=153"></script>
+  <script src="js/main.js?v=153"></script>
   
   </div><!-- end wrap -->
 

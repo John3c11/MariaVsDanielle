@@ -24,7 +24,7 @@
 
     function drawFutures(el) {
       var D = FUT.data || {};
-      if (!D.state || D.state === 'off') { el.innerHTML = '<div class="ui-empty">No Futures right now. They open before the season (or when John starts a rest-of-the-season round).</div>'; return; }
+      if (!D.state || D.state === 'off') { el.innerHTML = '<div class="page-head"><div class="ph-t">🔮 Futures</div><div class="ph-s">Season-long calls, sealed until they lock.</div></div><div class="empty">No Futures right now. They open before the season (or when John starts a rest-of-the-season round).</div>'; return; }
       var h = '<div class="fu-hero"><div class="fu-kick">🔮 ' + escHtml(D.season) + ' Futures</div><div class="fu-t">' + escHtml(D.label || '') + '</div>' +
         '<div class="fu-d">' + (D.state === 'open' ? '🔒 Calls are sealed until <b>' + futWhen(D.lockAt) + '</b>. Nobody sees anyone\'s calls before then.' : D.state === 'final' ? '🏁 Final.' : 'Locked ' + futWhen(D.lockAt) + '. Counting from ' + weekName(D.fromWeek || 1) + '.') + '</div>' +
         '<div class="fu-s">3 points for the winner (ties all count), 1 for 2nd or 3rd. Super Bowl: 3 for the champ, 1 for the other team in it.</div></div>';

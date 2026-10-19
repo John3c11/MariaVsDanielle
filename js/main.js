@@ -108,7 +108,7 @@
       var less = m ? m === 'less' : !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
       if (less) root.setAttribute('data-motion', 'less'); else root.removeAttribute('data-motion');
       var f = document.getElementById('look-foot');
-      if (f) f.textContent = '⚙️ Display · ' + ({ dark: 'Dark', light: 'Light', auto: 'Auto' })[lookPick()] + (t === 'lg' ? ' · Large text' : t === 'xl' ? ' · Larger text' : '') + (less ? ' · Less motion' : '');
+      if (f) f.title = 'Display: ' + ({ dark: 'Dark', light: 'Light', auto: 'Auto' })[lookPick()] + (t === 'lg' ? ', large text' : t === 'xl' ? ', larger text' : '') + (less ? ', less motion' : '');
     }
     function setComfort(k, v) { lookSet(k, v); lookComfort(); lookPanelDraw(); }
     function openLook() {

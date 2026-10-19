@@ -65,9 +65,9 @@
       var el = document.getElementById('chat-content');
       if (el.querySelector('#chat-feed')) { renderComposer(); return; }
       el.innerHTML =
-        '<div class="u-center u-mb-m">' +
-          '<div class="u-fs-22px u-fw-800 u-ls-0-3px">Trash Talk 🗣️</div>' +
-          '<div class="ui-note u-mt-xs">Everyone can read. Only <span style="color:' + SB_M + ';font-weight:700">Maria</span> and <span style="color:' + SB_D + ';font-weight:700">Danielle</span> can post. Tap a message to react.</div>' +
+        '<div class="page-head c">' +
+          '<div class="ph-t">🗣️ Trash Talk</div>' +
+          '<div class="ph-s">Everyone can read. Only <span style="color:' + SB_M + ';font-weight:700">Maria</span> and <span style="color:' + SB_D + ';font-weight:700">Danielle</span> can post. Tap a message to react.</div>' +
         '</div>' +
         '<div id="chat-seasons"></div>' +
         '<div id="chat-compose"></div>' +

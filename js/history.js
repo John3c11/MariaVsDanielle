@@ -55,7 +55,7 @@
         if (b.firstScorer && b.homeTeam) gameDisplay += ' <button class="rp-mini" title="Replay this game" aria-label="Replay this game" onclick="replayGame(\'' + b.year + '\',' + parseInt(b.week, 10) + ',\'' + escHtml(String(b.gameNo)) + '\')">⏪</button>';
         return '<div class="bh-grid bh-row" data-ctx-year="' + b.year + '" data-ctx-week="' + b.week + '">' +
           '<span style="font-size:11px;font-weight:600;color:' + (b.year === CURRENT_YEAR ? 'var(--danielle)' : 'var(--good)') + '">' + b.year + '</span>' +
-          '<span class="u-muted u-center">' + (PLAYOFF_SHORT[parseInt(b.week, 10)] || b.week) + '</span>' +
+          '<span class="u-muted u-center">' + (PLAYOFF_SHORT[parseInt(b.week, 10)] || '<i class="bh-wkl">Wk </i>' + b.week) + '</span>' +
           '<span class="u-medium">' + gameDisplay + '</span>' +
           '<span style="font-weight:500;color:' + pickerColor + '">' + b.picker + '</span>' +
           '<span>' + players + '</span>' +
@@ -85,19 +85,19 @@
         // oldest first: SEASONS array is newest first, so we reverse to get oldest first
 
 
-        var html = '<div class="u-wrap u-mb" id="bh-filters">' +
-          '<div class="u-row-xs"><span class="ui-label">Year</span>' +
+        var html = '<div class="frows u-mb" id="bh-filters">' +
+          '<div class="frow"><span class="ui-label">Year</span>' +
           '<button class="filter-btn active" data-key="year" data-val="all">All</button>' +
           SEASONS.map(function(se) { return '<button class="filter-btn" data-key="year" data-val="' + se.year + '">' + se.year + '</button>'; }).join('') + '</div>' +
-          '<div class="u-row-xs u-ml-s"><span class="ui-label">Picker</span>' +
+          '<div class="frow"><span class="ui-label">Picker</span>' +
           '<button class="filter-btn active" data-key="picker" data-val="all">Both</button>' +
           '<button class="filter-btn maria-btn" data-key="picker" data-val="Maria">Maria</button>' +
           '<button class="filter-btn danielle-btn" data-key="picker" data-val="Danielle">Danielle</button></div>' +
-          '<div class="u-row-xs u-ml-s"><span class="ui-label">Result</span>' +
+          '<div class="frow"><span class="ui-label">Result</span>' +
           '<button class="filter-btn active" data-key="result" data-val="all">All</button>' +
           '<button class="filter-btn win-btn" data-key="result" data-val="Yes">Win</button>' +
           '<button class="filter-btn loss-btn" data-key="result" data-val="No">Loss</button></div>' +
-          '<div class="u-row-xs u-ml-s"><span class="ui-label">Order</span><button class="filter-btn" data-key="order" data-val="asc">Oldest First</button><button class="filter-btn active" data-key="order" data-val="desc">Newest First</button></div>' +
+          '<div class="frow"><span class="ui-label">Order</span><button class="filter-btn" data-key="order" data-val="asc">Oldest First</button><button class="filter-btn active" data-key="order" data-val="desc">Newest First</button></div>' +
           '</div>' +
           '<input type="text" id="bh-search" class="ui-input u-mb" placeholder="Search player, team, week, year, or picker..." oninput="filterBHHistory()">' +
           '<div id="bh-hist-count" class="ui-note u-mb"></div>' +

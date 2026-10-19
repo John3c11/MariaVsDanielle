@@ -1,6 +1,6 @@
 /* light.css: the light theme (🌗 in the footer). Loaded only when someone picks Light (or Auto on a phone set to light).
    Made by a script from style.css, so every rule here is a light copy of a rule there. Don't edit by hand:
-   it's rebuilt whenever style.css changes. (v152) */
+   it's rebuilt whenever style.css changes. (v153) */
 html[data-theme="light"] { color-scheme: light;
   --t1: #111827; --t2: #374151; --t3: #4B5563; --t4: #5F6672;
   --good: #047857; --good-2: #065F46; --bad: #DC2626; --bad-2: #B91C1C; --warn: #B45309; --warn-2: #92400E; --machine: #7C3AED;
@@ -454,9 +454,9 @@ html[data-theme="light"] .lab-sel.on:not(.dk, .dk *) { border-color: var(--warn)
 html[data-theme="light"] .lab-row-split .filter-btn.lab-split.active:not(.dk, .dk *) { background: var(--machine); border-color: var(--machine); color: #F5F6F8; }
 html[data-theme="light"] .tabs-nav > .acct-btn:not(.dk, .dk *) { color: var(--t3); }
 html[data-theme="light"] .tabs-nav > .acct-btn.active:not(.dk, .dk *) { color: #1A1A1A; }
-@media (max-width: 700px) { html[data-theme="light"] .acct-mini:not(.dk, .dk *) { color: #282C34; background: rgba(17,24,39,0.046); border: 1px solid rgba(17,24,39,0.126); border-radius: 999px; } }
+@media (max-width: 700px) { html[data-theme="light"] .acct-mini:not(.dk, .dk *) { color: var(--t1); background: var(--s2); border: 1px solid var(--line-2); border-radius: 999px; } }
 @media (max-width: 700px) { html[data-theme="light"] .hub-sub:not(.dk, .dk *) { background: rgba(247,247,248,0.94); border-bottom: 1px solid rgba(17,24,39,0.072); } }
-@media (max-width: 700px) { html[data-theme="light"] .hub-acct:not(.dk, .dk *) { border-radius: 50%; border: 1px solid rgba(17,24,39,0.126); background: rgba(17,24,39,0.046); color: #282C34; } }
+@media (max-width: 700px) { html[data-theme="light"] .hub-acct:not(.dk, .dk *) { border-radius: 50%; border: 1px solid var(--line-2); background: var(--s2); color: var(--t1); } }
 html[data-theme="light"] .game-link:not(.dk, .dk *) { text-decoration: underline; text-decoration-color: rgba(17,24,39,0.225); }
 html[data-theme="light"] .game-link:hover:not(.dk, .dk *) { text-decoration-color: currentColor; }
 html[data-theme="light"] .ftd-slot .game-link:not(.dk, .dk *), html[data-theme="light"] .sch-status .game-link:not(.dk, .dk *) { text-decoration: none; color: #035ABB; }
@@ -547,8 +547,9 @@ html[data-theme="light"] .cr-champ:not(.dk, .dk *) { border-radius: var(--r); ba
 html[data-theme="light"] .cr-champ span:not(.dk, .dk *) { color: var(--t3); }
 html[data-theme="light"] .cr-champ small:not(.dk, .dk *) { color: var(--t3); }
 html[data-theme="light"] .an-link:not(.dk, .dk *) { color: var(--t3); }
-html[data-theme="light"] .look-foot:not(.dk, .dk *) { color: var(--t3); background: var(--s1); border: 1px solid var(--line); border-radius: 999px; }
+html[data-theme="light"] .look-foot:not(.dk, .dk *) { color: var(--t3); background: none; border: 0; }
 html[data-theme="light"] .look-foot:hover:not(.dk, .dk *) { color: var(--t1); }
+html[data-theme="light"] .look-foot + .look-foot:not(.dk, .dk *)::before { color: var(--t4); }
 html[data-theme="light"] .lk-back:not(.dk, .dk *) { background: rgba(17,24,39,0.11); }
 html[data-theme="light"] .lk-card:not(.dk, .dk *) { background: #F3F4F5; border: 1px solid var(--line-2); border-radius: var(--r-l); box-shadow: 0 20px 60px rgba(17,24,39,0.125); }
 html[data-theme="light"] .lk-top:not(.dk, .dk *) { color: var(--t1); }
@@ -556,7 +557,7 @@ html[data-theme="light"] .lk-x:not(.dk, .dk *) { border-radius: 50%; border: 0; 
 html[data-theme="light"] .lk-h:not(.dk, .dk *) { color: var(--t1); }
 html[data-theme="light"] .lk-h small:not(.dk, .dk *) { color: var(--t3); }
 html[data-theme="light"] .lk-note:not(.dk, .dk *) { color: var(--t4); }
-@media (max-width: 700px) { html[data-theme="light"] .look-mini:not(.dk, .dk *) { border-radius: 50%; color: #282C34; background: rgba(17,24,39,0.046); border: 1px solid rgba(17,24,39,0.126); } }
+@media (max-width: 700px) { html[data-theme="light"] .look-mini:not(.dk, .dk *) { border-radius: 50%; color: var(--t1); background: var(--s2); border: 1px solid var(--line-2); } }
 html[data-theme="light"] .tm-bar:not(.dk, .dk *) { border-radius: var(--r); background: color-mix(in srgb, #FBBF24 9%, transparent); border: 1px solid color-mix(in srgb, #FBBF24 45%, transparent); color: var(--t2); }
 html[data-theme="light"] .tm-bar b:not(.dk, .dk *) { color: var(--t1); }
 html[data-theme="light"] .tm-bar small:not(.dk, .dk *) { color: var(--t3); }

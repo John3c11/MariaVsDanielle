@@ -101,8 +101,7 @@
       }
       el.innerHTML = (successHtml || '') +
         '<div class="u-center u-pad-top">' +
-          '<div class="ui-title u-mb-xs">Log In</div>' +
-          '<div class="ui-intro u-mb-m">Enter your PIN to see what you can do</div>' +
+          '<div class="page-head c"><div class="ph-t">👤 Log In</div><div class="ph-s">Enter your PIN to see what you can do</div></div>' +
           '<input id="pin-input" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off">' +
           '<div class="u-mt"><button class="primary-btn" id="pin-go">Enter</button></div>' +
           '<div class="submit-msg" id="pin-msg" style="color:var(--bad)">' + (msg || '') + '</div>' +

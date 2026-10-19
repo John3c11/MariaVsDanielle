@@ -362,23 +362,6 @@ html.theme-jewish .holiday-pill { color: #FFFFFF; text-shadow: 0 1px 2px rgba(0,
   .tabs-nav { margin-bottom: 24px; }
   .tab-btn { white-space: nowrap; }
 
-  /* Bet History rows become 3-line cards */
-  .bh-head { display: none !important; }
-  .bh-row {
-    grid-template-columns: 38px 34px 1fr auto !important;
-    grid-template-areas: "year wk game result" "picker picker players players" "odds odds odds units";
-    row-gap: 4px !important;
-    padding: 12px 0 !important;
-  }
-  .bh-row > span:nth-child(1) { grid-area: year; }
-  .bh-row > span:nth-child(2) { grid-area: wk; text-align: left !important; }
-  .bh-row > span:nth-child(3) { grid-area: game; }
-  .bh-row > span:nth-child(4) { grid-area: picker; }
-  .bh-row > span:nth-child(5) { grid-area: players; }
-  .bh-row > span:nth-child(6) { grid-area: odds; }
-  .bh-row > span:nth-child(7) { grid-area: result; justify-self: end; }
-  .bh-ftd { max-width: 130px; }
-  .bh-row > span:nth-child(8) { grid-area: units; }
 
   /* Stack side-by-side cards */
   .two-col { grid-template-columns: 1fr !important; }
@@ -1415,13 +1398,14 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 .hub-sub-btn { flex: 0 0 auto; }
 @media (max-width: 700px) {
   .tabs-nav > .acct-btn { display: none !important; }
-  .acct-mini { display: block; position: absolute; top: 7px; right: 8px; z-index: 20; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700;
-    color: #E5E7EB; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14); border-radius: 999px; padding: 5px 9px; cursor: pointer; max-width: 120px;
+  .acct-mini { display: block; position: absolute; top: 10px; right: 10px; z-index: 20; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700;
+    height: 34px; min-width: 34px; color: var(--t1); background: var(--s2); border: 1px solid var(--line-2); border-radius: 999px; padding: 0 8px; cursor: pointer; max-width: 140px;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .acct-mini.in { font-size: 12px; padding: 0 12px; }
   .hub-sub { position: sticky; top: 0; z-index: 30; margin: -20px -14px 16px; padding: calc(10px + env(safe-area-inset-top)) 14px 10px;
     background: rgba(14,15,19,0.94); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-bottom: 1px solid rgba(255,255,255,0.08); }
   body.has-sub .acct-mini { display: none; }
-  .hub-acct { display: block; flex: 0 0 auto; font-size: 14px; width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.07); color: #E5E7EB; cursor: pointer; }
+  .hub-acct { display: block; flex: 0 0 auto; font-size: 14px; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line-2); background: var(--s2); color: var(--t1); cursor: pointer; }
   .tabs-nav > .tab-btn { font-size: 11px; }
 }
 
@@ -1484,7 +1468,25 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 .ui-chip-neutral { color: var(--t3) !important; background: var(--s2) !important; }
 /* Bet Log grid */
 .bh-grid { display: grid; grid-template-columns: 44px 40px 1fr 80px 1fr 70px 110px 50px; gap: 8px; padding: 10px 0; border-bottom: 0.5px solid var(--line); font-size: 12px; align-items: start; }
+.bh-wkl { font-style: normal; }
 .bh-grid-head { padding: 0 0 8px; font-size: 10px; font-weight: 700; color: var(--t3); text-transform: uppercase; letter-spacing: 0.05em; }
+/* Bet Log rows (v153): each bet is four short lines.
+   2026 · Wk 4 ............ [first TD]
+   Browns vs Steelers ⏪
+   Danielle  Judkins / Washington
+   +500 / +2200 ................ -2u   */
+.bh-head { display: none !important; }
+.bh-row { display: flex !important; flex-wrap: wrap; align-items: baseline; column-gap: 8px; row-gap: 4px; padding: 11px 0 !important; font-size: 13px !important; }
+.bh-row > span:nth-child(1) { order: 1; }
+.bh-row > span:nth-child(2) { order: 2; text-align: left !important; font-size: 12px; }
+.bh-row > span:nth-child(7) { order: 3; margin-left: auto; align-self: center; max-width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bh-row > span:nth-child(3) { order: 4; flex: 0 0 100%; font-size: 14px; }
+.bh-row > span:nth-child(4) { order: 5; flex: 0 0 auto; }
+.bh-row > span:nth-child(5) { order: 6; flex: 1 1 60%; min-width: 0; }
+.bh-row > span:nth-child(6) { order: 7; flex: 1 1 50%; font-size: 12px; }
+.bh-row > span:nth-child(8) { order: 8; font-size: 14px; }
+.bh-wkl { display: inline; }
+
 /* One header style everywhere outside the scoreboard: the bold line header (.pf-h) */
 .section-title { font-size: 13px; font-weight: 800; color: var(--t1); text-transform: none; letter-spacing: 0; margin: 6px 0 10px; padding-bottom: 8px; border-bottom: 1.5px solid rgba(255,255,255,0.16); }
 .sb .section-title { font-size: 11px; text-transform: uppercase; border-bottom: 0; padding-bottom: 0; }
@@ -1606,7 +1608,7 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 }
 
 /* ── v129: 📨 invite / sign-up, friend home summary ── */
-:root { --css-v: "152"; } /* main.js compares this with the page version to catch an old style.css */
+:root { --css-v: "153"; } /* main.js compares this with the page version to catch an old style.css */
 .join-box { max-width: 340px; margin-left: auto; margin-right: auto; }
 .join-l { display: block; text-align: left; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t3); margin: 14px 0 6px; }
 .join-in { width: 100%; box-sizing: border-box; }
@@ -1661,8 +1663,10 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 .an-link .link-btn { font-size: 13px; }
 
 /* ── v141: ⚙️ Display panel (theme, text size, less motion; light.css holds the light theme) ── */
-.look-foot { margin-top: 10px; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; color: var(--t3); background: var(--s1); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.foot-links { display: flex; justify-content: center; align-items: center; margin-top: 6px; }
+.look-foot { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; color: var(--t3); background: none; border: 0; padding: 6px 4px; cursor: pointer; white-space: nowrap; }
 .look-foot:hover { color: var(--t1); }
+.look-foot + .look-foot::before { content: '·'; color: var(--t4); margin: 0 8px 0 0; display: inline-block; }
 .tabs-nav > .look-btn { flex: 0 0 auto; margin-left: 4px; padding-left: 8px; padding-right: 8px; font-size: 14px; }
 .look-mini { display: none; }
 .hub-look { display: none; }
@@ -1680,7 +1684,7 @@ button.br-team:hover { border-color: rgba(255,255,255,0.25); }
 .lk-note { font-size: 11px; color: var(--t4); text-align: center; margin-top: 6px; }
 @media (max-width: 700px) {
   .tabs-nav > .look-btn { display: none !important; }
-  .look-mini { display: block; position: absolute; top: 7px; left: 8px; z-index: 20; font-size: 13px; width: 30px; height: 30px; border-radius: 50%; color: #E5E7EB; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14); cursor: pointer; }
+  .look-mini { display: block; position: absolute; top: 10px; left: 10px; z-index: 20; font-size: 14px; width: 34px; height: 34px; border-radius: 50%; color: var(--t1); background: var(--s2); border: 1px solid var(--line-2); cursor: pointer; }
   body.has-sub .look-mini { display: none; }
   .hub-look { display: block; }
 }
@@ -1818,6 +1822,11 @@ html[data-motion="less"] .holiday-fx, html[data-motion="less"] .egg-rain, html[d
 /* Card: the plain box most lists are made of */
 .card, .mu-card, .ck-card, .mch-g, .wk-item { background: var(--s1); border: 1px solid var(--line); border-radius: var(--r); }
 .card { padding: 12px 14px; }
+
+/* Filter rows: a label column, then chips. <div class="frows"><div class="frow"><span class="ui-label">Year</span>…chips…</div></div> */
+.frows { display: flex; flex-direction: column; gap: 6px; }
+.frow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.frow > .ui-label { flex: 0 0 58px; }
 
 /* Empty state and loading: centered, quiet */
 .empty, .ui-empty, .ch-empty, .loading { text-align: center; color: var(--t3); font-size: 13px; line-height: 1.5; padding: 28px 12px; }

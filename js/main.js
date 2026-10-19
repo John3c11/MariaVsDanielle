@@ -227,7 +227,7 @@
       if (!BRACKET_ON || BRACKET_ON.state !== 'open' || closed === CURRENT_YEAR) { bn.style.display = 'none'; return; }
       var when = BRACKET_ON.lockAt ? new Date(BRACKET_ON.lockAt).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
       bn.innerHTML = '<span>🏆 <b>The Playoff Bracket Challenge is open.</b> Pick every playoff winner and first TD' + (when ? ' before ' + when : ' before Wild Card kickoff') + '.</span>' +
-        '<span style="white-space:nowrap"><button class="adm-btn" onclick="switchTab(\'bracket\')">Fill mine out</button> <button class="vb-x" aria-label="Dismiss">✕</button></span>';
+        '<span class="u-ws-nowrap"><button class="adm-btn" onclick="switchTab(\'bracket\')">Fill mine out</button> <button class="vb-x" aria-label="Dismiss">✕</button></span>';
       bn.style.display = '';
       bn.querySelector('.vb-x').addEventListener('click', function() { try { localStorage.setItem('mvd-br-banner', CURRENT_YEAR); } catch (e) {} bn.style.display = 'none'; });
     }

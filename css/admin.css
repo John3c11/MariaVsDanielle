@@ -46,6 +46,7 @@
 .odds-hint { font-size: 10px; color: var(--t3); min-height: 12px; white-space: nowrap; }
 .odds-hint.odd { color: var(--warn); }
 .odds-hint.bad { color: var(--bad); }
+.odds-input { width: 84px; font-family: Inter, sans-serif; font-size: 14px; padding: 7px 10px; border: 1.5px solid rgba(255,255,255,0.10); border-radius: var(--r-s); background: rgba(255,255,255,0.04); color: var(--t1); text-align: right; }
 .odds-input.odds-odd { border-color: rgba(251,191,36,0.6) !important; }
 .odds-input.odds-bad { border-color: rgba(248,113,113,0.7) !important; }
 .dc-act { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
@@ -157,17 +158,16 @@
 @media (max-width: 520px) { .ck-ko { grid-area: ko; } }
 .u-ai-baseline { align-items:baseline !important; }
 .u-ai-flex-end { align-items:flex-end !important; }
-.u-bc-rgba-147-197-253-0-4 { border-color:rgba(147,197,253,0.4) !important; }
-.u-bg-rgba-52-211-153-0-15 { background:rgba(52,211,153,0.15) !important; }
-.u-bg-rgba-96-165-250-0-08 { background:rgba(96,165,250,0.08) !important; }
+.u-bc-blue { border-color:rgba(147,197,253,0.4) !important; }
+.u-bg-good { background:rgba(52,211,153,0.15) !important; }
+.u-bg-blue { background:rgba(96,165,250,0.08) !important; }
 .u-bs-border-box { box-sizing:border-box !important; }
-.u-c-blue { color:#93C5FD !important; }
+.u-blue { color:#93C5FD !important; }
 .u-f-1-4 { flex:1.4 !important; }
 .u-f-2 { flex:2 !important; }
 .u-fd-column { flex-direction:column !important; }
 .u-fd-row { flex-direction:row !important; }
 .u-fs-11-5px { font-size:12px !important; }
-.u-fs-15px { font-size:15px !important; }
 .u-fwrap-wrap { flex-wrap:wrap !important; }
 .u-ls-0-12em { letter-spacing:0.12em !important; }
 .u-ls-0-15em { letter-spacing:0.15em !important; }
@@ -206,7 +206,6 @@
 .u-w-90px { width:90px !important; }
 .u-w-96px { width:96px !important; }
 .u-w-auto { width:auto !important; }
-.u-ws-nowrap { white-space:nowrap !important; }
 .inv-box { background: var(--s1); border: 1px solid var(--line-2); border-radius: var(--r-s); padding: 9px 11px; margin-bottom: 8px; overflow-x: auto; }
 .inv-box code { font-size: 12px; color: var(--t2); white-space: nowrap; }
 .inv-pend { border-left: 3px solid var(--warn); padding-left: 10px; }

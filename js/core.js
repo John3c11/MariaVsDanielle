@@ -379,7 +379,7 @@
     function coloredText(text, teamName) {
       var tc = TEAM_COLORS[resolveTeam(teamName)];
       if (!tc) return text;
-      return '<span style="color:' + tc.dark + ';font-weight:600">' + text + '</span>';
+      return '<span class="u-fw-600" style="color:' + tc.dark + '">' + text + '</span>';
     }
 
     function hexA(hex, a) {
@@ -391,7 +391,7 @@
     // Full team name on desktop, nickname on phones ("Browns")
     function teamName2(t) { var r = resolveTeam(t); return TEAM_COLORS[r] ? '<span class="tn-full">' + t + '</span><span class="tn-short">' + r.split(' ').pop() + '</span>' : t; }
     function coloredGame(homeTeam, awayTeam) {
-      return teamLogo(homeTeam) + coloredText(teamName2(homeTeam), homeTeam) + '<span style="color:var(--t3)"> vs </span>' + teamLogo(awayTeam) + coloredText(teamName2(awayTeam), awayTeam);
+      return teamLogo(homeTeam) + coloredText(teamName2(homeTeam), homeTeam) + '<span class="u-muted"> vs </span>' + teamLogo(awayTeam) + coloredText(teamName2(awayTeam), awayTeam);
     }
 
     // ── One way to ask Google Sheets for a range (v146) ───────────────────────

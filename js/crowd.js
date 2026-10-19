@@ -147,7 +147,7 @@
           var c = s.ref ? (personColor(s.name)) : FRIEND_COLOR;
           if (!s.ref) rank++;
           h += '<tr class="' + (s.ref ? 'ref' : '') + '"><td>' + (s.ref ? '' : (rank === 1 ? (past ? '🏅' : '👑') : rank)) + '</td>' +
-            '<td style="font-weight:700;color:' + c + '">' + (s.ref ? '<a class="fr-link" data-fname="' + s.name + '" style="color:' + c + '">' + s.name + '</a> <span class="ui-tiny">(for reference)</span>' : fName(s.name)) + '</td>' +
+            '<td class="u-fw-700" style="color:' + c + '">' + (s.ref ? '<a class="fr-link" data-fname="' + s.name + '" style="color:' + c + '">' + s.name + '</a> <span class="ui-tiny">(for reference)</span>' : fName(s.name)) + '</td>' +
             '<td>' + s.w + '–' + (s.n - s.w) + '</td><td class="u-xbold">' + pctTxt(s.pct) + '</td><td>' + streakTxt(s.cur) + '</td></tr>';
         });
         h += '</table>';
@@ -231,7 +231,7 @@
         if (!c.n) { el.style.display = 'none'; return; }
         function md(who) { var w = 0, n = 0; Object.keys(games).forEach(function(k) { var x = games[k].mdCorrect[who]; if (x === 'Yes' || x === 'No') { n++; if (x === 'Yes') w++; } }); return n ? pctTxt(w / n) : '—'; }
         var R = rankFriends({ friends: crowd.friends || [], picks: crowd.picks || [] }, G), top = R.ranked[0];
-        el.innerHTML = '🏅 <b class="u-c-warn">The Crowd</b> hits ' + pctTxt(c.w / c.n) + ' <span class="u-c-muted">(' + c.w + ' of ' + c.n + ')</span> · ' +
+        el.innerHTML = '🏅 <b class="u-warn">The Crowd</b> hits ' + pctTxt(c.w / c.n) + ' <span class="u-muted">(' + c.w + ' of ' + c.n + ')</span> · ' +
           '<button class="link-btn" onclick="switchTab(\'crowd\')">vs Maria ' + md('Maria') + ' & Danielle ' + md('Danielle') + ' on the same games' + (top ? ' · 👑 ' + escHtml(top.name) : '') + ' →</button>';
         el.style.display = '';
       }).catch(function() {});

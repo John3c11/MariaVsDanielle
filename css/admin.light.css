@@ -30,6 +30,7 @@ html[data-theme="light"] .adm-alert b:not(.dk, .dk *) { color: #866B02; }
 html[data-theme="light"] .odds-hint:not(.dk, .dk *) { color: var(--t3); }
 html[data-theme="light"] .odds-hint.odd:not(.dk, .dk *) { color: var(--warn); }
 html[data-theme="light"] .odds-hint.bad:not(.dk, .dk *) { color: var(--bad); }
+html[data-theme="light"] .odds-input:not(.dk, .dk *) { border: 1.5px solid rgba(17,24,39,0.09); border-radius: var(--r-s); background: rgba(17,24,39,0.026); color: var(--t1); }
 html[data-theme="light"] .odds-input.odds-odd:not(.dk, .dk *) { border-color: rgba(251,191,36,0.6) !important; }
 html[data-theme="light"] .odds-input.odds-bad:not(.dk, .dk *) { border-color: rgba(219,11,11,0.7) !important; }
 html[data-theme="light"] .dc-act span:not(.dk, .dk *) { color: var(--t3); }
@@ -96,10 +97,10 @@ html[data-theme="light"] .ck-slot:not(.dk, .dk *) { color: var(--t3); }
 html[data-theme="light"] .ck-match i:not(.dk, .dk *) { color: rgba(26,26,26,0.62); }
 html[data-theme="light"] .ck-ko:not(.dk, .dk *) { color: var(--t3); }
 html[data-theme="light"] .ck-add:not(.dk, .dk *) { color: var(--t3); }
-html[data-theme="light"] .u-bc-rgba-147-197-253-0-4:not(.dk, .dk *) { border-color: rgba(4,108,225,0.4) !important; }
-html[data-theme="light"] .u-bg-rgba-52-211-153-0-15:not(.dk, .dk *) { background: rgba(52,211,153,0.15) !important; }
-html[data-theme="light"] .u-bg-rgba-96-165-250-0-08:not(.dk, .dk *) { background: rgba(96,165,250,0.08) !important; }
-html[data-theme="light"] .u-c-blue:not(.dk, .dk *) { color: #035ABB !important; }
+html[data-theme="light"] .u-bc-blue:not(.dk, .dk *) { border-color: rgba(4,108,225,0.4) !important; }
+html[data-theme="light"] .u-bg-good:not(.dk, .dk *) { background: rgba(52,211,153,0.15) !important; }
+html[data-theme="light"] .u-bg-blue:not(.dk, .dk *) { background: rgba(96,165,250,0.08) !important; }
+html[data-theme="light"] .u-blue:not(.dk, .dk *) { color: #035ABB !important; }
 html[data-theme="light"] .inv-box:not(.dk, .dk *) { background: var(--s1); border: 1px solid var(--line-2); border-radius: var(--r-s); }
 html[data-theme="light"] .inv-box code:not(.dk, .dk *) { color: var(--t2); }
 html[data-theme="light"] .inv-pend:not(.dk, .dk *) { border-left: 3px solid var(--warn); }
@@ -167,6 +168,4 @@ html[data-theme="light"] .nt-hr:not(.dk, .dk *) { color: var(--t2); }
 html[data-theme="light"] .fu-adm label:not(.dk, .dk *) { color: var(--t2); }
 html[data-theme="light"] .fu-fix:not(.dk, .dk *) { border-bottom: 1px solid var(--line); color: var(--t2); }
 html[data-theme="light"] .fu-adm-c:not(.dk, .dk *) { color: var(--t2); border-top: 1px solid var(--line); }
-html[data-theme="light"] [style^="background:rgba(255,255,255,0.04)" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";background:rgba(255,255,255,0.04)" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; background:rgba(255,255,255,0.04)" i]:not(.dk, .dk *), html[data-theme="light"] [style^="background: rgba(255,255,255,0.04)" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";background: rgba(255,255,255,0.04)" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; background: rgba(255,255,255,0.04)" i]:not(.dk, .dk *) { background: rgba(17,24,39,0.026) !important; }
-html[data-theme="light"] [style^="border:1.5px solid rgba(255,255,255,0.10)" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";border:1.5px solid rgba(255,255,255,0.10)" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; border:1.5px solid rgba(255,255,255,0.10)" i]:not(.dk, .dk *), html[data-theme="light"] [style^="border: 1.5px solid rgba(255,255,255,0.10)" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";border: 1.5px solid rgba(255,255,255,0.10)" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; border: 1.5px solid rgba(255,255,255,0.10)" i]:not(.dk, .dk *) { border: 1.5px solid rgba(17,24,39,0.09) !important; }
 html[data-theme="light"] [style^="color:#E5E7EB" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#E5E7EB" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#E5E7EB" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #E5E7EB" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #E5E7EB" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #E5E7EB" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: rgb(229, 231, 235)"]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: rgb(229, 231, 235)"]:not(.dk, .dk *) { color: #282C34 !important; }

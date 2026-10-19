@@ -59,7 +59,7 @@
         '<label class="join-l" for="jn-pin2">Type it again</label>' +
         '<input id="jn-pin2" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password">' +
         '<div class="u-mt"><button class="primary-btn" id="jn-go">Ask to join</button></div>' +
-        '<div class="submit-msg" id="jn-msg" style="color:var(--bad)">' + escHtml(msg || '') + '</div>' +
+        '<div class="submit-msg u-bad" id="jn-msg">' + escHtml(msg || '') + '</div>' +
         '<div class="u-mt"><button class="link-btn" id="jn-login">Already in? Log in</button></div>' +
       '</div>';
       document.getElementById('jn-name').focus();
@@ -104,7 +104,7 @@
           '<div class="page-head c"><div class="ph-t">👤 Log In</div><div class="ph-s">Enter your PIN to see what you can do</div></div>' +
           '<input id="pin-input" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off">' +
           '<div class="u-mt"><button class="primary-btn" id="pin-go">Enter</button></div>' +
-          '<div class="submit-msg" id="pin-msg" style="color:var(--bad)">' + (msg || '') + '</div>' +
+          '<div class="submit-msg u-bad" id="pin-msg">' + (msg || '') + '</div>' +
         '</div>';
       var input = document.getElementById('pin-input');
       if (!successHtml) input.focus();
@@ -189,7 +189,7 @@
       function column(side, team, players) {
         var tc = TEAM_COLORS[team] || { bg: '#1C1C1E', text: '#FFFFFF', primary: '#1C1C1E' };
         var out = '<div>' +
-          '<div class="team-header-bar" style="background:' + (tc.bg || tc.primary) + ';color:' + tc.text + ';border-radius:var(--r-s);margin-bottom:8px">' + team + '</div>';
+          '<div class="team-header-bar u-mb-s" style="background:' + (tc.bg || tc.primary) + ';color:' + tc.text + ';border-radius:var(--r-s)">' + team + '</div>';
         if (!players.length) out += '<div class="ui-note u-pad-s">No players listed on the Rosters tab.</div>';
         var taken = g.taken || [];
         players.forEach(function(name, i) {
@@ -330,7 +330,7 @@
       var nearWeeks = weeks.slice(0, 2);
       var shown = FRIEND.showLater ? games : games.filter(function(g) { return nearWeeks.indexOf(parseInt(g.week, 10)) >= 0; });
       var h = '<div id="fh-sum"></div><div class="ui-note u-mb-xs">Pick one player from each team. You can change picks until kickoff. Nobody sees your picks until the game starts.</div>' +
-        '<div class="submit-msg" id="fr-msg" style="text-align:left;min-height:0"></div>';
+        '<div class="submit-msg u-ta-left" id="fr-msg" style="min-height:0"></div>';
       var lastWeek = null;
       shown.forEach(function(g, i) {
         if (g.week !== lastWeek) { lastWeek = g.week; h += '<div class="sch-week">' + weekName(g.week) + '</div>'; }
@@ -365,7 +365,7 @@
         : (soon ? '⏰ ' : '') + done + ' of ' + thisWk.length + ' ' + weekName(wk) + ' game' + (thisWk.length === 1 ? '' : 's') + ' picked' + (soon ? ' · ' + soon + ' kick' + (soon === 1 ? 's' : '') + ' off within a day' : '');
       var st = typeof fStyle === 'function' ? fStyle(name) : { color: FRIEND_COLOR }, col = st.color || FRIEND_COLOR;
       box.innerHTML = '<div class="fh-card" style="--pc:' + col + '"><div class="fh-top"><span class="fh-hi">Hey ' + escHtml(name) + (st.emoji ? ' ' + st.emoji : '') + '</span>' +
-        '<span class="fh-wk' + (soon ? ' warn' : done && done === thisWk.length ? ' ok' : '') + '">' + wkLine + '</span></div><div class="fh-body"><div class="u-c-muted u-fs-13px">Loading your season…</div></div></div>';
+        '<span class="fh-wk' + (soon ? ' warn' : done && done === thisWk.length ? ' ok' : '') + '">' + wkLine + '</span></div><div class="fh-body"><div class="u-muted u-fs-13px">Loading your season…</div></div></div>';
       Promise.all([picksApi({ pin: SUB.pin, action: 'fmine' }), getCrowd(), fetchSheet('Winnings', 'A1:Q400')]).then(function(r) {
         var el = box.querySelector('.fh-body');
         if (!el || r[0].error) { if (el) el.innerHTML = ''; return; }
@@ -381,14 +381,14 @@
         var h = '<div class="fh-stats"><div><b>' + S.w + '–' + (S.n - S.w) + '</b><span>Record</span></div><div><b class="u-good">' + pctTxt(S.pct) + '</b><span>Win %</span></div>' +
           '<div><b>' + (rank ? (rank === 1 ? '👑 #1' : '#' + rank) : '—') + '</b><span>' + (rank ? 'of ' + R.ranked.length + ' in the Crowd' : S.n + '/' + CROWD_MIN + ' to rank') + '</span></div>' +
           '<div><b>' + streakTxt(S.cur) + '</b><span>Streak</span></div></div>';
-        if (best) h += '<div class="fh-best">💥 <b>Best hit:</b> ' + escHtml(best.x.g.scorer) + (best.o ? ' <span class="u-c-good">' + fmtOdds(best.o) + '</span>' : '') + ' <span class="u-c-muted">· ' + weekName(best.x.g.week) + '</span></div>';
+        if (best) h += '<div class="fh-best">💥 <b>Best hit:</b> ' + escHtml(best.x.g.scorer) + (best.o ? ' <span class="u-good">' + fmtOdds(best.o) + '</span>' : '') + ' <span class="u-muted">· ' + weekName(best.x.g.week) + '</span></div>';
         h += '<div class="fh-vs">' + ['Maria', 'Danielle'].map(function(who) { return vsRow(who, personColor(who), S.h2h[who]); }).join('') + '<div id="fh-mch"></div></div>' +
           '<div class="u-ta-right u-mt-s"><button class="link-btn" id="fh-prof">My full profile →</button></div>';
         el.innerHTML = h;
         document.getElementById('fh-prof').addEventListener('click', function() { openProfile(name); });
         function vsRow(who, c2, x) {
           var tot = x.me + x.them, lead = x.me > x.them ? 'You lead' : x.them > x.me ? who + ' leads' : tot ? 'All square' : 'Nothing decided yet';
-          return '<div class="fh-vrow"><span class="fh-vn" style="color:' + c2 + '">vs ' + who + '</span><span class="fh-vbar"><i style="width:' + (tot ? x.me / tot * 100 : 50) + '%;background:' + col + '"></i><i style="flex:1;background:' + c2 + '"></i></span>' +
+          return '<div class="fh-vrow"><span class="fh-vn" style="color:' + c2 + '">vs ' + who + '</span><span class="fh-vbar"><i style="width:' + (tot ? x.me / tot * 100 : 50) + '%;background:' + col + '"></i><i class="u-f-1" style="background:' + c2 + '"></i></span>' +
             '<span class="fh-vs-n"><b>' + x.me + '–' + x.them + '</b><span class="fh-lead"> ' + lead + '</span></span></div>';
         }
         // 🤖 The Machine: same idea, games where only one of you hit
@@ -413,7 +413,7 @@
       var body = playerScreen('fpick', '');
       function column(side, team, players) {
         var tc = TEAM_COLORS[team] || { bg: '#1C1C1E', text: '#FFFFFF', primary: '#1C1C1E' };
-        return '<div><div class="team-header-bar" style="background:' + (tc.bg || tc.primary) + ';color:' + tc.text + ';border-radius:var(--r-s);margin-bottom:8px">' + team + '</div>' +
+        return '<div><div class="team-header-bar u-mb-s" style="background:' + (tc.bg || tc.primary) + ';color:' + tc.text + ';border-radius:var(--r-s)">' + team + '</div>' +
           players.map(function(n) {
             return '<button class="pick-chip fr-chip" data-fs="' + side + '" data-fn="' + escHtml(n) + '">' + escHtml(n) + '</button>';
           }).join('') + '</div>';
@@ -580,8 +580,8 @@
           var win = r.correct === 'Yes', u = r.units, no = r.notOffered;
           return '<div class="adm-row"><div><div class="ui-label">' + weekName(r.week).toUpperCase() + ' · ' + escHtml(r.slot).toUpperCase() + '</div>' +
             '<div class="u-mt-xs">' + picksOf(r) + '</div><div class="ui-small">First TD: ' + escHtml(r.scorer) + '</div></div>' +
-            '<div class="u-right"><div style="font-weight:800;color:' + (no ? 'var(--t3)' : win ? 'var(--good)' : 'var(--bad)') + '">' + (no ? 'NOT OFFERED' : win ? 'WIN' : 'LOSS') + '</div>' +
-            '<div style="font-size:12px;color:' + (u > 0 ? 'var(--good)' : u < 0 ? 'var(--bad)' : 'var(--t3)') + '">' + (u > 0 ? '+' : '') + u + 'u</div></div></div>';
+            '<div class="u-right"><div class="u-fw-800" style="color:' + (no ? 'var(--t3)' : win ? 'var(--good)' : 'var(--bad)') + '">' + (no ? 'NOT OFFERED' : win ? 'WIN' : 'LOSS') + '</div>' +
+            '<div class="u-fs-12px" style="color:' + (u > 0 ? 'var(--good)' : u < 0 ? 'var(--bad)' : 'var(--t3)') + '">' + (u > 0 ? '+' : '') + u + 'u</div></div></div>';
         }).join('') : '<div class="ui-intro u-pad-s">No results yet.</div>';
 
         body.innerHTML = h;

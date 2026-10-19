@@ -67,7 +67,7 @@
       el.innerHTML =
         '<div class="page-head c">' +
           '<div class="ph-t">🗣️ Trash Talk</div>' +
-          '<div class="ph-s">Everyone can read. Only <span style="color:' + SB_M + ';font-weight:700">Maria</span> and <span style="color:' + SB_D + ';font-weight:700">Danielle</span> can post. Tap a message to react.</div>' +
+          '<div class="ph-s">Everyone can read. Only <span class="u-fw-700" style="color:' + SB_M + '">Maria</span> and <span class="u-fw-700" style="color:' + SB_D + '">Danielle</span> can post. Tap a message to react.</div>' +
         '</div>' +
         '<div id="chat-seasons"></div>' +
         '<div id="chat-compose"></div>' +
@@ -82,7 +82,7 @@
       var box = document.getElementById('chat-compose');
       if (!PICKS_URL) { box.innerHTML = ''; return; }
       if (!isCurrentChat()) {
-        box.innerHTML = '<div class="u-ta-center u-fs-12px u-c-muted u-mb-16px">' + (ASOF && CHAT.season === CURRENT_YEAR ? '⏳ Messages up to ' + asofLabel() + '. Read only.' : '📜 ' + CHAT.season + ' archive. Read only.') + '</div>';
+        box.innerHTML = '<div class="u-ta-center u-fs-12px u-muted u-mb-16px">' + (ASOF && CHAT.season === CURRENT_YEAR ? '⏳ Messages up to ' + asofLabel() + '. Read only.' : '📜 ' + CHAT.season + ' archive. Read only.') + '</div>';
         return;
       }
       // Everyone else just reads, so the box stays folded behind a button
@@ -99,10 +99,10 @@
         '<textarea class="chat-input" id="chat-text" maxlength="280" placeholder="' + (CHAT.name ? 'Talk your trash, ' + CHAT.name + '…' : 'Say something…') + '"></textarea>' +
         '<div class="chat-row">' +
           (CHAT.pin
-            ? '<div class="u-fs-12px u-c-muted">Posting as <b style="color:' + c + '">' + CHAT.name + '</b> · <button class="link-btn" id="chat-forget">Not you?</button></div>'
+            ? '<div class="u-fs-12px u-muted">Posting as <b style="color:' + c + '">' + CHAT.name + '</b> · <button class="link-btn" id="chat-forget">Not you?</button></div>'
             : '<div class="u-d-flex u-ai-center u-gap-8px"><input class="chat-pin" id="chat-pin" type="password" inputmode="numeric" maxlength="4" placeholder="PIN" autocomplete="off">' +
-              '<label class="u-fs-11px u-c-muted u-d-flex u-ai-center u-gap-5px"><input type="checkbox" id="chat-remember" checked> Remember me</label></div>') +
-          '<div class="u-d-flex u-ai-center u-gap-10px"><span id="chat-count" style="font-size:11px;color:rgba(255,255,255,0.4)">280</span>' +
+              '<label class="u-fs-11px u-muted u-d-flex u-ai-center u-gap-5px"><input type="checkbox" id="chat-remember" checked> Remember me</label></div>') +
+          '<div class="u-d-flex u-ai-center u-gap-10px"><span id="chat-count" class="u-fs-11px" style="color:rgba(255,255,255,0.4)">280</span>' +
           '<button class="primary-btn" id="chat-send">Post</button></div>' +
         '</div>' +
         '<div class="submit-msg" id="chat-msg"></div></div>';

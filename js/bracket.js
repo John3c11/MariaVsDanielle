@@ -184,7 +184,7 @@
         '<div class="br-rnote">A perfect bracket is 100. A first-TD pick counts if he scores the first TD of his team\'s game that round, even if you had the wrong opponent. Once his team is out, the pick is dead (💀). A tie at the end goes to whoever is closest on the Super Bowl\'s total points.</div></div>';
     }
     function brPinHtml() {
-      return '<div class="br-pin"><div style="font-size:13px;color:#C4C9D2;margin-bottom:8px">Maria, Danielle and every friend can play. Enter your PIN to fill yours out.</div>' +
+      return '<div class="br-pin"><div class="u-fs-13px u-mb-s" style="color:#C4C9D2">Maria, Danielle and every friend can play. Enter your PIN to fill yours out.</div>' +
         '<div class="u-d-flex u-gap-8px"><input class="u-w-110px u-ta-center u-ls-0-3em adm-input" id="br-pin" type="password" inputmode="numeric" maxlength="4" placeholder="PIN">' +
         '<button class="primary-btn" id="br-go">Open my bracket</button></div><div class="u-ta-left submit-msg" id="br-pin-msg"></div></div>';
     }
@@ -299,7 +299,7 @@
           if (me) { me.filled = nw; me.scorers = ns; } else (BR.data.entries = BR.data.entries || []).push({ who: BR.name, filled: nw, scorers: ns });
           drawBracketPage(document.getElementById('bracket-content'));
           var m2 = document.querySelector('.br-prog');
-          if (m2) m2.innerHTML = nw + '/13 winners · ' + ns + '/13 first TDs<br><b style="color:var(--good-2)">' + (nw === 13 && ns === 13 ? '✅ Saved and complete. Change it any time before kickoff.' : '✅ Saved') + '</b>';
+          if (m2) m2.innerHTML = nw + '/13 winners · ' + ns + '/13 first TDs<br><b class="u-good-2">' + (nw === 13 && ns === 13 ? '✅ Saved and complete. Change it any time before kickoff.' : '✅ Saved') + '</b>';
         }).catch(function() { btn.disabled = false; btn.textContent = 'Save'; msg.style.color = 'var(--bad)'; msg.textContent = 'Couldn\'t reach the script. Try again.'; });
       });
     }

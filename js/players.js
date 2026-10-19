@@ -341,7 +341,7 @@
         function person(n) {
           var c = personColor(n);
           var u = p.units[n];
-          return '<div class="pc-person"><span style="color:' + c + ';font-weight:700">' + n + '</span>' +
+          return '<div class="pc-person"><span class="u-fw-700" style="color:' + c + '">' + n + '</span>' +
             '<span class="u-soft">' + (p.picks[n] ? 'picked ' + p.picks[n] + 'x · hit ' + p.hits[n] + 'x' +
               (p.hits[n] ? ' · <span class="u-good u-bold">+' + u.toFixed(1) + 'u</span>' : '') : '<span class="u-faint">never picked</span>') +
             '</span></div>';
@@ -355,7 +355,7 @@
           var opp = myTeam === g.home ? g.away : myTeam === g.away ? g.home : '';
           var oppTc = TEAM_COLORS[opp];
           var myTc = TEAM_COLORS[myTeam];
-          var vs = opp ? '<span style="color:' + (myTc ? myTc.dark : 'var(--t1)') + ';font-weight:700">' + abbr(myTeam) + '</span> vs <span style="color:' + (oppTc ? oppTc.dark : 'var(--t1)') + ';font-weight:600">' + abbr(opp) + '</span>'
+          var vs = opp ? '<span class="u-fw-700" style="color:' + (myTc ? myTc.dark : 'var(--t1)') + '">' + abbr(myTeam) + '</span> vs <span class="u-fw-600" style="color:' + (oppTc ? oppTc.dark : 'var(--t1)') + '">' + abbr(opp) + '</span>'
                        : (abbr(g.home) + ' vs ' + abbr(g.away));
           var chips = g.by.map(function(n) {
             var c = personColor(n);
@@ -528,7 +528,7 @@
         if (p.picks.Maria) bits.push('<span style="color:' + SB_M + '">Maria x' + p.picks.Maria + '</span>');
         if (p.picks.Danielle) bits.push('<span style="color:' + SB_D + '">Danielle x' + p.picks.Danielle + '</span>');
         if (tds) bits.push('<span class="u-good">🏈 ' + tds + ' first TD' + (tds > 1 ? 's' : '') + '</span>');
-        return '<div class="u-p-5px-0 u-bb-1px-solid-rgba-255-255-255-0-05 u-ai-center player-row">' +
+        return '<div class="u-p-5px-0 u-bb-s1 u-ai-center player-row">' +
           '<span class="pos-label" style="min-width:74px;color:' + (tc ? tc.dark : 'var(--t3)') + '">' + nick + '</span>' +
           '<span class="u-grow player-name-text"><span>' + p.name + '</span></span>' +
           '<span class="ui-tiny u-right">' + bits.join(' <span class="u-faint">·</span> ') +
@@ -540,7 +540,7 @@
         '<div class="division-header" onclick="toggleDivision(this)">Picked Before, Not Offered Now (' + list.length + ') <span class="division-chevron">▼</span></div>' +
         '<div class="division-teams">' +
           '<div class="ui-note u-mb">Players from past games who aren\'t offered right now: anyone who was picked, plus anyone who scored a first TD. The team shown is where they play today (from ESPN). Tap a name for their card.</div>' +
-          '<div class="u-bd-1px-solid-rgba-255-255-255-0-1 u-bg-rgba-255-255-255-0-03 team-block"><div class="u-bg-transparent team-players-inner">' + rows + '</div></div>' +
+          '<div class="u-bd-soft u-bg-faint team-block"><div class="u-bg-transparent team-players-inner">' + rows + '</div></div>' +
         '</div></div>';
       schedulePlayerTagging();
     }

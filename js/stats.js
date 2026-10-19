@@ -37,8 +37,8 @@
       var wk = keys[0], W = weeks[wk], M = W.Maria, D = W.Danielle;
       var live = false;
       var u = fmtU;
-      var mName = '<span style="color:' + SB_M + ';font-weight:700">Maria</span>';
-      var dName = '<span style="color:' + SB_D + ';font-weight:700">Danielle</span>';
+      var mName = '<span class="u-fw-700" style="color:' + SB_M + '">Maria</span>';
+      var dName = '<span class="u-fw-700" style="color:' + SB_D + '">Danielle</span>';
 
       var text, accent;
       if (M.w === D.w) {
@@ -59,7 +59,7 @@
         var pc = personColor(W.best.p);
         var player = W.best.team ? teamPill(W.best.player, W.best.team) : '<b>' + W.best.player + '</b>';
         text += ' Biggest hit: ' + player + (W.best.odds ? ' at ' + formatOdds(W.best.odds) : '') +
-          ' for <span style="color:' + pc + ';font-weight:600">' + W.best.p + '</span>.';
+          ' for <span class="u-fw-600" style="color:' + pc + '">' + W.best.p + '</span>.';
       }
 
       return '<div class="sb-glass" data-share="recap-week-' + wk + '" style="position:relative;border-left:3px solid ' + accent + ';padding:12px 16px;margin-bottom:20px">' +
@@ -182,9 +182,9 @@
           ].filter(Boolean).join('<i>·</i>')}</div>
 
           <div class="ui-box ui-box-row sb-weeks">
-            <div class="u-center"><div style="font-size:24px;font-weight:800;color:${SB_M}">${mariaWeeksWon}</div><div class="ui-label">Maria weeks won</div></div>
+            <div class="u-center"><div class="u-fw-800" style="font-size:24px;color:${SB_M}">${mariaWeeksWon}</div><div class="ui-label">Maria weeks won</div></div>
             <div class="u-center"><div class="ui-big u-soft">${tiedWeeks}</div><div class="ui-label">Tied</div></div>
-            <div class="u-center"><div style="font-size:24px;font-weight:800;color:${SB_D}">${danielleWeeksWon}</div><div class="ui-label">Danielle weeks won</div></div>
+            <div class="u-center"><div class="u-fw-800" style="font-size:24px;color:${SB_D}">${danielleWeeksWon}</div><div class="ui-label">Danielle weeks won</div></div>
           </div>
           <div class="sb-grid">
           ${statBlock('Correct', mCorrect, dCorrect, `${mCorrect}/${mTotal}`, `${dCorrect}/${dTotal}`)}
@@ -225,8 +225,8 @@
               </div>
               <div class="live-strip" data-home="${homeTeamName}" data-away="${awayTeamName}"></div>
               <div class="ui-box">
-                🔒 <span style="color:${doneC};font-weight:600">${done}</span> has picked. Waiting on
-                <span style="color:${waitC};font-weight:600">${waiting}</span>. Picks show once both are in.
+                🔒 <span class="u-fw-600" style="color:${doneC}">${done}</span> has picked. Waiting on
+                <span class="u-fw-600" style="color:${waitC}">${waiting}</span>. Picks show once both are in.
               </div></div>`;
               continue;
             }
@@ -941,7 +941,7 @@
               strip.classList.add('ls-celebrate');
               setTimeout(function(s) { s.classList.remove('ls-celebrate'); }, 4200, strip);
             }
-            var who = hitBy.map(function(n) { return '<span style="color:' + (personColor(n)) + ';font-weight:700">' + n + '</span>'; });
+            var who = hitBy.map(function(n) { return '<span class="u-fw-700" style="color:' + (personColor(n)) + '">' + n + '</span>'; });
             tdHtml = '<div class="ls-td">🏈 First TD: <b>' + scorer + '</b>' +
               (picks.length ? (who.length ? ' · 🎉 ' + who.join(' & ') + (who.length > 1 ? ' both' : '') + ' hit it!' : ' · Nobody had him') : '') +
               '</div>';

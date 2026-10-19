@@ -21,19 +21,18 @@
 @media (min-width: 1440px) { .an-pane[data-pane="picking"] > [data-sec="Picking vs Reality"] { order: 3; } }
 @media (min-width: 1440px) { .an-pane[data-pane="picking"] > [data-sec="Who Scores First"] { order: 4; } }
 .lab-jump { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; }
-.u-bb-0-5px-solid-rgba-255-255-255-0-06 { border-bottom:0.5px solid var(--line) !important; }
-.u-bb-1px-solid-rgba-255-255-255-0-10 { border-bottom:1px solid var(--line-2) !important; }
-.u-bd-1px-solid-rgba-248-113-113-0-3 { border:1px solid rgba(248,113,113,0.3) !important; }
-.u-bg-a78bfa { background:var(--machine) !important; }
-.u-bg-rgba-167-139-250-0-18 { background:rgba(167,139,250,0.18) !important; }
-.u-bg-rgba-248-113-113-0-12 { background:rgba(248,113,113,0.12) !important; }
-.u-bg-rgba-251-191-36-0-15 { background:rgba(251,191,36,0.15) !important; }
-.u-bg-rgba-255-255-255-0-06 { background:var(--line) !important; }
-.u-bt-1px-solid-rgba-255-255-255-0-08 { border-top:1px solid var(--line) !important; }
-.u-c-bad2 { color:var(--bad-2) !important; }
-.u-c-violet { color:#C4B5FD !important; }
+.u-bb-hair { border-bottom:0.5px solid var(--line) !important; }
+.u-bb-line2 { border-bottom:1px solid var(--line-2) !important; }
+.u-bd-bad { border:1px solid rgba(248,113,113,0.3) !important; }
+.u-bg-machine { background:var(--machine) !important; }
+.u-bg-machine-soft { background:rgba(167,139,250,0.18) !important; }
+.u-bg-bad { background:rgba(248,113,113,0.12) !important; }
+.u-bg-gold { background:rgba(251,191,36,0.15) !important; }
+.u-bg-line { background:var(--line) !important; }
+.u-bt-line { border-top:1px solid var(--line) !important; }
+.u-bad-2 { color:var(--bad-2) !important; }
+.u-violet { color:#C4B5FD !important; }
 .u-d-grid { display:grid; }
-.u-fs-10px { font-size:10px !important; }
 .u-gtc-1fr-90px-80px { grid-template-columns:1fr 90px 80px !important; }
 .u-gtc-62px-1fr-38px { grid-template-columns:62px 1fr 38px !important; }
 .u-gtc-80px-1fr-80px { grid-template-columns:80px 1fr 80px !important; }

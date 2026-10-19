@@ -141,7 +141,7 @@
         '<div class="u-d-block leader-banner">' + (gap < 0.05 ? 'It\'s <span>tied</span> at the top' : '<span>' + mcName(lead) + '</span> is leading by ' + gap.toFixed(1) + ' units') + '</div>' +
         '<div class="sb-weeks mch-weeks"><div class="mch-wt">Weeks won</div>' + MC_WHO.map(function(w) {
           return '<div><div class="n" style="color:' + mcColor(w) + '">' + won[w] + '</div><div class="l">' + w + '</div></div>';
-        }).join('') + (won.tied ? '<div><div class="u-c-soft n">' + won.tied + '</div><div class="l">Tied</div></div>' : '') + '</div>' +
+        }).join('') + (won.tied ? '<div><div class="u-soft n">' + won.tied + '</div><div class="l">Tied</div></div>' : '') + '</div>' +
         '<div class="sb-grid mch-grid">' +
           mcBlock('Correct', T, function(t) { return t.h; }, function(t) { return t.h + '/' + t.n; }) +
           mcBlock('Accuracy', T, function(t) { return t.n ? t.h / t.n : 0; }, function(t) { return t.n ? Math.round(t.h / t.n * 100) + '%' : '—'; }) +
@@ -347,10 +347,10 @@
       });
       if (cand.length >= 4) {
         var liked = cand.filter(function(c) { return c.r >= 1.5; }), faded = cand.filter(function(c) { return c.r <= 0.67; });
-        function rec(L) { var hits = L.filter(function(c) { return c.hit; }).length, exp = L.reduce(function(a, c) { return a + c.imp; }, 0); return hits + ' of ' + L.length + ' scored first <span class="u-c-muted">(the odds expected ' + exp.toFixed(1) + ')</span>'; }
+        function rec(L) { var hits = L.filter(function(c) { return c.hit; }).length, exp = L.reduce(function(a, c) { return a + c.imp; }, 0); return hits + ' of ' + L.length + ' scored first <span class="u-muted">(the odds expected ' + exp.toFixed(1) + ')</span>'; }
         h += '<div class="mcb-h">🎯 Where it disagrees with the odds</div><div class="mcb-rec">' +
-          '<div><b class="u-good">Liked more than the odds</b> ' + (liked.length ? rec(liked) : '<span class="u-c-muted">none yet</span>') + '</div>' +
-          '<div><b class="u-bad">Liked less than the odds</b> ' + (faded.length ? rec(faded) : '<span class="u-c-muted">none yet</span>') + '</div></div>';
+          '<div><b class="u-good">Liked more than the odds</b> ' + (liked.length ? rec(liked) : '<span class="u-muted">none yet</span>') + '</div>' +
+          '<div><b class="u-bad">Liked less than the odds</b> ' + (faded.length ? rec(faded) : '<span class="u-muted">none yet</span>') + '</div></div>';
         var top = cand.slice().sort(function(a, b) { return Math.abs(Math.log(b.r)) - Math.abs(Math.log(a.r)); });
         h += moreList(top.map(function(c) {
           return '<div class="mcb-row"><span class="mcb-wk">' + wkName(c.g.week) + '</span><span class="mcb-n">' + (c.hit ? '✅ ' : '') + escHtml(c.name) + ' <small style="color:' + mcColor(c.who) + '">' + (c.who === 'Machine' ? '🤖' : c.who) + '</small></span>' +

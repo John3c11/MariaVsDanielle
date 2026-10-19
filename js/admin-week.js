@@ -32,7 +32,7 @@
         '<button class="primary-btn" id="ag-add">' + (E ? 'Save changes' : 'Add game') + '</button>' +
         (E ? ' <button class="u-ml-s link-btn" id="ag-cancel">Cancel</button>' : '') +
         '<div class="u-ta-left submit-msg" id="adm-msg"></div>' +
-        '<div class="u-fs-11px u-c-faint u-m-8px-0-20px">' + (E
+        '<div class="u-fs-11px u-faint u-m-8px-0-20px">' + (E
           ? 'Changes both rows (' + E.rows.join(' and ') + '), Maria\'s and Danielle\'s. Only works while nobody has picked in it. If friends already picked it, only the time can change.'
           : 'Adds two rows right below the last game (game ' + r.nextGame + '), one for Maria and one for Danielle, with the formulas, dropdowns and team colors. Odds start as "+" like always.') + '</div>';
       // Game list: the latest two weeks, the rest behind a button

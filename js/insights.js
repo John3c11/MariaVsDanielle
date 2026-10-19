@@ -481,8 +481,8 @@
         });
         function person(n) {
           var m = me[n], c = personColor(n);
-          return '<div class="pc-person"><span style="color:' + c + ';font-weight:700">' + n + '</span><span class="u-soft">' +
-            (m.picked ? 'picked ' + m.picked + 'x · paid ' + m.paid + 'x · <span style="font-weight:700;color:' + (m.u > 0 ? 'var(--good)' : m.u < 0 ? 'var(--bad)' : 'var(--t3)') + '">' + fmtU(m.u) + '</span>'
+          return '<div class="pc-person"><span class="u-fw-700" style="color:' + c + '">' + n + '</span><span class="u-soft">' +
+            (m.picked ? 'picked ' + m.picked + 'x · paid ' + m.paid + 'x · <span class="u-fw-700" style="color:' + (m.u > 0 ? 'var(--good)' : m.u < 0 ? 'var(--bad)' : 'var(--t3)') + '">' + fmtU(m.u) + '</span>'
               : '<span class="u-faint">never picked from them</span>') + '</span></div>';
         }
         // Offered right now (Rosters tab)

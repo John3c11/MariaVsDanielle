@@ -394,7 +394,7 @@
       var res = p.void ? '<span class="lab-r void">void</span>' : p.hit ? '<span class="lab-r hit">✅</span>' : '<span class="lab-r miss">❌</span>';
       var u = p.units === null ? '' : '<b class="lab-u" style="color:' + (p.units > 0 ? 'var(--good)' : p.units < 0 ? 'var(--bad)' : 'var(--t3)') + '">' + (p.units ? fmtU(p.units) : '0') + '</b>';
       return '<div class="lab-pk" style="--pc:' + c + '"><div class="lab-pk-m"><div class="lab-pk-n">' + res + ' ' + escHtml(p.name) + (p.odds ? ' <small>' + fmtOdds(p.odds) + (p.est ? ' est' : '') + '</small>' : '') + '</div>' +
-        '<div class="lab-pk-s"><span style="color:' + c + ';font-weight:700">' + escHtml(p.who) + '</span> · ' + p.year + ' ' + wkName(p.week) + (p.slot ? ' · ' + escHtml(p.slot) : '') + ' · ' +
+        '<div class="lab-pk-s"><span class="u-fw-700" style="color:' + c + '">' + escHtml(p.who) + '</span> · ' + p.year + ' ' + wkName(p.week) + (p.slot ? ' · ' + escHtml(p.slot) : '') + ' · ' +
         (typeof gameLinkAttr === 'function' ? '<span ' + gameLinkAttr(p.year, p.game) + '>' + escHtml(teamNick(p.awayTeam)) + ' @ ' + escHtml(teamNick(p.homeTeam)) + ' ›</span>' : escHtml(teamNick(p.awayTeam)) + ' @ ' + escHtml(teamNick(p.homeTeam))) + (!p.hit && p.scorer ? ' · 🏈 ' + escHtml(p.scorer) : '') + '</div></div>' + u +
         '<button class="lab-rp" title="Replay this game" data-lab-rp="' + p.year + '|' + p.week + '|' + escHtml(String(p.game)) + '">⏪</button></div>';
     }

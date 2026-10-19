@@ -43,7 +43,7 @@
         var n = BR_ORDER.filter(function(k) { return e.picks[k] && e.picks[k].w; }).length, ns = BR_ORDER.filter(function(k) { return e.picks[k] && e.picks[k].s; }).length;
         return '<div class="adm-row"><div><b>' + escHtml(e.who) + '</b> <span class="u-muted">· ' + n + '/13 winners · ' + ns + '/13 first TDs' + (e.at && !isNaN(new Date(e.at)) ? ' · ' + new Date(e.at).toLocaleDateString() : '') + '</span></div>' +
           '<button class="adm-btn red" data-bra-rm="' + escHtml(e.who) + '">Remove</button></div>';
-      }).join('') : '<div class="u-fs-13px u-c-muted">None yet.</div>');
+      }).join('') : '<div class="u-fs-13px u-muted">None yet.</div>');
       var G = B.games || [];
       if (G.length) {
         h += '<div class="u-mt-18px pf-h">📋 Results from ESPN <small>fix a first TD if ESPN\'s name doesn\'t match</small></div>';
@@ -128,7 +128,7 @@
         }).join('') + '</select>';
       }
       var h = '<div class="u-d-flex u-jc-space-between u-ai-baseline u-gap-10px u-mb-10px">' +
-        '<div class="u-fs-12px u-c-muted">The site finds most moments by itself. Add your own, or give any moment a note, a photo or a ⭐. Hidden ones stay off the page.</div>' +
+        '<div class="u-fs-12px u-muted">The site finds most moments by itself. Add your own, or give any moment a note, a photo or a ⭐. Hidden ones stay off the page.</div>' +
         '<button class="u-ws-nowrap link-btn" id="mua-open">Open the Museum →</button></div>';
       h += '<div class="pf-h">' + (E ? '✏️ Edit: ' + escHtml(E.title) : '➕ Add a moment') + '</div>' +
         '<div class="mua-form">' +
@@ -142,7 +142,7 @@
             '<input class="u-f-1 u-minw-160px adm-input" id="mua-photo" placeholder="or paste an image link (https://…)" value="' + escHtml(E && E.photo || '') + '">' +
             (E && E.photo ? '<img class="mua-thumb" id="mua-thumb" src="' + escHtml(E.photo) + '" alt="">' : '<img class="mua-thumb" style="display:none" id="mua-thumb" alt="">') +
           '</div></label>' +
-          '<label class="u-fd-row u-ai-center u-gap-8px u-fs-13px u-c-t1 wide"><input type="checkbox" id="mua-star"' + (E && E.star ? ' checked' : '') + '> ⭐ Feature it (gold card, bigger with a photo)</label>' +
+          '<label class="u-fd-row u-ai-center u-gap-8px u-fs-13px u-t1 wide"><input type="checkbox" id="mua-star"' + (E && E.star ? ' checked' : '') + '> ⭐ Feature it (gold card, bigger with a photo)</label>' +
         '</div>' +
         '<button class="primary-btn" id="mua-save">' + (E ? 'Save changes' : 'Add to the Museum') + '</button>' +
         (E ? ' <button class="u-ml-s link-btn" id="mua-cancel">Cancel</button>' : '') +
@@ -250,11 +250,11 @@
         var cur = r.current, pend = r.pending, prev = r.prev;
         var next = String(parseInt(cur.year, 10) + 1);
         var siteYear = CURRENT_YEAR;
-        function link(x) { return '<a href="' + x.url + '" target="_blank" rel="noopener" class="u-c-blue">Open sheet ↗</a>'; }
+        function link(x) { return '<a href="' + x.url + '" target="_blank" rel="noopener" class="u-blue">Open sheet ↗</a>'; }
         function step(n, title, state, inner) {
           return '<div class="ns-step ' + state + '"><div class="ns-num">' + (state === 'done' ? '✓' : n) + '</div><div class="u-f-1 u-minw-0"><div class="ns-title">' + title + '</div>' + (inner || '') + '</div></div>';
         }
-        var h = '<div class="u-fs-12px u-c-muted u-mb-14px">Picks, odds, Trash Talk, first TDs and the Tuesday email all use the <b class="u-c-t1">' + cur.year + '</b> sheet right now. ' + link(cur) + '</div>';
+        var h = '<div class="u-fs-12px u-muted u-mb-14px">Picks, odds, Trash Talk, first TDs and the Tuesday email all use the <b class="u-t1">' + cur.year + '</b> sheet right now. ' + link(cur) + '</div>';
         var configFor = pend || (prev ? cur : null);
         var needConfig = configFor && SEASONS.map(function(x) { return x.year; }).indexOf(configFor.year) < 0;
 
@@ -276,7 +276,7 @@
           : '<div class="ns-sub">You\'ll get the exact file to paste here.</div>');
         h += '<div class="u-ta-left submit-msg" id="adm-msg"></div>';
         h += '<div class="u-mt-18px pf-h">✅ Ready for ' + (pend ? pend.year : cur.year) + '? <small><button class="link-btn" id="ns-recheck">Check again</button></small></div><div id="ns-check"><div class="loading">Checking…</div></div>';
-        h += '<div class="u-fs-11px u-c-faint u-mt-14px">Keep editing the scripts in the 2026 sheet\'s Apps Script. The new sheet gets a copy of them only so the team colors keep working there.</div>';
+        h += '<div class="u-fs-11px u-faint u-mt-14px">Keep editing the scripts in the 2026 sheet\'s Apps Script. The new sheet gets a copy of them only so the team colors keep working there.</div>';
         body.innerHTML = h;
 
         function run(action, btn, label) {
@@ -350,7 +350,7 @@
         '</div><datalist id="inj-players">' + names.map(function(n) { return '<option value="' + escHtml(n) + '">'; }).join('') + '</datalist>' +
         '<div class="u-ta-left submit-msg" id="adm-msg"></div>';
       if (st.needFill && st.needFill.length) h += '<div class="inj-warn">⚠️ No fill-in found for: <b>' + st.needFill.map(escHtml).join(', ') + '</b>. Pick one below, or leave the slot empty.</div>';
-      if (st.pending && st.pending.length) h += '<div class="u-bc-rgba-147-197-253-0-4 u-bg-rgba-96-165-250-0-08 inj-warn">⏳ Waiting for the game to finish before shifting: <b>' + st.pending.map(nick).join(', ') + '</b></div>';
+      if (st.pending && st.pending.length) h += '<div class="u-bc-blue u-bg-blue inj-warn">⏳ Waiting for the game to finish before shifting: <b>' + st.pending.map(nick).join(', ') + '</b></div>';
 
       h += '<div class="inj-h">🚑 Currently out (' + st.rows.length + ')</div>';
       h += st.rows.length ? st.rows.map(function(r) {
@@ -388,7 +388,7 @@
         '<div class="st-d">' + st.tagged.map(function(t) { return escHtml(t.name) + ' (' + nick(t.team) + ', ' + escHtml(t.espn) + ')'; }).join(' · ') + '</div>';
       if (st.unmatched && st.unmatched.length) h += '<div class="inj-h">✏️ Not found on ESPN <small>usually a spelling difference, so these can\'t be auto-tracked</small></div>' +
         '<div class="st-d">' + st.unmatched.map(escHtml).join(' · ') + '</div>';
-      if (st.log && st.log.length) h += '<div class="inj-h">🕘 Recent activity</div><div class="st-log">' + st.log.map(function(l) { return '<span class="u-c-faint">' + when(l.at) + '</span> ' + escHtml(l.text); }).join('<br>') + '</div>';
+      if (st.log && st.log.length) h += '<div class="inj-h">🕘 Recent activity</div><div class="st-log">' + st.log.map(function(l) { return '<span class="u-faint">' + when(l.at) + '</span> ' + escHtml(l.text); }).join('<br>') + '</div>';
       body.innerHTML = h;
 
       function act(params, btn) {

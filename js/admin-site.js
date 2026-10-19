@@ -16,7 +16,7 @@
         if (!r.pins) { box.innerHTML = '<div class="u-m-0 inj-warn">Changing these needs the newest PicksAPI.gs (Deploy → Manage deployments → ✏️ → New version → Deploy).</div>'; return; }
         var who = [['Maria', SB_M], ['Danielle', SB_D], ['ADMIN', '#E5E7EB']];
         box.innerHTML = who.map(function(w) {
-          return '<div class="adm-row"><div><b style="color:' + w[1] + '">' + (w[0] === 'ADMIN' ? 'You (admin)' : w[0]) + '</b> <span class="u-c-muted u-ls-0-15em u-ml-6px mp-pin">••••</span></div>' +
+          return '<div class="adm-row"><div><b style="color:' + w[1] + '">' + (w[0] === 'ADMIN' ? 'You (admin)' : w[0]) + '</b> <span class="u-muted u-ls-0-15em u-ml-6px mp-pin">••••</span></div>' +
             '<div class="u-d-flex u-gap-6px"><button class="adm-btn" data-mp-show="' + w[0] + '">Show</button><button class="adm-btn" data-mp-set="' + w[0] + '">Change</button></div></div>';
         }).join('');
         box.querySelectorAll('[data-mp-show]').forEach(function(b) {
@@ -69,7 +69,7 @@
           (last && !last.ok ? '<div class="st-log">' + escHtml(last.err || '') + '</div>' : '') +
           (j.triggers > 1 ? '<br>⚠️ ' + j.triggers + ' timers for this job (it runs ' + j.triggers + '× too often). Press 🔧 Fix timers.' : '') +
           (stale && j.triggers ? '<br>⚠️ Hasn\'t run for a while (expected ' + j.every + ').' : '') +
-          (next && !j.running ? '<br><span class="u-c-faint">Next: about ' + next.toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + ' (' + j.every + ')</span>' : '');
+          (next && !j.running ? '<br><span class="u-faint">Next: about ' + next.toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + ' (' + j.every + ')</span>' : '');
         var hist = j.runs.length > 1 ? '<details class="jb-hist"><summary>Last ' + j.runs.length + ' runs</summary>' + j.runs.map(function(r) {
           return '<div class="jb-run' + (r.ok ? '' : ' bad') + '"><span>' + (r.ok ? '✅' : '❌') + ' ' + new Date(r.at).toLocaleString([], { weekday: 'short', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + '</span><span>' + dur(r.ms) + (r.calls ? ' · ' + r.calls + ' calls' : '') + '</span>' +
             (r.ok ? (r.note ? '<em>' + escHtml(r.note) + '</em>' : '') : '<em>' + escHtml(r.err || '') + '</em>') + '</div>';
@@ -81,7 +81,7 @@
         (J.orphans && J.orphans.length ? '<div class="st-row"><span class="st-ic">⚠️</span><div><div class="st-l">Leftover timers</div><div class="st-d">' + J.orphans.map(escHtml).join(', ') + ' (those jobs don\'t exist anymore). 🔧 Fix timers removes them.</div></div></div>' : '') +
         '<div class="jb-qs"><div class="u-mb-6px st-l">📊 Today\'s Google limits</div>' + bar('Calls to outside sites (ESPN…)', q.fetch, q.limits.fetch, '') + bar('Timed-job run time', q.runMin, q.limits.runMin, ' min') +
         '<div class="u-mt-xs st-d">Counted by the scripts themselves (Google doesn\'t show this). Resets at midnight.</div></div>' +
-        '<div class="u-m-10px-0-18px"><button class="adm-btn" id="jb-fix">🔧 Fix timers</button> <span class="u-fs-11-5px u-c-faint">One timer per job, missing ones added, leftovers removed.</span><div class="u-ta-left submit-msg" id="jb-msg"></div></div>';
+        '<div class="u-m-10px-0-18px"><button class="adm-btn" id="jb-fix">🔧 Fix timers</button> <span class="u-fs-11-5px u-faint">One timer per job, missing ones added, leftovers removed.</span><div class="u-ta-left submit-msg" id="jb-msg"></div></div>';
     }
     function bindJobs(body) {
       var b = document.getElementById('jb-fix');
@@ -103,7 +103,7 @@
         if (!iso) return 'never';
         var m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
         var when = m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' hr ago' : Math.round(m / 1440) + ' days ago';
-        return when + ' <span class="u-c-faint">(' + new Date(iso).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + ')</span>';
+        return when + ' <span class="u-faint">(' + new Date(iso).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + ')</span>';
       }
       function row(state, label, detail) {
         var ic = state === 'ok' ? '✅' : state === 'warn' ? '⚠️' : state === 'bad' ? '❌' : 'ℹ️';
@@ -118,12 +118,12 @@
         if (!document.body.contains(body)) return; // you moved to another admin tab while it was checking
         var s = res[0], be = res[1], sh = res[2];
         var siteV = (document.firstChild && document.firstChild.nodeType === 8) ? document.firstChild.nodeValue.trim() : '?';
-        var h = '<div class="u-fs-12px u-c-muted u-mb-10px">Everything the site depends on, checked right now. <button class="link-btn" id="st-again">Check again</button></div>';
+        var h = '<div class="u-fs-12px u-muted u-mb-10px">Everything the site depends on, checked right now. <button class="link-btn" id="st-again">Check again</button></div>';
         var dataSlot = '<div class="pf-h">🔍 Data check <small>every season, every row</small></div><div id="st-data"><div class="loading">Checking every row in every season…</div></div>';
         if (s.jobs) h += jobsHtml(s.jobs, ago);
         h += '<div class="pf-h">🔌 Connections</div>';
         h += row('info', '📺 Game Day', 'Only shows up while a game they both picked is live. <button class="adm-btn" id="gd-test">Test it on the last game</button>' +
-          '<br><span class="u-c-faint">Opens the most recent finished game they both picked, with the final box score, plays and the touchdown moment.</span>');
+          '<br><span class="u-faint">Opens the most recent finished game they both picked, with the final box score, plays and the touchdown moment.</span>');
         h += row(sh.ok ? 'ok' : 'bad', 'Google Sheets (from this browser)', sh.ok ? 'Reachable · ' + sh.ms + ' ms' : 'Not reachable' + (sh.code ? ' (HTTP ' + sh.code + (sh.code === 429 ? ', too many requests: wait a minute' : sh.code === 403 ? ', check the API key limits' : '') + ')' : ''));
         h += row(CSS_CHECK.stale ? 'bad' : 'ok', '🎨 style.css', CSS_CHECK.stale
           ? 'The live style.css is <b>older</b> than the page (style v' + escHtml(CSS_CHECK.have || '?') + ', page v' + escHtml(CSS_CHECK.want) + '). Some screens will look broken until you upload the newest style.css to GitHub.'
@@ -154,7 +154,7 @@
           if (ms) h += row(ms.standard ? 'ok' : 'info', '🧠 Machine settings: ' + escHtml(ms.label),
             (ms.standard ? 'The standard settings.' : (ms.meta && ms.meta.at ? (ms.meta.reverted ? 'Reverted ' : 'Made live ') + ago(ms.meta.at) + (ms.meta.from && ms.meta.from !== ms.label ? ' from "' + escHtml(ms.meta.from) + '"' : '') + '.' : '')) +
             (ms.trainedAt ? ' Trained ' + ago(ms.trainedAt) + '.' : '') + ' <button class="link-btn" onclick="showAdmin(\'mlab\')">🧪 Open the Lab</button>' +
-            (ms.prev ? '<br><span class="u-c-faint">↩ Revert there goes back to: ' + escHtml(ms.prev.label) + '</span>' : ''));
+            (ms.prev ? '<br><span class="u-faint">↩ Revert there goes back to: ' + escHtml(ms.prev.label) + '</span>' : ''));
           var nl = s.nflLast;
           h += row(trig.indexOf('updateNFLPlayers') >= 0 && nl && !nl.kept ? 'ok' : nl ? 'warn' : 'bad', 'NFL Players list (daily, from ESPN)',
             (trig.indexOf('updateNFLPlayers') >= 0 ? 'On (every 2 hours)' : 'OFF: run setupNFLPlayersDaily in Apps Script') +
@@ -169,14 +169,14 @@
           var gp = s.gaps || { noScorer: [], noSide: [], noOdds: [] };
           h += '<div class="pf-h">📋 Sheet check</div>';
           function gapRow(list, label, fix) {
-            return row(list.length ? 'warn' : 'ok', label + (list.length ? ': ' + list.length : ''), list.length ? list.slice(0, 8).join(' · ') + (list.length > 8 ? ' · +' + (list.length - 8) + ' more' : '') + '<br><span class="u-c-faint">' + fix + '</span>' : 'None');
+            return row(list.length ? 'warn' : 'ok', label + (list.length ? ': ' + list.length : ''), list.length ? list.slice(0, 8).join(' · ') + (list.length > 8 ? ' · +' + (list.length - 8) + ' more' : '') + '<br><span class="u-faint">' + fix + '</span>' : 'None');
           }
           h += gapRow(gp.noScorer, 'Finished games with no first scorer', 'FirstTD fills these on its next run. If it\'s been hours, type it into column L.');
           h += gapRow(gp.noSide, 'Scored games missing Home/Away', 'FirstTD fills column N on its next run, or type Home/Away yourself.');
           h += gapRow(gp.noOdds, 'Scored games missing odds', 'Enter them on the 💲 Odds screen.');
           h += gapRow(gp.noPlayers || [], 'Games with no players to pick', 'Run fixGameRows in Apps Script (it fills in the hidden player lists). If one still shows after that, its team name doesn\'t match the Rosters tab.');
           var no = gp.notOffered || [];
-          h += row('info', 'Games where the scorer wasn\'t offered' + (no.length ? ': ' + no.length : ''), no.length ? no.join(' · ') + '<br><span class="u-c-faint">These count 0 units. If one is wrong, clear that game\'s column O cells and FirstTD re-checks it on its next run.</span>' : 'None');
+          h += row('info', 'Games where the scorer wasn\'t offered' + (no.length ? ': ' + no.length : ''), no.length ? no.join(' · ') + '<br><span class="u-faint">These count 0 units. If one is wrong, clear that game\'s column O cells and FirstTD re-checks it on its next run.</span>' : 'None');
           h += dataSlot;
           var errs = s.errors || [], seen = errSeen();
           h += '<div class="pf-h">📱 Errors from phones <small>last 15 kept</small></div>';
@@ -187,8 +187,8 @@
               return '<div class="err-item">' + row(isNew ? 'warn' : 'info', escHtml(e.msg) + (e.n > 1 ? ' <span class="u-muted">×' + e.n + '</span>' : '') + (isNew ? ' <span class="err-new">new</span>' : ''),
                 escHtml(e.who) + ' · ' + escHtml(e.device) + ' · ' + escHtml(e.tab || '?') + ' tab' + (e.where ? ' · ' + escHtml(e.where) : '') + (e.v ? ' · ' + escHtml(e.v) : '') + '<br>' + ago(e.at) +
                 ' · <button class="link-btn" data-errdel="' + escHtml(e.at) + '" data-errmsg="' + escHtml(e.msg) + '">Dismiss</button>') + '</div>';
-            }).join('') + (errs.length > 10 ? '<div class="u-fs-11px u-c-faint u-m-4px-0">+ ' + (errs.length - 10) + ' older</div>' : '') +
-              '<div class="u-m-8px-0-4px"><button class="adm-btn" id="err-clear">Clear the list</button> <span class="u-fs-11px u-c-faint">Fixed? Clear it so new ones stand out.</span></div>';
+            }).join('') + (errs.length > 10 ? '<div class="u-fs-11px u-faint u-m-4px-0">+ ' + (errs.length - 10) + ' older</div>' : '') +
+              '<div class="u-m-8px-0-4px"><button class="adm-btn" id="err-clear">Clear the list</button> <span class="u-fs-11px u-faint">Fixed? Clear it so new ones stand out.</span></div>';
           }
           markErrSeen(errs);
           if (ADMIN.alert) ADMIN.alert.errs = 0;
@@ -267,7 +267,7 @@
       var got = {};
       try { got = JSON.parse(localStorage.getItem('mvd-eggs') || '{}'); } catch (e) {}
       var n = EGG_GUIDE.filter(function(e) { return got[e.k]; }).length;
-      var h = '<div class="u-fs-12px u-c-muted u-mb-14px">The hidden extras, and how to set each one off. Nobody else sees this list. Finding one shows "🥚 Easter egg N of ' + EGG_GUIDE.length + ' found!", counted per phone.</div>' +
+      var h = '<div class="u-fs-12px u-muted u-mb-14px">The hidden extras, and how to set each one off. Nobody else sees this list. Finding one shows "🥚 Easter egg N of ' + EGG_GUIDE.length + ' found!", counted per phone.</div>' +
         '<div class="pf-h">🥚 Easter eggs <small>' + n + ' of ' + EGG_GUIDE.length + ' found on this device</small></div>' +
         EGG_GUIDE.map(function(e) {
           return '<div class="egg-row' + (got[e.k] ? ' got' : '') + '"><div class="egg-ic">' + e.ic + '</div><div><div class="egg-t">' + e.t + (got[e.k] ? ' <span class="egg-got">✓ found</span>' : '') + '</div>' +
@@ -287,14 +287,14 @@
       var forced = ''; try { forced = localStorage.getItem('mvd-theme-force') || ''; } catch (e) {}
       var auto = window.HOLIDAY_AUTO ? THEME_NAMES[window.HOLIDAY_AUTO] : 'no theme';
       var h = '<div class="u-mt-xs pf-h">🎨 Theme preview <small>only on this device</small></div>' +
-        '<div class="u-fs-12px u-c-muted u-mb-10px">Force any theme here to check how it looks, whatever the date. Nobody else sees it. Everyone else gets the date-based theme, which today is <b class="u-c-t1">' + auto + '</b>.</div>' +
+        '<div class="u-fs-12px u-muted u-mb-10px">Force any theme here to check how it looks, whatever the date. Nobody else sees it. Everyone else gets the date-based theme, which today is <b class="u-t1">' + auto + '</b>.</div>' +
         '<div class="theme-grid">' + Object.keys(THEME_NAMES).map(function(k) {
           var on = forced === k;
           return '<button class="theme-opt' + (on ? ' on' : '') + '" data-theme-opt="' + k + '">' + THEME_NAMES[k] + (on ? ' ✓' : '') + '</button>';
         }).join('') + '</div>' +
-        '<div class="u-fs-11px u-c-faint u-m-8px-0-22px">The page reloads to apply it. A small "Theme preview" button stays at the bottom of the screen until you go back to Auto.</div>' +
+        '<div class="u-fs-11px u-faint u-m-8px-0-22px">The page reloads to apply it. A small "Theme preview" button stays at the bottom of the screen until you go back to Auto.</div>' +
         '<div class="pf-h">👤 Themes for people <small>they can\'t change it</small></div>' +
-        '<div class="u-fs-12px u-c-muted u-mb-10px">Give someone their own theme. It shows on any phone where they\'ve logged in at least once, and it beats the date-based theme until you set them back to Auto.</div>' +
+        '<div class="u-fs-12px u-muted u-mb-10px">Give someone their own theme. It shows on any phone where they\'ve logged in at least once, and it beats the date-based theme until you set them back to Auto.</div>' +
         '<div id="pt-box"><div class="loading">Loading…</div></div>' +
         '<div class="u-mt-l pf-h">📣 Announcement <small>everyone sees it on Stats</small></div><div id="ann-box"><div class="loading">Loading…</div></div>';
       var body = adminScreen('theme', h);
@@ -331,12 +331,12 @@
     function drawAnnounceAdmin(a) {
       var box = document.getElementById('ann-box');
       if (!box) return;
-      var cur = a ? '<div class="u-d-block u-mb-12px announce-banner">📣 ' + escHtml(a.text) + '<div class="u-fs-11px u-c-muted u-mt-4px">' + (a.until ? 'Showing through ' + new Date(a.until + 'T12:00').toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) : 'Showing until you remove it') + '</div></div>' +
-        '<button class="u-mb-16px adm-btn red" id="ann-rm">Remove it</button>' : '<div class="u-fs-12px u-c-muted u-mb-10px">Nothing posted right now.</div>';
+      var cur = a ? '<div class="u-d-block u-mb-12px announce-banner">📣 ' + escHtml(a.text) + '<div class="u-fs-11px u-muted u-mt-4px">' + (a.until ? 'Showing through ' + new Date(a.until + 'T12:00').toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) : 'Showing until you remove it') + '</div></div>' +
+        '<button class="u-mb-16px adm-btn red" id="ann-rm">Remove it</button>' : '<div class="u-fs-12px u-muted u-mb-10px">Nothing posted right now.</div>';
       box.innerHTML = cur +
         '<textarea class="u-w-100 u-bs-border-box u-rs-vertical adm-input" id="ann-text" maxlength="160" rows="2" placeholder="e.g. Happy birthday Danielle 🎂"></textarea>' +
-        '<div class="u-d-flex u-gap-8px u-ai-center u-fwrap-wrap u-mt-8px"><label class="u-fs-12px u-c-muted">Show through <input type="date" class="u-p-6px-8px adm-input" id="ann-until"></label>' +
-        '<span class="u-fs-11px u-c-faint">(leave blank to keep it up)</span><button class="u-p-9px-18px u-ml-auto primary-btn" id="ann-post">' + (a ? 'Replace' : 'Post') + '</button></div>' +
+        '<div class="u-d-flex u-gap-8px u-ai-center u-fwrap-wrap u-mt-8px"><label class="u-fs-12px u-muted">Show through <input type="date" class="u-p-6px-8px adm-input" id="ann-until"></label>' +
+        '<span class="u-fs-11px u-faint">(leave blank to keep it up)</span><button class="u-p-9px-18px u-ml-auto primary-btn" id="ann-post">' + (a ? 'Replace' : 'Post') + '</button></div>' +
         '<div class="u-ta-left submit-msg" id="adm-msg"></div>';
       document.getElementById('ann-post').addEventListener('click', function() {
         var text = document.getElementById('ann-text').value.trim(), until = document.getElementById('ann-until').value;
@@ -499,7 +499,7 @@
           issues.sort(function(a, b) { return (a.level === 'bad' ? 0 : 1) - (b.level === 'bad' ? 0 : 1); });
           var card = function(x) {
             return '<div class="adm-issue ' + (x.level === 'bad' ? 'bad' : '') + '"><div class="t" style="color:' + (x.level === 'bad' ? 'var(--bad-2)' : 'var(--warn)') + '">' + x.title + '</div>' +
-              (x.where ? '<div class="u-fs-11px u-c-muted u-mb-3px">' + x.where + '</div>' : '') +
+              (x.where ? '<div class="u-fs-11px u-muted u-mb-3px">' + x.where + '</div>' : '') +
               '<div>' + escHtml(x.text) + '</div><div class="fix">→ ' + escHtml(x.fix) + '</div>' +
               '<div class="dc-act"><button class="adm-btn green" data-dcok="' + x.key + '" data-dclabel="' + escHtml((x.title + ': ' + x.text).slice(0, 90)) + '">✓ It\'s fine</button>' +
               '<span>Hides it until something in that row changes.</span></div></div>';

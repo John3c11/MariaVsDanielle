@@ -576,7 +576,7 @@
             FRIEND_EMOJI.map(function(e) { return '<button data-em="' + e + '" class="' + (sel.emoji === e ? 'on' : '') + '">' + e + '</button>'; }).join('') + '</div>' +
           '<div class="fr-style-h">Your color</div><div class="fr-colors">' +
             FRIEND_COLORS.map(function(c) { return '<button data-col="' + c + '" class="' + ((sel.color || FRIEND_COLOR) === c ? 'on' : '') + '" style="background:' + c + '"></button>'; }).join('') + '</div>' +
-          '<div class="u-center u-mt"><span style="font-size:20px;font-weight:800;color:' + (sel.color || FRIEND_COLOR) + '">' + (sel.emoji ? sel.emoji + ' ' : '') + escHtml(name) + '</span></div>' +
+          '<div class="u-center u-mt"><span class="u-fw-800" style="font-size:20px;color:' + (sel.color || FRIEND_COLOR) + '">' + (sel.emoji ? sel.emoji + ' ' : '') + escHtml(name) + '</span></div>' +
           '<div class="u-center u-mt"><button class="primary-btn" id="fr-style-save">Save</button> <button class="u-ml-s link-btn" id="fr-style-cancel">Cancel</button>' +
           '<div class="submit-msg" id="fr-style-msg"></div></div></div>';
         box.querySelectorAll('[data-em]').forEach(function(b) { b.addEventListener('click', function() { sel.emoji = b.getAttribute('data-em'); paint(); }); });

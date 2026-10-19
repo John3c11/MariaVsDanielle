@@ -201,7 +201,7 @@
         }
 
         function statRow(label, val) {
-          return '<div class="u-d-flex u-jc-space-between u-p-10px-0 u-bb-0-5px-solid-rgba-255-255-255-0-06 u-fs-13px"><span class="u-muted">' + label + '</span><span class="u-fw-600 u-c-t1">' + val + '</span></div>';
+          return '<div class="u-d-flex u-jc-space-between u-p-10px-0 u-bb-hair u-fs-13px"><span class="u-muted">' + label + '</span><span class="u-fw-600 u-t1">' + val + '</span></div>';
         }
 
         function pct(n, d) { return d ? Math.round(n/d*100) + "%" : "—"; }
@@ -212,8 +212,8 @@
 
         function personCard(name, contentHtml) {
           var color = personColor(name);
-          return '<div class="u-bg-rgba-255-255-255-0-05 u-r-10px u-p-16px">' +
-            '<div style="font-size:14px;font-weight:700;color:' + color + ';margin-bottom:12px">' + name + '</div>' +
+          return '<div class="u-bg-s1 u-r-10px u-p-16px">' +
+            '<div class="u-fs-14px u-fw-700 u-mb" style="color:' + color + '">' + name + '</div>' +
             contentHtml + '</div>';
         }
 
@@ -228,7 +228,7 @@
         var SEASON_OPTS = AN_YEARS.map(function(y) { return [y, y]; }).concat([['all', 'All']]);
         var PICKER_OPTS = [['all', 'Both'], ['Maria', 'Maria', 'maria-btn'], ['Danielle', 'Danielle', 'danielle-btn']];
         function inSeason(r, season) { return season === 'all' || r.year === season; }
-        var EMPTY = function(t) { return '<div class="u-c-muted u-fs-13px u-ta-center u-p-16px">' + t + '</div>'; };
+        var EMPTY = function(t) { return '<div class="u-muted u-fs-13px u-ta-center u-p-16px">' + t + '</div>'; };
 
         // (v121: "Most picked & cursed picks" cut. Each Profile has Ride or Die + the Hall of Shame, and the Stat Lab splits by player.)
 
@@ -254,10 +254,10 @@
           // Year on the scoring week always; on the drop week only if it was a different season
           var from = j.fromYear !== j.year ? wkLabel(j.fromYear, j.fromWeek) : wkName(j.fromWeek);
           var to = wkLabel(j.year, j.week);
-          var txt = '<span style="color:' + pColor + ';font-weight:600">' + j.picker + '</span> dropped ' +
+          var txt = '<span class="u-fw-600" style="color:' + pColor + '">' + j.picker + '</span> dropped ' +
             coloredText(j.player, j.team) + ' after ' + from + '. He scored first in ' + to + '.';
           if (j.cashed) {
-            txt += ' And <span style="color:' + oColor + ';font-weight:600">' + j.other + '</span> cashed him' +
+            txt += ' And <span class="u-fw-600" style="color:' + oColor + '">' + j.other + '</span> cashed him' +
               (j.cashed.odds ? ' at ' + formatOdds(j.cashed.odds) : '') +
               ' (' + (j.cashed.units >= 0 ? '+' : '') + j.cashed.units + 'u).';
           }
@@ -268,9 +268,9 @@
         var worst = allJinx.filter(function(j) { return j.cashed; })
           .sort(function(a, b) { return b.cashed.units - a.cashed.units; })[0];
         if (worst) {
-          html += '<div class="u-bg-rgba-251-191-36-0-15 u-r-10px u-p-14px-16px u-m-8px-0-12px">' +
-            '<div class="u-fs-11px u-fw-600 u-c-warn u-tt-uppercase u-ls-0-06em u-mb-6px">Worst Jinx</div>' +
-            '<div class="u-fs-13px u-c-soft u-lh-1-6">' + jinxSentence(worst) + '</div></div>';
+          html += '<div class="u-bg-gold u-r-10px u-p-14px-16px u-m-8px-0-12px">' +
+            '<div class="u-fs-11px u-fw-600 u-warn u-tt-uppercase u-ls-0-06em u-mb-6px">Worst Jinx</div>' +
+            '<div class="u-fs-13px u-soft u-lh-1-6">' + jinxSentence(worst) + '</div></div>';
         }
 
         allJinx.sort(function(a, b) {
@@ -284,7 +284,7 @@
           ['all', 'Maria', 'Danielle'].forEach(function(p) {
             var list = allJinx.filter(function(j) { return p === 'all' || j.picker === p; });
             var inner = list.length ? afList(list.map(function(j) {
-              return '<div class="u-p-10px-0 u-bb-0-5px-solid-rgba-255-255-255-0-06 u-fs-13px u-c-soft u-lh-1-5">' + jinxSentence(j) + '</div>';
+              return '<div class="u-p-10px-0 u-bb-hair u-fs-13px u-soft u-lh-1-5">' + jinxSentence(j) + '</div>';
             }), 5) : EMPTY('No jinxes for ' + p + ' yet.');
             html += afVariant('jinx', [p], '<div class="u-mb-s">' + inner + '</div>');
           });
@@ -331,26 +331,26 @@
           if (!tot) { html += afVariant('wsf', [season], EMPTY('No scored games yet.')); return; }
           function split(h, a, big) {
             var t = h + a, hp = Math.round(h / t * 100);
-            return '<div style="display:flex;justify-content:space-between;gap:8px;white-space:nowrap;font-size:' + (big ? 14 : 12) + 'px;margin-bottom:5px">' +
+            return '<div class="u-ws-nowrap u-jc-space-between u-gap-8px" style="display:flex;font-size:' + (big ? 14 : 12) + 'px;margin-bottom:5px">' +
               '<span>🏠 Home <b>' + hp + '%</b></span><span><b>' + (100 - hp) + '%</b> Away ✈️</span></div>' +
               '<div style="display:flex;height:' + (big ? 12 : 7) + 'px;border-radius:999px;overflow:hidden;gap:2px">' +
-              '<div style="width:' + hp + '%;background:#FBBF24"></div><div class="u-f-1 u-bg-a78bfa"></div></div>';
+              '<div style="width:' + hp + '%;background:#FBBF24"></div><div class="u-f-1 u-bg-machine"></div></div>';
           }
           var hp = all.Home / tot;
           var lean = Math.abs(hp - 0.5) < 0.04 ? 'Basically a coin flip.' :
             (hp > 0.5 ? 'Home teams' : 'Road teams') + ' have scored first in ' + Math.round(Math.max(hp, 1 - hp) * 100) + '% of games.';
           lean += ' (' + all.Home + ' home, ' + all.Away + ' away)';
-          var inner = '<div class="u-bg-rgba-255-255-255-0-05 u-r-10px u-p-14px-16px">' + split(all.Home, all.Away, true) +
-            '<div class="u-fs-12px u-c-soft u-m-10px-0-4px">' + lean + '</div>';
+          var inner = '<div class="u-bg-s1 u-r-10px u-p-14px-16px">' + split(all.Home, all.Away, true) +
+            '<div class="u-fs-12px u-soft u-m-10px-0-4px">' + lean + '</div>';
           var slots = Object.keys(bySlot).sort(function(a, b) {
             var ORD = ['TNF','FNF','SNF','MNF','International','Thanksgiving','Black Friday','Saturday','Christmas','WNF'];
             var ai = ORD.indexOf(a), bi = ORD.indexOf(b);
             return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi) || a.localeCompare(b);
           });
           if (slots.length > 1) {
-            inner += '<div class="u-mt-12px u-bt-1px-solid-rgba-255-255-255-0-08 u-pt-6px">' + slots.map(function(sl) {
+            inner += '<div class="u-mt-12px u-bt-line u-pt-6px">' + slots.map(function(sl) {
               var x = bySlot[sl];
-              return '<div class="u-p-7px-0"><div class="u-fs-11px u-fw-700 u-ls-0-06em u-tt-uppercase u-c-muted u-mb-4px">' + escHtml(sl) + ' · ' + x.Home + ' home, ' + x.Away + ' away</div>' + split(x.Home, x.Away) + '</div>';
+              return '<div class="u-p-7px-0"><div class="u-fs-11px u-fw-700 u-ls-0-06em u-tt-uppercase u-muted u-mb-4px">' + escHtml(sl) + ' · ' + x.Home + ' home, ' + x.Away + ' away</div>' + split(x.Home, x.Away) + '</div>';
             }).join('') + '</div>';
           }
           html += afVariant('wsf', [season], inner + '</div>');
@@ -385,11 +385,11 @@
           function share(map, n, q) { return n ? (map[q] || 0) / n : 0; }
           function bar(label, v, c) {
             return '<div class="u-d-grid u-gtc-62px-1fr-38px u-gap-8px u-ai-center u-fs-11px u-p-2px-0">' +
-              '<span style="color:' + c + ';font-weight:700">' + label + '</span>' +
-              '<div class="u-h-7px u-r-4px u-bg-rgba-255-255-255-0-06"><div style="width:' + Math.round(v * 100) + '%;height:7px;border-radius:var(--r-xs);background:' + c + '"></div></div>' +
+              '<span class="u-fw-700" style="color:' + c + '">' + label + '</span>' +
+              '<div class="u-h-7px u-r-4px u-bg-line"><div style="width:' + Math.round(v * 100) + '%;height:7px;border-radius:var(--r-xs);background:' + c + '"></div></div>' +
               '<span class="u-ta-right u-fw-700">' + Math.round(v * 100) + '%</span></div>';
           }
-          var inner = '<div class="u-bg-rgba-255-255-255-0-05 u-r-10px u-p-8px-14px">';
+          var inner = '<div class="u-bg-s1 u-r-10px u-p-8px-14px">';
           POS_ORDER.forEach(function(q, i) {
             var real = share(R, RN, q), m = share(P.Maria, PN.Maria, q), d = share(P.Danielle, PN.Danielle, q);
             if (!real && !m && !d) return;
@@ -460,14 +460,14 @@
             var mW = wk.Maria.w, mL = wk.Maria.l, dW = wk.Danielle.w, dL = wk.Danielle.l;
             var winnerColor = mW > dW ? SB_M : dW > mW ? SB_D : '#6B7280';
             var winnerLabel = mW > dW ? 'Maria' : dW > mW ? 'Danielle' : 'Tied';
-            return '<div class="u-d-grid u-gtc-80px-1fr-80px u-gap-8px u-ai-center u-p-8px-0 u-bb-0-5px-solid-rgba-255-255-255-0-06">' +
-              '<span class="u-fs-11px u-c-muted">' + wkLabel(wk.year, wk.week) + '</span>' +
+            return '<div class="u-d-grid u-gtc-80px-1fr-80px u-gap-8px u-ai-center u-p-8px-0 u-bb-hair">' +
+              '<span class="u-fs-11px u-muted">' + wkLabel(wk.year, wk.week) + '</span>' +
               '<div class="u-d-flex u-ai-center u-gap-6px">' +
-                '<span style="font-size:12px;color:' + SB_M + ';font-weight:600">M: ' + mW + '/' + (mW + mL) + '</span>' +
-                '<span class="u-c-faint u-fs-10px">·</span>' +
-                '<span style="font-size:12px;color:' + SB_D + ';font-weight:600">D: ' + dW + '/' + (dW + dL) + '</span>' +
+                '<span class="u-fs-12px u-fw-600" style="color:' + SB_M + '">M: ' + mW + '/' + (mW + mL) + '</span>' +
+                '<span class="u-faint u-fs-10px">·</span>' +
+                '<span class="u-fs-12px u-fw-600" style="color:' + SB_D + '">D: ' + dW + '/' + (dW + dL) + '</span>' +
               '</div>' +
-              '<span style="font-size:12px;font-weight:700;color:' + winnerColor + ';text-align:right">' + winnerLabel + '</span>' +
+              '<span class="u-fs-12px u-fw-700 u-ta-right" style="color:' + winnerColor + '">' + winnerLabel + '</span>' +
             '</div>';
           });
           html += afVariant('wbw', [season], '<div class="u-mb-16px">' +
@@ -526,17 +526,17 @@
         });
 
         function tdTag(pickedBy) {
-          if (pickedBy.has('Maria') && pickedBy.has('Danielle')) return '<span class="u-fs-10px u-fw-600 u-c-violet u-bg-rgba-167-139-250-0-18 u-r-4px u-p-2px-6px">Both</span>';
-          if (pickedBy.has('Maria')) return '<span style="font-size:10px;font-weight:600;color:' + SB_M + ';background:' + hexA(SB_M, 0.15) + ';border-radius:var(--r-xs);padding:2px 6px">Maria</span>';
-          if (pickedBy.has('Danielle')) return '<span style="font-size:10px;font-weight:600;color:' + SB_D + ';background:' + hexA(SB_D, 0.16) + ';border-radius:var(--r-xs);padding:2px 6px">Danielle</span>';
+          if (pickedBy.has('Maria') && pickedBy.has('Danielle')) return '<span class="u-fs-10px u-fw-600 u-violet u-bg-machine-soft u-r-4px u-p-2px-6px">Both</span>';
+          if (pickedBy.has('Maria')) return '<span class="u-fs-10px u-fw-600" style="color:' + SB_M + ';background:' + hexA(SB_M, 0.15) + ';border-radius:var(--r-xs);padding:2px 6px">Maria</span>';
+          if (pickedBy.has('Danielle')) return '<span class="u-fs-10px u-fw-600" style="color:' + SB_D + ';background:' + hexA(SB_D, 0.16) + ';border-radius:var(--r-xs);padding:2px 6px">Danielle</span>';
           return '<span class="ui-tiny">—</span>';
         }
 
-        var tdHead = '<div class="u-bg-rgba-255-255-255-0-05 u-r-10px u-p-8px-12px">' +
-          '<div class="u-d-grid u-gtc-1fr-90px-80px u-gap-8px u-p-8px-0-4px u-bb-1px-solid-rgba-255-255-255-0-10">' +
-          '<span class="u-fs-11px u-c-muted u-tt-uppercase u-ls-0-05em u-fw-600">Player</span>' +
-          '<span class="u-fs-11px u-c-muted u-tt-uppercase u-ls-0-05em u-fw-600 u-ta-center">TDs (picked)</span>' +
-          '<span class="u-fs-11px u-c-muted u-tt-uppercase u-ls-0-05em u-fw-600 u-ta-center">Picked By</span>' +
+        var tdHead = '<div class="u-bg-s1 u-r-10px u-p-8px-12px">' +
+          '<div class="u-d-grid u-gtc-1fr-90px-80px u-gap-8px u-p-8px-0-4px u-bb-line2">' +
+          '<span class="u-fs-11px u-muted u-tt-uppercase u-ls-0-05em u-fw-600">Player</span>' +
+          '<span class="u-fs-11px u-muted u-tt-uppercase u-ls-0-05em u-fw-600 u-ta-center">TDs (picked)</span>' +
+          '<span class="u-fs-11px u-muted u-tt-uppercase u-ls-0-05em u-fw-600 u-ta-center">Picked By</span>' +
           '</div>';
 
         SEASON_OPTS.forEach(function(so) {
@@ -571,10 +571,10 @@
             }
             var divs = list.map(function(entry) {
               var data = entry[1];
-              var tdDisplay = '<span class="u-fs-14px u-fw-700 u-c-soft">' + data.total + '</span>' +
-                (data.picked > 0 && data.picked < data.total ? '<span class="u-fs-11px u-c-muted u-ml-3px">(' + data.picked + ' picked)</span>' : '');
-              return '<div class="u-d-grid u-gtc-1fr-90px-80px u-gap-8px u-p-9px-0 u-bb-0-5px-solid-rgba-255-255-255-0-06 u-ai-center">' +
-                '<span class="u-fs-13px u-fw-600 u-c-t1">' + entry[0] + '</span>' +
+              var tdDisplay = '<span class="u-fs-14px u-fw-700 u-soft">' + data.total + '</span>' +
+                (data.picked > 0 && data.picked < data.total ? '<span class="u-fs-11px u-muted u-ml-3px">(' + data.picked + ' picked)</span>' : '');
+              return '<div class="u-d-grid u-gtc-1fr-90px-80px u-gap-8px u-p-9px-0 u-bb-hair u-ai-center">' +
+                '<span class="u-fs-13px u-fw-600 u-t1">' + entry[0] + '</span>' +
                 '<span class="u-center">' + tdDisplay + '</span>' +
                 '<span class="u-center">' + tdTag(data.pickedBy) + '</span>' +
               '</div>';
@@ -667,7 +667,7 @@
           function gapText(b) { return b.gap <= 0 ? 'right after' : b.gap === 1 ? '1 min after' : b.gap + ' min after'; }
           function line(b) {
             var c = personColor(b.who);
-            return '<span style="color:' + c + ';font-weight:600">' + b.who + '</span> had ' + coloredText(b.player, b.team) +
+            return '<span class="u-fw-600" style="color:' + c + '">' + b.who + '</span> had ' + coloredText(b.player, b.team) +
               '. He scored in ' + b.q + (b.clock ? ' (' + b.clock + ')' : '') + ', ' + gapText(b) + ' <b>' + b.first + '</b> scored first · ' + wkLabel(b.year, b.week) + '.';
           }
           var count = { Maria: 0, Danielle: 0 }, closest = { Maria: null, Danielle: null };
@@ -681,9 +681,9 @@
           );
           var worst = beats.slice().sort(function(a, b) { return a.gap - b.gap; })[0];
           if (worst) {
-            out += '<div class="u-bg-rgba-248-113-113-0-12 u-bd-1px-solid-rgba-248-113-113-0-3 u-r-10px u-p-14px-16px u-m-8px-0-12px">' +
-              '<div class="u-fs-11px u-fw-700 u-c-bad2 u-tt-uppercase u-ls-0-08em u-mb-6px">💔 Most Painful</div>' +
-              '<div class="u-fs-13px u-c-soft u-lh-1-6">' + line(worst) + '</div></div>';
+            out += '<div class="u-bg-bad u-bd-bad u-r-10px u-p-14px-16px u-m-8px-0-12px">' +
+              '<div class="u-fs-11px u-fw-700 u-bad-2 u-tt-uppercase u-ls-0-08em u-mb-6px">💔 Most Painful</div>' +
+              '<div class="u-fs-13px u-soft u-lh-1-6">' + line(worst) + '</div></div>';
           }
           beats.sort(function(a, b) { return a.year !== b.year ? parseInt(b.year) - parseInt(a.year) : b.week - a.week; });
           if (beats.length) {
@@ -691,13 +691,13 @@
             PICKER_OPTS.forEach(function(po) {
               var list = beats.filter(function(b) { return po[0] === 'all' || b.who === po[0]; });
               out += afVariant('bb', [po[0]], list.length ? afList(list.map(function(b) {
-                return '<div class="u-p-10px-0 u-bb-0-5px-solid-rgba-255-255-255-0-06 u-fs-13px u-c-soft u-lh-1-5">' + line(b) + '</div>';
+                return '<div class="u-p-10px-0 u-bb-hair u-fs-13px u-soft u-lh-1-5">' + line(b) + '</div>';
               }), 5) : EMPTY('No bad beats for ' + po[1] + '.'));
             });
           } else {
             out += EMPTY('No bad beats yet. Every picked player who scored was first.');
           }
-          if (failed) out += '<div class="u-fs-11px u-c-muted u-mt-6px">' + failed + ' game' + (failed > 1 ? 's' : '') + ' couldn\'t be matched on ESPN and were skipped.</div>';
+          if (failed) out += '<div class="u-fs-11px u-muted u-mt-6px">' + failed + ' game' + (failed > 1 ? 's' : '') + ' couldn\'t be matched on ESPN and were skipped.</div>';
           box.innerHTML = out;
           if (AF.bb) afApply('bb');
         }

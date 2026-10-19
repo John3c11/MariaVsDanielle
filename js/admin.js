@@ -9,7 +9,7 @@
       ADMIN.oddsRes = res;
       var el = document.getElementById('submit-content');
       var html = adminHeader('odds') +
-        '<div class="u-fs-12px u-c-muted u-mb-18px">Enter odds for picks that don\'t have them yet. Type them the way you do in the sheet (15, 4.7) or as American odds (+1500, +470). Leave a box blank to skip it.</div>';
+        '<div class="u-fs-12px u-muted u-mb-18px">Enter odds for picks that don\'t have them yet. Type them the way you do in the sheet (15, 4.7) or as American odds (+1500, +470). Leave a box blank to skip it.</div>';
 
       if (!res.rows.length) {
         html += '<div class="ui-empty">🎉 All odds are filled in.</div>';
@@ -28,17 +28,17 @@
 
       function oddsInput(row, side, val, pick) {
         return '<span class="odds-wrap"><input class="odds-input" data-row="' + row + '" data-side="' + side + '" data-pick="' + escHtml(pick || '') + '" inputmode="decimal" autocomplete="off" placeholder="+" value="' + (val || '') + '" ' +
-          'style="width:84px;font-family:Inter,sans-serif;font-size:14px;padding:7px 10px;border:1.5px solid rgba(255,255,255,0.10);border-radius:var(--r-s);background:rgba(255,255,255,0.04);color:var(--t1);text-align:right">' +
+          '>' +
           '<span class="odds-hint"></span></span>';
       }
 
       games.forEach(function(g) {
-        html += '<div class="u-bg-rgba-255-255-255-0-05 u-r-10px u-p-14px-16px u-mb-14px">' +
-          '<div class="u-fs-11px u-fw-600 u-c-muted u-tt-uppercase u-ls-0-06em u-mb-4px">' + weekName(g.week) + ' · ' + g.slot + '</div>' +
+        html += '<div class="u-bg-s1 u-r-10px u-p-14px-16px u-mb-14px">' +
+          '<div class="u-fs-11px u-fw-600 u-muted u-tt-uppercase u-ls-0-06em u-mb-4px">' + weekName(g.week) + ' · ' + g.slot + '</div>' +
           '<div class="u-fs-15px u-fw-700 u-mb-10px">' + coloredGame(g.home, g.away) + '</div>';
         g.rows.forEach(function(r) {
           html += '<div class="u-mt-8px">' +
-            '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:' + personColor(r.picker) + ';margin-bottom:4px">' + r.picker + '</div>' +
+            '<div class="u-fs-11px u-fw-600 u-tt-uppercase u-ls-0-06em u-mb-4px" style="color:' + personColor(r.picker) + '">' + r.picker + '</div>' +
             '<div class="u-d-flex u-jc-space-between u-ai-center u-p-4px-0 u-fs-14px">' + coloredText(r.homePick, r.home) + oddsInput(r.row, 'home', r.homeOdds, r.homePick) + '</div>' +
             '<div class="u-d-flex u-jc-space-between u-ai-center u-p-4px-0 u-fs-14px">' + coloredText(r.awayPick, r.away) + oddsInput(r.row, 'away', r.awayOdds, r.awayPick) + '</div>' +
             '</div>';
@@ -115,7 +115,7 @@
             msg.textContent = res.error || ('Couldn\'t read: ' + res.bad.join(', ') + '. Everything else was saved.');
             return;
           }
-          var done = '<div class="u-bg-rgba-52-211-153-0-15 u-r-10px u-p-14px-16px u-fs-13px u-c-good">' +
+          var done = '<div class="u-bg-good u-r-10px u-p-14px-16px u-fs-13px u-good">' +
             '✅ Saved ' + res.saved + ' odds. You\'ve been logged out.</div>';
           renderPinScreen('', done);
           clearSheetCache();
@@ -134,7 +134,7 @@
     // ── 📜 Which copy of each Apps Script file the website expects ─────────────
     // Bump these whenever a delivery includes that file. Status and the admin alert compare them
     // with what the live script says, so a file that didn't get pasted (or deployed) shows up.
-    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-30', Features: '2026-10-10', Automation: '2026-10-24', WeeklyRecap: '2026-10-06', Machine: '2026-10-29', Dashboard: '2026-10-24', Commish: '2026-10-28', Futures: '2026-10-29' };
+    var SCRIPT_VERSIONS = { PicksAPI: '2026-10-31', Features: '2026-10-10', Automation: '2026-10-24', WeeklyRecap: '2026-10-06', Machine: '2026-10-29', Dashboard: '2026-10-24', Commish: '2026-10-28', Futures: '2026-10-29', Admin: '2026-10-31' };
     var OLD_SCRIPT_FILES = { Features: 'Market.gs, Museum.gs and Bracket.gs', Automation: 'FirstTD.gs, NFLPlayers.gs, Injuries.gs and Playoffs.gs' };
     var DEPLOY_STEPS = 'Deploy → Manage deployments → ✏️ → New version → Deploy';
     function scriptIssues(v) {

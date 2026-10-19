@@ -54,14 +54,14 @@
         var gameDisplay = b.homeTeam && b.awayTeam ? (b.gameNo && typeof gameLinkAttr === 'function' ? '<span ' + gameLinkAttr(b.year, b.gameNo) + ' title="Open this game">' + coloredGame(b.homeTeam, b.awayTeam) + '</span>' : coloredGame(b.homeTeam, b.awayTeam)) : (b.game || '—');
         if (b.firstScorer && b.homeTeam) gameDisplay += ' <button class="rp-mini" title="Replay this game" aria-label="Replay this game" onclick="replayGame(\'' + b.year + '\',' + parseInt(b.week, 10) + ',\'' + escHtml(String(b.gameNo)) + '\')">⏪</button>';
         return '<div class="bh-grid bh-row" data-ctx-year="' + b.year + '" data-ctx-week="' + b.week + '">' +
-          '<span style="font-size:11px;font-weight:600;color:' + (b.year === CURRENT_YEAR ? 'var(--danielle)' : 'var(--good)') + '">' + b.year + '</span>' +
+          '<span class="u-fs-11px u-fw-600" style="color:' + (b.year === CURRENT_YEAR ? 'var(--danielle)' : 'var(--good)') + '">' + b.year + '</span>' +
           '<span class="u-muted u-center">' + (PLAYOFF_SHORT[parseInt(b.week, 10)] || '<i class="bh-wkl">Wk </i>' + b.week) + '</span>' +
           '<span class="u-medium">' + gameDisplay + '</span>' +
-          '<span style="font-weight:500;color:' + pickerColor + '">' + b.picker + '</span>' +
+          '<span class="u-medium" style="color:' + pickerColor + '">' + b.picker + '</span>' +
           '<span>' + players + '</span>' +
           '<span class="u-muted">' + b.odds + (window.MACHINE_GRADES && MACHINE_GRADES[b.year + '|' + b.gameNo + '|' + b.picker] ? ' <span class="mc-grade g-' + MACHINE_GRADES[b.year + '|' + b.gameNo + '|' + b.picker].g.replace('+', 'p') + '" title="Pick grade from the Machine: the price vs the players\' real chances">' + MACHINE_GRADES[b.year + '|' + b.gameNo + '|' + b.picker].g + '</span>' : '') + '</span>' +
-          '<span class="bh-ftd" title="' + (noOffer ? 'Not offered, bet did not count' : '') + '" style="font-size:11px;font-weight:600;padding:3px 7px;border-radius:var(--r-xs);text-align:center;line-height:1.3;background:' + resultBg + ';color:' + resultColor + '">' + resultText + '</span>' +
-          '<span style="text-align:right;font-weight:500;color:' + unitColor + '">' + unitStr + '</span>' +
+          '<span class="bh-ftd u-fs-11px u-fw-600 u-center" title="' + (noOffer ? 'Not offered, bet did not count' : '') + '" style="padding:3px 7px;border-radius:var(--r-xs);line-height:1.3;background:' + resultBg + ';color:' + resultColor + '">' + resultText + '</span>' +
+          '<span class="u-ta-right u-medium" style="color:' + unitColor + '">' + unitStr + '</span>' +
           '</div>';
       }).join('');
       var more = bets.length > BH_SHOW ? '<div class="u-center u-mt"><button class="adm-btn" id="bh-more">Show ' + Math.min(25, bets.length - BH_SHOW) + ' more · ' + (bets.length - BH_SHOW) + ' left</button></div>' : '';
@@ -453,7 +453,7 @@
       if (!crowd || !crowd.picks || !crowd.picks.length) return '';
       var styles = crowd.styles || {};
       function col(n) { return (styles[n] && styles[n].color) || FRIEND_COLOR; }
-      function nm(n) { var e = styles[n] && styles[n].emoji; return '<span style="color:' + col(n) + ';font-weight:800">' + (e ? e + ' ' : '') + escHtml(n) + '</span>'; }
+      function nm(n) { var e = styles[n] && styles[n].emoji; return '<span class="u-fw-800" style="color:' + col(n) + '">' + (e ? e + ' ' : '') + escHtml(n) + '</span>'; }
       var R = rankFriends(crowd, G);
       var all = R.stats.filter(function(s) { return s.n > 0; });
       if (!all.length) return '';
@@ -478,9 +478,9 @@
       h += '<div class="wr-kicker">Crowd Wrapped</div><div class="wr-year">' + year + '</div>';
       h += '<div class="wr-champ">👑 ' + nm(champ.name) + ' wins the Crowd at ' + pctTxt(champ.pct) + ' (' + champ.w + '–' + (champ.n - champ.w) + ')</div>';
       h += '<div class="u-p-10px-14px wr-chart">' + board.slice(0, 5).map(function(s, i) {
-        return '<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:14px' + (i ? ';border-top:1px solid rgba(255,255,255,0.08)' : '') + '"><span>' + (i === 0 ? '👑' : i + 1) + '&nbsp; ' + nm(s.name) + '</span><span class="u-o85">' + s.w + '–' + (s.n - s.w) + ' · <b>' + pctTxt(s.pct) + '</b></span></div>';
+        return '<div class="u-jc-space-between u-p-5px-0" style="display:flex;font-size:14px' + (i ? ';border-top:1px solid rgba(255,255,255,0.08)' : '') + '"><span>' + (i === 0 ? '👑' : i + 1) + '&nbsp; ' + nm(s.name) + '</span><span class="u-o85">' + s.w + '–' + (s.n - s.w) + ' · <b>' + pctTxt(s.pct) + '</b></span></div>';
       }).join('') +
-        '<div style="display:flex;justify-content:space-between;padding:6px 0 2px;font-size:12px;opacity:0.7;border-top:1px dashed rgba(255,255,255,0.15)"><span>For reference: <span style="color:' + SB_M + '">Maria ' + pctTxt(m.pct) + '</span> · <span style="color:' + SB_D + '">Danielle ' + pctTxt(d.pct) + '</span></span><span>' + all.length + ' friends played</span></div></div>';
+        '<div class="u-fs-12px u-jc-space-between" style="display:flex;padding:6px 0 2px;opacity:0.7;border-top:1px dashed rgba(255,255,255,0.15)"><span>For reference: <span style="color:' + SB_M + '">Maria ' + pctTxt(m.pct) + '</span> · <span style="color:' + SB_D + '">Danielle ' + pctTxt(d.pct) + '</span></span><span>' + all.length + ' friends played</span></div></div>';
       function tile(label, main, sub) {
         return '<div class="wr-tile"><div class="wr-tile-label">' + label + '</div><div class="wr-tile-main">' + main + '</div>' + (sub ? '<div class="wr-tile-sub">' + sub + '</div>' : '') + '</div>';
       }
@@ -606,7 +606,7 @@
 
         function row(label, r, isTotal) {
           function cell(n, w, fmt) {
-            return '<div class="er-c"><div style="color:' + uColor(n) + ';font-weight:700">' + fmt(n) + '</div>' +
+            return '<div class="er-c"><div class="u-fw-700" style="color:' + uColor(n) + '">' + fmt(n) + '</div>' +
               (w !== n ? '<div class="er-w" style="color:' + uColor(w) + '">' + fmt(w) + '</div>' : '') + '</div>';
           }
           return '<div class="er-row' + (isTotal ? ' er-total' : '') + '">' +

@@ -17,9 +17,9 @@
             '<button class="primary-btn" id="fr-add">Add Friend</button>' +
           '</div><div class="u-ta-left submit-msg" id="adm-msg"></div>' +
           inviteHtml(res) +
-          '<div class="u-fs-11px u-fw-800 u-ls-0-12em u-c-muted u-m-14px-0-4px">FRIENDS (' + list.length + ')</div>';
+          '<div class="u-fs-11px u-fw-800 u-ls-0-12em u-muted u-m-14px-0-4px">FRIENDS (' + list.length + ')</div>';
         h += list.length ? list.map(function(f) {
-          return '<div class="adm-row"><div><b style="color:' + fStyle(f.name).color + '">' + (fStyle(f.name).emoji ? fStyle(f.name).emoji + ' ' : '') + escHtml(f.name) + '</b> <span class="u-c-muted u-ls-0-15em u-ml-6px">' + f.pin + '</span></div>' +
+          return '<div class="adm-row"><div><b style="color:' + fStyle(f.name).color + '">' + (fStyle(f.name).emoji ? fStyle(f.name).emoji + ' ' : '') + escHtml(f.name) + '</b> <span class="u-muted u-ls-0-15em u-ml-6px">' + f.pin + '</span></div>' +
             '<div class="u-d-flex u-gap-6px"><button class="adm-btn" data-fprof="' + escHtml(f.name) + '">Profile</button>' +
             '<button class="adm-btn" data-fpin="' + escHtml(f.name) + '">PIN</button>' +
             '<button class="adm-btn red" data-frm="' + escHtml(f.name) + '">Remove</button></div></div>';
@@ -80,10 +80,10 @@
         : '<div class="ui-note u-mb">No invite link right now. Make one to let friends sign themselves up (you still approve each one).</div>' +
           '<button class="primary-btn u-mb-6px" id="inv-new">Make an invite link</button>';
       if (pend.length) {
-        h += '<div class="u-fs-11px u-fw-800 u-ls-0-12em u-c-warn u-m-14px-0-4px">WAITING FOR YOU (' + pend.length + ')</div>' +
+        h += '<div class="u-fs-11px u-fw-800 u-ls-0-12em u-warn u-m-14px-0-4px">WAITING FOR YOU (' + pend.length + ')</div>' +
           pend.map(function(r) {
-            return '<div class="adm-row inv-pend"><div><b>' + escHtml(r.name) + '</b> <span class="u-c-muted u-fs-12px">' + (r.at ? new Date(r.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '') + '</span>' +
-              (r.clash ? '<div class="u-fs-12px u-c-warn">Their PIN is already used. Approving asks you for a new one.</div>' : '') + '</div>' +
+            return '<div class="adm-row inv-pend"><div><b>' + escHtml(r.name) + '</b> <span class="u-muted u-fs-12px">' + (r.at ? new Date(r.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '') + '</span>' +
+              (r.clash ? '<div class="u-fs-12px u-warn">Their PIN is already used. Approving asks you for a new one.</div>' : '') + '</div>' +
               '<div class="u-d-flex u-gap-6px"><button class="adm-btn" data-jok="' + escHtml(r.name) + '" data-clash="' + (r.clash ? 1 : '') + '">✅ Approve</button>' +
               '<button class="adm-btn red" data-jno="' + escHtml(r.name) + '">Decline</button></div></div>';
           }).join('');
@@ -145,7 +145,7 @@
           (msgs.length ? msgs.slice(0, 60).map(function(m) {
             var c = personColor(m.who);
             return '<div class="adm-row"><div class="u-f-1 u-minw-0"><b style="color:' + c + '">' + escHtml(m.who) + '</b> ' + (m.pinned ? '📌 ' : '') +
-              '<span class="u-c-soft">' + escHtml(m.text) + '</span></div>' +
+              '<span class="u-soft">' + escHtml(m.text) + '</span></div>' +
               '<div class="u-d-flex u-gap-6px"><button class="adm-btn" data-pin="' + m.row + '">' + (m.pinned ? 'Unpin' : 'Pin') + '</button>' +
               '<button class="adm-btn red" data-del="' + m.row + '" data-text="' + escHtml(m.text) + '">Delete</button></div></div>';
           }).join('') : '<div class="empty">No messages yet.</div>');

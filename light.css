@@ -1,6 +1,6 @@
 /* light.css: the light theme (🌗 in the footer). Loaded only when someone picks Light (or Auto on a phone set to light).
    Made by a script from style.css, so every rule here is a light copy of a rule there. Don't edit by hand:
-   it's rebuilt whenever style.css changes. (v156) */
+   it's rebuilt whenever style.css changes. (v157) */
 html[data-theme="light"] { color-scheme: light;
   --t1: #111827; --t2: #374151; --t3: #4B5563; --t4: #5F6672;
   --good: #047857; --good-2: #065F46; --bad: #DC2626; --bad-2: #B91C1C; --warn: #B45309; --warn-2: #92400E; --machine: #7C3AED;
@@ -354,6 +354,11 @@ html[data-theme="light"] .pf-seas-y:not(.dk, .dk *) { color: var(--t1); }
 html[data-theme="light"] .pf-seas-tot:not(.dk, .dk *) { color: var(--t1); border-top: 1.5px solid var(--line-2); }
 html[data-theme="light"] .pf-fav:not(.dk, .dk *) { border-radius: var(--r-l); background: color-mix(in srgb, var(--pc) 16%, transparent); border: 3px solid var(--pc); box-shadow: 0 0 26px -6px var(--pc); }
 html[data-theme="light"] .pf-fav.txt:not(.dk, .dk *) { color: var(--pc); }
+html[data-theme="light"] .rt-row:not(.dk, .dk *) { border-bottom: 0.5px solid var(--line); }
+html[data-theme="light"] .rt-row:last-child:not(.dk, .dk *) { border-bottom: 0; }
+html[data-theme="light"] .rt-rank:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .rt-name small:not(.dk, .dk *) { color: var(--t3); }
+html[data-theme="light"] .rt-r:not(.dk, .dk *) { color: var(--t1); }
 html[data-theme="light"] details.an-more > summary:not(.dk, .dk *) { color: #035ABB; }
 html[data-theme="light"] .ch-note:not(.dk, .dk *) { color: var(--t3); }
 html[data-theme="light"] .ch-legend:not(.dk, .dk *) { color: var(--t2); }

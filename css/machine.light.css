@@ -50,4 +50,7 @@ html[data-theme="light"] .mcb-grade.g-C:not(.dk, .dk *) { color: #F5F6F8; backgr
 html[data-theme="light"] .mcb-grade.g-D:not(.dk, .dk *) { color: #0B0C10; background: #FB923C; }
 html[data-theme="light"] .mcb-grade.g-F:not(.dk, .dk *) { color: #1A1A1A; background: var(--bad); }
 html[data-theme="light"] .mcb-line:not(.dk, .dk *) { color: var(--t2); }
+html[data-theme="light"] .mso-row:not(.dk, .dk *) { border-bottom: 0.5px solid var(--line); color: var(--t2); }
+html[data-theme="light"] .mso-row:last-child:not(.dk, .dk *) { border-bottom: 0; }
+html[data-theme="light"] .mso-row small:not(.dk, .dk *) { color: var(--t3); }
 html[data-theme="light"] [style^="color:#A78BFA" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color:#A78BFA" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color:#A78BFA" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: #A78BFA" i]:not(.dk, .dk *), html[data-theme="light"] [style*=";color: #A78BFA" i]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: #A78BFA" i]:not(.dk, .dk *), html[data-theme="light"] [style^="color: rgb(167, 139, 250)"]:not(.dk, .dk *), html[data-theme="light"] [style*="; color: rgb(167, 139, 250)"]:not(.dk, .dk *) { color: #3408B6 !important; }

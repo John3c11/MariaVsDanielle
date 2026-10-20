@@ -4,6 +4,7 @@
 
     var PATCH_ERAS = [
       { t: '🧹 The cleanup', r: 'v151–', d: 'Making the whole site look and work like one thing.', v: [
+        [157, '🎯 Live first-TD chances in Game Day · 📈 a Rivalry rating for everyone who picks · 🤝 same picks as the Machine · kickoff times in the Bet Log'],
         [156, 'Games not played yet no longer show the sheet\'s written-off −2u in the Bet Log, and never count anywhere on the site'],
         [155, '🔑 PINs stay in the script: the admin screens can change any PIN but never show one, plus a one-command release check'],
         [154, 'Code cleanup: style.css sorted by part of the site, fixed inline styles moved into classes, color-named classes renamed, PicksAPI.gs split into PicksAPI.gs + Admin.gs'],

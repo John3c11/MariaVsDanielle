@@ -21,8 +21,61 @@ def stage(name):
     open(out+'/config.js','w').write("const CONFIG={API_KEY:'x',PICKS_URL:'https://x'};")   # the real one lives only on GitHub
     return out
 
+# ── Fake Machine picks and friends (v157), made from the real 2026 sheet so every run gets the same ones ──
+# The Machine plays every 2026 game that has kicked off by the frozen clock: it sometimes takes the same player as
+# Maria or Danielle (overlaps), sometimes the real first scorer (hits). Jake and Sam pick every played game.
+def fake_data():
+    import math
+    teams=ros[0][1:]; offered={}
+    for c,t in enumerate(teams):
+        offered[t]=[r[c+1] for r in ros[1:] if len(r)>c+1 and r[c+1]]
+    G={}
+    for r in v26[1:]:
+        r=r+['']*(17-len(r))
+        if not r[0] or r[3] not in ('Maria','Danielle'): continue
+        g=G.setdefault(r[0],{'game':r[0],'week':int(r[1]),'slot':r[2],'home':r[4],'away':r[5],'scorer':r[11],'md':{}})
+        g['md'][r[3]]=(r[6],r[7])
+    start=datetime.datetime(2026,9,11,0,20)  # Thursday of week 1, 7:20 pm Central (Friday 00:20 UTC)
+    day={'WNF':-1,'TNF':0,'Saturday':2,'International':3,'SNF':3,'MNF':4}
+    clock=datetime.datetime(2026,10,19,17,0)  # the frozen clock (noon Central) in UTC
+    picks=[]; crowd=[]
+    for i,g in enumerate(sorted(G.values(), key=lambda g:int(g['game']))):
+        ko=start+datetime.timedelta(days=7*(g['week']-1)+day.get(g['slot'],3))
+        if g['slot']=='International': ko-=datetime.timedelta(hours=9)
+        g['ko']=ko.strftime('%Y-%m-%dT%H:%M:%S.000Z')
+        if ko>clock: continue
+        hO=offered.get(g['home'],[]); aO=offered.get(g['away'],[])
+        ch={}
+        for lst,f in ((hO,0.52),(aO,0.48)):
+            for j,n in enumerate(lst): ch[n]=round(f*[0.17,0.15,0.11,0.09,0.07,0.06,0.05,0.04,0.03][min(j,8)],4)
+        for who in g['md'].values():
+            for n in who:
+                if n and n not in ch: ch[n]=0.025
+        m=g['md'].get('Maria',('','')); d=g['md'].get('Danielle',('',''))
+        hp=hO[1] if len(hO)>1 else (hO[0] if hO else m[0]); ap=aO[0] if aO else m[1]
+        if i%3==0 and m[0]: hp=m[0]            # same player as Maria
+        if i%4==1 and d[1]: ap=d[1]            # same player as Danielle
+        if i%5==2 and g['scorer'] in hO: hp=g['scorer']
+        if i%5==2 and g['scorer'] in aO: ap=g['scorer']
+        price=lambda n:-int(round((0.8/max(ch.get(n,0.03),0.01)-1)*100))
+        picks.append({'week':str(g['week']),'game':g['game'],'home':g['home'],'away':g['away'],'kickoff':g['ko'],
+          'hp':hp,'hpct':ch.get(hp,0.03),'hprice':price(hp),'ap':ap,'apct':ch.get(ap,0.03),'aprice':price(ap),
+          'made':'2026-10-01T12:00:00Z','retro':g['week']<4,'chances':ch,'why':None})
+        if g['scorer']:
+            jh=g['scorer'] if i%4==0 and g['scorer'] in hO else (hO[0] if hO else '')
+            crowd.append({'friend':'Jake','week':str(g['week']),'game':g['game'],'homePick':jh,'awayPick':aO[1] if len(aO)>1 else ''})
+            sa=g['scorer'] if i%6==3 and g['scorer'] in aO else (aO[0] if aO else '')
+            crowd.append({'friend':'Sam','week':str(g['week']),'game':g['game'],'homePick':hO[2] if len(hO)>2 else '','awayPick':sa})
+    mpub={'season':'2026','picks':picks,'sealed':1,'made':len(picks)+1,'trainedAt':'2026-10-10T06:01:00Z','games':2100,'report':None,
+          'price':{'k0':math.log(0.8),'k1':-1}}
+    crowdOut={'season':'2026','friends':['Jake','Sam'],'picks':crowd,'counts':{},'styles':{}}
+    return mpub, crowdOut
+MPUB, CROWD = fake_data()
+
 async def api(route):
     q=dict(urllib.parse.parse_qsl(urllib.parse.urlparse(route.request.url).query)); a=q.get('action')
+    if a=='machinepub': return await route.fulfill(status=200, content_type='application/json', body=json.dumps(MPUB))
+    if a=='crowd': return await route.fulfill(status=200, content_type='application/json', body=json.dumps(CROWD if q.get('season','2026')=='2026' else {'season':q.get('season'),'friends':[],'picks':[],'counts':{}}))
     body={'friends':[{'name':'Jake'}],'invite':'abcdef1234','pending':[{'name':'Sam','at':'2026-10-03T12:00:00Z','clash':False}]} if a=='friends' else {'errors':[{'msg':'x','at':'2026-10-04T10:00:00Z'}],'dcOk':[]} if a=='errlist' else {'versions':{},'season':'2026','friends':1,'machine':{'label':'memory 0.75','standard':False,'meta':{'from':'My test','at':'2026-10-10T06:00:00Z'},'prev':{'label':'Standard settings'},'trainedAt':'2026-10-10T06:01:00Z'},'triggers':[]} if a=='status' else {'versions':{}} if a=='versions' else {'jobs':[]} if a=='jobs' else {'items':[{'state':'todo','key':'odds','title':'Odds needed for 2 games','detail':'x'},{'state':'ok','key':'graded','title':'Week 5 graded','detail':'y'}],'todo':1,'lastWeek':5,'nextWeek':6} if a=='checklist' else {'ok':True,'who':['Maria','Danielle','ADMIN']} if a=='pins' else {'admin':True,'rows':[],'season':'2026'} if not a else {'season':'2026','friends':[],'picks':[],'injuries':[],'list':[]}
     await route.fulfill(status=200, content_type='application/json', body=json.dumps(body))
 

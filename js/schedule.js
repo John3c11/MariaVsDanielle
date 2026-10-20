@@ -2,7 +2,7 @@
 // Part of the MariaVsDanielle site. All js/ files share one global scope and load in the order listed in index.html.
 
     // ── Schedule ────────────────────────────────────────────────────────────
-    var SCHED = { showAll: false, kickoffs: {}, loadingWeeks: {} };
+    var SCHED = { showAll: false };
 
     function loadScheduleTab() {
       var el = document.getElementById('schedule-content');
@@ -46,7 +46,7 @@
           lastWeek = g.week;
           h += '<div class="sch-week">' + weekName(g.week) + (g.week === thisWeek ? ' <span class="sch-now">THIS WEEK</span>' : '') + '</div>';
         }
-        var ko = SCHED.kickoffs[CURRENT_YEAR + '_' + g.week + '_' + espnTeamKey(g.home) + '_' + espnTeamKey(g.away)];
+        var ko = kickoffOf(CURRENT_YEAR, g.week, g.home, g.away);
         var koText = ko ? new Date(ko).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
         var status;
         if (g.scorer) {
@@ -74,25 +74,12 @@
         b.addEventListener('click', function() { SCHED.showAll = b.getAttribute('data-sch') === '1'; drawSchedule(values); });
       });
 
-      // Fill in kickoff times from ESPN, a week at a time
+      // Fill in kickoff times from ESPN, a week at a time (loadKickoffs in stats.js)
       var weeks = shown.map(function(g) { return g.week; }).filter(function(w, i, a) { return a.indexOf(w) === i; });
       weeks.forEach(function(w) {
-        var wk = CURRENT_YEAR + '_' + w;
-        if (SCHED.loadingWeeks[wk]) return;
-        SCHED.loadingWeeks[wk] = true;
-        var path = w > 18 ? 'scoreboard?dates=' + CURRENT_YEAR + '&seasontype=3&week=' + (w - 18) : 'scoreboard?dates=' + CURRENT_YEAR + '&seasontype=2&week=' + w;
-        espnGet(path).then(function(d) {
-          (d.events || []).forEach(function(e) {
-            var c = e.competitions && e.competitions[0];
-            if (!c) return;
-            var keys = c.competitors.map(function(x) { return espnTeamKey(x.team.displayName); });
-            var H = c.competitors.filter(function(x) { return x.homeAway === 'home'; })[0];
-            var A = c.competitors.filter(function(x) { return x.homeAway === 'away'; })[0];
-            // Store both orders since the sheet's home/away may differ from ESPN's
-            SCHED.kickoffs[CURRENT_YEAR + '_' + w + '_' + keys[0] + '_' + keys[1]] = e.date;
-            SCHED.kickoffs[CURRENT_YEAR + '_' + w + '_' + keys[1] + '_' + keys[0]] = e.date;
-          });
-          if (document.getElementById('tab-schedule').classList.contains('active')) drawSchedule(values);
-        }).catch(function() {});
+        if (kickoffsAsked(CURRENT_YEAR, w)) return;
+        loadKickoffs(CURRENT_YEAR, w).then(function(ok) {
+          if (ok && document.getElementById('tab-schedule').classList.contains('active')) drawSchedule(values);
+        });
       });
     }

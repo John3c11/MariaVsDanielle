@@ -13,6 +13,7 @@
       MACHINE.loading = Promise.all([picksApi({ action: 'machinepub' }), loadAllBets()]).then(function(res) {
         MACHINE.data = machineCompute(res[0] || {}, res[1] || []);
         window.MACHINE_GRADES = MACHINE.data.gradeMap;
+        window.MACHINE_SAME = MACHINE.data.sameMap;
         return MACHINE.data;
       });
       return MACHINE.loading;
@@ -62,18 +63,27 @@
             grades[w] = { picks: gs, g: mcGradeFromPts(pts), pts: pts, units: r.netUnits, settled: settled, notOffered: notOffered };
           }
         });
+        // 🤝 Same picks (v157): players the Machine took that Maria or Danielle also took
+        var mk = picks.map(function(x) { return playerKey(x.name); }), same = {};
+        ['Maria', 'Danielle'].forEach(function(w) {
+          var r = rr[w]; if (!r) return;
+          same[w] = [r.homePick, r.awayPick].filter(function(n) { return n && mk.indexOf(playerKey(n)) >= 0; });
+        });
         return { p: p, week: parseInt(p.week, 10), game: String(p.game), home: p.home, away: p.away, scorer: scorer, settled: settled, notOffered: notOffered,
-          picks: picks, hit: hit, units: units, estHit: !!(hit && !hit.real), retro: p.retro, grades: grades, rows: rr };
+          picks: picks, hit: hit, units: units, estHit: !!(hit && !hit.real), retro: p.retro, grades: grades, rows: rr, same: same };
       }).sort(function(a, b) { return b.week - a.week || b.game - a.game; });
       // Grade lookup for the Bet Log: "year|game|picker"
       var gradeMap = {};
       games.forEach(function(g) { Object.keys(g.grades).forEach(function(w) { gradeMap[year + '|' + g.game + '|' + w] = g.grades[w]; }); });
+      // Same-pick lookup for the Bet Log: "year|game|picker" -> player keys the Machine also took
+      var sameMap = {};
+      games.forEach(function(g) { Object.keys(g.same).forEach(function(w) { if (g.same[w].length) sameMap[year + '|' + g.game + '|' + w] = g.same[w].map(playerKey); }); });
       // Upcoming games this season (picks sealed until kickoff)
       var upcoming = {};
       bets.forEach(function(b) { if (b.year === year && !b.firstScorer && b.game) upcoming[b.game] = 1; });
       var seen = {}; games.forEach(function(g) { seen[g.game] = 1; });
       // Sealed = picks it has already made for games that haven't kicked off (the script only sends the count)
-      return { pub: pub, year: year, games: games, gradeMap: gradeMap, anyEst: games.some(function(g) { return g.estHit; }), sealed: pub.sealed != null ? pub.sealed : 0, made: pub.made != null ? pub.made : games.length, trained: !!pub.trainedAt };
+      return { pub: pub, year: year, games: games, gradeMap: gradeMap, sameMap: sameMap, anyEst: games.some(function(g) { return g.estHit; }), sealed: pub.sealed != null ? pub.sealed : 0, made: pub.made != null ? pub.made : games.length, trained: !!pub.trainedAt };
     }
 
     // Standings for the three of them over the same settled games
@@ -159,6 +169,7 @@
       }
       // Bet log: one card per game, one line per person
       var weeks = []; D.games.forEach(function(g) { if (weeks.indexOf(g.week) < 0) weeks.push(g.week); });
+      h += mcSameHtml(D);
       h += mcBrainHtml(D);
       h += '<div class="pf-h">🧾 Bet log <small>' + (D.sealed ? '🔒 ' + D.sealed + ' upcoming pick' + (D.sealed === 1 ? '' : 's') + ' sealed until kickoff' : 'newest first') + '</small></div>';
       weeks.forEach(function(w) {
@@ -170,6 +181,32 @@
       el.innerHTML = h;
       if (typeof fillHeadshots === 'function') fillHeadshots(el);
     }
+    // 🤝 Same picks (v157): when the Machine took the same player as Maria or Danielle, how those picks did,
+    // next to the picks it passed on. Games still going and games where the scorer wasn't offered don't count.
+    function mcSameHtml(D) {
+      var S = {};
+      ['Maria', 'Danielle'].forEach(function(w) { S[w] = { n: 0, h: 0, u: 0, on: 0, oh: 0 }; });
+      D.games.forEach(function(g) {
+        if (!g.settled || g.notOffered) return;
+        ['Maria', 'Danielle'].forEach(function(w) {
+          var r = g.rows[w]; if (!r) return;
+          [[r.homePick, r.homeOdds], [r.awayPick, r.awayOdds]].forEach(function(x) {
+            if (!x[0]) return;
+            var hit = playerKey(x[0]) === playerKey(g.scorer), x2 = S[w];
+            if ((g.same[w] || []).indexOf(x[0]) >= 0) { x2.n++; if (hit) x2.h++; x2.u += hit ? oddsN(x[1]) : -1; }
+            else { x2.on++; if (hit) x2.oh++; }
+          });
+        });
+      });
+      if (!S.Maria.n && !S.Danielle.n) return '';
+      function rate(h, n) { return n ? Math.round(h / n * 100) + '%' : '—'; }
+      return '<div class="pf-h">🤝 Same picks <small>players the Machine took too</small></div><div class="card mso">' + ['Maria', 'Danielle'].map(function(w) {
+        var x = S[w];
+        return '<div class="mso-row"><b style="color:' + personColor(w) + '">' + w + '</b><span>' + x.n + ' same pick' + (x.n === 1 ? '' : 's') + ' · ' + x.h + ' scored first (' + rate(x.h, x.n) + ')' +
+          '<small>The rest of her picks: ' + x.oh + ' of ' + x.on + ' (' + rate(x.oh, x.on) + ')</small></span>' +
+          (x.n ? '<b class="mso-u ' + (x.u >= 0 ? 'u-good' : 'u-bad') + '">' + fmtU(x.u) + '</b>' : '') + '</div>';
+      }).join('') + '</div><div class="mc-note u-mb-l">Units are what those picks paid on their own: a hit pays its odds, a miss costs 1 unit. 🤖 marks them in the Bet Log and below.</div>';
+    }
     // One stat with three values and bars (Maria, Danielle, Machine)
     function mcBlock(label, T, val, show) {
       var vals = MC_WHO.map(function(w) { return val(T[w]); });
@@ -180,9 +217,9 @@
     }
     function mcGameHtml(g) {
       function nick(t) { return escHtml(teamNick(t)); }
-      function pick(name, odds, est, settled) {
+      function pick(name, odds, est, settled, same) {
         var hit = settled && playerKey(name) === playerKey(g.scorer);
-        return '<span class="mch-pk' + (hit ? ' hit' : settled ? ' miss' : '') + '">' + (hit ? '✅ ' : '') + escHtml(name) + (odds ? ' <small>+' + Math.round(odds) + (est ? ' est' : '') + '</small>' : '') + '</span>';
+        return '<span class="mch-pk' + (hit ? ' hit' : settled ? ' miss' : '') + '">' + (hit ? '✅ ' : '') + escHtml(name) + (same ? ' <span class="mc-same" title="The Machine picked him too">🤖</span>' : '') + (odds ? ' <small>+' + Math.round(odds) + (est ? ' est' : '') + '</small>' : '') + '</span>';
       }
       var h = '<div class="mch-g"><div class="mch-gh"><span class="mch-match"' + (typeof gameLinkAttr === 'function' ? ' ' + gameLinkAttr(MACHINE.data ? MACHINE.data.year : CURRENT_YEAR, g.game) + ' title="Open this game"' : '') + '>' + teamLogo(g.away) + nick(g.away) + ' <i>@</i> ' + nick(g.home) + teamLogo(g.home) + '</span>' +
         '<span class="mch-ftd">' + (g.settled ? '🏈 ' + escHtml(g.scorer) + (g.notOffered ? ' <small>not offered</small>' : '') : '<span class="ls-dot"></span> in progress') + '</span></div>';
@@ -194,7 +231,7 @@
         } else {
           var r = g.rows[w];
           if (!r) return;
-          line = [[r.homePick, r.homeOdds], [r.awayPick, r.awayOdds]].filter(function(x) { return x[0]; }).map(function(x) { return pick(x[0], oddsN(x[1]) * 100, false, g.settled); }).join('');
+          line = [[r.homePick, r.homeOdds], [r.awayPick, r.awayOdds]].filter(function(x) { return x[0]; }).map(function(x) { return pick(x[0], oddsN(x[1]) * 100, false, g.settled, (g.same[w] || []).indexOf(x[0]) >= 0); }).join('');
           if (g.settled) units = r.netUnits;
         }
         h += '<div class="mch-line"><span class="mch-who" style="color:' + mcColor(w) + '">' + (w === 'Machine' ? '🤖 Machine' : w) + '</span><span class="mch-picks">' + line + '</span>' +

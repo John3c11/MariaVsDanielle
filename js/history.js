@@ -44,13 +44,15 @@
         var noOffer = b.notOffered;
         var resultBg = noOffer ? 'rgba(255,255,255,0.08)' : b.correct === 'Yes' ? 'rgba(52,211,153,0.15)' : b.correct === 'No' ? 'rgba(248,113,113,0.15)' : 'rgba(255,255,255,0.08)';
         var resultColor = noOffer ? '#A1A9B6' : b.correct === 'Yes' ? '#34D399' : b.correct === 'No' ? '#F87171' : '#A1A9B6';
-        var resultText = b.firstScorer ? escHtml(b.firstScorer) : '⏳';
+        var resultText = b.firstScorer ? escHtml(b.firstScorer) : '⏳' + (b.year === CURRENT_YEAR ? ' ' + escHtml(kickoffLabel(kickoffOf(b.year, b.week, b.homeTeam, b.awayTeam), b.slot)) : ''); // v157: when it kicks off
         var pickerColor = personColor(b.picker);
         var played = b.correct === 'Yes' || b.correct === 'No' || !!b.firstScorer; // not played yet: no units (v156)
         var unitColor = b.netUnits > 0 ? 'var(--good)' : b.netUnits < 0 ? 'var(--bad)' : 'var(--t3)';
         var unitStr = !played ? '—' : b.netUnits !== 0 ? (b.netUnits > 0 ? '+' : '') + b.netUnits + 'u' : '0u';
-        var homeColored = b.homePick ? coloredText(b.homePick, b.homeTeam) : '';
-        var awayColored = b.awayPick ? coloredText(b.awayPick, b.awayTeam) : '';
+        var same = (window.MACHINE_SAME && MACHINE_SAME[b.year + '|' + b.gameNo + '|' + b.picker]) || []; // 🤝 v157: the Machine took him too
+        function mark(n) { return same.indexOf(playerKey(n)) >= 0 ? ' <span class="mc-same" title="The Machine picked him too">🤖</span>' : ''; }
+        var homeColored = b.homePick ? coloredText(b.homePick, b.homeTeam) + mark(b.homePick) : '';
+        var awayColored = b.awayPick ? coloredText(b.awayPick, b.awayTeam) + mark(b.awayPick) : '';
         var players = [homeColored, awayColored].filter(Boolean).join('<span class="u-muted"> / </span>') || '—';
         var gameDisplay = b.homeTeam && b.awayTeam ? (b.gameNo && typeof gameLinkAttr === 'function' ? '<span ' + gameLinkAttr(b.year, b.gameNo) + ' title="Open this game">' + coloredGame(b.homeTeam, b.awayTeam) + '</span>' : coloredGame(b.homeTeam, b.awayTeam)) : (b.game || '—');
         if (b.firstScorer && b.homeTeam) gameDisplay += ' <button class="rp-mini" title="Replay this game" aria-label="Replay this game" onclick="replayGame(\'' + b.year + '\',' + parseInt(b.week, 10) + ',\'' + escHtml(String(b.gameNo)) + '\')">⏪</button>';
@@ -83,7 +85,15 @@
         if (PICKS_URL) loadScriptOnce('js/machine.js').then(function() { return loadMachine(); }).then(function() {
           if (document.getElementById('bh-history-table') && BH_LAST.length) renderBHHistory(BH_LAST);
         }).catch(function() {});
-        // oldest first: SEASONS array is newest first, so we reverse to get oldest first
+        // ⏳ Games not played yet show when they kick off (v157): ESPN's kickoff times for their weeks
+        var pendWeeks = {};
+        ALL_BH_BETS.forEach(function(b) { if (!b.firstScorer && b.year === CURRENT_YEAR) pendWeeks[b.week] = 1; });
+        Object.keys(pendWeeks).forEach(function(w) {
+          if (kickoffsAsked(CURRENT_YEAR, w)) return;
+          loadKickoffs(CURRENT_YEAR, w).then(function(ok) {
+            if (ok && document.getElementById('bh-history-table') && BH_LAST.length) renderBHHistory(BH_LAST);
+          });
+        });
 
 
         var html = '<div class="frows u-mb" id="bh-filters">' +
@@ -140,7 +150,7 @@
           if (b.awayPick && !isNaN(parseFloat(b.awayOdds))) oddsArr.push(formatOdds(b.awayOdds));
           return {
             homeOddsN: parseFloat(b.homeOdds) || 0, awayOddsN: parseFloat(b.awayOdds) || 0,
-            year: season.year, week: b.week, game: game, gameNo: b.game,
+            year: season.year, week: b.week, slot: b.slot, game: game, gameNo: b.game,
             homeTeam: b.home, awayTeam: b.away,
             picker: b.picker, homePick: b.homePick, awayPick: b.awayPick,
             firstScorer: b.scorer, correct: b.correct, wasOffered: b.wasOffered,
@@ -391,6 +401,7 @@
 
         html += '</div><div class="wide-col">';
         // Record Book (insights.js): every all-time record and who holds it
+        html += secH('📈 Rivalry rating', 'everyone who picks, on one scale') + '<div id="legacy-rating"><div class="loading">Loading…</div></div>';
         html += secH('📖 Record Book', 'ties go to whoever did it first') + '<div id="legacy-records"><div class="loading">Loading…</div></div>';
         html += '</div></div>';
 
@@ -418,6 +429,7 @@
 
         document.getElementById('legacy-content').innerHTML = html;
         renderClimb();
+        renderRating();
         document.querySelectorAll('[data-race-y]').forEach(function(b) {
           b.addEventListener('click', function() {
             var y = b.getAttribute('data-race-y'), box = document.getElementById('lg-race');
@@ -495,6 +507,98 @@
       h += tile('🏆 Beat Both', beatBoth + ' friend' + (beatBoth === 1 ? '' : 's'), 'better win % than Maria and Danielle');
       h += '</div></div>';
       return h;
+    }
+
+    // ── 📈 Rivalry rating (inside All-Time, v157) ───────────────────────────
+    // A chess-style rating for everyone who picks: Maria, Danielle, the Machine and every friend. Everyone starts
+    // at 1500. After each game (oldest first), everyone who picked it is compared with everyone else who did:
+    // scoring first beats missing, and two misses (or two hits) is a draw. Beating someone rated higher moves you
+    // more. Odds don't count, so friends and the Machine play on the same terms. Games where the scorer wasn't
+    // offered are skipped. It only uses games that have a first scorer, so it can't show anything early.
+    var RATING_K = 32, RATING_NEW = 5; // fewer games than RATING_NEW = still settling in
+    function ratingRun(games) {
+      var R = {}, hist = {};
+      games.forEach(function(g) {
+        var who = Object.keys(g.hit);
+        if (who.length < 2) return;
+        var before = {};
+        who.forEach(function(w) { if (!R[w]) { R[w] = { r: 1500, n: 0, h: 0, peak: 1500 }; hist[w] = [1500]; } before[w] = R[w].r; });
+        who.forEach(function(a) {
+          var d = 0;
+          who.forEach(function(b) {
+            if (a === b) return;
+            var exp = 1 / (1 + Math.pow(10, (before[b] - before[a]) / 400));
+            d += (g.hit[a] === g.hit[b] ? 0.5 : g.hit[a] ? 1 : 0) - exp;
+          });
+          var x = R[a];
+          x.r += RATING_K * d / (who.length - 1); x.n++; if (g.hit[a]) x.h++;
+          x.peak = Math.max(x.peak, x.r); hist[a].push(x.r);
+        });
+      });
+      return { R: R, hist: hist };
+    }
+    // Every finished game, oldest first: { year, week, game, hit: { name: true/false } }
+    function ratingGames() {
+      var mc = PICKS_URL ? loadScriptOnce('js/machine.js').then(function() { return loadMachine(); }).catch(function() { return null; }) : Promise.resolve(null);
+      return Promise.all([loadAllBets(), getCrowd().catch(function() { return {}; }), typeof pastCrowds === 'function' ? pastCrowds() : Promise.resolve([]), mc]).then(function(r) {
+        var G = {}, list = [];
+        r[0].forEach(function(b) {
+          if (!b.game || !b.firstScorer || !(b.correct === 'Yes' || b.correct === 'No')) return;
+          var k = b.year + '|' + b.game;
+          var g = G[k] || (G[k] = { year: b.year, week: parseInt(b.week, 10) || 0, game: parseInt(b.game, 10) || 0, scorer: b.firstScorer, void: false, hit: {} });
+          if (b.notOffered) g.void = true;
+          if (b.homePick || b.awayPick) g.hit[b.picker] = b.correct === 'Yes';
+        });
+        function hitOf(g, picks) { return picks.some(function(p) { return p && playerKey(p) === playerKey(g.scorer); }); }
+        [{ year: CURRENT_YEAR, crowd: r[1] || {} }].concat(r[2] || []).forEach(function(x) {
+          var names = x.crowd.friends || [];
+          (x.crowd.picks || []).forEach(function(p) {
+            var g = G[x.year + '|' + p.game];
+            if (g && names.indexOf(p.friend) >= 0 && (p.homePick || p.awayPick)) g.hit[p.friend] = hitOf(g, [p.homePick, p.awayPick]);
+          });
+        });
+        var D = r[3];
+        if (D && D.games) D.games.forEach(function(mg) {
+          var g = G[D.year + '|' + mg.game];
+          if (g && mg.settled) g.hit.Machine = hitOf(g, mg.picks.map(function(x) { return x.name; }));
+        });
+        Object.keys(G).forEach(function(k) { if (!G[k].void) list.push(G[k]); });
+        return list.sort(function(a, b) { return a.year - b.year || a.week - b.week || a.game - b.game; });
+      });
+    }
+    function ratingColor(w) { return w === 'Machine' ? 'var(--machine)' : w === 'Maria' || w === 'Danielle' ? personColor(w) : (typeof fStyle === 'function' && fStyle(w).color) || 'var(--t2)'; }
+    function ratingSpark(vals, color) {
+      if (vals.length < 2) return '';
+      var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals), sp = (hi - lo) || 1, W = 64, H = 20;
+      var pts = vals.map(function(v, i) { return (i / (vals.length - 1) * W).toFixed(1) + ',' + (H - 2 - (v - lo) / sp * (H - 4)).toFixed(1); }).join(' ');
+      return '<svg class="rt-spark" viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="true"><polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>';
+    }
+    function renderRating() {
+      var box = document.getElementById('legacy-rating');
+      if (!box) return;
+      ratingGames().then(function(games) {
+        var run = ratingRun(games), R = run.R, names = Object.keys(R);
+        if (!names.length) { box.innerHTML = '<div class="empty">Ratings start once a game has a first scorer.</div>'; return; }
+        // This week's move: the change over the newest week anyone played
+        var last = games[games.length - 1], lastKey = last.year + '|' + last.week;
+        var weekStart = {};
+        names.forEach(function(w) {
+          var H = run.hist[w], n = 0;
+          games.forEach(function(g) { if (g.hit[w] !== undefined && Object.keys(g.hit).length >= 2 && g.year + '|' + g.week === lastKey) n++; });
+          weekStart[w] = H[H.length - 1 - n];
+        });
+        names.sort(function(a, b) { return (R[b].n >= RATING_NEW) - (R[a].n >= RATING_NEW) || R[b].r - R[a].r; });
+        var h = '<div class="card rt-card">' + names.map(function(w, i) {
+          var x = R[w], c = ratingColor(w), mv = Math.round(x.r - weekStart[w]), settled = x.n >= RATING_NEW;
+          var label = w === 'Machine' ? '🤖 Machine' : (w !== 'Maria' && w !== 'Danielle' && typeof fStyle === 'function' && fStyle(w).emoji ? fStyle(w).emoji + ' ' : '') + escHtml(w);
+          return '<div class="rt-row' + (settled ? '' : ' new') + '"><span class="rt-rank">' + (settled ? i + 1 : '') + '</span>' +
+            '<span class="rt-name" style="color:' + c + '">' + label + '<small>' + x.n + ' game' + (x.n === 1 ? '' : 's') + ' · ' + x.h + ' hit' + (x.h === 1 ? '' : 's') + (settled ? ' · peak ' + Math.round(x.peak) : ' · still settling in') + '</small></span>' +
+            ratingSpark(run.hist[w], c) +
+            '<span class="rt-r">' + Math.round(x.r) + (mv ? '<small class="' + (mv > 0 ? 'u-good' : 'u-bad') + '">' + (mv > 0 ? '▲' : '▼') + Math.abs(mv) + '</small>' : '<small class="u-faint">–</small>') + '</span></div>';
+        }).join('') + '</div>';
+        h += '<div class="ui-note u-mt-s">Everyone starts at 1500. After each game, everyone who picked it is compared with everyone else who did: scoring first beats missing, and two misses is a draw. Beating someone rated higher moves you more, and odds don\'t count, so friends and the Machine play on the same terms. ▲▼ is ' + wkName(last.week) + (last.year !== CURRENT_YEAR ? ' ' + last.year : '') + '.</div>';
+        box.innerHTML = h;
+      }).catch(function() { box.innerHTML = ''; });
     }
 
     // ── 🪜 Climbing out of the hole (inside All-Time) ───────────────────────

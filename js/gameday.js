@@ -3,12 +3,12 @@
 // Reads ESPN's public scoreboard + game summary every 20 seconds; nothing is saved anywhere.
 // Part of the MariaVsDanielle site. Shares the global scope with the other js/ files.
 
-    var GD = { home: '', away: '', id: null, timer: null, picks: [], done: false, test: null };
+    var GD = { home: '', away: '', id: null, timer: null, picks: [], done: false, test: null, mc: null, mcAsked: false, last: null };
     var GD_MS = 20000;
 
     // test = { year, week, picks } opens a finished game instead of a live one (admin's 📺 Test Game Day)
     function startGameDay(home, away, test) {
-      GD.home = home; GD.away = away; GD.id = null; GD.done = false; GD.test = test || null;
+      GD.home = home; GD.away = away; GD.id = null; GD.done = false; GD.test = test || null; GD.mc = null; GD.mcAsked = false; GD.last = null;
       GD.picks = test ? test.picks : gdPicksFromLive(home, away);
       var root = document.getElementById('gameday');
       if (!root) {
@@ -72,8 +72,10 @@
         GD.id = ev.id;
         var sum = null;
         if (ev.status.type.state !== 'pre') { try { sum = await espnGet('summary?event=' + ev.id); } catch (e) {} }
+        GD.last = { ev: ev, sum: sum };
         body.innerHTML = gdHtml(ev, sum);
         if (typeof fillHeadshots === 'function') fillHeadshots(body);
+        if (ev.status.type.state !== 'pre') gdMachine(); // 🎯 the Machine's chances: only once the game has kicked off
         gdTakeover(ev, sum);
         GD.done = ev.status.type.state === 'post';
       } catch (e) {
@@ -133,17 +135,14 @@
         (st.state === 'in' && sit.downDistanceText ? '<div class="gd-down">' + escHtml(sit.downDistanceText) + '</div>' : '') +
         (st.state === 'in' && sit.isRedZone ? '<div class="gd-rz">🚨 RED ZONE</div>' : '') + '</div>' + side(A) + '</div>';
       // Field: where the ball is, from the side with the ball (possessionText like "PIT 34")
-      if (st.state === 'in' && sit.possessionText && sit.possession) {
-        var m = /([A-Z]{2,3})\s+(\d+)/.exec(sit.possessionText), off = [H, A].filter(function(c) { return String(c.id || c.team.id) === String(sit.possession); })[0];
-        if (m && off) {
-          var own = m[1] === off.team.abbreviation, yl = parseInt(m[2], 10);
-          var toGo = own ? 100 - yl : yl;                // yards to the end zone the offense is attacking
-          // Drawn with the home end zone on the left, so home drives right and the away team drives left
-          var pos = off === H ? 100 - toGo : toGo;        // % from the left goal line
-          var hc = (TEAM_COLORS[resolveTeam(H.team.displayName)] || {}).primary || '#374151', ac = (TEAM_COLORS[resolveTeam(A.team.displayName)] || {}).primary || '#374151';
-          h += '<div class="gd-field"><i class="gd-ez" style="left:0;background:' + hc + '"></i><i class="gd-ez" style="right:0;background:' + ac + '"></i>' +
-            '<i class="gd-mark" style="left:' + (8 + pos * 0.84).toFixed(1) + '%"></i><span class="gd-togo">' + escHtml(off.team.abbreviation) + ' · ' + toGo + ' yds to the end zone</span></div>';
-        }
+      var spot = gdSpot(ev);
+      if (spot) {
+        var off = spot.off, toGo = spot.toGo;            // yards to the end zone the offense is attacking
+        // Drawn with the home end zone on the left, so home drives right and the away team drives left
+        var pos = off === H ? 100 - toGo : toGo;          // % from the left goal line
+        var hc = (TEAM_COLORS[resolveTeam(H.team.displayName)] || {}).primary || '#374151', ac = (TEAM_COLORS[resolveTeam(A.team.displayName)] || {}).primary || '#374151';
+        h += '<div class="gd-field"><i class="gd-ez" style="left:0;background:' + hc + '"></i><i class="gd-ez" style="right:0;background:' + ac + '"></i>' +
+          '<i class="gd-mark" style="left:' + (8 + pos * 0.84).toFixed(1) + '%"></i><span class="gd-togo">' + escHtml(off.team.abbreviation) + ' · ' + toGo + ' yds to the end zone</span></div>';
       }
 
       // First TD
@@ -157,7 +156,7 @@
       }
 
       // The four picks, with live touches/yards and an involvement meter
-      var S = gdStats(sum), heats = [];
+      var S = gdStats(sum), heats = [], live = gdChances(ev), chance = {};
       var cards = GD.picks.map(function(p) {
         var s = gdFind(S, p.name) || { car: 0, ryd: 0, rec: 0, tgt: 0, cyd: 0, td: 0 };
         var touches = s.car + Math.max(s.tgt, s.rec), yds = s.ryd + s.cyd;
@@ -166,20 +165,23 @@
         var heat = Math.min(100, Math.round(touches * 8 + yds * 0.6 + (rz ? 25 : 0)));
         heats.push(heat);
         var hit = first && sameScorer(first, p.name);
+        var lc = !first && live ? live(p.name, p.team) : null; // 🎯 v157
+        if (lc) chance[p.who] = (chance[p.who] || 0) + lc.now;
         var line = [s.car ? s.car + ' car ' + s.ryd + ' yds' : '', (s.tgt || s.rec) ? s.rec + '/' + (s.tgt || s.rec) + ' rec ' + s.cyd + ' yds' : '', s.td ? s.td + ' TD' : ''].filter(Boolean).join(' · ') || (st.state === 'pre' ? 'Waiting for kickoff' : 'No touches yet');
         return { who: p.who, heat: heat, html: '<div class="gd-pick' + (hit ? ' hit' : first ? ' out' : '') + '" style="--pc:' + personColor(p.who) + '">' +
           headshot(p.name, p.team, 40) + '<div class="gd-pk-mid"><div class="gd-pk-n">' + escHtml(p.name) + (hit ? ' ✅' : '') + (rz && !first ? ' <span class="gd-rz-tag">RZ</span>' : '') + '</div>' +
           (p.odds ? '<div class="gd-pk-o">' + escHtml(p.odds) + '</div>' : '') +
+          (lc ? '<div class="gd-ch">🎯 <b>' + gdPct(lc.now) + '</b> to score first' + (Math.abs(lc.now - lc.pre) >= 0.005 ? ' <span class="' + (lc.now > lc.pre ? 'up' : 'dn') + '">' + (lc.now > lc.pre ? '▲' : '▼') + ' from ' + gdPct(lc.pre) + '</span>' : '') + '</div>' : '') +
           '<div class="gd-pk-s">' + line + '</div>' +
           (first ? '' : '<div class="gd-heat"><i style="width:' + heat + '%"></i></div>') + '</div></div>' };
       });
       var top = Math.max.apply(null, heats.concat([0]));
       h += '<div class="gd-cols">' + ['Maria', 'Danielle'].map(function(n) {
         var mine = cards.filter(function(c) { return c.who === n; });
-        return '<div class="gd-col"><div class="gd-col-h" style="color:' + personColor(n) + '">' + n + '</div>' +
+        return '<div class="gd-col"><div class="gd-col-h" style="color:' + personColor(n) + '">' + n + (chance[n] ? ' <span class="gd-col-pct">' + gdPct(chance[n]) + '</span>' : '') + '</div>' +
           mine.map(function(c) { return c.html.replace('class="gd-pick"', 'class="gd-pick' + (!first && top > 0 && c.heat === top ? ' hot' : '') + '"'); }).join('') + '</div>';
       }).join('') + '</div>';
-      if (!first && st.state === 'in') h += '<div class="gd-note">The bar is how involved each pick is so far: touches, yards, and his team in the red zone.</div>';
+      if (!first && st.state === 'in') h += '<div class="gd-note">' + (live ? '🎯 is each pick\'s chance to score the first TD right now: the Machine\'s number at kickoff, moved by who has the ball, how close they are and how much time is left. The number by each name adds up both picks. ' : '') + 'The bar is how involved each pick is so far: touches, yards, and his team in the red zone.</div>';
 
       // Latest plays
       var plays = gdPlays(sum);
@@ -213,4 +215,62 @@
       document.getElementById('gameday').appendChild(el);
       if (typeof fillHeadshots === 'function') fillHeadshots(el);
       setTimeout(function() { if (el.parentNode) el.remove(); }, 6500);
+    }
+
+    // ── 🎯 Live chances (v157) ───────────────────────────────────────────────
+    // Where the ball is: { off: the competitor with it, toGo: yards to the end zone it's attacking }, or null
+    function gdSpot(ev) {
+      var comp = ev.competitions[0], sit = comp.situation || {};
+      if (ev.status.type.state !== 'in' || !sit.possessionText || !sit.possession) return null;
+      var m = /([A-Z]{2,3})\s+(\d+)/.exec(sit.possessionText);
+      var off = comp.competitors.filter(function(c) { return String(c.id || c.team.id) === String(sit.possession); })[0];
+      if (!m || !off) return null;
+      var yl = parseInt(m[2], 10);
+      return { off: off, toGo: m[1] === off.team.abbreviation ? 100 - yl : yl };
+    }
+    // The Machine's game (its chances for every offered player, made before kickoff). Its picks only come once a game
+    // has kicked off, so this can't show anything early.
+    function gdMachine() {
+      if (GD.mcAsked || !PICKS_URL) return;
+      GD.mcAsked = true;
+      var year = GD.test ? String(GD.test.year) : CURRENT_YEAR, h = resolveTeam(GD.home), a = resolveTeam(GD.away);
+      loadScriptOnce('js/machine.js').then(function() { return loadMachine(); }).then(function(D) {
+        if (String(D.year) !== year) return;
+        GD.mc = D.games.filter(function(g) {
+          var x = resolveTeam(g.home), y = resolveTeam(g.away);
+          return ((x === h && y === a) || (x === a && y === h)) && (!GD.test || g.week === parseInt(GD.test.week, 10));
+        })[0] || null; // newest first, so this week's game
+        var root = document.getElementById('gameday'), body = root && root.querySelector('.gd-body');
+        if (GD.mc && GD.last && body && root.classList.contains('open')) {
+          body.innerHTML = gdHtml(GD.last.ev, GD.last.sum);
+          if (typeof fillHeadshots === 'function') fillHeadshots(body);
+        }
+      }).catch(function() {});
+    }
+    // Chance the drive on the field ends in a touchdown, by yards to go (about what NFL drives do)
+    function gdDriveTD(toGo) { return toGo <= 5 ? 0.7 : toGo <= 10 ? 0.58 : toGo <= 20 ? 0.45 : toGo <= 30 ? 0.36 : toGo <= 50 ? 0.27 : toGo <= 70 ? 0.2 : 0.15; }
+    function gdPct(x) { var p = x * 100; return (p < 1 ? '<1' : p < 10 ? p.toFixed(1).replace(/\.0$/, '') : Math.round(p)) + '%'; }
+    // A function (name, team) -> { now, pre } while the game is live and nobody has scored, or null.
+    //   pre: the Machine's chance at kickoff. now: that chance, with his team's part re-worked for the game right now:
+    //   the team with the ball gets this drive's touchdown chance, and after that both teams split what's left by the
+    //   Machine's own split, shrinking as the clock runs (NFL teams score about 4.6 TDs a game between them).
+    function gdChances(ev) {
+      var mg = GD.mc;
+      if (!mg || ev.status.type.state !== 'in') return null;
+      var ch = (mg.p && mg.p.chances) || {}, hT = resolveTeam(GD.home), aT = resolveTeam(GD.away);
+      var sum = {}; sum[hT] = 0; sum[aT] = 0;
+      Object.keys(ch).forEach(function(n) { var t = nowTeam(n); if (t in sum) sum[t] += ch[n]; });
+      var tot = sum[hT] + sum[aT], share = {};
+      share[hT] = tot ? sum[hT] / tot : 0.5; share[aT] = 1 - share[hT];
+      var per = ev.status.period || 1, m = /(\d+):(\d+)/.exec(ev.status.displayClock || ''), cm = m ? parseInt(m[1], 10) + parseInt(m[2], 10) / 60 : 15;
+      var left = per <= 4 ? (4 - per) * 15 + cm : cm;
+      function any(min) { return 1 - Math.exp(-4.6 / 60 * Math.max(0, min)); }
+      var spot = gdSpot(ev), offT = spot ? resolveTeam(spot.off.team.displayName) : '', d = spot ? gdDriveTD(spot.toGo) * Math.min(1, left / 2) : 0;
+      var P = {};
+      [hT, aT].forEach(function(t) { P[t] = (t === offT ? d : 0) + (1 - d) * any(left - (spot ? 2.5 : 0)) * share[t]; });
+      return function(name, team) {
+        var c = typeof mcChance === 'function' ? mcChance(ch, name) : 0, t = resolveTeam(team);
+        if (!(c > 0) || !(t in P) || !share[t]) return null;
+        return { now: Math.min(0.95, c * P[t] / (any(60) * share[t])), pre: c };
+      };
     }

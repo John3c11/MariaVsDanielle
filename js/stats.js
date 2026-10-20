@@ -814,6 +814,41 @@
       return n.trim().split(/\s+/).pop();
     }
 
+    // ── Kickoff times from ESPN, a week at a time (v157: shared by Schedule and the Bet Log) ──
+    // A week is asked for once per visit; if ESPN can't be reached, kickoffOf() just stays empty.
+    var KICKOFFS = {}, KICK_WEEKS = {};
+    function kickoffKey(year, week, a, b) { return year + '_' + parseInt(week, 10) + '_' + espnTeamKey(a) + '_' + espnTeamKey(b); }
+    function kickoffOf(year, week, home, away) { return KICKOFFS[kickoffKey(year, week, home, away)] || null; }
+    function kickoffsAsked(year, week) { return !!KICK_WEEKS[year + '_' + parseInt(week, 10)]; }
+    function loadKickoffs(year, week) {
+      var w = parseInt(week, 10), wk = year + '_' + w;
+      if (KICK_WEEKS[wk]) return KICK_WEEKS[wk];
+      var path = w > 18 ? 'scoreboard?dates=' + year + '&seasontype=3&week=' + (w - 18) : 'scoreboard?dates=' + year + '&seasontype=2&week=' + w;
+      KICK_WEEKS[wk] = espnGet(path).then(function(d) {
+        (d.events || []).forEach(function(e) {
+          var c = e.competitions && e.competitions[0];
+          if (!c || c.competitors.length < 2) return;
+          var n = c.competitors.map(function(x) { return x.team.displayName; });
+          // Both orders, since the sheet's home/away may differ from ESPN's
+          KICKOFFS[kickoffKey(year, w, n[0], n[1])] = e.date;
+          KICKOFFS[kickoffKey(year, w, n[1], n[0])] = e.date;
+        });
+        return true;
+      }).catch(function() { return false; });
+      return KICK_WEEKS[wk];
+    }
+    // "Tonight 7:15 PM", "Tomorrow 12:00 PM", "Thu 7:15 PM", "Oct 26"; the slot ("MNF") without a kickoff time
+    function kickoffLabel(ko, slot) {
+      if (!ko || (typeof ASOF !== 'undefined' && ASOF)) return slot || '';
+      var t = new Date(ko), now = new Date(), time = t.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      if (now >= t) return now - t < 4.5 * 3600000 ? 'Live now' : 'Waiting on the result';
+      var days = Math.round((new Date(t.getFullYear(), t.getMonth(), t.getDate()) - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 86400000);
+      if (days === 0) return (t.getHours() >= 17 ? 'Tonight ' : 'Today ') + time;
+      if (days === 1) return 'Tomorrow ' + time;
+      if (days < 7) return t.toLocaleDateString([], { weekday: 'short' }) + ' ' + time;
+      return t.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    }
+
     function normName(n) {
       return (n || '').toLowerCase().replace(/\b(jr|sr|ii|iii|iv|v)\b\.?/g, '').replace(/[^a-z0-9]/g, '');
     }
